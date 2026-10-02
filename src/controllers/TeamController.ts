@@ -1,0 +1,84 @@
+import { Team, TEAM_STATUSES, type TeamStatus } from '../models'
+import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
+
+export interface TeamInput {
+  name: string
+  status?: TeamStatus
+}
+
+export interface HeartTowerColumn {
+  team: Team
+  /** Guard power earned beyond the 5 every team starts with. */
+  earned: number
+}
+
+export class TeamController {
+  static async list(options: { includeInactive?: boolean } = {}): Promise<Team[]> {
+    return Team.findAll({
+      where: options.includeInactive ? {} : { status: 'active' },
+      order: [['name', 'ASC']],
+    })
+  }
+
+  static async getById(id: string): Promise<Team | null> {
+    return Team.findByPk(id)
+  }
+
+  /**
+   * Backs the "Heart of Awareness" tower: the guard power of every active team
+   * only. Inactive teams are excluded so deactivating one hides its column.
+   */
+  static async heartTower(options: { includeInactive?: boolean } = {}): Promise<HeartTowerColumn[]> {
+    const teams = await TeamController.list(options)
+
+    return teams
+      .map((team) => ({
+        team,
+        earned: Math.max(0, team.total_gp - BASE_TEAM_GUARD_POWER),
+      }))
+      .sort((a, b) => b.team.total_gp - a.team.total_gp || a.team.name.localeCompare(b.team.name))
+  }
+
+  static async create(input: string | TeamInput): Promise<Team> {
+    const raw = typeof input === 'string' ? { name: input } : input
+    const name = raw.name.trim()
+    if (!name) throw new Error('Team name is required')
+    const status = raw.status ?? 'active'
+    if (!TEAM_STATUSES.includes(status)) throw new Error('Team status is invalid')
+
+    const duplicate = await Team.findOne({ where: { name } })
+    if (duplicate) throw new Error(`Team "${name}" already exists`)
+
+    return Team.create({ name, status })
+  }
+
+  static async rename(id: string, name: string): Promise<Team | null> {
+    const team = await Team.findByPk(id)
+    if (!team) return null
+    const trimmed = name.trim()
+    if (!trimmed) throw new Error('Team name is required')
+    const duplicate = await Team.findOne({ where: { name: trimmed } })
+    if (duplicate && duplicate.id !== id) throw new Error(`Team "${trimmed}" already exists`)
+    await team.update({ name: trimmed })
+    return team
+  }
+
+  static async setStatus(id: string, status: TeamStatus): Promise<Team | null> {
+    if (!TEAM_STATUSES.includes(status)) throw new Error('Team status is invalid')
+    const team = await Team.findByPk(id)
+    if (!team) return null
+    await team.update({ status })
+    return team
+  }
+
+  static async toggleStatus(id: string): Promise<Team | null> {
+    const team = await Team.findByPk(id)
+    if (!team) return null
+    return TeamController.setStatus(id, team.status === 'active' ? 'inactive' : 'active')
+  }
+
+  static async remove(id: string): Promise<boolean> {
+    const deleted = await Team.destroy({ where: { id } })
+    return deleted > 0
+  }
+}

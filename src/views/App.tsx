@@ -43,13 +43,29 @@ export function App() {
   return (
     <div className="app">
       <header className="app__header">
-        <div className="app__brand">
-          <span className="app__logo" aria-hidden="true">
-            ♥
-          </span>
-          <div>
-            <h1>Guard The Heart</h1>
-            <p className="app__tagline">Offline-first challenge & scoreboard tracker</p>
+        <div className="app__header-top">
+          <div className="app__brand">
+            <span className="app__logo" aria-hidden="true">
+              ♥
+            </span>
+            <div>
+              <h1>Guard The Heart</h1>
+              <p className="app__tagline">Offline-first challenge & scoreboard tracker</p>
+            </div>
+          </div>
+          <div className="app__characters" role="group" aria-label="Meet the guardians">
+            <figure className="app__character">
+              <img src="/gardian-male.png" alt="Male guardian in teal and orange gear" />
+              <figcaption>Guardian</figcaption>
+            </figure>
+            <figure className="app__character app__character--mascot">
+              <img src="/gardimon.png" alt="Gardimon, the orange guardian mascot" />
+              <figcaption>Gardimon</figcaption>
+            </figure>
+            <figure className="app__character">
+              <img src="/gardian-female.png" alt="Female guardian in teal and orange gear" />
+              <figcaption>Guardian</figcaption>
+            </figure>
           </div>
         </div>
         <nav className="tabs" aria-label="Views">

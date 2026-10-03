@@ -36,8 +36,8 @@ export default defineConfig(({ mode }) => {
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        theme_color: '#111827',
-        background_color: '#111827',
+        theme_color: '#027479',
+        background_color: '#fff4e6',
         categories: ['games', 'utilities'],
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },

@@ -3,6 +3,7 @@ import { CardController } from '../controllers/CardController'
 import { useChallenges } from '../hooks/useChallenges'
 import { useTeams } from '../hooks/useTeams'
 import type { Card } from '../models'
+import { CardTile } from './CardTile'
 
 interface ChallengeOption {
   id: string
@@ -107,29 +108,21 @@ export function CardDrawView() {
       </div>
 
       {drawnCards.length > 0 && (
-        <div className="card-list">
-          <h3>Drawn Cards</h3>
-          {drawnCards.map((card) => (
-            <div key={card.id} className="card" style={{ borderLeft: `4px solid ${getCardTypeColor(card.type)}` }}>
-              <div className="card__body">
-                <div>
-                  <span className="card__title" style={{ fontSize: '1.2rem' }}>
-                    {card.icon} {card.name}
-                  </span>
-                  <span className="badge" style={{ marginLeft: '0.5rem', background: getCardTypeColor(card.type), color: '#fff' }}>
-                    {card.type}
-                  </span>
-                  <span className="badge badge--muted" style={{ marginLeft: '0.25rem' }}>
-                    {card.effect}
-                  </span>
-                </div>
-                <div className="muted" style={{ fontSize: '0.8rem' }}>
-                  Team: {teams.find((t) => t.id === card.team)?.name ?? 'Unknown'}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <section className="card-collection" aria-labelledby="drawn-cards-heading">
+          <h3 id="drawn-cards-heading">Drawn Cards</h3>
+          <div className="card-collection__grid">
+            {drawnCards.map((card) => (
+              <CardTile
+                key={card.id}
+                name={card.name}
+                type={card.type}
+                effect={card.effect}
+                icon={card.icon}
+                owner={teams.find((team) => team.id === card.team)?.name ?? 'Unknown team'}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
       {selectedChallengeId && drawnCards.length === 0 && challengeOptions.find((o) => o.id === selectedChallengeId)?.complete && !drawing && (
@@ -137,17 +130,4 @@ export function CardDrawView() {
       )}
     </section>
   )
-}
-
-function getCardTypeColor(type: string): string {
-  switch (type) {
-    case 'Normal':
-      return '#9ca3af'
-    case 'Rare':
-      return '#3b82f6'
-    case 'Epic':
-      return '#a855f7'
-    default:
-      return '#6b7280'
-  }
 }

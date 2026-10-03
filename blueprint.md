@@ -14,15 +14,32 @@
 | Heart of awareness (Tower that only show total gp for active teams) |
 | Card Draw Bonus |
 - **PWA**: vite-plugin-pwa with Workbox, auto-update service worker, offline caching for static assets
-- **colour themes**
-White                 : ffffff
-Yellow-off white	    : fff4e6
-Creme                 : fff6cc
-Yellow-off Light Grey	: efe8df
-Orange                : f48220
-Tosca                 : 027479
-Red                   : be392a
-Dark Red              : 8d3030
+- **colour themes** (current interface tokens; CSS custom properties live in `src/styles/index.css`)
+  - White / card surfaces: `#ffffff`
+  - Warm off-white: `#fff9f2`
+  - Yellow-off white: `#fff4e6`
+  - Creme: `#fff6cc`
+  - Warm border: `#e8d9c9`
+  - Orange costume accent: `#f48220`
+  - Teal costume accent: `#027479`
+  - Red: `#be392a`
+  - Dark red: `#8d3030`
+  - Charcoal text / costume: `#20292b`
+  - Muted text: `#52666a`
+  - Skin-tone accent: `#f2c4a5` (used as a soft translucent wash)
+  - Primary action orange: `#a9470c`
+  - Dark mode surfaces: `#17282b`, `#223639`, and `#30484b`; text uses warm off-white.
+
+### Visual theme and character assets
+- The shared app header pairs the product name with three character illustrations:
+  - `public/gardian-male.png` — male guardian
+  - `public/gardimon.png` — Gardimon mascot
+  - `public/gardian-female.png` — female guardian
+- Guardian images are shown in portrait frames with `object-fit: cover`; the mascot uses `object-fit: contain` so its wide tail remains visible. Images retain their source proportions.
+- The responsive header keeps all three characters visible and scales their frames down on narrow screens.
+- The interface palette reflects the character costumes: teal and orange for navigation and actions, warm cream surfaces, charcoal text, and a soft peach skin-tone accent. Light and dark palettes are defined by CSS custom properties in `src/styles/index.css`.
+- PWA theme and background colors use teal (`#027479`) and warm off-white (`#fff4e6`). The production Workbox PNG glob caches the character assets for offline use.
+- Card Draw and Team Cards use a shared portrait trading-card layout: name and rarity header, icon artwork panel, and effect/type details. The frame accents distinguish Normal (orange), Rare (teal), and Epic (red) cards; the layout uses only fields stored on each card.
 
 2. Database: sqlite
 - **Tables**:

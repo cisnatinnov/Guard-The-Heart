@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CardController } from '../controllers/CardController'
 import type { TeamCard } from '../models'
+import { CardTile } from './CardTile'
 
 interface TeamCardViewProps {
   teamId: string
@@ -52,39 +53,18 @@ export function TeamCardView({ teamId, teamName, onClose }: TeamCardViewProps) {
       )}
 
       {!loading && cards.length > 0 && (
-        <div className="card-list">
+        <div className="card-collection__grid">
           {cards.map((card) => (
-            <div key={card.id} className="card" style={{ borderLeft: `4px solid ${getCardTypeColor(card.type)}` }}>
-              <div className="card__body">
-                <div>
-                  <span className="card__title" style={{ fontSize: '1.2rem' }}>
-                    {card.icon} {card.name}
-                  </span>
-                  <span className="badge" style={{ marginLeft: '0.5rem', background: getCardTypeColor(card.type), color: '#fff' }}>
-                    {card.type}
-                  </span>
-                  <span className="badge badge--muted" style={{ marginLeft: '0.25rem' }}>
-                    {card.effect}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <CardTile
+              key={card.id}
+              name={card.name}
+              type={card.type}
+              effect={card.effect}
+              icon={card.icon}
+            />
           ))}
         </div>
       )}
     </section>
   )
-}
-
-function getCardTypeColor(type: string): string {
-  switch (type) {
-    case 'Normal':
-      return '#9ca3af'
-    case 'Rare':
-      return '#3b82f6'
-    case 'Epic':
-      return '#a855f7'
-    default:
-      return '#6b7280'
-  }
 }

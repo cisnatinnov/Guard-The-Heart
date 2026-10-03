@@ -35,10 +35,11 @@
   - `public/gardian-male.png` — male guardian
   - `public/gardimon.png` — Gardimon mascot
   - `public/gardian-female.png` — female guardian
+- The header also features `public/gigarisk-portrait.jpg` as a wide, proportionally framed Giga Risk dragon illustration.
 - Guardian images are shown in portrait frames with `object-fit: cover`; the mascot uses `object-fit: contain` so its wide tail remains visible. Images retain their source proportions.
 - The responsive header keeps all three characters visible and scales their frames down on narrow screens.
 - The interface palette reflects the character costumes: teal and orange for navigation and actions, warm cream surfaces, charcoal text, and a soft peach skin-tone accent. Light and dark palettes are defined by CSS custom properties in `src/styles/index.css`.
-- PWA theme and background colors use teal (`#027479`) and warm off-white (`#fff4e6`). The production Workbox PNG glob caches the character assets for offline use.
+- PWA theme and background colors use teal (`#027479`) and warm off-white (`#fff4e6`). Production Workbox caching includes the PNG and JPEG character artwork for offline use.
 - Card Draw and Team Cards use a shared portrait trading-card layout: name and rarity header, icon artwork panel, and effect/type details. The frame accents distinguish Normal (orange), Rare (teal), and Epic (red) cards; the layout uses only fields stored on each card.
 
 2. Database: sqlite
@@ -109,7 +110,7 @@ f. team_card
 | createdAt | datetime |
 | updatedAt | datetime |
 
-Constraints: Card drawn as bonus after challenge completion. challenge and team set when drawn as bonus.
+Constraints: After the fifth team is entered, ranks and rank rewards are recalculated first. The challenge's bonus cards are then synchronized: each eligible team receives up to 3 cards matching its current rank reward. Drawn cards are recorded in `card` with challenge and team references and mirrored once in `team_card` as the permanent team collection. Synchronization runs at app startup and after score changes, repairs legacy duplicate counts, and must not duplicate either record. If scores change after completion, card counts follow the updated rewards; if an entry is removed and the challenge is no longer complete, its challenge bonus cards and permanent copies are removed.
 
 
 ## terms and conditions
@@ -128,5 +129,6 @@ Constraints: Card drawn as bonus after challenge completion. challenge and team 
 7. **Card System**
 a. Type : Normal (48), Rare (24), Epic (6) - Total 78 cards
 b. Effect : Defense 🛡️, Attack 🗡️, Heal ❤️, Utility 🔀, Support 🤝
-c. After the challenge ends (all 5 teams participated and ranked), teams with card > 0 draw random bonus cards (max 3 per team and per challange)
-d. Drawn cards stored in Card table with challenge and team reference temporary then stored in team_card table with team reference
+c. After the fifth team participates and all ranks/rewards are calculated, teams with a card reward receive random bonus cards (maximum 3 per team per challenge).
+d. Each bonus card is stored in `card` with challenge and team references, then mirrored once in `team_card` for the permanent team collection. Repeated completion/sync requests reconcile counts rather than adding duplicates.
+e. If a completed challenge's scores change, bonus-card counts are synchronized to the updated ranks. Removing a score so the challenge has fewer than five participants removes its challenge bonus cards and their permanent copies.

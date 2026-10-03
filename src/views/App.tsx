@@ -56,17 +56,21 @@ export function App() {
           <div className="app__characters" role="group" aria-label="Meet the guardians">
             <figure className="app__character">
               <img src="/gardian-male.png" alt="Male guardian in teal and orange gear" />
-              <figcaption>Guardian</figcaption>
+              <figcaption>Guardian Male</figcaption>
             </figure>
             <figure className="app__character app__character--mascot">
               <img src="/gardimon.png" alt="Gardimon, the orange guardian mascot" />
-              <figcaption>Gardimon</figcaption>
+              <figcaption>Guardimon</figcaption>
             </figure>
             <figure className="app__character">
               <img src="/gardian-female.png" alt="Female guardian in teal and orange gear" />
-              <figcaption>Guardian</figcaption>
+              <figcaption>Guardian Female</figcaption>
             </figure>
           </div>
+          <figure className="app__risk-card">
+            <img src="/gigarisk-portrait.jpg" alt="Giga Risk, a black dragon with purple flames" />
+            <figcaption>Giga Risk</figcaption>
+          </figure>
         </div>
         <nav className="tabs" aria-label="Views">
           {TABS.map((item) => (

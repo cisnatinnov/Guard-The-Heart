@@ -7,7 +7,7 @@ import {
   MIN_RANK,
 } from '../services/rankRules'
 import { recalculateTotalScoreboard, rerankChallenge } from '../services/scoreboardAggregator'
-import { drawBonusCardsForChallenge, isChallengeComplete } from '../services/cardDraw'
+import { synchronizeChallengeBonusCards } from '../services/cardDraw'
 
 export interface ChallengeScoreInput {
   challenge: string
@@ -97,10 +97,7 @@ export class ChallengeScoreboardController {
 
     await rerankChallenge(input.challenge)
     await recalculateTotalScoreboard()
-    const complete = await isChallengeComplete(input.challenge)
-    if (complete) {
-      await drawBonusCardsForChallenge(input.challenge)
-    }
+    await synchronizeChallengeBonusCards(input.challenge)
     return (await ChallengeScoreboard.findByPk(entry.id)) as ChallengeScoreboard
   }
 
@@ -127,10 +124,7 @@ export class ChallengeScoreboardController {
 
     await rerankChallenge(entry.challenge)
     await recalculateTotalScoreboard()
-    const complete = await isChallengeComplete(entry.challenge)
-    if (complete) {
-      await drawBonusCardsForChallenge(entry.challenge)
-    }
+    await synchronizeChallengeBonusCards(entry.challenge)
     return ChallengeScoreboard.findByPk(id)
   }
 
@@ -142,10 +136,7 @@ export class ChallengeScoreboardController {
     if (deleted === 0) return false
     await rerankChallenge(challengeId)
     await recalculateTotalScoreboard()
-    const complete = await isChallengeComplete(challengeId)
-    if (complete) {
-      await drawBonusCardsForChallenge(challengeId)
-    }
+    await synchronizeChallengeBonusCards(challengeId)
     return true
   }
 }

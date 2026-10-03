@@ -1,5 +1,5 @@
 import { Op } from 'sequelize'
-import { Card, ChallengeScoreboard, Team, TeamCard } from '../models'
+import { Card, Challenge, ChallengeScoreboard, Team, TeamCard } from '../models'
 
 export interface CardPoolEntry {
   name: string
@@ -43,6 +43,8 @@ export function drawRandomCards(count: number): CardPoolEntry[] {
   return shuffled.slice(0, count)
 }
 
+const challengeDrawsInFlight = new Map<string, Promise<Card[]>>()
+
 export async function isChallengeComplete(challengeId: string): Promise<boolean> {
   const count = await ChallengeScoreboard.count({ where: { challenge: challengeId } })
   return count >= 5
@@ -58,39 +60,151 @@ export async function getTeamsWithCardRewards(challengeId: string): Promise<Arra
 }
 
 export async function drawBonusCardsForChallenge(challengeId: string): Promise<Card[]> {
+  const inFlight = challengeDrawsInFlight.get(challengeId)
+  if (inFlight) return inFlight
+
+  const draw = synchronizeCompletedChallengeCards(challengeId)
+  challengeDrawsInFlight.set(challengeId, draw)
+  try {
+    return await draw
+  } finally {
+    if (challengeDrawsInFlight.get(challengeId) === draw) {
+      challengeDrawsInFlight.delete(challengeId)
+    }
+  }
+}
+
+async function synchronizeCompletedChallengeCards(challengeId: string): Promise<Card[]> {
   const isComplete = await isChallengeComplete(challengeId)
   if (!isComplete) {
     throw new Error('Challenge not complete: not all 5 teams have participated')
   }
 
-  const teamsWithRewards = await getTeamsWithCardRewards(challengeId)
-  if (teamsWithRewards.length === 0) {
-    return []
+  const entries = await ChallengeScoreboard.findAll({
+    where: { challenge: challengeId },
+    attributes: ['team', 'card'],
+  })
+  const existingCards = await Card.findAll({
+    where: { challenge: challengeId },
+    order: [['createdAt', 'ASC']],
+  })
+  const existingByTeam = new Map<string, Card[]>()
+  for (const card of existingCards) {
+    if (!card.team) continue
+    const teamCards = existingByTeam.get(card.team) ?? []
+    teamCards.push(card)
+    existingByTeam.set(card.team, teamCards)
   }
 
-  const drawnCards: Card[] = []
+  const affectedTeamIds = new Set<string>([
+    ...entries.map((entry) => entry.team),
+    ...existingCards.flatMap((card) => (card.team ? [card.team] : [])),
+  ])
+  const cardsByTeam = new Map<string, Card[]>()
 
-  for (const { teamId, cardCount } of teamsWithRewards) {
-    const cardsToDraw = Math.min(cardCount, 3)
-    const drawn = drawRandomCards(cardsToDraw)
+  for (const entry of entries) {
+    const desiredCount = Math.min(3, Math.max(0, entry.card))
+    const currentCards = existingByTeam.get(entry.team) ?? []
+    const keepCount = Math.min(desiredCount, currentCards.length)
 
-    for (const cardData of drawn) {
-      const card = await Card.create({
-        ...cardData,
-        challenge: challengeId,
-        team: teamId,
+    if (currentCards.length > keepCount) {
+      await Card.destroy({
+        where: { id: currentCards.slice(keepCount).map((card) => card.id) },
       })
-      drawnCards.push(card)
+    }
 
-      // Also store permanently in TeamCard table (team reference only, no challenge)
-      await TeamCard.create({
-        ...cardData,
-        team: teamId,
+    const keptCards = currentCards.slice(0, keepCount)
+    const missingCards = drawRandomCards(desiredCount - keepCount)
+    for (const cardData of missingCards) {
+      keptCards.push(
+        await Card.create({
+          ...cardData,
+          challenge: challengeId,
+          team: entry.team,
+        })
+      )
+    }
+
+    cardsByTeam.set(entry.team, keptCards)
+  }
+
+  const syncedCards = [...cardsByTeam.values()].flat()
+  await synchronizePermanentTeamCards([...affectedTeamIds])
+  return syncedCards.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+}
+
+export async function synchronizeChallengeBonusCards(challengeId: string): Promise<void> {
+  if (await isChallengeComplete(challengeId)) {
+    await drawBonusCardsForChallenge(challengeId)
+    return
+  }
+
+  const existingCards = await Card.findAll({
+    where: { challenge: challengeId },
+    attributes: ['team'],
+  })
+  const affectedTeamIds = [...new Set(existingCards.flatMap((card) => (card.team ? [card.team] : [])))]
+  await Card.destroy({ where: { challenge: challengeId } })
+  await synchronizePermanentTeamCards(affectedTeamIds)
+}
+
+export async function synchronizeAllChallengeBonusCards(): Promise<void> {
+  const challenges = await Challenge.findAll({ attributes: ['id'] })
+  for (const challenge of challenges) {
+    await synchronizeChallengeBonusCards(challenge.id)
+  }
+}
+
+async function synchronizePermanentTeamCards(teamIds: string[]): Promise<void> {
+  if (teamIds.length === 0) return
+
+  const cards = await Card.findAll({
+    where: { team: { [Op.in]: teamIds } },
+    order: [['createdAt', 'ASC']],
+  })
+  const teamCards = await TeamCard.findAll({
+    where: { team: { [Op.in]: teamIds } },
+    order: [['createdAt', 'ASC']],
+  })
+  const fingerprint = (card: Pick<Card, 'team' | 'name' | 'type' | 'effect' | 'icon'>) =>
+    JSON.stringify([card.team, card.name, card.type, card.effect, card.icon])
+  const expectedByFingerprint = new Map<string, Card[]>()
+  const actualByFingerprint = new Map<string, TeamCard[]>()
+
+  for (const card of cards) {
+    const key = fingerprint(card)
+    const expected = expectedByFingerprint.get(key) ?? []
+    expected.push(card)
+    expectedByFingerprint.set(key, expected)
+  }
+  for (const card of teamCards) {
+    const key = fingerprint(card)
+    const actual = actualByFingerprint.get(key) ?? []
+    actual.push(card)
+    actualByFingerprint.set(key, actual)
+  }
+
+  for (const [key, actual] of actualByFingerprint) {
+    const expectedCount = expectedByFingerprint.get(key)?.length ?? 0
+    if (actual.length > expectedCount) {
+      await TeamCard.destroy({
+        where: { id: actual.slice(expectedCount).map((card) => card.id) },
       })
     }
   }
 
-  return drawnCards
+  for (const [key, expected] of expectedByFingerprint) {
+    const actualCount = actualByFingerprint.get(key)?.length ?? 0
+    for (const card of expected.slice(actualCount)) {
+      await TeamCard.create({
+        name: card.name,
+        type: card.type,
+        effect: card.effect,
+        icon: card.icon,
+        team: card.team,
+      })
+    }
+  }
 }
 
 export async function getTeamDrawnCards(teamId: string): Promise<Card[]> {

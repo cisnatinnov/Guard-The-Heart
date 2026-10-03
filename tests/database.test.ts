@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { initializeAppDatabase } from '../src/db/database'
 import { getSequelize } from '../src/db/sequelize-provider'
-import { ChallengeScoreboard, Scoreboard } from '../src/models'
+import { Card, ChallengeScoreboard, Scoreboard, TeamCard } from '../src/models'
 import { type HeartTowerColumn } from '../src/controllers/TeamController'
 import { ChallengeController } from '../src/controllers/ChallengeController'
 import { TeamController } from '../src/controllers/TeamController'
@@ -15,6 +15,10 @@ import {
   teamGuardPower,
 } from '../src/services/rankRules'
 import { MAX_ENTRIES_PER_CHALLENGE, MAX_TOTAL_CARD } from '../src/services/rankRules'
+import {
+  drawBonusCardsForChallenge,
+  synchronizeAllChallengeBonusCards,
+} from '../src/services/cardDraw'
 
 beforeAll(async () => {
   await initializeAppDatabase()
@@ -140,6 +144,81 @@ describe('ChallengeController', () => {
 })
 
 describe('ChallengeScoreboardController', () => {
+  it('awards each completed challenge card once and keeps the permanent collection in sync', async () => {
+    const challenge = await ChallengeController.create('Arena Card Rewards')
+    const teams = await Promise.all(
+      ['Reward A', 'Reward B', 'Reward C', 'Reward D', 'Reward E'].map((name) =>
+        TeamController.create(name)
+      )
+    )
+
+    for (const [index, team] of teams.entries()) {
+      await ChallengeScoreboardController.create({
+        challenge: challenge.id,
+        team: team.id,
+        score: (teams.length - index) * 20,
+      })
+    }
+
+    async function cardCountsByTeam(): Promise<Map<string, number>> {
+      const cards = await TeamCard.findAll({ where: { team: teams.map((team) => team.id) } })
+      return new Map(teams.map((team) => [team.id, cards.filter((card) => card.team === team.id).length]))
+    }
+
+    const expectedCounts = [3, 2, 2, 1, 0]
+    for (const [index, team] of teams.entries()) {
+      expect((await ChallengeScoreboardController.listByChallenge(challenge.id))[index]?.card).toBe(
+        expectedCounts[index]
+      )
+      expect((await cardCountsByTeam()).get(team.id)).toBe(expectedCounts[index])
+      expect((await ScoreboardController.getByTeam(team.id))?.total_card).toBe(expectedCounts[index])
+    }
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+
+    const winnerCards = await Card.findAll({
+      where: { challenge: challenge.id, team: teams[0].id },
+    })
+    for (const card of winnerCards) {
+      await Card.create({
+        name: card.name,
+        type: card.type,
+        effect: card.effect,
+        icon: card.icon,
+        challenge: challenge.id,
+        team: teams[0].id,
+      })
+      await TeamCard.create({
+        name: card.name,
+        type: card.type,
+        effect: card.effect,
+        icon: card.icon,
+        team: teams[0].id,
+      })
+    }
+    expect((await cardCountsByTeam()).get(teams[0].id)).toBe(6)
+
+    await synchronizeAllChallengeBonusCards()
+    await drawBonusCardsForChallenge(challenge.id)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+    expect((await TeamCard.findAll({ where: { team: teams.map((team) => team.id) } })).length).toBe(8)
+    expect((await cardCountsByTeam()).get(teams[0].id)).toBe(3)
+
+    const lastPlace = (await ChallengeScoreboardController.listByChallenge(challenge.id))[4]
+    await ChallengeScoreboardController.update(lastPlace.id, { score: 110 })
+    const reorderedCounts = [2, 2, 1, 0, 3]
+    for (const [index, team] of teams.entries()) {
+      expect((await cardCountsByTeam()).get(team.id)).toBe(reorderedCounts[index])
+    }
+
+    const lastEntry = (await ChallengeScoreboardController.listByChallenge(challenge.id)).find(
+      (entry) => entry.team === teams[0].id
+    )
+    expect(lastEntry).toBeDefined()
+    await ChallengeScoreboardController.remove(lastEntry!.id)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(0)
+    expect((await TeamCard.findAll({ where: { team: teams.map((team) => team.id) } })).length).toBe(0)
+  })
+
   it('derives rank and rewards from the score', async () => {
     const challenge = await ChallengeController.create('Arena Gamma')
     const team = await TeamController.create('Alpha Squad')

@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
         workbox: isDev
           ? { globPatterns: [], cleanupOutdatedCaches: true }
           : {
-              globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2,ttf,wasm}'],
+              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,ico,woff,woff2,ttf,wasm}'],
               cleanupOutdatedCaches: true,
               clientsClaim: true,
               skipWaiting: true,

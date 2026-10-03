@@ -44,8 +44,9 @@ when the app starts.
 3. Open a challenge scoreboard and enter one score per participating team.
    A challenge accepts at most five teams.
 4. Rankings and challenge rewards are recalculated from scores.
-5. Once five teams have participated, use **Card Draw** to draw bonus cards
-   for teams with card rewards.
+5. When the fifth team joins a challenge, the app calculates final ranks and
+   automatically awards bonus cards to eligible teams. Use **Card Draw** to
+   review the challenge's card results.
 6. Review team card collections, the overall scoreboard, and the **Heart of
    Awareness** tower from their respective views.
 
@@ -68,8 +69,12 @@ across challenges.
 
 The card pool contains 78 cards: 48 Normal, 24 Rare, and 6 Epic. Each card has
 an effect category (Defense, Attack, Heal, Utility, or Support). A completed
-challenge draws up to three cards per eligible team. Bonus draws are recorded
-for the challenge, and a permanent copy is added to the team's collection.
+challenge awards up to three cards per eligible team based on the final rank.
+Each card is recorded for the challenge and mirrored once in the team's
+permanent collection. Startup and score changes synchronize these records,
+repair old duplicate counts, and avoid repeated awards. If scores change, card
+counts follow the updated rewards, and reopening a challenge by removing an
+entry removes its challenge bonus cards.
 
 ## Data and offline behavior
 
@@ -101,8 +106,9 @@ blueprint.md    Detailed data model and product rules
 ## Interface and character assets
 
 The shared app header displays `public/gardian-male.png`,
-`public/gardimon.png`, and `public/gardian-female.png`. Character framing,
-light/dark theme tokens, and the trading-card layout are styled in
+`public/gardimon.png`, `public/gardian-female.png`, and the Giga Risk dragon
+artwork from `public/gigarisk-portrait.jpg`. Character framing, light/dark theme
+tokens, and the trading-card layout are styled in
 `src/styles/index.css`. Card Draw and Team Cards share one portrait card
 component and use each card's name, rarity, icon, and effect.
 

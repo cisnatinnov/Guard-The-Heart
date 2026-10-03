@@ -1,5 +1,6 @@
 import { initDatabase, getSequelize } from './sequelize-provider'
 import { defineModels } from '../models'
+import { synchronizeAllChallengeBonusCards } from '../services/cardDraw'
 
 const LEGACY_TABLES = ['challange', 'challange_scoreboard']
 const REQUIRED_TABLES = ['team', 'challenge', 'challenge_scoreboard', 'scoreboard', 'card', 'team_card']
@@ -37,6 +38,7 @@ export function initializeAppDatabase(): Promise<void> {
       // database persisted by an older build is discarded rather than
       // migrated. Current databases keep their data and are synced in place.
       await sequelize.sync({ force: await isLegacySchema(sequelize) })
+      await synchronizeAllChallengeBonusCards()
     })()
   }
   return readyPromise

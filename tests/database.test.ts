@@ -22,6 +22,12 @@ import {
   getCardPoolStatus,
   synchronizeAllChallengeBonusCards,
 } from '../src/services/cardDraw'
+import {
+  gameIdForChallengeName,
+  isLockedChallengeName,
+  seedLockedChallenges,
+} from '../src/services/challengeSeeds'
+import { CHALLENGE_GAMES, EMOJI_DECODE_CHALLENGE_ID } from '../src/services/games'
 
 beforeAll(async () => {
   await initializeAppDatabase()
@@ -143,6 +149,94 @@ describe('ChallengeController', () => {
     await ChallengeController.rename(challenge.id, 'Arena Beta 2')
     expect((await ChallengeController.getById(challenge.id))?.name).toBe('Arena Beta 2')
     expect(await ChallengeController.remove(challenge.id)).toBe(true)
+  })
+})
+
+describe('built-in challenges', () => {
+  it('saves the six playable challenges as challenge data', async () => {
+    const seeded = await seedLockedChallenges()
+    expect(seeded).toHaveLength(CHALLENGE_GAMES.length)
+
+    const titles = (await ChallengeController.list()).map((challenge) => challenge.name)
+    for (const game of CHALLENGE_GAMES) {
+      expect(titles).toContain(game.title)
+      expect(isLockedChallengeName(game.title)).toBe(true)
+      expect(gameIdForChallengeName(game.title)).toBe(game.id)
+    }
+    expect(isLockedChallengeName('Arena Gamma')).toBe(false)
+    expect(gameIdForChallengeName('Arena Gamma')).toBeNull()
+  })
+
+  it('seeds only once, so ids and scoreboards survive a restart', async () => {
+    const first = await seedLockedChallenges()
+    const before = await ChallengeController.getById(CHALLENGE_GAMES[0].challengeId)
+    await seedLockedChallenges()
+    const after = await ChallengeController.getById(CHALLENGE_GAMES[0].challengeId)
+
+    expect(first).toHaveLength(CHALLENGE_GAMES.length)
+    expect(after?.createdAt).toEqual(before?.createdAt)
+
+    const names = (await ChallengeController.list()).map((challenge) => challenge.name)
+    for (const game of CHALLENGE_GAMES) {
+      expect(names.filter((name) => name === game.title)).toHaveLength(1)
+    }
+  })
+
+  it('cannot be added a second time', async () => {
+    for (const game of CHALLENGE_GAMES) {
+      await expect(ChallengeController.create(game.title)).rejects.toThrow(/built in/)
+      await expect(ChallengeController.create(`  ${game.title.toUpperCase()}  `)).rejects.toThrow(/built in/)
+    }
+  })
+
+  it('cannot be renamed or deleted', async () => {
+    for (const game of CHALLENGE_GAMES) {
+      const row = await ChallengeController.getById(game.challengeId)
+      expect(row?.name).toBe(game.title)
+
+      await expect(ChallengeController.rename(row!.id, 'Renamed')).rejects.toThrow(/built in/)
+      await expect(ChallengeController.remove(row!.id)).rejects.toThrow(/built in/)
+      expect((await ChallengeController.getById(row!.id))?.name).toBe(game.title)
+    }
+  })
+
+  it('does not let a custom challenge borrow a built-in name', async () => {
+    const custom = await ChallengeController.create('Arena Borrow')
+    await expect(ChallengeController.rename(custom.id, 'Save the Core')).rejects.toThrow(/built-in/)
+    expect((await ChallengeController.getById(custom.id))?.name).toBe('Arena Borrow')
+    await ChallengeController.remove(custom.id)
+  })
+
+  it('accepts scoreboard entries like any other challenge', async () => {
+    const teams = await Promise.all(
+      ['Lock A', 'Lock B', 'Lock C', 'Lock D', 'Lock E'].map((team) => TeamController.create(team))
+    )
+    const emoji = await ChallengeController.getById(EMOJI_DECODE_CHALLENGE_ID)
+    expect(emoji?.name).toBe('Emoji Decode')
+
+    const entries = []
+    for (const [index, team] of teams.entries()) {
+      entries.push(
+        await ChallengeScoreboardController.create({
+          challenge: emoji!.id,
+          team: team.id,
+          score: (index + 1) * 10,
+        })
+      )
+    }
+
+    const leaderboard = await ChallengeScoreboardController.listByChallenge(emoji!.id)
+    expect(leaderboard).toHaveLength(5)
+    expect(leaderboard[0].score).toBe(50)
+    expect(leaderboard[0].rank).toBe(1)
+    expect(leaderboard[0].card).toBe(3)
+
+    for (const entry of entries) {
+      await ChallengeScoreboardController.remove(entry.id)
+    }
+    for (const team of teams) {
+      await TeamController.remove(team.id)
+    }
   })
 })
 
@@ -359,6 +453,47 @@ describe('ChallengeScoreboardController', () => {
     expect((await ChallengeScoreboardController.getById(entry.id))?.score).toBe(10)
     expect(await ChallengeScoreboardController.remove(entry.id)).toBe(true)
     expect(await ChallengeScoreboardController.getById(entry.id)).toBeNull()
+  })
+
+  it('lets a participating team gain score without a new entry', async () => {
+    const challenge = await ChallengeController.create('Arena Follow')
+    const team = await TeamController.create('Follower Squad')
+    const rival = await TeamController.create('Rival Squad')
+
+    const follower = await ChallengeScoreboardController.create({
+      challenge: challenge.id,
+      team: team.id,
+      score: 20,
+    })
+    const leader = await ChallengeScoreboardController.create({
+      challenge: challenge.id,
+      team: rival.id,
+      score: 90,
+    })
+
+    // The team gains rank and rewards as its score rises.
+    expect((await ChallengeScoreboardController.getById(follower.id))?.rank).toBe(2)
+    expect((await ChallengeScoreboardController.getById(leader.id))?.rank).toBe(1)
+
+    // Correcting the score in place, which is what the view calls.
+    const corrected = await ChallengeScoreboardController.update(follower.id, { score: 95 })
+    expect(corrected?.score).toBe(95)
+    expect(corrected?.rank).toBe(1)
+    expect(corrected?.challenge_point).toBe(10)
+    expect(corrected?.guard_power).toBe(3)
+    expect((await ChallengeScoreboardController.getById(leader.id))?.rank).toBe(2)
+
+    // The team total scoreboard follows the corrected score. Other teams from
+    // earlier cases share the test database, so compare the pair relatively.
+    const totals = await ScoreboardController.recalculate()
+    const followerTotal = totals.find((row) => row.team === team.id)
+    const rivalTotal = totals.find((row) => row.team === rival.id)
+    expect(followerTotal?.total_score).toBe(95)
+    expect(rivalTotal?.total_score).toBe(90)
+    expect(followerTotal!.rank).toBeLessThan(rivalTotal!.rank)
+
+    // Updating is idempotent with respect to entries: still two rows.
+    expect(await ChallengeScoreboardController.listByChallenge(challenge.id)).toHaveLength(2)
   })
 })
 

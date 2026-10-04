@@ -114,7 +114,9 @@ Constraints: After the fifth team is entered, ranks and rank rewards are recalcu
 
 
 ## terms and conditions
-1. challenge_scoreboard accomodate only 5 team each challenge
+1. challenge_scoreboard accomodate only 5 team each challenge. A team that has
+entered a challenge keeps its entry; its score is corrected in place, which
+reranks the challenge and the overall scoreboard instead of removing the team.
 2. scoreboard (total challenge_scoreboard (total_score(score), total_cp(challenge_point), total_card(card) max 8, total_gp) per team)
 3. rank based on score (challenge_scoreboard) and total_score (scoreboard), 1st rank have the highest and so on until 5th rank. Tied scores share a rank and the next rank skips (1, 1, 3)
 4. challenge_point, guard_power, and card based on rank
@@ -133,10 +135,115 @@ c. After the fifth team participates and all ranks/rewards are calculated, teams
 d. Each bonus card is stored in `card` with challenge and team references, then mirrored once in `team_card` for the permanent team collection. Repeated completion/sync requests reconcile counts rather than adding duplicates.
 e. If a completed challenge's scores change, bonus-card counts are synchronized to the updated ranks. Removing a score so the challenge has fewer than five participants removes its challenge bonus cards and their permanent copies.
 f. The pool depletes. A drawn card leaves the pool, so no pool card is ever awarded twice. Revoking a draw returns its cards to the pool. `getCardPoolStatus()` reports the total, drawn and remaining counts overall and per type, and the Card Draw view shows them.
-g. **Challanges**
+8. **Challenges**
 1. Emoji Decode : "'Emoji Decode' challenge that includes a link to a PPTX file. The presentation must feature 15 questions and include a built-in animated timer for each slide."
 2. Gardimon Protocol : "'Gardimon Protocol' game consisting of 5 questions and 5 unique cards. The gameplay elements must be categorized into three phases or components: Crime Scene, Evidence, and Protocol."
 3. Word Assembly : "'Word Assembly' match-card game mechanic featuring 5 main questions and 20 playable cards for players to match."
-4. Incident Trail : "Develop an 'Incident Trail' challenge and provide a link to a PPTX file. It must include 5 Crime Scenes with associated questions, 5 distinct clues, 25 pieces of information, and 25 answer sheets."
-5. Jaws of Risk : "Create a digital application interface inspired by the physical crocodile dentist toy. The digital version must allow the user to select, interact with, or label specific teeth before 'pressing' them."
-6. 'Save the Core' : "Design a game mechanic called 'Save the Core' inspired by Ludo and Minesweeper. The rules are: if a player steps on a hidden bomb, their piece is immediately sent back to a predetermined starting position. However, stepping on a correct (safe) tile reveals a randomized score."
+4. Incident Trail : "'Incident Trail' challenge and provide a link to a PPTX file. It must include 5 Crime Scenes with associated questions, 5 distinct clues, 25 pieces of information, and 25 answer sheets."
+5. Jaws of Risk : "Digital application interface inspired by the physical crocodile dentist toy. The digital version must allow the user to select, interact with, or label specific teeth before 'pressing' them."
+6. 'Save the Core' : "A game mechanic called 'Save the Core' inspired by Ludo and Minesweeper. The rules are: if a player steps on a hidden bomb, their piece is immediately sent back to a predetermined starting position. However, stepping on a correct (safe) tile reveals a randomized score."
+
+9. Point 8 link to Challenge feature (save as challenge data and cannot be added more, edited and deleted)
+
+## Implementation notes
+
+The six challenges above are played from the **Challenge** view. Their rules and
+content are pure modules under `src/services/games/`, their screens are under
+`src/views/challenges/`, and the two decks are generated from the same JSON
+content the app reads.
+
+1. **Emoji Decode** — `src/data/emoji-decode.json` holds the 15 questions. Each
+   question combines **four emoji** into a single answer (emoji, answer, hint),
+   and the app and the deck render all four together. The app screen scores 10
+   points per decoded answer, 150 in total, and mirrors the deck timing with a
+   live countdown per question; letting the countdown expire counts as a miss.
+   Emoji Decode team runs use the same 30-second per-question timer, and
+   unanswered teams are graded incorrect when it expires.
+   The deck `public/decks/emoji-decode.pptx` carries a title slide, one slide per
+   question and an answer key. Each question slide animates a 30 second timer
+   bar and auto-advances, so no presenter input is needed. Emoji Decode team runs
+   also use a 30-second timer per question; unanswered teams are graded
+   incorrect when it expires.
+2. **Gardimon Protocol** — 5 cards, each with rarity drawn from the card pool
+   set, an icon, a charge value, and three option blocks: Crime Scene, Evidence
+   and Protocol. A phase is worth 10 points and a card answered correctly in all
+   three phases pays a 15 point perfect bonus (225 max). Team-run questions have
+   an 8-minute timer.
+3. **Word Assembly** — 5 questions of 4 letters, dealt as 20 face-down tiles.
+   A revealed tile is locked only into the question and slot it belongs to; a
+   wrong slot costs 5 points. Matches are worth 10 points each (200 max).
+   Team-run questions have a 15-second timer.
+4. **Incident Trail** — `src/data/incident-trail.json` holds the 5 crime scenes
+   with their questions and answers, the 5 clues (each marked with the
+   information piece that contains it), and the 25 information pieces with their
+   25 answer sheets. Filing a clue closes its scene for 20 points (100 max).
+   Team-run questions have a 20-second timer.
+   The deck `public/decks/incident-trail.pptx` reproduces the title, the scenes,
+   the clue tray, every information piece with its answer sheet, and a scoring
+   summary.
+5. **Jaws of Risk** — 24 teeth in two jaws, 6 of them loose. A tooth is selected,
+   labelled (Suspect, Firm or Unmarked) and only then graded by pressing. Loose
+   teeth are worth 10 points, each false alarm costs 5, never below zero.
+6. **Save the Core** — 4 guardians share a 24-tile track with a fixed start tile
+   and a Core finish tile; roughly a quarter of the middle tiles are bombs.
+   Landing on a safe tile reveals its randomised score the first time only,
+   landing on a bomb sends the piece back to the starting position, and reaching
+   the Core pays a 50 point bonus.
+
+### Point 9: the challenges are challenge data
+
+The six games are saved as rows in the `challenge` table, so they are seeded on
+every launch and behave like any other challenge:
+
+- `src/services/challengeSeeds.ts` seeds one row per game with
+  `seedLockedChallenges()`. Seeding is idempotent and matches on the name, so an
+  existing row keeps its id, scoreboard, bonus cards and timestamps. Each game
+  also carries a fixed `challengeId`, used as the id for freshly seeded rows.
+- Their names are reserved. `ChallengeController.create()` rejects a second row
+  for any of the six names, and `rename()` rejects both renaming a built-in row
+  and renaming another challenge to one of those names.
+- `ChallengeController.rename()` and `ChallengeController.remove()` throw for a
+  built-in row, so the lock holds even if the UI is bypassed. The Challenge view
+  has no **Add challenge** form at all, shows no Rename or Delete control, and
+  marks the seeded rows `Built-in`.
+- A built-in row offers **Scoreboard**, **Play**, **Team run** and a deck link when one exists.
+  **Play** opens the game's screen, which is a detail view and is not listed in
+  the navigation; it is reachable only from its challenge row, and its
+  **← All challenges** button is the only way back. **Team run** opens the same
+  detail view with the team run panel visible, letting the host run the challenge
+  question by question with up to five teams. An eliminated team's answer input
+  is re-enabled when the next question starts. Team-run timers are 30 seconds
+  for Emoji Decode, 8 minutes for Gardimon Protocol, 15 seconds for Word
+  Assembly, and 20 seconds for Incident Trail. Jaws of Risk has no timer.
+  Unanswered teams are graded incorrect when a timer expires.
+- Because the rows are ordinary challenge data, the existing rules apply to them:
+  up to 5 teams per challenge, ranks derived from scores, and rank rewards
+  awarding guard power and depleting the card pool.
+
+### Navigation
+
+There is no separate games or Challenges tab. The six games are listed as rows on
+the Challenge view, the playing screen is a detail view reachable only from a
+built-in row's Play button. The team run panel is shown within the same detail
+view when the host chooses **Team run**. All other views are reached from the top
+navigation.
+
+### Correcting a built-in challenge score
+
+A built-in challenge behaves like any other challenge row on the per-challenge
+scoreboard. A team that follows the challenge gains its score either through the
+team run (where each correct answer adds score automatically) or by entering it
+manually with **Add entry**. A corrected result is applied with **Edit score**,
+which calls `ChallengeScoreboardController.update()` and keeps the team in the
+challenge. Reranking, guard power and bonus cards follow the corrected value, so
+the team that gains score is also the team whose rewards change.
+
+Game state is intentionally kept in the browser tab only. The games themselves
+are never written to the database. In the team run, each team's running total is
+persisted to the challenge scoreboard as it is earned; in solo play, the
+challenge's scoreboard is filled in by hand with the player's result. The card
+pool and scoreboard rules are unchanged by the games.
+
+The decks are regenerated with `npm run decks`. The generator writes the ZIP and
+OOXML parts without any PowerPoint dependency and validates the archive and all
+XML parts before writing, so content edits only require re-running the script.

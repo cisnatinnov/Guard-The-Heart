@@ -8,7 +8,8 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    command: 'npx vite preview --port 4173 --strictPort',
+    // Build first so the preview server can never serve a stale bundle.
+    command: 'npm run build && npx vite preview --port 4173 --strictPort',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

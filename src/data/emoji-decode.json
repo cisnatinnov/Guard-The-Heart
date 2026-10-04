@@ -1,0 +1,95 @@
+{
+  "emojiPerQuestion": 4,
+  "questions": [
+    {
+      "id": "emoji-01",
+      "emojis": ["🔥", "👨‍🚒", "🚒", "🧯"],
+      "answer": "Firefighter",
+      "hint": "The job that brings the truck and the extinguisher"
+    },
+    {
+      "id": "emoji-02",
+      "emojis": ["🌧️", "☔", "☂️", "🧥"],
+      "answer": "Raincoat",
+      "hint": "Pulled on when the sky opens up"
+    },
+    {
+      "id": "emoji-03",
+      "emojis": ["📕", "📖", "✏️", "📚"],
+      "answer": "Library",
+      "hint": "Where the shelves keep quiet"
+    },
+    {
+      "id": "emoji-04",
+      "emojis": ["🌞", "🕶️", "🌞", "🕶️"],
+      "answer": "Sunglasses",
+      "hint": "Two lenses that hide your eyes from the sun"
+    },
+    {
+      "id": "emoji-05",
+      "emojis": ["🌋", "🔥", "💨", "🌡️"],
+      "answer": "Volcano",
+      "hint": "A mountain that can erupt"
+    },
+    {
+      "id": "emoji-06",
+      "emojis": ["🐍", "➰", "🦎", "🐍"],
+      "answer": "Snake",
+      "hint": "Two of these coil, one only has legs"
+    },
+    {
+      "id": "emoji-07",
+      "emojis": ["🦷", "😬", "🦷", "🦷"],
+      "answer": "Tooth",
+      "hint": "A guardian smiles with these"
+    },
+    {
+      "id": "emoji-08",
+      "emojis": ["🔑", "🗝️", "🚪", "🔒"],
+      "answer": "Key",
+      "hint": "It opens a locked door"
+    },
+    {
+      "id": "emoji-09",
+      "emojis": ["⛵", "🌊", "🧭", "⚓"],
+      "answer": "Sailboat",
+      "hint": "Wind, waves, compass and anchor"
+    },
+    {
+      "id": "emoji-10",
+      "emojis": ["🦈", "🌊", "🩸", "🦷"],
+      "answer": "Shark",
+      "hint": "An ocean predator with fins"
+    },
+    {
+      "id": "emoji-11",
+      "emojis": ["🧩", "🧠", "🔲", "🧩"],
+      "answer": "Puzzle",
+      "hint": "Pieces that only fit one way"
+    },
+    {
+      "id": "emoji-12",
+      "emojis": ["🚁", "🛬", "🧭", "🛩️"],
+      "answer": "Helicopter",
+      "hint": "It hovers instead of rolling on a runway"
+    },
+    {
+      "id": "emoji-13",
+      "emojis": ["🦉", "🌙", "🌙", "🦉"],
+      "answer": "Owl",
+      "hint": "The bird of the night shift"
+    },
+    {
+      "id": "emoji-14",
+      "emojis": ["🛰️", "🌍", "📡", "🛰️"],
+      "answer": "Satellite",
+      "hint": "It orbits the earth"
+    },
+    {
+      "id": "emoji-15",
+      "emojis": ["🧊", "❄️", "🥶", "🧊"],
+      "answer": "Ice",
+      "hint": "Water that has frozen solid"
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "scenes": [
+    {
+      "id": "scene-1",
+      "title": "Ember Gallery",
+      "question": "Which exhibit triggered the first alarm?",
+      "answer": "The Solar Lantern"
+    },
+    {
+      "id": "scene-2",
+      "title": "Harbor Lock",
+      "question": "Which vessel was left unattended?",
+      "answer": "The Tideless"
+    },
+    {
+      "id": "scene-3",
+      "title": "Atrium Glass",
+      "question": "Which floor was cleared first?",
+      "answer": "Level 4"
+    },
+    {
+      "id": "scene-4",
+      "title": "Server Vault",
+      "question": "Which account opened the maintenance log?",
+      "answer": "NightOwl"
+    },
+    {
+      "id": "scene-5",
+      "title": "Observatory Deck",
+      "question": "Which telescope was moved?",
+      "answer": "Meridian 12"
+    }
+  ],
+  "clues": [
+    {
+      "id": "clue-1",
+      "sceneId": "scene-1",
+      "informationIndex": 3,
+      "text": "Scorch marks ring the Solar Lantern pedestal."
+    },
+    {
+      "id": "clue-2",
+      "sceneId": "scene-2",
+      "informationIndex": 11,
+      "text": "Harbour camera shows the Tideless drifting unmoored."
+    },
+    {
+      "id": "clue-3",
+      "sceneId": "scene-3",
+      "informationIndex": 17,
+      "text": "Level 4 access log closes before the alarm sounds."
+    },
+    {
+      "id": "clue-4",
+      "sceneId": "scene-4",
+      "informationIndex": 7,
+      "text": "Badge NightOwl swiped the vault at 02:14."
+    },
+    {
+      "id": "clue-5",
+      "sceneId": "scene-5",
+      "informationIndex": 22,
+      "text": "The Meridian 12 cradle sits forty degrees off centre."
+    }
+  ],
+  "information": [
+    {
+      "id": "info-1",
+      "headline": "Gallery night roster",
+      "detail": "Two guards walked the west wing at 21:00 and reported nothing unusual.",
+      "answerSheet": "West wing was clear at 21:00, so the gallery fault happened later."
+    },
+    {
+      "id": "info-2",
+      "headline": "Power dip report",
+      "detail": "A two second dip was logged on the north circuit at 01:52.",
+      "answerSheet": "The dip at 01:52 is the earliest recorded electrical event."
+    },
+    {
+      "id": "info-3",
+      "headline": "Case soot sample",
+      "detail": "Waxy residue sits in a perfect ring around pedestal three.",
+      "answerSheet": "Pedestal three was heat damaged, not struck by a tool."
+    },
+    {
+      "id": "info-4",
+      "headline": "Glass fragment map",
+      "detail": "Fragments lie inward from the case, so the impact came from inside.",
+      "answerSheet": "The gallery damage was internal, ruling out a thrown object."
+    },
+    {
+      "id": "info-5",
+      "headline": "Thermostat override",
+      "detail": "Someone pushed the lantern override at 01:58 from a wall panel.",
+      "answerSheet": "The override was used on purpose, not by a fault."
+    },
+    {
+      "id": "info-6",
+      "headline": "Night porter statement",
+      "detail": "The porter left the atrium at 00:40 and saw the doors latched.",
+      "answerSheet": "Doors were latched, so entry used another route."
+    },
+    {
+      "id": "info-7",
+      "headline": "Vault badge log",
+      "detail": "One badge opened the vault door: NightOwl, at 02:14.",
+      "answerSheet": "NightOwl is the only account recorded entering the vault."
+    },
+    {
+      "id": "info-8",
+      "headline": "Server room temperature",
+      "detail": "Rack five ran four degrees warm from 01:30 onward.",
+      "answerSheet": "Rack five was the warm rack, but temperature alone is not a cause."
+    },
+    {
+      "id": "info-9",
+      "headline": "Camera blind corner",
+      "detail": "The archive corridor camera has been offline for eleven days.",
+      "answerSheet": "The archive corridor has no usable footage for the night."
+    },
+    {
+      "id": "info-10",
+      "headline": "Mooring assignment",
+      "detail": "Four berths were staffed and one was left to the night shift.",
+      "answerSheet": "The unstaffed berth belonged to the night shift."
+    },
+    {
+      "id": "info-11",
+      "headline": "Harbour camera still",
+      "detail": "A still frame shows the Tideless swinging free of its lines.",
+      "answerSheet": "The Tideless lost its mooring lines, so it was unattended."
+    },
+    {
+      "id": "info-12",
+      "headline": "Fuel reading",
+      "detail": "The Tideless drew fuel at 01:45 with no crew logged aboard.",
+      "answerSheet": "Fuel was taken while the boat was empty."
+    },
+    {
+      "id": "info-13",
+      "headline": "Floor pressure sensors",
+      "detail": "Level 4 held steady pressure while other floors dipped.",
+      "answerSheet": "Level 4 was the calmest floor during the event."
+    },
+    {
+      "id": "info-14",
+      "headline": "Cleaning cart log",
+      "detail": "A cart was parked on Level 2 and never returned to the store.",
+      "answerSheet": "The parked cart narrows the search to Level 2 and 4."
+    },
+    {
+      "id": "info-15",
+      "headline": "Fire panel printout",
+      "detail": "The panel triggered from a manual call point, zone seven.",
+      "answerSheet": "Zone seven covers the atrium glass front."
+    },
+    {
+      "id": "info-16",
+      "headline": "Lift usage",
+      "detail": "The service lift ran empty from 02:00 to 02:20.",
+      "answerSheet": "An empty service lift trip matches the cleared floor."
+    },
+    {
+      "id": "info-17",
+      "headline": "Atrium access extract",
+      "detail": "The Level 4 log ends at 01:59 and is never reopened.",
+      "answerSheet": "Level 4 was cleared first, then the log was closed."
+    },
+    {
+      "id": "info-18",
+      "headline": "Key register",
+      "detail": "Two override keys are unaccounted for since the gala.",
+      "answerSheet": "Missing keys explain how locked doors were opened."
+    },
+    {
+      "id": "info-19",
+      "headline": "Sky clarity",
+      "detail": "Cloudless conditions allowed full starlight for the deck.",
+      "answerSheet": "Clear sky made the deck crew visible on the dome cam."
+    },
+    {
+      "id": "info-20",
+      "headline": "Dome camera sweep",
+      "detail": "The sweep found one open dome door and no forced entry.",
+      "answerSheet": "The dome door was opened from inside the deck."
+    },
+    {
+      "id": "info-21",
+      "headline": "Lens inventory",
+      "detail": "Every lens tray is signed out except one.",
+      "answerSheet": "Exactly one lens is unaccounted for."
+    },
+    {
+      "id": "info-22",
+      "headline": "Cradle survey",
+      "detail": "The Meridian 12 cradle sits forty degrees off its mount mark.",
+      "answerSheet": "Meridian 12 was rotated, which matches a moved telescope."
+    },
+    {
+      "id": "info-23",
+      "headline": "Dome temperature",
+      "detail": "The dome cooled four degrees inside fifteen minutes.",
+      "answerSheet": "The dome opened and lost air quickly."
+    },
+    {
+      "id": "info-24",
+      "headline": "Suspect interview",
+      "detail": "The suspect admits moving a telescope to see the harbour.",
+      "answerSheet": "The motive links the deck to the harbour incident."
+    },
+    {
+      "id": "info-25",
+      "headline": "Timeline summary",
+      "detail": "Dip at 01:52, override at 01:58, vault at 02:14, then the alarm.",
+      "answerSheet": "A single night links all five scenes in this order."
+    }
+  ]
+}

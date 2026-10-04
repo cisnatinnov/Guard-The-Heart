@@ -21,6 +21,8 @@ export function ChallengeScoreboardView({
   const { teams } = useTeams()
   const [entriesByChallenge, setEntriesByChallenge] = useState<Record<string, ChallengeScoreEntry[]>>({})
   const [form, setForm] = useState(EMPTY_FORM)
+  // The entry currently being corrected, or null when adding a new one.
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,12 +64,46 @@ export function ChallengeScoreboardView({
     event.preventDefault()
     if (!activeId || !form.team) return
     await run(async () => {
-      await ChallengeScoreboardController.create({
-        challenge: activeId,
-        team: form.team,
-        score: Number(form.score) || 0,
-      })
+      if (editingId) {
+        // Correcting an existing entry keeps the team and its rank in place, so
+        // the rewards and bonus cards are recalculated rather than revoked.
+        await ChallengeScoreboardController.update(editingId, {
+          score: Number(form.score) || 0,
+        })
+      } else {
+        await ChallengeScoreboardController.create({
+          challenge: activeId,
+          team: form.team,
+          score: Number(form.score) || 0,
+        })
+      }
       setForm(EMPTY_FORM)
+      setEditingId(null)
+    })
+  }
+
+  // Switching challenge abandons an in-progress correction.
+  function handleSelectChallenge(challengeId: string) {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    onSelectChallenge(challengeId)
+  }
+
+  function startEdit(entry: ChallengeScoreEntry) {
+    setEditingId(entry.id)
+    setForm({ team: entry.team, score: String(entry.score) })
+    setError(null)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+
+  async function handleDelete(id: string) {
+    await run(async () => {
+      await ChallengeScoreboardController.remove(id)
+      if (editingId === id) cancelEdit()
     })
   }
 
@@ -75,7 +111,9 @@ export function ChallengeScoreboardView({
     setForm((current) => ({ ...current, [key]: event.target.value }))
 
   const scoredTeamIds = new Set(entries.map((entry) => entry.team))
-  const availableTeams = teams.filter((team) => !scoredTeamIds.has(team.id))
+  const availableTeams = teams.filter(
+    (team) => !scoredTeamIds.has(team.id) || team.id === form.team,
+  )
 
   if (challenges.length === 0) {
     return (
@@ -84,7 +122,7 @@ export function ChallengeScoreboardView({
           <h2>Scoreboard per challenge</h2>
           <p className="view__hint">Every entry feeds the overall scoreboard total.</p>
         </header>
-        <p className="muted">Create a challenge first to record scores.</p>
+        <p className="muted">No challenges are available yet.</p>
       </section>
     )
   }
@@ -108,7 +146,7 @@ export function ChallengeScoreboardView({
               <span>Challenge</span>
               <select
                 value={activeId ?? ''}
-                onChange={(event) => onSelectChallenge(event.target.value)}
+                onChange={(event) => handleSelectChallenge(event.target.value)}
               >
                 {challenges.map((challenge) => (
                   <option key={challenge.id} value={challenge.id}>
@@ -121,7 +159,7 @@ export function ChallengeScoreboardView({
 
           {error && <p className="alert alert--error">{error}</p>}
 
-          {isFull && (
+          {isFull && !editingId && (
             <p className="alert alert--info">
               This challenge already holds the maximum of {MAX_ENTRIES_PER_CHALLENGE} entries.
               Delete one to make room.
@@ -130,8 +168,13 @@ export function ChallengeScoreboardView({
 
           <form className="grid-form" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Team</span>
-              <select value={form.team} onChange={updateField('team')} required>
+              <span>{editingId ? 'Team (correcting)' : 'Team'}</span>
+              <select
+                value={form.team}
+                onChange={updateField('team')}
+                required
+                disabled={busy || editingId !== null}
+              >
                 <option value="">Select team…</option>
                 {availableTeams.map((team) => (
                   <option key={team.id} value={team.id}>
@@ -149,11 +192,17 @@ export function ChallengeScoreboardView({
                 max={999}
                 value={form.score}
                 onChange={updateField('score')}
+                disabled={busy}
               />
             </label>
             <button type="submit" className="grid-form__submit" disabled={busy || !form.team}>
-              Add entry
+              {editingId ? 'Update score' : 'Add entry'}
             </button>
+            {editingId && (
+              <button type="button" className="ghost" onClick={cancelEdit} disabled={busy}>
+                Cancel
+              </button>
+            )}
           </form>
 
           {entries.length === 0 ? (
@@ -167,10 +216,10 @@ export function ChallengeScoreboardView({
                     <th>Team</th>
                     <th>Score</th>
                     <th>CP</th>
-                    <th title="Guard power earned in this challenge">GP earned</th>
+<th title="Guard power earned in this challenge">GP earned</th>
                     <th title="Team total guard power">GP total</th>
                     <th>Card</th>
-                    <th aria-label="Actions" />
+                    <th aria-label="Row actions" />
                   </tr>
                 </thead>
                 <tbody>
@@ -186,9 +235,17 @@ export function ChallengeScoreboardView({
                       <td className="table-wrap__actions">
                         <button
                           type="button"
+                          className="ghost"
+                          disabled={busy}
+                          onClick={() => startEdit(entry)}
+                        >
+                          Edit score
+                        </button>
+                        <button
+                          type="button"
                           className="danger"
                           disabled={busy}
-                          onClick={() => run(() => ChallengeScoreboardController.remove(entry.id))}
+                          onClick={() => handleDelete(entry.id)}
                         >
                           Delete
                         </button>

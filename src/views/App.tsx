@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDatabase } from '../hooks/useDatabase'
+import type { ChallengeGameId } from '../services/games'
 import { TeamView } from './TeamView'
 import { ChallengeView } from './ChallengeView'
 import { ChallengeScoreboardView } from './ChallengeScoreboardView'
@@ -7,8 +8,18 @@ import { ScoreboardTotalView } from './ScoreboardTotalView'
 import { HeartOfAwarenessView } from './HeartOfAwarenessView'
 import { CardDrawView } from './CardDrawView'
 import { TeamCardView } from './TeamCardView'
+import { GameView } from './challenges/GameView'
 
-type Tab = 'teams' | 'challenges' | 'scoreboard' | 'total' | 'heart' | 'cards' | 'team-cards'
+type Tab =
+  | 'teams'
+  | 'challenges'
+  | 'scoreboard'
+  | 'total'
+  | 'heart'
+  | 'cards'
+  | 'team-cards'
+  // Reached from a built-in challenge row, never listed as a tab.
+  | 'game'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'teams', label: 'Team' },
@@ -24,6 +35,7 @@ export function App() {
   const [tab, setTab] = useState<Tab>('teams')
   const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null)
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
+  const [selectedGameId, setSelectedGameId] = useState<ChallengeGameId | null>(null)
 
   function openScoreboard(challengeId: string) {
     setSelectedChallengeId(challengeId)
@@ -33,6 +45,11 @@ export function App() {
   function openTeamCards(teamId: string) {
     setSelectedTeamId(teamId)
     setTab('team-cards')
+  }
+
+  function playGame(gameId: ChallengeGameId) {
+    setSelectedGameId(gameId)
+    setTab('game')
   }
 
   function closeTeamCards() {
@@ -50,7 +67,7 @@ export function App() {
             </span>
             <div>
               <h1>Guard The Heart</h1>
-              <p className="app__tagline">Offline-first challenge & scoreboard tracker</p>
+              <p className="app__tagline">Offline-first challenge, game and scoreboard tracker</p>
             </div>
           </div>
           <div className="app__characters" role="group" aria-label="Meet the guardians">
@@ -103,7 +120,9 @@ export function App() {
         {status === 'ready' && (
           <>
             {tab === 'teams' && <TeamView onOpenTeamCards={openTeamCards} />}
-            {tab === 'challenges' && <ChallengeView onOpenScoreboard={openScoreboard} />}
+            {tab === 'challenges' && (
+              <ChallengeView onOpenScoreboard={openScoreboard} onPlayGame={playGame} />
+            )}
             {tab === 'scoreboard' && (
               <ChallengeScoreboardView
                 selectedChallengeId={selectedChallengeId}
@@ -119,6 +138,9 @@ export function App() {
                 teamName="Team Cards"
                 onClose={closeTeamCards}
               />
+            )}
+            {tab === 'game' && (
+              <GameView gameId={selectedGameId} onBackToChallenges={() => setTab('challenges')} />
             )}
           </>
         )}

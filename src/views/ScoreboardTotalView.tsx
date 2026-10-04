@@ -63,7 +63,7 @@ export function ScoreboardTotalView() {
                 <th>Total score</th>
                 <th>CP</th>
                 <th title={`Card total, capped at ${MAX_TOTAL_CARD}`}>Card / {MAX_TOTAL_CARD}</th>
-                <th>GP</th>
+<th>GP</th>
               </tr>
             </thead>
             <tbody>

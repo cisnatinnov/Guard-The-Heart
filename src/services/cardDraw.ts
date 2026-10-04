@@ -1,5 +1,5 @@
 import { Op } from 'sequelize'
-import { Card, Challenge, ChallengeScoreboard, Team, TeamCard } from '../models'
+import { Card, Challenge, ChallengeScoreboard, Team, TeamCard, type CardType } from '../models'
 
 export interface CardPoolEntry {
   name: string
@@ -29,6 +29,26 @@ const CARD_POOL: CardPoolEntry[] = [
   })),
 ]
 
+export const CARD_TYPES: CardType[] = ['Normal', 'Rare', 'Epic']
+export const CARD_POOL_TOTAL = CARD_POOL.length
+
+export interface CardPoolTypeStatus {
+  total: number
+  drawn: number
+  remaining: number
+}
+
+export interface CardPoolStatus {
+  total: number
+  drawn: number
+  remaining: number
+  byType: Record<CardType, CardPoolTypeStatus>
+}
+
+function poolEntryKey(entry: Pick<CardPoolEntry, 'name' | 'type' | 'effect' | 'icon'>): string {
+  return [entry.type, entry.name, entry.effect, entry.icon].join('|')
+}
+
 function shuffle<T>(array: T[]): T[] {
   const result = [...array]
   for (let i = result.length - 1; i > 0; i--) {
@@ -38,9 +58,44 @@ function shuffle<T>(array: T[]): T[] {
   return result
 }
 
-export function drawRandomCards(count: number): CardPoolEntry[] {
-  const shuffled = shuffle(CARD_POOL)
-  return shuffled.slice(0, count)
+export function availablePoolCards(drawnKeys: ReadonlySet<string>): CardPoolEntry[] {
+  return CARD_POOL.filter((entry) => !drawnKeys.has(poolEntryKey(entry)))
+}
+
+export function drawCardsFromPool(drawnKeys: Set<string>, count: number): CardPoolEntry[] {
+  const picked = shuffle(availablePoolCards(drawnKeys)).slice(0, Math.max(0, Math.trunc(count)))
+  for (const card of picked) {
+    drawnKeys.add(poolEntryKey(card))
+  }
+  return picked
+}
+
+async function loadDrawnPoolKeys(): Promise<Set<string>> {
+  const drawnCards = await Card.findAll({ attributes: ['name', 'type', 'effect', 'icon'] })
+  return new Set(drawnCards.map((card) => poolEntryKey(card)))
+}
+
+export async function getCardPoolStatus(): Promise<CardPoolStatus> {
+  const drawnKeys = await loadDrawnPoolKeys()
+  const byType: Record<CardType, CardPoolTypeStatus> = {
+    Normal: { total: 0, drawn: 0, remaining: 0 },
+    Rare: { total: 0, drawn: 0, remaining: 0 },
+    Epic: { total: 0, drawn: 0, remaining: 0 },
+  }
+
+  for (const entry of CARD_POOL) {
+    const bucket = byType[entry.type]
+    bucket.total += 1
+    if (drawnKeys.has(poolEntryKey(entry))) bucket.drawn += 1
+    else bucket.remaining += 1
+  }
+
+  return {
+    total: CARD_POOL_TOTAL,
+    drawn: CARD_TYPES.reduce((sum, type) => sum + byType[type].drawn, 0),
+    remaining: CARD_TYPES.reduce((sum, type) => sum + byType[type].remaining, 0),
+    byType,
+  }
 }
 
 const challengeDrawsInFlight = new Map<string, Promise<Card[]>>()
@@ -100,6 +155,7 @@ async function synchronizeCompletedChallengeCards(challengeId: string): Promise<
     ...entries.map((entry) => entry.team),
     ...existingCards.flatMap((card) => (card.team ? [card.team] : [])),
   ])
+  const drawnPoolKeys = await loadDrawnPoolKeys()
   const cardsByTeam = new Map<string, Card[]>()
 
   for (const entry of entries) {
@@ -114,7 +170,7 @@ async function synchronizeCompletedChallengeCards(challengeId: string): Promise<
     }
 
     const keptCards = currentCards.slice(0, keepCount)
-    const missingCards = drawRandomCards(desiredCount - keepCount)
+    const missingCards = drawCardsFromPool(drawnPoolKeys, desiredCount - keepCount)
     for (const cardData of missingCards) {
       keptCards.push(
         await Card.create({

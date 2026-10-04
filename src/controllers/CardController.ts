@@ -6,6 +6,8 @@ import {
   getTeamDrawnCards,
   getChallengeBonusCards,
   getTeamCards,
+  getCardPoolStatus,
+  type CardPoolStatus,
 } from '../services/cardDraw'
 
 export class CardController {
@@ -31,5 +33,9 @@ export class CardController {
 
   static async listTeamCardsPermanent(teamId: string): Promise<TeamCard[]> {
     return getTeamCards(teamId)
+  }
+
+  static async getPoolStatus(): Promise<CardPoolStatus> {
+    return getCardPoolStatus()
   }
 }

@@ -321,6 +321,58 @@ select:focus {
   gap: 0.6rem;
 }
 
+.team-list-toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.45fr) minmax(140px, 0.4fr);
+  align-items: end;
+  gap: 0.7rem;
+}
+
+.team-list-toolbar__filter,
+.team-list-toolbar__status,
+.team-list-toolbar__page-size {
+  min-width: 0;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pagination__page {
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.55rem;
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination__pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.pagination__page--active {
+  background: var(--color-tosca);
+  border-color: var(--color-tosca);
+  color: var(--color-white);
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -355,6 +407,37 @@ select:focus {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
   align-items: start;
   gap: 1rem;
+}
+
+.card-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-pool > h3 {
+  margin: 0;
+}
+
+.card-pool__breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge--normal {
+  color: #f6d2a8;
+  border-color: #a9470c;
+}
+
+.badge--rare {
+  color: #9fe0e2;
+  border-color: var(--color-tosca);
+}
+
+.badge--epic {
+  color: #f4b3ad;
+  border-color: var(--color-red);
 }
 
 .card-tile {
@@ -757,6 +840,23 @@ tbody tr:last-child td {
 
   .tabs {
     gap: 0.35rem;
+  }
+
+  .team-list-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-list-toolbar__filter {
+    grid-column: 1 / -1;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination__controls {
+    justify-content: space-between;
   }
 
   .tab {

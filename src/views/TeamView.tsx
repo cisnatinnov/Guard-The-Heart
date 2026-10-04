@@ -1,21 +1,44 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { TeamController } from '../controllers/TeamController'
 import { useTeams } from '../hooks/useTeams'
 import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 25, 50, 100] as const
+type TeamStatusFilter = 'active' | 'inactive' | 'all'
 
 interface TeamViewProps {
   onOpenTeamCards: (teamId: string) => void
 }
 
 export function TeamView({ onOpenTeamCards }: TeamViewProps) {
-  const { teams, loading, error: loadError, reload } = useTeams()
+  const { teams, loading, error: loadError, reload } = useTeams({ includeInactive: true })
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(10)
+  const [nameFilter, setNameFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState<TeamStatusFilter>('active')
 
   const error = actionError ?? loadError
+  const filteredTeams = useMemo(() => {
+    const normalizedFilter = nameFilter.trim().toLocaleLowerCase()
+    return teams.filter((team) => {
+      const matchesName = team.name.toLocaleLowerCase().includes(normalizedFilter)
+      const matchesStatus = statusFilter === 'all' || team.status === statusFilter
+      return matchesName && matchesStatus
+    })
+  }, [nameFilter, statusFilter, teams])
+  const pageCount = Math.max(1, Math.ceil(filteredTeams.length / pageSize))
+  const visibleTeams = filteredTeams.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const firstVisibleTeam = filteredTeams.length === 0 ? 0 : (currentPage - 1) * pageSize + 1
+  const lastVisibleTeam = Math.min(currentPage * pageSize, filteredTeams.length)
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, pageCount))
+  }, [pageCount])
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true)
@@ -83,9 +106,66 @@ export function TeamView({ onOpenTeamCards }: TeamViewProps) {
         <p className="muted">No teams yet. Add your first one above.</p>
       )}
 
-      {teams.length > 0 && (
+      {!loading && teams.length > 0 && (
+        <div className="team-list-toolbar">
+          <label className="field team-list-toolbar__filter">
+            <span>Filter by name</span>
+            <input
+              type="search"
+              value={nameFilter}
+              placeholder="Search teams"
+              aria-label="Filter teams by name"
+              onChange={(event) => {
+                setNameFilter(event.target.value)
+                setCurrentPage(1)
+              }}
+            />
+          </label>
+          <label className="field team-list-toolbar__status">
+            <span>Status</span>
+            <select
+              value={statusFilter}
+              aria-label="Filter teams by status"
+              onChange={(event) => {
+                const status = event.target.value
+                if (status === 'active' || status === 'inactive' || status === 'all') {
+                  setStatusFilter(status)
+                }
+                setCurrentPage(1)
+              }}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="all">All teams</option>
+            </select>
+          </label>
+          <label className="field team-list-toolbar__page-size">
+            <span>Items per page</span>
+            <select
+              value={pageSize}
+              aria-label="Items per page"
+              onChange={(event) => {
+                setPageSize(Number(event.target.value))
+                setCurrentPage(1)
+              }}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+
+      {!loading && teams.length > 0 && filteredTeams.length === 0 && (
+        <p className="muted">No teams match the current filters.</p>
+      )}
+
+      {!loading && visibleTeams.length > 0 && (
         <ul className="card-list">
-          {teams.map((team) => (
+          {visibleTeams.map((team) => (
             <li key={team.id} className="card">
               {editingId === team.id ? (
                 <form className="row-form" onSubmit={(event) => handleRename(event, team.id)}>
@@ -151,6 +231,50 @@ export function TeamView({ onOpenTeamCards }: TeamViewProps) {
             </li>
           ))}
         </ul>
+      )}
+
+      {!loading && teams.length > 0 && (
+        <nav className="pagination" aria-label="Team list pages">
+          <span className="pagination__summary" aria-live="polite">
+            Showing {firstVisibleTeam}–{lastVisibleTeam} of {filteredTeams.length} teams
+          </span>
+          {pageCount > 1 && (
+            <div className="pagination__controls">
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                aria-label="Previous team page"
+              >
+                Previous
+              </button>
+              <div className="pagination__pages" aria-label="Select team page">
+                {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={page === currentPage ? 'pagination__page pagination__page--active' : 'pagination__page'}
+                    aria-label={`Page ${page}`}
+                    aria-current={page === currentPage ? 'page' : undefined}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
+                disabled={currentPage === pageCount}
+                aria-label="Next team page"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </nav>
       )}
     </section>
   )

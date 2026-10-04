@@ -1,7 +1,7 @@
 ## Tech Stack
 1. MVC Framework: react latest typescript with vite (compatible with installed node and npm)
 - **Models (ORM (sequilize (no raw queries)))** and **Controllers**
-| Team |
+| Team (filterable; 5, 10, 20, 25, 50, or 100 teams per page with numbered page navigation) |
 | Challenge |
 | ChallengeScoreboard |
 | Scoreboard |
@@ -127,8 +127,16 @@ Constraints: After the fifth team is entered, ranks and rank rewards are recalcu
 5. Team total_gp set to 5 as default
 6. Team total_gp from guard_power accumulation (base 5 + earned guard_power)
 7. **Card System**
-a. Type : Normal (48), Rare (24), Epic (6) - Total 78 cards
+a. Type : Normal (48), Rare (24), Epic (6) - Total 78 cards (show remaining total cards can drawn after cards drawn)
 b. Effect : Defense 🛡️, Attack 🗡️, Heal ❤️, Utility 🔀, Support 🤝
 c. After the fifth team participates and all ranks/rewards are calculated, teams with a card reward receive random bonus cards (maximum 3 per team per challenge).
 d. Each bonus card is stored in `card` with challenge and team references, then mirrored once in `team_card` for the permanent team collection. Repeated completion/sync requests reconcile counts rather than adding duplicates.
 e. If a completed challenge's scores change, bonus-card counts are synchronized to the updated ranks. Removing a score so the challenge has fewer than five participants removes its challenge bonus cards and their permanent copies.
+f. The pool depletes. A drawn card leaves the pool, so no pool card is ever awarded twice. Revoking a draw returns its cards to the pool. `getCardPoolStatus()` reports the total, drawn and remaining counts overall and per type, and the Card Draw view shows them.
+g. **Challanges**
+1. Emoji Decode : "'Emoji Decode' challenge that includes a link to a PPTX file. The presentation must feature 15 questions and include a built-in animated timer for each slide."
+2. Gardimon Protocol : "'Gardimon Protocol' game consisting of 5 questions and 5 unique cards. The gameplay elements must be categorized into three phases or components: Crime Scene, Evidence, and Protocol."
+3. Word Assembly : "'Word Assembly' match-card game mechanic featuring 5 main questions and 20 playable cards for players to match."
+4. Incident Trail : "Develop an 'Incident Trail' challenge and provide a link to a PPTX file. It must include 5 Crime Scenes with associated questions, 5 distinct clues, 25 pieces of information, and 25 answer sheets."
+5. Jaws of Risk : "Create a digital application interface inspired by the physical crocodile dentist toy. The digital version must allow the user to select, interact with, or label specific teeth before 'pressing' them."
+6. 'Save the Core' : "Design a game mechanic called 'Save the Core' inspired by Ludo and Minesweeper. The rules are: if a player steps on a hidden bomb, their piece is immediately sent back to a predetermined starting position. However, stepping on a correct (safe) tile reveals a randomized score."

@@ -16,7 +16,10 @@ import {
 } from '../src/services/rankRules'
 import { MAX_ENTRIES_PER_CHALLENGE, MAX_TOTAL_CARD } from '../src/services/rankRules'
 import {
+  CARD_POOL_TOTAL,
+  CARD_TYPES,
   drawBonusCardsForChallenge,
+  getCardPoolStatus,
   synchronizeAllChallengeBonusCards,
 } from '../src/services/cardDraw'
 
@@ -519,5 +522,91 @@ describe('ScoreboardController', () => {
     const rows = await ChallengeScoreboard.findAll({ where: { challenge: challenge.id } })
     expect(rows).toHaveLength(0)
     expect((await TeamController.getById(team.id))?.total_gp).toBe(BASE_TEAM_GUARD_POWER)
+  })
+})
+
+describe('card pool', () => {
+  it('declares 78 cards split 48 Normal, 24 Rare and 6 Epic', async () => {
+    const pool = await getCardPoolStatus()
+    expect(CARD_POOL_TOTAL).toBe(78)
+    expect(pool.total).toBe(CARD_POOL_TOTAL)
+    expect(pool.byType.Normal.total).toBe(48)
+    expect(pool.byType.Rare.total).toBe(24)
+    expect(pool.byType.Epic.total).toBe(6)
+
+    for (const type of CARD_TYPES) {
+      const bucket = pool.byType[type]
+      expect(bucket.drawn + bucket.remaining).toBe(bucket.total)
+    }
+    expect(pool.drawn + pool.remaining).toBe(pool.total)
+  })
+
+  it('consumes pool cards on draw and returns them when the draw is revoked', async () => {
+    const before = await getCardPoolStatus()
+    const challenge = await ChallengeController.create('Arena Pool Drain')
+    const teams = await Promise.all(
+      ['Pool A', 'Pool B', 'Pool C', 'Pool D', 'Pool E'].map((name) => TeamController.create(name))
+    )
+
+    for (const [index, team] of teams.entries()) {
+      await ChallengeScoreboardController.create({
+        challenge: challenge.id,
+        team: team.id,
+        score: (teams.length - index) * 20,
+      })
+    }
+
+    const drawn = await Card.findAll({ where: { challenge: challenge.id } })
+    expect(drawn).toHaveLength(8)
+    expect(new Set(drawn.map((card) => card.name)).size).toBe(8)
+
+    const afterDraw = await getCardPoolStatus()
+    expect(afterDraw.drawn - before.drawn).toBe(8)
+    expect(afterDraw.remaining).toBe(before.remaining - 8)
+    expect(afterDraw.byType.Normal.drawn - before.byType.Normal.drawn).toBe(
+      drawn.filter((card) => card.type === 'Normal').length
+    )
+    expect(afterDraw.byType.Rare.drawn - before.byType.Rare.drawn).toBe(
+      drawn.filter((card) => card.type === 'Rare').length
+    )
+    expect(afterDraw.byType.Epic.drawn - before.byType.Epic.drawn).toBe(
+      drawn.filter((card) => card.type === 'Epic').length
+    )
+
+    const firstEntry = (await ChallengeScoreboardController.listByChallenge(challenge.id))[0]
+    await ChallengeScoreboardController.remove(firstEntry.id)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(0)
+    expect(await getCardPoolStatus()).toEqual(before)
+  })
+
+  it('never hands the same pool card to two teams', async () => {
+    const baseline = await getCardPoolStatus()
+    const owners = new Map<string, string[]>()
+
+    for (const round of [0, 1, 2]) {
+      const challenge = await ChallengeController.create(`Arena Unique Draw ${round}`)
+      const teams = await Promise.all(
+        ['Draw', 'Flop', 'Call', 'Raise', 'Fold'].map((name) => TeamController.create(`${name} ${round}`))
+      )
+      for (const [index, team] of teams.entries()) {
+        await ChallengeScoreboardController.create({
+          challenge: challenge.id,
+          team: team.id,
+          score: (teams.length - index) * 20,
+        })
+      }
+
+      for (const card of await Card.findAll({ where: { challenge: challenge.id } })) {
+        if (!card.team) continue
+        const claimed = owners.get(card.name) ?? []
+        if (!claimed.includes(card.team)) claimed.push(card.team)
+        owners.set(card.name, claimed)
+      }
+    }
+
+    // 3 completed challenges x 8 cards drawn, all from distinct pool entries.
+    expect(owners.size).toBe(24)
+    expect([...owners.values()].every((teams) => teams.length === 1)).toBe(true)
+    expect((await getCardPoolStatus()).drawn - baseline.drawn).toBe(24)
   })
 })

@@ -39,7 +39,8 @@ when the app starts.
 ## Using the app
 
 1. Add and manage teams on the **Team** view. Teams start with 5 guard power
-   (GP) and can be activated or deactivated.
+   (GP) and can be activated or deactivated. Filter by name and status, and
+   choose 5, 10, 20, 25, 50, or 100 teams per page.
 2. Create challenges on the **Challenge** view.
 3. Open a challenge scoreboard and enter one score per participating team.
    A challenge accepts at most five teams.
@@ -70,6 +71,9 @@ across challenges.
 The card pool contains 78 cards: 48 Normal, 24 Rare, and 6 Epic. Each card has
 an effect category (Defense, Attack, Heal, Utility, or Support). A completed
 challenge awards up to three cards per eligible team based on the final rank.
+The pool depletes as cards are drawn, so no pool card is ever awarded twice, and
+revoking a draw returns its cards to the pool. The **Card Draw** view shows the
+pool size, how many cards are drawn, and how many remain, overall and per type.
 Each card is recorded for the challenge and mirrored once in the team's
 permanent collection. Startup and score changes synchronize these records,
 repair old duplicate counts, and avoid repeated awards. If scores change, card

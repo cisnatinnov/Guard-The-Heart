@@ -1,6 +1,7 @@
 import { Challenge } from '../models'
 import { recalculateTotalScoreboard } from '../services/scoreboardAggregator'
 import { isLockedChallengeName } from '../services/challengeSeeds'
+import { releaseChallengeBonusCards } from '../services/cardDraw'
 
 export class ChallengeController {
   static async list(): Promise<Challenge[]> {
@@ -47,6 +48,7 @@ export class ChallengeController {
     if (isLockedChallengeName(challenge.name)) {
       throw new Error(`Challenge "${challenge.name}" is built in and cannot be deleted`)
     }
+    await releaseChallengeBonusCards(id)
     const deleted = await Challenge.destroy({ where: { id } })
     if (deleted > 0) {
       // Cascading deletes remove the entries, so derived totals and team

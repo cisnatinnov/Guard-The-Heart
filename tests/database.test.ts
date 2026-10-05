@@ -20,6 +20,7 @@ import {
   CARD_TYPES,
   drawBonusCardsForChallenge,
   getCardPoolStatus,
+  seedCardPool,
   synchronizeAllChallengeBonusCards,
 } from '../src/services/cardDraw'
 import {
@@ -280,6 +281,7 @@ describe('ChallengeScoreboardController', () => {
         name: card.name,
         type: card.type,
         effect: card.effect,
+        effect_action: card.effect_action,
         icon: card.icon,
         challenge: challenge.id,
         team: teams[0].id,
@@ -288,11 +290,20 @@ describe('ChallengeScoreboardController', () => {
         name: card.name,
         type: card.type,
         effect: card.effect,
+        effect_action: card.effect_action,
         icon: card.icon,
         team: teams[0].id,
       })
     }
     expect((await cardCountsByTeam()).get(teams[0].id)).toBe(6)
+    const mirrored = await TeamCard.findAll({ where: { team: teams[0].id } })
+    const challengeActions = await Card.findAll({
+      where: { challenge: challenge.id, team: teams[0].id },
+      attributes: ['effect_action'],
+    })
+    expect(mirrored.map((card) => card.effect_action).sort()).toEqual(
+      challengeActions.map((card) => card.effect_action).sort()
+    )
 
     await synchronizeAllChallengeBonusCards()
     await drawBonusCardsForChallenge(challenge.id)
@@ -661,23 +672,36 @@ describe('ScoreboardController', () => {
 })
 
 describe('card pool', () => {
-  it('declares 78 cards split 48 Normal, 24 Rare and 6 Epic', async () => {
+  it('declares 80 cards split 48 Normal, 24 Rare, 6 Epic and 2 Legendary', async () => {
     const pool = await getCardPoolStatus()
-    expect(CARD_POOL_TOTAL).toBe(78)
+    const inventory = await Card.findAll()
+    const names = inventory.map((card) => card.name)
+    const queryInterface = getSequelize().getQueryInterface()
+    expect(CARD_POOL_TOTAL).toBe(80)
+    expect(inventory).toHaveLength(80)
+    expect(new Set(names).size).toBe(80)
+    expect(inventory.every((card) => card.effect_action.trim().length > 0)).toBe(true)
+    expect(await queryInterface.describeTable('card')).toHaveProperty('effect_action')
+    expect(await queryInterface.describeTable('team_card')).toHaveProperty('effect_action')
     expect(pool.total).toBe(CARD_POOL_TOTAL)
     expect(pool.byType.Normal.total).toBe(48)
     expect(pool.byType.Rare.total).toBe(24)
     expect(pool.byType.Epic.total).toBe(6)
+    expect(pool.byType.Legendary.total).toBe(2)
 
     for (const type of CARD_TYPES) {
       const bucket = pool.byType[type]
       expect(bucket.drawn + bucket.remaining).toBe(bucket.total)
     }
     expect(pool.drawn + pool.remaining).toBe(pool.total)
+
+    await seedCardPool()
+    expect(await Card.count()).toBe(80)
   })
 
   it('consumes pool cards on draw and returns them when the draw is revoked', async () => {
     const before = await getCardPoolStatus()
+    const unassignedBefore = await Card.count({ where: { challenge: null, team: null } })
     const challenge = await ChallengeController.create('Arena Pool Drain')
     const teams = await Promise.all(
       ['Pool A', 'Pool B', 'Pool C', 'Pool D', 'Pool E'].map((name) => TeamController.create(name))
@@ -694,6 +718,7 @@ describe('card pool', () => {
     const drawn = await Card.findAll({ where: { challenge: challenge.id } })
     expect(drawn).toHaveLength(8)
     expect(new Set(drawn.map((card) => card.name)).size).toBe(8)
+    expect(drawn.every((card) => card.effect_action.trim().length > 0)).toBe(true)
 
     const afterDraw = await getCardPoolStatus()
     expect(afterDraw.drawn - before.drawn).toBe(8)
@@ -711,6 +736,7 @@ describe('card pool', () => {
     const firstEntry = (await ChallengeScoreboardController.listByChallenge(challenge.id))[0]
     await ChallengeScoreboardController.remove(firstEntry.id)
     expect(await Card.count({ where: { challenge: challenge.id } })).toBe(0)
+    expect(await Card.count({ where: { challenge: null, team: null } })).toBe(unassignedBefore)
     expect(await getCardPoolStatus()).toEqual(before)
   })
 
@@ -743,5 +769,27 @@ describe('card pool', () => {
     expect(owners.size).toBe(24)
     expect([...owners.values()].every((teams) => teams.length === 1)).toBe(true)
     expect((await getCardPoolStatus()).drawn - baseline.drawn).toBe(24)
+  })
+
+  it('returns assigned inventory rows when their challenge is deleted', async () => {
+    const baseline = await getCardPoolStatus()
+    const challenge = await ChallengeController.create('Arena Return Inventory')
+    const teams = await Promise.all(
+      ['Return A', 'Return B', 'Return C', 'Return D', 'Return E'].map((name) =>
+        TeamController.create(name)
+      )
+    )
+    for (const [index, team] of teams.entries()) {
+      await ChallengeScoreboardController.create({
+        challenge: challenge.id,
+        team: team.id,
+        score: (teams.length - index) * 10,
+      })
+    }
+
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+    expect(await ChallengeController.remove(challenge.id)).toBe(true)
+    expect(await Card.count()).toBe(80)
+    expect(await getCardPoolStatus()).toEqual(baseline)
   })
 })

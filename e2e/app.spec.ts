@@ -14,6 +14,13 @@ test.describe('Guard The Heart', () => {
 
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Guard The Heart' })).toBeVisible()
+    await expect(page.getByRole('img', { name: 'Guard The Heart logo' })).toHaveAttribute(
+      'src',
+      '/Logo_Game-5.png'
+    )
+    await expect
+      .poll(() => page.getByRole('img', { name: 'Guard The Heart logo' }).evaluate((image) => (image as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(0)
     await expect(page.getByRole('heading', { name: 'Teams' })).toBeVisible({ timeout: 30_000 })
 
     // --- Team view: create ---
@@ -138,20 +145,22 @@ test.describe('Guard The Heart', () => {
     await page.getByRole('textbox', { name: 'New team name' }).fill('Run Team')
     await page.getByRole('button', { name: 'Add team' }).click()
     await expect(page.getByText('Run Team', { exact: true })).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('textbox', { name: 'New team name' }).fill('Next Team')
+    await page.getByRole('button', { name: 'Add team' }).click()
+    await expect(page.getByText('Next Team', { exact: true })).toBeVisible({ timeout: 15_000 })
 
     await tab(page, 'Challenge').click()
     const challengeSettings = [
       { title: 'Emoji Decode', duration: '30s' },
-      { title: 'Gardimon Protocol', duration: '8:00' },
       { title: 'Word Assembly', duration: '15s' },
-      { title: 'Incident Trail', duration: '20s' },
       { title: 'Jaws of Risk', duration: null },
     ]
 
     for (const { title, duration } of challengeSettings) {
       await page.locator('.card--locked', { hasText: title }).getByRole('button', { name: 'Play' }).click()
       await page.getByRole('checkbox', { name: 'Run Team' }).check()
-      await page.getByRole('button', { name: 'Start team run (1)' }).click()
+      await page.getByRole('checkbox', { name: 'Next Team' }).check()
+      await page.getByRole('button', { name: 'Start team run (2)' }).click()
 
       const firstTimer = page.getByRole('timer', { name: 'Time left for question 1' })
       if (duration) {
@@ -162,23 +171,42 @@ test.describe('Guard The Heart', () => {
 
       await page.getByRole('textbox', { name: 'Run Team answer' }).fill('not the answer')
       await page.getByRole('button', { name: 'Grade this question' }).click()
+
+      const retryAnswer = page.getByRole('textbox', { name: 'Next Team answer' })
+      await expect(retryAnswer).toBeEnabled()
+      await expect(page.getByRole('textbox', { name: 'Run Team answer' })).toBeDisabled()
+      await expect(page.getByRole('heading', { name: /question 1 of/ })).toBeVisible()
+      await retryAnswer.fill(title === 'Emoji Decode' ? 'firefighter' : 'still not the answer')
+      await page.getByRole('button', { name: 'Next team answer' }).click()
+
+      await expect(page.getByRole('button', { name: 'Next question' })).toBeVisible()
       await page.getByRole('button', { name: 'Next question' }).click()
-
-      const nextAnswer = page.getByRole('textbox', { name: 'Run Team answer' })
-      await expect(nextAnswer).toBeEnabled()
-      await nextAnswer.fill('next answer')
-
-      const secondTimer = page.getByRole('timer', { name: 'Time left for question 2' })
-      if (duration) {
-        await expect(secondTimer).toHaveText(duration)
-      } else {
-        await expect(secondTimer).toHaveCount(0)
-      }
+      const secondQuestionAnswer = page.getByRole('textbox', { name: 'Run Team answer' })
+      await expect(secondQuestionAnswer).toBeEnabled()
+      await expect(page.getByRole('textbox', { name: 'Next Team answer' })).toBeDisabled()
 
       if (title === 'Word Assembly') {
+        const secondTimer = page.getByRole('timer', { name: 'Time left for question 2' })
+        await expect(secondTimer).toHaveText(duration!)
         await expect(secondTimer).toHaveText('Time up', { timeout: 20_000 })
-        await expect(nextAnswer).toBeDisabled()
+        await expect(secondQuestionAnswer).toBeDisabled()
+        await expect(page.locator('.run-panel__verdict')).toContainText('time up')
         await expect(page.getByRole('button', { name: 'Next question' })).toBeVisible()
+        await page.getByRole('button', { name: 'Next question' }).click()
+        const thirdQuestionAnswer = page.getByRole('textbox', { name: 'Next Team answer' })
+        await expect(thirdQuestionAnswer).toBeEnabled()
+        await thirdQuestionAnswer.fill('next question answer')
+      } else if (title !== 'Emoji Decode') {
+        const secondTimer = page.getByRole('timer', { name: 'Time left for question 2' })
+        if (duration) {
+          await expect(secondTimer).toHaveText(duration)
+        } else {
+          await expect(secondTimer).toHaveCount(0)
+        }
+        await secondQuestionAnswer.fill('wrong answer')
+        await page.getByRole('button', { name: 'Grade this question' }).click()
+        const retryNextQuestion = page.getByRole('textbox', { name: 'Next Team answer' })
+        await expect(retryNextQuestion).toBeEnabled()
       }
 
       await page.getByRole('button', { name: 'End run' }).click()
@@ -187,6 +215,25 @@ test.describe('Guard The Heart', () => {
 
     await page.locator('.card--locked', { hasText: 'Save the Core' }).getByRole('button', { name: 'Play' }).click()
     await expect(page.getByRole('timer')).toHaveCount(0)
+  })
+
+  test('finalizes Save the Core scores when its five-minute timer expires', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('heading', { name: 'Teams' })).toBeVisible({ timeout: 30_000 })
+    await tab(page, 'Challenge').click()
+    await page.locator('.card--locked', { hasText: 'Save the Core' }).getByRole('button', { name: 'Play' }).click()
+
+    await page.clock.install()
+    await page.getByRole('button', { name: 'Start 5-minute game' }).click()
+    await expect(page.getByRole('timer', { name: 'Time remaining' })).toHaveText('5:00')
+    await page.clock.runFor(5 * 60 * 1000)
+
+    await expect(page.getByRole('timer', { name: 'Time remaining' })).toHaveText('0:00')
+    await expect(page.locator('.alert--info')).toContainText(
+      'No player reached the Core; final scores are shown below.'
+    )
+    await expect(page.locator('.core-leaderboard__row')).toHaveCount(4)
+    await expect(page.getByRole('button', { name: /Roll the d6/ })).toBeDisabled()
   })
 
   test('shows only locked built-in challenges and opens them from their row', async ({ page }) => {
@@ -220,6 +267,18 @@ test.describe('Guard The Heart', () => {
     await expect(page.getByRole('button', { name: 'Add challenge' })).toHaveCount(0)
     await expect(builtIn.first().getByRole('button', { name: 'Rename' })).toHaveCount(0)
     await expect(builtIn.first().getByRole('button', { name: 'Delete' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Work in progress' })).toHaveCount(2)
+
+    for (const title of ['Gardimon Protocol', 'Incident Trail']) {
+      await builtIn
+        .filter({ hasText: title })
+        .getByRole('button', { name: 'Work in progress' })
+        .click()
+      await expect(page.getByRole('heading', { name: 'Work in progress' })).toBeVisible()
+      await expect(page.locator('.protocol-card, .scene, .evidence')).toHaveCount(0)
+      await page.getByRole('button', { name: 'All challenges' }).click()
+      await expect(page.getByRole('heading', { name: 'Challenges' })).toBeVisible()
+    }
 
     // The row opens its game, and the back button returns to the list.
     await builtIn.first().getByRole('button', { name: 'Play' }).click()
@@ -234,7 +293,7 @@ test.describe('Guard The Heart', () => {
     await expect(page.locator('.row-form select')).toHaveValue(firstChallengeId!)
   })
 
-  test('plays the six challenges and keeps the decks reachable', async ({ page }) => {
+  test('plays available challenges, shows work-in-progress pages and keeps available decks reachable', async ({ page }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { name: 'Teams' })).toBeVisible({ timeout: 30_000 })
 
@@ -245,11 +304,6 @@ test.describe('Guard The Heart', () => {
       'href',
       '/decks/emoji-decode.pptx'
     )
-    await expect(page.getByRole('link', { name: 'Incident Trail deck (PPTX)' }).first()).toHaveAttribute(
-      'href',
-      '/decks/incident-trail.pptx'
-    )
-
     const play = (title: string) =>
       page.locator('.card--locked', { hasText: title }).getByRole('button', { name: 'Play' }).click()
 
@@ -275,42 +329,78 @@ test.describe('Guard The Heart', () => {
     await expect(page.locator('.alert--ok')).toContainText('Correct')
     await expect(page.locator('.stat', { hasText: 'Solved' })).toContainText('1/15')
 
-    // Gardimon Protocol walks the three phases of the first card.
+    // Gardimon Protocol content is temporarily hidden.
     await page.getByRole('button', { name: 'All challenges' }).click()
-    await play('Gardimon Protocol')
-    await expect(page.locator('.protocol-phase')).toHaveCount(3)
-    await expect(page.locator('.protocol-phase--active')).toContainText('Crime Scene')
+    await page
+      .locator('.card--locked', { hasText: 'Gardimon Protocol' })
+      .getByRole('button', { name: 'Work in progress' })
+      .click()
+    await expect(page.getByRole('heading', { name: 'Work in progress' })).toBeVisible()
 
-    // Word Assembly deals twenty tiles.
+    // Word Assembly deals ten pairs of picture cards.
     await page.getByRole('button', { name: 'All challenges' }).click()
     await play('Word Assembly')
-    await expect(page.locator('.tile')).toHaveCount(20)
-    await expect(page.locator('.word-slot')).toHaveCount(5)
+    const matchCards = page.locator('.tile')
+    await expect(matchCards).toHaveCount(20)
+    await expect(page.locator('.word-match-prompts li')).toHaveCount(10)
 
-    // Incident Trail files a clue and closes its scene.
+    let mismatchIndices: [number, number] | null = null
+    for (let firstIndex = 0; firstIndex < 20 && !mismatchIndices; firstIndex += 1) {
+      const firstCard = matchCards.nth(firstIndex)
+      if ((await firstCard.getAttribute('aria-label')) !== 'Face-down picture card') continue
+      await firstCard.click()
+      await expect(firstCard.locator('img')).toBeVisible()
+      await expect
+        .poll(() => firstCard.locator('img').evaluate((image) => (image as HTMLImageElement).naturalWidth))
+        .toBeGreaterThan(0)
+      const firstSource = await firstCard.locator('img').getAttribute('src')
+
+      for (let secondIndex = firstIndex + 1; secondIndex < 20; secondIndex += 1) {
+        const secondCard = matchCards.nth(secondIndex)
+        if ((await secondCard.getAttribute('aria-label')) !== 'Face-down picture card') continue
+        await secondCard.click()
+        const secondSource = await secondCard.locator('img').getAttribute('src')
+        if (secondSource !== firstSource) {
+          mismatchIndices = [firstIndex, secondIndex]
+          break
+        }
+        break
+      }
+    }
+    expect(mismatchIndices).not.toBeNull()
+    await expect(page.locator('.alert--error')).toContainText('pictures do not match')
+    const [firstMismatch, secondMismatch] = mismatchIndices!
+    await expect(matchCards.nth(firstMismatch)).toHaveAttribute('aria-label', 'Face-down picture card')
+    await expect(matchCards.nth(secondMismatch)).toHaveAttribute('aria-label', 'Face-down picture card')
+
+    // Incident Trail content is temporarily hidden.
     await page.getByRole('button', { name: 'All challenges' }).click()
-    await play('Incident Trail')
-    await expect(page.locator('.scene')).toHaveCount(5)
-    await expect(page.locator('.evidence')).toHaveCount(25)
-    await page.locator('.clue').first().click()
-    await page.locator('.scene').first().getByRole('button', { name: 'File selected clue' }).click()
-    await expect(page.locator('.scene--solved')).toHaveCount(1)
+    await page
+      .locator('.card--locked', { hasText: 'Incident Trail' })
+      .getByRole('button', { name: 'Work in progress' })
+      .click()
+    await expect(page.getByRole('heading', { name: 'Work in progress' })).toBeVisible()
 
-    // Jaws of Risk labels teeth and grades the press.
+    // Jaws of Risk shows the solo board without the removed extra labels.
     await page.getByRole('button', { name: 'All challenges' }).click()
     await play('Jaws of Risk')
-    await expect(page.locator('.jaw')).toHaveCount(24)
+    await expect(page.getByText('Or play solo below and record the score afterwards.')).toBeVisible()
+    await expect(page.locator('.jaw')).toHaveCount(8)
     await page.locator('.jaw').first().click()
-    await page.getByRole('button', { name: 'Press', exact: true }).click()
     await expect(page.locator('.alert--info')).toContainText('loose tooth caught', { timeout: 15_000 })
 
     // Save the Core rolls a die for the active guardian.
     await page.getByRole('button', { name: 'All challenges' }).click()
     await play('Save the Core')
-    await expect(page.locator('.core-tile')).toHaveCount(24)
+    await page.getByRole('button', { name: 'Start 5-minute game' }).click()
+    await expect(page.getByRole('timer', { name: 'Time remaining' })).toHaveText('5:00')
+    await expect(page.locator('.core-square')).toHaveCount(24)
+    await expect(page.locator('.core-square--start, .core-square--empty')).toHaveCount(0)
+    await expect(page.getByRole('gridcell', { name: /outside the track/ })).toHaveCount(0)
+    await expect(page.locator('.core-square__mark', { hasText: '🏁' })).toHaveCount(0)
     await page.getByRole('button', { name: /Roll the d6/ }).click()
     await expect(page.locator('.core-leaderboard__row')).toHaveCount(4)
-    await expect(page.locator('.core-turn__active')).not.toContainText('Guardian Male')
+    await expect(page.locator('.core-turn__active')).not.toContainText('Guardimon Male')
   })
 
   test('service worker precaches assets for offline use', async ({ page }) => {

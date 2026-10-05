@@ -4,7 +4,6 @@ import { useTeams } from '../../hooks/useTeams'
 import type { ChallengeGameId } from '../../services/games'
 import { challengeQuestionsFor } from '../../services/games/challengeQuestions'
 import {
-  activeTeams,
   eliminatedTeams,
   isRunComplete,
   type ChallengeRun,
@@ -22,10 +21,9 @@ export interface TeamRunPanelProps {
 }
 
 /**
- * Hosts the challenge either solo or as a team run. In a team run every team
- * that is following answers the current question independently, a wrong answer
- * takes that team out until the next question, and each team's running total is
- * written to the challenge scoreboard as it is earned.
+ * Hosts the challenge either solo or as a team run. In a team run, selected
+ * teams take turns answering one question at a time and each score is saved as
+ * it is earned.
  */
 export function TeamRunPanel({
   gameId,
@@ -42,62 +40,66 @@ export function TeamRunPanel({
   const [results, setResults] = useState<TeamAnswerResult[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [gradedQuestionIndex, setGradedQuestionIndex] = useState<number | null>(null)
   const [timer, setTimer] = useState<{
-    questionIndex: number | null
+    attemptKey: string | null
     remaining: number
-  }>({ questionIndex: null, remaining: 0 })
+  }>({ attemptKey: null, remaining: 0 })
   const answersFormRef = useRef<HTMLFormElement | null>(null)
-  const timeoutQuestionIndex = useRef<number | null>(null)
+  const timeoutAttemptKey = useRef<string | null>(null)
 
   const questionSet = challengeQuestionsFor(gameId)
   const questions = questionSet.questions
   const question = run ? ChallengeRunController.currentQuestion(gameId, run) : null
-  const following = run ? activeTeams(run) : []
+  const currentTurnTeam = run ? ChallengeRunController.teamForQuestion(run) : undefined
   const outCount = run ? eliminatedTeams(run).length : 0
   const complete = run ? isRunComplete(run) : false
   const questionIndex = run?.questionIndex ?? null
-  const graded = questionIndex !== null && gradedQuestionIndex === questionIndex
+  const graded = run?.questionResolved ?? false
   const timerDuration = questionSet.secondsPerQuestion
   const hasTimer = timerDuration !== undefined
-  const remaining = questionIndex !== null && timer.questionIndex === questionIndex
-    ? timer.remaining
-    : timerDuration ?? 0
+  const attemptKey = questionIndex !== null && currentTurnTeam
+    ? `${questionIndex}:${currentTurnTeam.team}`
+    : null
+  const remaining =
+    graded && hasTimer
+      ? timer.remaining
+      : attemptKey !== null && timer.attemptKey === attemptKey
+        ? timer.remaining
+        : timerDuration ?? 0
 
   useEffect(() => {
-    if (!running || questionIndex === null || timerDuration === undefined || graded) return
+    if (!running || attemptKey === null || timerDuration === undefined || graded) return
 
-    setTimer({ questionIndex, remaining: timerDuration })
-    timeoutQuestionIndex.current = null
+    setTimer({ attemptKey, remaining: timerDuration })
+    timeoutAttemptKey.current = null
     const interval = window.setInterval(() => {
       setTimer((current) => {
-        if (current.questionIndex !== questionIndex || current.remaining === 0) return current
+        if (current.attemptKey !== attemptKey || current.remaining === 0) return current
         return { ...current, remaining: Math.max(0, current.remaining - 1) }
       })
     }, 1000)
     return () => window.clearInterval(interval)
-  }, [running, questionIndex, timerDuration, graded])
+  }, [running, attemptKey, timerDuration, graded])
 
   useEffect(() => {
     if (
       !running ||
-      questionIndex === null ||
+      attemptKey === null ||
       !hasTimer ||
       remaining !== 0 ||
       graded ||
       busy ||
-      timer.questionIndex !== questionIndex ||
-      timeoutQuestionIndex.current === questionIndex
+      timer.attemptKey !== attemptKey ||
+      timeoutAttemptKey.current === attemptKey
     ) {
       return
     }
 
-    timeoutQuestionIndex.current = questionIndex
+    timeoutAttemptKey.current = attemptKey
     answersFormRef.current?.requestSubmit()
-  }, [running, questionIndex, hasTimer, remaining, graded, busy, timer.questionIndex])
+  }, [running, attemptKey, hasTimer, remaining, graded, busy, timer.attemptKey])
 
   if (questions.length === 0) {
-    // Save the Core has no question set, so only the solo screen applies.
     return null
   }
 
@@ -116,9 +118,8 @@ export function TeamRunPanel({
       onStartRun(started)
       setAnswers({})
       setResults([])
-      setGradedQuestionIndex(null)
-      setTimer({ questionIndex: null, remaining: timerDuration ?? 0 })
-      timeoutQuestionIndex.current = null
+      setTimer({ attemptKey: null, remaining: timerDuration ?? 0 })
+      timeoutAttemptKey.current = null
       setError(null)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
@@ -130,9 +131,8 @@ export function TeamRunPanel({
     onEndRun()
     setAnswers({})
     setResults([])
-    setGradedQuestionIndex(null)
-    setTimer({ questionIndex: null, remaining: timerDuration ?? 0 })
-    timeoutQuestionIndex.current = null
+    setTimer({ attemptKey: null, remaining: timerDuration ?? 0 })
+    timeoutAttemptKey.current = null
     setError(null)
   }
 
@@ -143,17 +143,17 @@ export function TeamRunPanel({
     setError(null)
     try {
       const timedOut = hasTimer && remaining === 0
-      const outcome = await ChallengeRunController.answerAll({
+      if (!currentTurnTeam) return
+      const outcome = await ChallengeRunController.answer({
         gameId,
         run,
-        answers: following
-          .filter((entry) => timedOut || (answers[entry.team] ?? '').trim().length > 0)
-          .map((entry) => ({ teamId: entry.team, answer: answers[entry.team] ?? '' })),
+        teamId: currentTurnTeam.team,
+        answer: timedOut ? '' : answers[currentTurnTeam.team] ?? '',
+        timedOut,
       })
       setRun(outcome.run)
       onUpdateRun(outcome.run)
-      setResults(outcome.results)
-      setGradedQuestionIndex(run.questionIndex)
+      setResults([outcome.result])
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
     } finally {
@@ -168,7 +168,6 @@ export function TeamRunPanel({
     onUpdateRun(advanced)
     setAnswers({})
     setResults([])
-    setGradedQuestionIndex(null)
     setError(null)
   }
 
@@ -184,6 +183,11 @@ export function TeamRunPanel({
             </h3>
             <p className="run-panel__prompt">{question.prompt}</p>
             <p className="muted">{question.hint}</p>
+            <p className="muted">
+              {currentTurnTeam
+                ? `${teamName(currentTurnTeam.team)} answers this question. If incorrect, the next team gets a chance.`
+                : 'This question is resolved; move to the next question.'}
+            </p>
           </div>
           <div className="run-panel__actions">
             <button type="button" className="ghost" onClick={end}>
@@ -228,14 +232,19 @@ export function TeamRunPanel({
                 {run.runs.map((entry) => {
                   const out = entry.state === 'eliminated'
                   const result = results.find((row) => row.teamId === entry.team)
+                  const isCurrentTurn = currentTurnTeam?.team === entry.team
                   return (
                     <tr key={entry.team} className={out ? 'run-panel__row--out' : undefined}>
                       <td>{teamName(entry.team)}</td>
                       <td>
-                        {out ? (
-                          <span className="badge badge--muted">Out this question</span>
+                        {result && !result.skipped ? (
+                          <span className={`badge${result.eliminated ? ' badge--muted' : ''}`}>
+                            {result.eliminated ? 'Out this question' : 'Answered'}
+                          </span>
+                        ) : isCurrentTurn ? (
+                          <span className="badge">Answering</span>
                         ) : (
-                          <span className="badge">Following</span>
+                          <span className="badge badge--muted">Waiting</span>
                         )}
                         {result && !result.skipped && (
                           <span
@@ -245,11 +254,13 @@ export function TeamRunPanel({
                                 : 'run-panel__verdict run-panel__verdict--wrong'
                             }
                           >
-                            {result.bitten
-                              ? ' bitten'
-                              : result.correct
-                                ? ` +${result.points}`
-                                : ' wrong answer'}
+                            {result.timedOut
+                              ? ' time up'
+                              : result.bitten
+                                ? ' bitten'
+                                : result.correct
+                                  ? ` +${result.points}`
+                                  : ' wrong answer'}
                           </span>
                         )}
                         {result?.skipped && <span className="run-panel__verdict"> skipped</span>}
@@ -260,8 +271,14 @@ export function TeamRunPanel({
                           value={answers[entry.team] ?? ''}
                           maxLength={80}
                           aria-label={`${teamName(entry.team)} answer`}
-                          placeholder={out ? 'Out this question' : 'Type the answer'}
-                          disabled={out || graded || busy || (hasTimer && remaining === 0)}
+                          placeholder={
+                            isCurrentTurn
+                              ? 'Type the answer'
+                              : result
+                                ? 'Answered this question'
+                                : "Waiting for this team's turn"
+                          }
+                          disabled={!isCurrentTurn || out || graded || busy || (hasTimer && remaining === 0)}
                           onChange={(event) =>
                             setAnswers((current) => ({ ...current, [entry.team]: event.target.value }))
                           }
@@ -277,12 +294,12 @@ export function TeamRunPanel({
 
           <div className="run-panel__actions">
             {!graded ? (
-              <button type="submit" disabled={busy || following.length === 0}>
-                Grade this question
+              <button type="submit" disabled={busy || !currentTurnTeam}>
+                {run.attemptedTeams.length === 0 ? 'Grade this question' : 'Next team answer'}
               </button>
             ) : complete ? (
               <p className="alert alert--ok">
-                Every team has answered every question. End the run to return to the challenge.
+                All questions have been answered. End the run to return to the challenge.
               </p>
             ) : (
               <button
@@ -299,7 +316,8 @@ export function TeamRunPanel({
         </form>
 
         <p className="muted">
-          {following.length} team{following.length === 1 ? '' : 's'} following · {outCount} out this question · each score is saved to the challenge scoreboard as it is earned.
+          One team answers at a time · a wrong answer passes this question to the next team ·{' '}
+          {outCount} team{outCount === 1 ? '' : 's'} already tried this question.
         </p>
       </section>
     )
@@ -309,14 +327,13 @@ export function TeamRunPanel({
     <div className="run-panel">
       <h3 className="run-panel__title">Play this challenge with teams</h3>
       <p className="muted">
-        Choose the teams that will follow it. Each team answers every one of the{' '}
-        {questions.length} questions on its own. A wrong answer takes that team out until the next
-        question, so it can rejoin, and each correct answer adds score straight to the challenge
-        scoreboard.
+        Choose the participating teams. One team answers at a time. If its answer is wrong, the next
+        team in selection order can try that same question. A correct answer or time-up moves the run
+        to the next question. Each team's score is saved straight to the challenge scoreboard.
       </p>
 
       <fieldset className="run-panel__teams">
-        <legend>Teams following this challenge</legend>
+        <legend>Teams taking turns in this challenge</legend>
         {teams.length === 0 && <p className="muted">Create a team first.</p>}
         {teams.map((team) => (
           <label key={team.id} className="checkbox">

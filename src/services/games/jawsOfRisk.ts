@@ -6,6 +6,7 @@ export const JAWS_LABELS: JawLabel[] = ['Unmarked', 'Suspect', 'Firm']
 export const JAWS_ROWS = 2
 export const JAWS_COLUMNS = 12
 export const JAWS_TOOTH_COUNT = JAWS_ROWS * JAWS_COLUMNS
+export const JAWS_SOLO_TOOTH_COUNT = 8
 export const JAWS_LOOSE_COUNT = 6
 export const JAWS_HIT_POINTS = 10
 export const JAWS_CHALLENGE_ID = 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8'
@@ -25,20 +26,29 @@ export interface JawsBoard {
   looseIds: string[]
 }
 
-function createTeeth(): JawTooth[] {
+function createTeeth(toothCount = JAWS_TOOTH_COUNT): JawTooth[] {
+  const columns = Math.ceil(toothCount / JAWS_ROWS)
   const teeth: JawTooth[] = []
-  for (let row = 0; row < JAWS_ROWS; row += 1) {
-    for (let column = 0; column < JAWS_COLUMNS; column += 1) {
-      const number = row * JAWS_COLUMNS + column + 1
-      teeth.push({ id: `tooth-${number}`, number, row, column, label: 'Unmarked' })
-    }
+  for (let index = 0; index < toothCount; index += 1) {
+    const number = index + 1
+    teeth.push({
+      id: `tooth-${number}`,
+      number,
+      row: Math.floor(index / columns),
+      column: index % columns,
+      label: 'Unmarked',
+    })
   }
   return teeth
 }
 
 /** The crocodile toy hides a handful of loose teeth among the firm ones. */
-export function createJawsBoard(random: RandomSource = Math.random, looseCount = JAWS_LOOSE_COUNT): JawsBoard {
-  const teeth = createTeeth()
+export function createJawsBoard(
+  random: RandomSource = Math.random,
+  looseCount = JAWS_LOOSE_COUNT,
+  toothCount = JAWS_TOOTH_COUNT
+): JawsBoard {
+  const teeth = createTeeth(toothCount)
   const indices = new Set<number>()
   while (indices.size < Math.min(looseCount, teeth.length)) {
     indices.add(Math.floor(random() * teeth.length))

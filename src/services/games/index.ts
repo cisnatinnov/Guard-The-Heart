@@ -13,6 +13,15 @@ export type ChallengeGameId =
   | 'jaws-of-risk'
   | 'save-the-core'
 
+export const WORK_IN_PROGRESS_CHALLENGES: readonly ChallengeGameId[] = [
+  'gardimon-protocol',
+  'incident-trail',
+]
+
+export function isChallengeWorkInProgress(id: ChallengeGameId): boolean {
+  return WORK_IN_PROGRESS_CHALLENGES.includes(id)
+}
+
 export interface ChallengeGameInfo {
   id: ChallengeGameId
   title: string
@@ -53,12 +62,12 @@ tagline: 'Combine four emoji into one word, against the clock.',
   {
     id: 'word-assembly',
     title: 'Word Assembly',
-    tagline: 'Match five word cards out of twenty playable tiles.',
+    tagline: 'Find ten pairs of matching picture cards.',
     rules: [
-      'Five questions, four letter tiles each, twenty tiles in total.',
-      'Reveal a tile, then drop it on the question and slot it belongs to.',
+      'Match the two identical picture cards for each of ten questions.',
+      'If the two opened cards do not match, all open cards turn back over.',
       'Fifteen seconds per question in a team run.',
-'Ten points per match, minus five for every wrong slot.',
+      'Ten points per matched pair, minus five for each mismatch.',
     ],
     challengeId: WORD_ASSEMBLY_CHALLENGE_ID,
   },
@@ -79,22 +88,18 @@ tagline: 'Combine four emoji into one word, against the clock.',
   {
     id: 'jaws-of-risk',
     title: 'Jaws of Risk',
-    tagline: 'The crocodile dentist toy: label the loose teeth, then press.',
-    rules: [
-      'Twenty four teeth in two jaws, six of them loose.',
-      'Select a tooth and label it before the press.',
-'Ten points per loose tooth found, minus five per false alarm.',
-    ],
+    tagline: 'Spot the loose teeth in the solo mouth.',
+    rules: [],
     challengeId: JAWS_CHALLENGE_ID,
   },
   {
     id: 'save-the-core',
     title: 'Save the Core',
-    tagline: 'Ludo paths crossed with minesweeper: bombs send you back to the start.',
+    tagline: 'Race randomly placed players or teams to the Core before five minutes run out.',
     rules: [
-      'Four guardians race along one track toward the Core.',
-      'A safe tile reveals a randomised score the first time it is landed on.',
-'A bomb sends the piece straight back to the starting position.',
+'Choose the four built-in Guardians or select active teams; starting squares are randomized.',
+'Reach the Core within five minutes to finish the game and earn the 50-point bonus.',
+'If time expires first, the current scores are final; safe tiles score once and bombs return a pawn to its start.',
     ],
     challengeId: CORE_CHALLENGE_ID,
   },

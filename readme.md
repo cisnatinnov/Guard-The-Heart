@@ -49,12 +49,16 @@ when the app starts.
 2. Use the **Challenge** view. It lists the six built-in challenges, each with
    its **Scoreboard**, **Play** and deck links. Challenges cannot be added,
    renamed or deleted.
-3. Play a challenge with teams using **Team run**. Choose the teams that will
-   follow the challenge. Each team answers every question independently. A wrong
-   answer eliminates that team until the next question, where it can rejoin.
-   Correct answers add score directly to the challenge scoreboard automatically.
-   A challenge accepts at most five teams. Each question-based team run uses its
-   challenge's timer; unanswered teams are graded incorrect when time runs out.
+3. Play a question-based challenge with teams using **Team run**. Choose up to
+   five teams.
+   One team answers at a time in selection order. If its answer is wrong, the
+   next team can try the same question. A correct answer or time-up moves to the
+   next question; if all teams are wrong, the host can also advance. Each team's
+   score is saved directly to the challenge scoreboard. Save the Core uses its
+   timed board game instead: play with the four built-in Guardians or choose up
+   to five active teams. Pawns start on randomized squares and race to the Core
+   for five minutes. If time expires first, the current scores are final. Record
+   a board-game result on its challenge scoreboard manually.
 4. Alternatively, open a challenge's scoreboard and enter one score per
    participating team manually with **Add entry**.
 5. Correct a score with **Edit score**. The team stays in the challenge and its
@@ -80,11 +84,11 @@ lives in the browser tab only; it is not written to the database.
 | Challenge | Contents | Scoring |
 | --- | --- | --- |
 | Emoji Decode | 15 questions that each combine **four emoji** into one answer, with a live 30 second countdown in solo and team play, plus a PPTX deck where every slide carries a built-in animated timer and auto-advances | 10 per decoded answer, 150 max |
-| Gardimon Protocol | 5 unique cards with rarity, icon and charge, each split into Crime Scene, Evidence and Protocol phases; 8 minutes per question in team runs | 10 per correct phase, plus 15 for a card answered perfectly (225 max) |
-| Word Assembly | 5 questions of 4 letters each, dealt as 20 face-down letter tiles; 15 seconds per question in team runs | 10 per matched letter, minus 5 per wrong slot (200 max) |
-| Incident Trail | 5 crime scenes, 5 clues hidden among 25 information pieces, each with its own answer sheet; 20 seconds per question in team runs; also available as a PPTX deck | 20 per scene closed with the right clue (100 max) |
-| Jaws of Risk | A crocodile dentist with 24 teeth in two jaws, 6 of them loose; no team-run timer | 10 per loose tooth found, minus 5 per false alarm (60 max) |
-| Save the Core | Ludo-style race of 4 guardians on a 24-tile track crossed with minesweeper | Randomised score on a safe tile, bomb sends the piece back to the start, 50 for finishing |
+| Gardimon Protocol | Temporarily unavailable; opens a **Work in progress** page | — |
+| Word Assembly | Ten picture-matching questions using 20 cards (two identical copies of each image); mismatched open cards turn face down after a short reveal | 10 per matched pair, minus 5 per mismatch (100 max) |
+| Incident Trail | Temporarily unavailable; opens a **Work in progress** page | — |
+| Jaws of Risk | Team runs use 24 teeth; the solo game below uses 8 teeth in two rows, with 6 loose | 10 per loose tooth found, minus 5 per false alarm (60 max) |
+| Save the Core | Five-minute race across 24 playable chessboard squares to the Core; only path squares are shown, with no dedicated start tile. Use four built-in Guardians or select up to five active teams, with randomized starting squares | Randomised score on each safe tile (once), bomb returns a pawn to its randomized starting square, 50-point Core bonus; scores are final when time expires |
 
 ### The challenges are challenge data
 
@@ -94,14 +98,19 @@ first launch:
 - They cannot be added, renamed or deleted. The view has no **Add challenge**
   form, marks each row `Built-in`, and the controller refuses those operations.
   Their names stay reserved so a row can never be created with one of them.
-- Each row offers **Scoreboard**, **Play**, **Team run**, and a deck link when
-  one exists. **Play** opens the solo game screen. **Team run** lets the host
-  run the challenge question by question with up to five teams; each team's
-  running total is written to the scoreboard as it is earned. Team-run timers
-  are 30 seconds for Emoji Decode, 8 minutes for Gardimon Protocol, 15 seconds
-  for Word Assembly, and 20 seconds for Incident Trail. Jaws of Risk has no
-  team-run timer. Unanswered teams are automatically graded incorrect when a
-  timer expires.
+- Each row offers **Scoreboard**, **Play**, and a deck link when one exists.
+  Available question-based challenges offer **Team run**, which lets the host
+  run the challenge question by question with up to five teams; one team answers
+  at a time, and a wrong answer lets the next team try the same question. A
+  correct answer or timeout advances to the next question; if every team is
+  wrong, the host can advance. Gardimon Protocol and Incident Trail are
+  temporarily hidden behind a **Work in progress** page. Each team's score is
+  written to the scoreboard as it is earned. Team-run timers are 30 seconds for
+  Emoji Decode and 15 seconds for Word Assembly. Jaws of Risk has no team-run
+  timer. When a timer expires, only the team currently answering is graded
+  incorrect and the host can advance to the next question.
+  Save the Core instead uses a timed chessboard game with built-in pawns or up
+  to five selected teams.
 - A built-in challenge accepts up to 5 teams like any other, so ranks, guard
   power and bonus cards are calculated from scores entered either by hand or
   via the team run.
@@ -111,8 +120,11 @@ first launch:
 There is no separate games tab. The six challenges are rows on the **Challenge**
 view, and the playing screen is a detail view reached only from a built-in row's
 **Play** button; its **← All challenges** button is the way back. **Team run**
-is a panel within the challenge detail that lets the host run the challenge with
-teams, grading answers question by question. Views are otherwise reached from
+is a panel within the question-based challenges; it lets the host run the
+challenge with teams. One team answers at a time in selection order; a wrong
+answer hands the same question to the next team. A correct answer or timeout
+ends the question, and the host advances to the next question. Save the Core
+uses its board game's team selection instead. Views are otherwise reached from
 the top navigation only.
 
 ### PowerPoint decks
@@ -159,17 +171,18 @@ rewards are recalculated from the corrected score, which also reshuffles the
 other teams' ranks and the overall scoreboard. The team is pinned while editing,
 because a correction applies to the team that already has the entry.
 
-The card pool contains 78 cards: 48 Normal, 24 Rare, and 6 Epic. Each card has
-an effect category (Defense, Attack, Heal, Utility, or Support). A completed
-challenge awards up to three cards per eligible team based on the final rank.
-The pool depletes as cards are drawn, so no pool card is ever awarded twice, and
-revoking a draw returns its cards to the pool. The **Card Draw** view shows the
-pool size, how many cards are drawn, and how many remain, overall and per type.
-Each card is recorded for the challenge and mirrored once in the team's
-permanent collection. Startup and score changes synchronize these records,
-repair old duplicate counts, and avoid repeated awards. If scores change, card
-counts follow the updated rewards, and reopening a challenge by removing an
-entry removes its challenge bonus cards.
+The card pool has 80 named cards stored permanently in the database: 48 Normal,
+24 Rare, 6 Epic, and 2 Legendary. Each card has an effect category (Defense,
+Attack, Heal, Utility, Support, or Thief) and an `effect_action` description
+displayed on the card. A completed challenge awards up to three cards per
+eligible team based on the final rank. Draws assign challenge/team references to
+existing inventory rows, so no pool card is ever awarded twice. Revoked draws
+and deleted challenges return cards to the inventory. The **Card Draw** view
+shows the pool size, how many cards are drawn, and how many remain, overall and
+per type. Each drawn card is mirrored once in the team's permanent collection.
+Startup and score changes synchronize these records, repair old duplicate counts,
+and avoid repeated awards. If scores change, card assignments follow the updated
+rewards.
 
 ## Data and offline behavior
 
@@ -209,12 +222,12 @@ blueprint.md    Detailed data model and product rules
 
 ## Interface and character assets
 
-The shared app header displays `public/gardian-male.png`,
+The shared app header uses `public/Logo_Game-5.png` for the app logo and displays `public/gardian-male.png`,
 `public/gardimon.png`, `public/gardian-female.png`, and the Giga Risk dragon
 artwork from `public/gigarisk-portrait.jpg`. Character framing, light/dark theme
 tokens, and the trading-card layout are styled in
 `src/styles/index.css`. Card Draw and Team Cards share one portrait card
-component and use each card's name, rarity, icon, and effect.
+component and use each card's name, rarity, icon, effect, and action description.
 
 For the full schema, constraints, and product rules, see
 [blueprint.md](./blueprint.md).

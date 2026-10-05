@@ -10,6 +10,7 @@ import {
   isRunComplete,
   runFor,
   startChallengeRun,
+  teamForQuestion,
   type ChallengeRun,
 } from '../services/games/teamRun'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
@@ -23,6 +24,7 @@ export interface TeamAnswerResult {
   correct: boolean
   /** Jaws of Risk reports the bite separately from a merely wrong answer. */
   bitten: boolean
+  timedOut: boolean
   eliminated: boolean
   /** True when the team was already out and the answer was not graded. */
   skipped: boolean
@@ -64,7 +66,7 @@ export class ChallengeRunController {
     return questions[run.questionIndex] ?? questions[0]
   }
 
-  /** Opens the next question, which is when every team may follow again. */
+  /** Opens the next question after a correct answer, timeout, or exhausted attempts. */
   static nextQuestion(run: ChallengeRun): ChallengeRun {
     return beginNextQuestion(run)
   }
@@ -74,15 +76,15 @@ export class ChallengeRunController {
   }
 
   /**
-   * Grades one team against the current question and persists its running total.
-   * A team that is already out is skipped, so an eliminated team never has an
-   * answer written against it for that question.
+   * Grades the current team's attempt and persists its running total. A wrong
+   * answer passes the same question to the next team.
    */
   static async answer(input: {
     gameId: ChallengeGameId
     run: ChallengeRun
     teamId: string
     answer: string
+    timedOut?: boolean
   }): Promise<{ run: ChallengeRun; result: TeamAnswerResult }> {
     const team = await ChallengeRunController.teamName(input.teamId)
     const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
@@ -90,6 +92,7 @@ export class ChallengeRunController {
     const applied = applyAnswer(input.run, input.teamId, {
       points: graded.points,
       correct: graded.correct,
+      timedOut: input.timedOut,
     })
 
     if (applied.skipped) {
@@ -101,6 +104,7 @@ export class ChallengeRunController {
           points: 0,
           correct: false,
           bitten: false,
+          timedOut: false,
           eliminated: true,
           skipped: true,
           recordedScore: applied.team.score,
@@ -129,33 +133,13 @@ export class ChallengeRunController {
         points: graded.points,
         correct: graded.correct,
         bitten: graded.bitten,
+        timedOut: input.timedOut === true,
         eliminated: applied.team.state === 'eliminated',
         skipped: false,
         recordedScore,
         error,
       },
     }
-  }
-
-  /** Grades several teams against the same question in one call. */
-  static async answerAll(input: {
-    gameId: ChallengeGameId
-    run: ChallengeRun
-    answers: { teamId: string; answer: string }[]
-  }): Promise<{ run: ChallengeRun; results: TeamAnswerResult[] }> {
-    let run = input.run
-    const results: TeamAnswerResult[] = []
-    for (const entry of input.answers) {
-      const outcome = await ChallengeRunController.answer({
-        gameId: input.gameId,
-        run,
-        teamId: entry.teamId,
-        answer: entry.answer,
-      })
-      run = outcome.run
-      results.push(outcome.result)
-    }
-    return { run, results }
   }
 
   /**
@@ -196,6 +180,10 @@ export class ChallengeRunController {
 
   static runTeam(run: ChallengeRun, teamId: string) {
     return runFor(run, teamId)
+  }
+
+  static teamForQuestion(run: ChallengeRun) {
+    return teamForQuestion(run)
   }
 
   static scoreboardEntries(run: ChallengeRun): Promise<ChallengeScoreEntry[]> {

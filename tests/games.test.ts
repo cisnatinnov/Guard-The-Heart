@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   CHALLENGE_GAMES,
   CORE_FINISH_BONUS,
+  CORE_GAME_DURATION_SECONDS,
   CORE_TRACK_LENGTH,
   EMOJI_DECODE_EMOJIS_PER_QUESTION,
   EMOJI_DECODE_QUESTIONS,
@@ -12,13 +13,17 @@ import {
   INCIDENT_TRAIL_INFORMATION,
   INCIDENT_TRAIL_SCENES,
   JAWS_LOOSE_COUNT,
+  JAWS_SOLO_TOOTH_COUNT,
   JAWS_TOOTH_COUNT,
   WORD_ASSEMBLY_CARD_COUNT,
   WORD_ASSEMBLY_QUESTIONS,
   assignIncidentTrailClue,
   challengeGameInfo,
   checkEmojiAnswer,
+  closeUnmatchedWordAssemblyCards,
   createCoreGame,
+  coreTileCoordinate,
+  expireCoreGame,
   createJawsBoard,
   createWordAssemblyState,
   evaluateJawsBoard,
@@ -26,8 +31,8 @@ import {
   isClueCorrectForScene,
   isCorrectPick,
   normalizeEmojiAnswer,
-  placeWordAssemblyCard,
   playCoreTurn,
+  revealWordAssemblyCard,
   scoreEmojiDecode,
   scoreGardimonRound,
   scoreIncidentTrail,
@@ -35,8 +40,16 @@ import {
   searchIncidentTrail,
   setJawLabel,
   toggleJawSelection,
+  isChallengeWorkInProgress,
 } from '../src/services/games'
 import { challengeQuestionsFor } from '../src/services/games/challengeQuestions'
+import {
+  applyAnswer,
+  beginNextQuestion,
+  isRunComplete,
+  startChallengeRun,
+  teamForQuestion,
+} from '../src/services/games/teamRun'
 
 function seededRandom(seed: number): () => number {
   let state = seed >>> 0
@@ -57,6 +70,9 @@ describe('challenge registry', () => {
       'Save the Core',
     ])
     expect(challengeGameInfo('save-the-core').rules.length).toBeGreaterThan(0)
+    expect(isChallengeWorkInProgress('gardimon-protocol')).toBe(true)
+    expect(isChallengeWorkInProgress('incident-trail')).toBe(true)
+    expect(isChallengeWorkInProgress('word-assembly')).toBe(false)
   })
 
   it('ships a pptx deck only for the two deck challenges', () => {
@@ -75,6 +91,67 @@ describe('challenge registry', () => {
     expect(challengeQuestionsFor('incident-trail').secondsPerQuestion).toBe(20)
     expect(challengeQuestionsFor('jaws-of-risk').secondsPerQuestion).toBeUndefined()
     expect(challengeQuestionsFor('save-the-core').secondsPerQuestion).toBeUndefined()
+    expect(challengeQuestionsFor('save-the-core').questions).toHaveLength(0)
+    expect(challengeGameInfo('save-the-core').rules).toContain(
+      'Reach the Core within five minutes to finish the game and earn the 50-point bonus.'
+    )
+  })
+})
+
+describe('team challenge turns', () => {
+  it('passes wrong answers to another team and advances after a correct answer or timeout', () => {
+    let run = startChallengeRun({
+      challenge: 'challenge-id',
+      teams: ['alpha', 'beta'],
+      questionCount: 3,
+      pointsPerQuestion: 10,
+    })
+
+    expect(teamForQuestion(run)?.team).toBe('alpha')
+    expect(() => beginNextQuestion(run)).toThrow('The question must be answered correctly')
+    expect(() => applyAnswer(run, 'beta', { points: 10, correct: true })).toThrow(
+      "It is not that team's turn to answer"
+    )
+    run = applyAnswer(run, 'alpha', { points: 0, correct: false }).run
+    expect(run.questionIndex).toBe(0)
+    expect(run.questionResolved).toBe(false)
+    expect(teamForQuestion(run)?.team).toBe('beta')
+    expect(() => applyAnswer(run, 'alpha', { points: 10, correct: true })).toThrow(
+      "It is not that team's turn to answer"
+    )
+    run = applyAnswer(run, 'beta', { points: 10, correct: true }).run
+    expect(run.questionResolved).toBe(true)
+    run = beginNextQuestion(run)
+    expect(run.questionIndex).toBe(1)
+    expect(teamForQuestion(run)?.team).toBe('alpha')
+    expect(run.runs.every((entry) => entry.state === 'following')).toBe(true)
+    run = applyAnswer(run, 'alpha', { points: 0, correct: false, timedOut: true }).run
+    expect(run.questionResolved).toBe(true)
+    run = beginNextQuestion(run)
+    expect(run.questionIndex).toBe(2)
+    expect(teamForQuestion(run)?.team).toBe('beta')
+    run = applyAnswer(run, 'beta', { points: 10, correct: true }).run
+
+    expect(isRunComplete(run)).toBe(true)
+    expect(run.runs.map((entry) => entry.answered)).toEqual([2, 2])
+    expect(run.runs.map((entry) => entry.score)).toEqual([0, 20])
+    expect(beginNextQuestion(run)).toEqual(run)
+  })
+
+  it('advances after every selected team misses the current question', () => {
+    let run = startChallengeRun({
+      challenge: 'challenge-id',
+      teams: ['alpha', 'beta'],
+      questionCount: 2,
+      pointsPerQuestion: 10,
+    })
+    run = applyAnswer(run, 'alpha', { points: 0, correct: false }).run
+    run = applyAnswer(run, 'beta', { points: 0, correct: false }).run
+    expect(run.questionResolved).toBe(true)
+    expect(teamForQuestion(run)).toBeUndefined()
+    run = beginNextQuestion(run)
+    expect(run.questionIndex).toBe(1)
+    expect(teamForQuestion(run)?.team).toBe('alpha')
   })
 })
 
@@ -160,49 +237,81 @@ describe('Gardimon Protocol', () => {
 })
 
 describe('Word Assembly', () => {
-  it('deals twenty cards for five four-letter questions', () => {
+  it('deals two identical image cards for each of ten questions', () => {
     const state = createWordAssemblyState(seededRandom(7))
-    expect(WORD_ASSEMBLY_QUESTIONS).toHaveLength(5)
+    expect(WORD_ASSEMBLY_QUESTIONS).toHaveLength(10)
     expect(WORD_ASSEMBLY_CARD_COUNT).toBe(20)
     expect(state.board).toHaveLength(20)
     expect(new Set(state.board.map((card) => card.id)).size).toBe(20)
     for (const question of WORD_ASSEMBLY_QUESTIONS) {
-      expect(state.board.filter((card) => card.questionId === question.id)).toHaveLength(4)
+      const pair = state.board.filter((card) => card.questionId === question.id)
+      expect(pair).toHaveLength(2)
+      expect(pair[0].image).toBe(pair[1].image)
+      expect(pair[0].image).toBe(question.image)
     }
+    expect(WORD_ASSEMBLY_QUESTIONS.map(({ prompt, image }) => [prompt, image])).toEqual([
+      ['Logo Bank Syariah', '/match-card/Syariah.png'],
+      ['Bankir', '/match-card/Bankir.png'],
+      ['Tembok keamanan komputer', '/match-card/Firewall.png'],
+      ['Secure account', '/match-card/Secure.png'],
+      ['Fraud', '/match-card/Fraud.png'],
+      ['Kartu', '/match-card/Card.png'],
+      ['Hukum', '/match-card/Law.png'],
+      ['Laporan', '/match-card/Laporan.png'],
+      ['Phishing', '/match-card/Phising.png'],
+      ['Password', '/match-card/Password.png'],
+    ])
   })
 
-  it('locks a card only on its own question and slot', () => {
+  it('keeps a correct matching pair face up and awards points', () => {
     const state = createWordAssemblyState(seededRandom(11))
     const question = WORD_ASSEMBLY_QUESTIONS[0]
-    const card = state.board.find((entry) => entry.questionId === question.id && entry.slot === 1)!
-
-    const wrongSlot = placeWordAssemblyCard(state, card.id, question.id, 2)
-    expect(wrongSlot.placement).toBe('mismatch')
-    expect(wrongSlot.state.mismatches).toBe(1)
-    expect(wrongSlot.state.board).toHaveLength(20)
-
-    const wrongQuestion = placeWordAssemblyCard(state, card.id, WORD_ASSEMBLY_QUESTIONS[1].id, 1)
-    expect(wrongQuestion.placement).toBe('mismatch')
-
-    const correct = placeWordAssemblyCard(state, card.id, question.id, 1)
-    expect(correct.placement).toBe('matched')
-    expect(correct.state.board).toHaveLength(19)
-    expect(correct.state.placed[question.id]?.[1]).toBe(question.answer[1])
+    const pair = state.board.filter((entry) => entry.questionId === question.id)
+    const first = revealWordAssemblyCard(state, pair[0].id)
+    expect(first.revealed).toEqual([pair[0].id])
+    const matched = revealWordAssemblyCard(first, pair[1].id)
+    expect(matched.revealed).toEqual([])
+    expect(matched.matchedCardIds).toEqual([pair[0].id, pair[1].id])
+    expect(matched.matchedQuestionIds).toEqual([question.id])
+    expect(scoreWordAssembly(matched)).toMatchObject({
+      matchedPairs: 1,
+      questionsSolved: 1,
+      score: 10,
+      maximum: 100,
+    })
   })
 
-  it('closes a question only when every letter matches', () => {
-    let state = createWordAssemblyState(seededRandom(3))
-    const question = WORD_ASSEMBLY_QUESTIONS[2]
-    for (let slot = 0; slot < question.answer.length; slot += 1) {
-      const card = state.board.find((entry) => entry.questionId === question.id && entry.slot === slot)!
-      state = placeWordAssemblyCard(state, card.id, question.id, slot).state
-    }
-    const score = scoreWordAssembly(state)
-    expect(score.matched).toBe(4)
-    expect(score.questionsSolved).toBe(1)
-    expect(score.mismatches).toBe(0)
-    expect(score.score).toBe(40)
-    expect(state.board).toHaveLength(16)
+  it('turns every open card back down after a mismatch', () => {
+    const state = createWordAssemblyState(seededRandom(3))
+    const first = state.board[0]
+    const different = state.board.find((card) => card.questionId !== first.questionId)!
+    const opened = revealWordAssemblyCard(revealWordAssemblyCard(state, first.id), different.id)
+    expect(opened.revealed).toEqual([first.id, different.id])
+    expect(opened.mismatches).toBe(1)
+
+    const closed = closeUnmatchedWordAssemblyCards(opened)
+    expect(closed.revealed).toEqual([])
+    expect(closed.matchedCardIds).toEqual([])
+    expect(scoreWordAssembly(closed)).toMatchObject({ matchedPairs: 0, mismatches: 1, score: -5 })
+  })
+
+  it('prevents opening another card while a mismatched pair is showing', () => {
+    const state = createWordAssemblyState(seededRandom(4))
+    const first = state.board[0]
+    const different = state.board.find((card) => card.questionId !== first.questionId)!
+    const opened = revealWordAssemblyCard(revealWordAssemblyCard(state, first.id), different.id)
+    const third = state.board.find((card) => card.id !== first.id && card.id !== different.id)!
+    expect(revealWordAssemblyCard(opened, third.id)).toBe(opened)
+  })
+
+  it('uses all ten picture prompts in team runs', () => {
+    const set = challengeQuestionsFor('word-assembly')
+    expect(set.questions).toHaveLength(10)
+    expect(set.questions.map((question) => question.prompt)).toEqual(
+      WORD_ASSEMBLY_QUESTIONS.map((question) => question.prompt)
+    )
+    expect(set.questions[0].grade('Syariah')).toBe(10)
+    expect(set.questions[0].grade('wrong')).toBe(0)
   })
 })
 
@@ -274,6 +383,17 @@ describe('Jaws of Risk', () => {
     }
   })
 
+  it('builds the solo mouth with only eight teeth', () => {
+    const board = createJawsBoard(seededRandom(8), JAWS_LOOSE_COUNT, JAWS_SOLO_TOOTH_COUNT)
+    expect(board.teeth).toHaveLength(JAWS_SOLO_TOOTH_COUNT)
+    expect(board.looseIds).toHaveLength(JAWS_LOOSE_COUNT)
+    expect(board.looseIds.every((id) => board.teeth.some((tooth) => tooth.id === id))).toBe(true)
+    expect(board.teeth.map((tooth) => [tooth.row, tooth.column])).toEqual([
+      [0, 0], [0, 1], [0, 2], [0, 3],
+      [1, 0], [1, 1], [1, 2], [1, 3],
+    ])
+  })
+
   it('labels a tooth before the press and grades it afterwards', () => {
     let board = createJawsBoard(seededRandom(21))
     const [firstLoose, secondLoose] = board.looseIds
@@ -311,38 +431,93 @@ describe('Jaws of Risk', () => {
 })
 
 describe('Save the Core', () => {
-  it('builds a track with bombs, a start and a core', () => {
+  it('builds a track of playable spaces and a core without a dedicated start tile', () => {
     const state = createCoreGame(seededRandom(13))
     expect(state.tiles).toHaveLength(CORE_TRACK_LENGTH)
-    expect(state.tiles[0].kind).toBe('start')
+    expect(['safe', 'bomb']).toContain(state.tiles[0].kind)
     expect(state.tiles.at(-1)?.kind).toBe('core')
-    expect(state.tiles.slice(1, -1).filter((tile) => tile.kind === 'bomb').length).toBeGreaterThan(0)
+    expect(state.tiles.slice(0, -1).filter((tile) => tile.kind === 'bomb').length).toBeGreaterThan(0)
     expect(state.players).toHaveLength(4)
-    expect(state.players.every((player) => player.position === 0 && player.score === 0)).toBe(true)
+    expect(state.players.every(
+      (player) => player.position === player.startPosition && player.position < CORE_TRACK_LENGTH - 1 && player.score === 0
+    )).toBe(true)
+    expect(new Set(state.players.map((player) => player.startPosition)).size).toBe(4)
+    expect(CORE_GAME_DURATION_SECONDS).toBe(300)
     expect(state.tiles.filter((tile) => tile.kind === 'safe').every((tile) => tile.score > 0)).toBe(true)
+  })
+
+  it('maps the 24 track spaces to chess coordinates', () => {
+    expect([0, 2, 5, 8, 15, 16, 23].map(coreTileCoordinate)).toEqual([
+      'a5',
+      'c5',
+      'f5',
+      'h6',
+      'a6',
+      'a7',
+      'h7',
+    ])
+    expect(() => coreTileCoordinate(CORE_TRACK_LENGTH)).toThrow(RangeError)
   })
 
   it('reveals a score on a safe tile only the first time', () => {
     const state = createCoreGame(seededRandom(4))
-    const safeIndex = state.tiles.findIndex((tile, index) => index > 0 && tile.kind === 'safe')
-    const first = playCoreTurn(state, seededRandom(1), safeIndex)
+    const safeIndex = state.tiles.findIndex((tile, index) => index > 0 && index <= 6 && tile.kind === 'safe')
+    const fromStart = {
+      ...state,
+      players: state.players.map((player, index) =>
+        index === 0 ? { ...player, position: 0, startPosition: 0 } : player
+      ),
+    }
+    const first = playCoreTurn(fromStart, seededRandom(1), safeIndex)
     expect(first.outcome).toBe('advanced')
     expect(first.revealedScore).toBe(state.tiles[safeIndex].score)
     expect(first.state.players[0].score).toBe(first.revealedScore)
 
-    const second = playCoreTurn(first.state, seededRandom(1), safeIndex)
+    const nextPlayer = first.state.players[first.state.turnIndex]
+    const secondFromStart = {
+      ...first.state,
+      players: first.state.players.map((player) =>
+        player.id === nextPlayer.id ? { ...player, position: 0 } : player
+      ),
+    }
+    const second = playCoreTurn(secondFromStart, seededRandom(1), safeIndex)
     expect(second.revealedScore).toBe(0)
     expect(second.state.tiles[safeIndex].score).toBe(state.tiles[safeIndex].score)
   })
 
   it('sends a piece back to the start when it lands on a bomb', () => {
     const state = createCoreGame(seededRandom(17))
-    const bombIndex = state.tiles.findIndex((tile) => tile.kind === 'bomb')
-    const result = playCoreTurn(state, seededRandom(1), bombIndex)
+    const bombIndex = state.tiles.findIndex((tile, index) => index > 0 && index <= 6 && tile.kind === 'bomb')
+    const fromStart = {
+      ...state,
+      players: state.players.map((player, index) =>
+        index === 0 ? { ...player, position: 0, startPosition: 0 } : player
+      ),
+    }
+    const result = playCoreTurn(fromStart, seededRandom(1), bombIndex)
     expect(result.outcome).toBe('bomb')
     expect(result.state.players[0].position).toBe(0)
     expect(result.state.tiles[bombIndex].revealed).toBe(true)
-    expect(result.state.log.at(-1)?.text).toMatch(/returns to the start/)
+    expect(result.state.log.at(-1)?.text).toMatch(/returns to their starting square/)
+  })
+
+  it('returns a guardian to its chosen starting square after a bomb', () => {
+    const initial = createCoreGame(seededRandom(17))
+    const bombIndex = 9
+    const positioned = {
+      ...initial,
+      tiles: initial.tiles.map((tile) =>
+        tile.index === bombIndex ? { ...tile, kind: 'bomb' as const, revealed: false } : tile
+      ),
+      players: initial.players.map((player, index) =>
+        index === 0 ? { ...player, startPosition: 3, position: bombIndex - 1 } : player
+      ),
+    }
+
+    const result = playCoreTurn(positioned, seededRandom(1), 1)
+    expect(result.outcome).toBe('bomb')
+    expect(result.state.players[0].position).toBe(3)
+    expect(result.state.log.at(-1)?.text).toContain('starting square (d5)')
   })
 
   it('finishes a player on the core and awards the bonus', () => {
@@ -359,12 +534,26 @@ describe('Save the Core', () => {
     expect(result.revealedScore).toBe(CORE_FINISH_BONUS)
     expect(result.state.players[0].finished).toBe(true)
     expect(result.state.players[0].score).toBe(15 + CORE_FINISH_BONUS)
+    expect(result.state.over).toBe(true)
+    expect(result.state.endReason).toBe('core')
   })
 
   it('passes the turn on and stops once everyone is safe', () => {
     let state = createCoreGame(seededRandom(31))
     expect(state.turnIndex).toBe(0)
-    state = playCoreTurn(state, seededRandom(1), 3).state
+    const safeIndex = state.tiles.findIndex(
+      (tile, index) => index > 0 && index <= 6 && tile.kind === 'safe'
+    )
+    state = playCoreTurn(
+      {
+        ...state,
+        players: state.players.map((player, index) =>
+          index === 0 ? { ...player, position: 0, startPosition: 0 } : player
+        ),
+      },
+      seededRandom(1),
+      safeIndex
+    ).state
     expect(state.turnIndex).toBe(1)
     expect(state.log).toHaveLength(1)
 
@@ -374,5 +563,31 @@ describe('Save the Core', () => {
     }
     const result = playCoreTurn(finished, seededRandom(1), 3)
     expect(result.state.over).toBe(true)
+  })
+
+  it('supports selected teams as randomly placed pawns', () => {
+    const state = createCoreGame(seededRandom(7), {
+      players: [
+        { id: 'team-a', name: 'Team A', icon: '🛡️', color: '#027479' },
+        { id: 'team-b', name: 'Team B', icon: '⚔️', color: '#a9470c' },
+      ],
+    })
+    expect(state.players.map((player) => player.name)).toEqual(['Team A', 'Team B'])
+    expect(state.players.every((player) => player.position === player.startPosition)).toBe(true)
+    expect(new Set(state.players.map((player) => player.position)).size).toBe(2)
+  })
+
+  it('finalizes scores on timeout and prevents any further turns', () => {
+    const state = createCoreGame(seededRandom(18))
+    const timedOut = expireCoreGame(state)
+    expect(timedOut.over).toBe(true)
+    expect(timedOut.endReason).toBe('timeout')
+    expect(expireCoreGame(timedOut)).toBe(timedOut)
+    expect(playCoreTurn(timedOut, seededRandom(1), 6)).toEqual({
+      state: timedOut,
+      die: 0,
+      outcome: 'finished',
+      revealedScore: 0,
+    })
   })
 })

@@ -1,6 +1,6 @@
 import type { RandomSource } from './random'
 
-export type CoreTileKind = 'start' | 'safe' | 'bomb' | 'core'
+export type CoreTileKind = 'safe' | 'bomb' | 'core'
 
 export interface CoreTile {
   index: number
@@ -15,6 +15,7 @@ export interface CorePlayer {
   icon: string
   color: string
   position: number
+  startPosition: number
   score: number
   finished: boolean
   homeRuns: number
@@ -38,9 +39,11 @@ export interface CoreGameState {
   round: number
   log: CoreLogEntry[]
   over: boolean
+  endReason: 'core' | 'timeout' | null
 }
 
 export const CORE_TRACK_LENGTH = 24
+export const CORE_GAME_DURATION_SECONDS = 5 * 60
 export const CORE_BOMB_RATIO = 0.25
 export const CORE_SCORE_STEP = 5
 export const CORE_SCORE_MIN = 5
@@ -48,13 +51,16 @@ export const CORE_SCORE_MAX = 25
 export const CORE_CHALLENGE_ID = 'e62b4d90-7a15-4d38-bc6f-93d207e4a8b1'
 export const CORE_FINISH_BONUS = 50
 export const CORE_DIE_SIDES = 6
+const CORE_BOARD_FILES = 'abcdefgh'
 
 export const CORE_PLAYERS: Array<Pick<CorePlayer, 'id' | 'name' | 'icon' | 'color'>> = [
-  { id: 'core-male', name: 'Guardian Male', icon: '🛡️', color: '#027479' },
-  { id: 'core-female', name: 'Guardian Female', icon: '⚔️', color: '#a9470c' },
+  { id: 'core-male', name: 'Guardimon Male', icon: '🛡️', color: '#027479' },
+  { id: 'core-female', name: 'Guardimon Female', icon: '⚔️', color: '#a9470c' },
   { id: 'core-gardimon', name: 'Gardimon', icon: '🐲', color: '#f48220' },
   { id: 'core-gigarisk', name: 'Giga Risk', icon: '🔥', color: '#be392a' },
 ]
+
+export type CorePlayerDefinition = Pick<CorePlayer, 'id' | 'name' | 'icon' | 'color'>
 
 function rollScore(random: RandomSource): number {
   const steps = Math.floor(CORE_SCORE_MAX / CORE_SCORE_STEP)
@@ -67,39 +73,72 @@ function rollScore(random: RandomSource): number {
  */
 export function createCoreGame(
   random: RandomSource = Math.random,
-  options: { trackLength?: number; bombRatio?: number } = {}
+  options: {
+    trackLength?: number
+    bombRatio?: number
+    players?: CorePlayerDefinition[]
+  } = {}
 ): CoreGameState {
   const trackLength = Math.max(6, options.trackLength ?? CORE_TRACK_LENGTH)
   const bombRatio = options.bombRatio ?? CORE_BOMB_RATIO
-  const bombCount = Math.max(1, Math.round((trackLength - 2) * bombRatio))
+  const bombCount = Math.max(1, Math.round((trackLength - 1) * bombRatio))
 
   const bombIndices = new Set<number>()
   while (bombIndices.size < bombCount) {
-    const index = 1 + Math.floor(random() * (trackLength - 2))
+    const index = Math.floor(random() * (trackLength - 1))
     bombIndices.add(index)
   }
 
   const tiles: CoreTile[] = Array.from({ length: trackLength }, (_, index) => {
-    if (index === 0) return { index, kind: 'start', score: 0, revealed: true }
     if (index === trackLength - 1) return { index, kind: 'core', score: CORE_FINISH_BONUS, revealed: false }
     if (bombIndices.has(index)) return { index, kind: 'bomb', score: 0, revealed: false }
     return { index, kind: 'safe', score: rollScore(random), revealed: false }
   })
 
+  const players = options.players ?? CORE_PLAYERS
+  const startingSquares = Array.from({ length: trackLength - 1 }, (_, index) => index)
+  for (let index = 0; index < Math.min(players.length, startingSquares.length); index += 1) {
+    const swapIndex = index + Math.floor(random() * (startingSquares.length - index))
+    const value = startingSquares[index]
+    startingSquares[index] = startingSquares[swapIndex]
+    startingSquares[swapIndex] = value
+  }
+
   return {
     tiles,
-    players: CORE_PLAYERS.map((player) => ({
-      ...player,
-      position: 0,
-      score: 0,
-      finished: false,
-      homeRuns: 0,
-    })),
+    players: players.map((player, index) => {
+      const position =
+        startingSquares[index] ??
+        Math.floor(random() * (trackLength - 1))
+      return {
+        ...player,
+        position,
+        startPosition: position,
+        score: 0,
+        finished: false,
+        homeRuns: 0,
+      }
+    }),
     turnIndex: 0,
     round: 1,
     log: [],
     over: false,
+    endReason: null,
   }
+}
+
+/** Maps the 24 track spaces to a three-rank, chess-coordinate snake path. */
+export function coreTileCoordinate(index: number): string {
+  if (!Number.isInteger(index) || index < 0 || index >= CORE_TRACK_LENGTH) {
+    throw new RangeError(`Track index must be between 0 and ${CORE_TRACK_LENGTH - 1}`)
+  }
+  const rank = index < 8 ? 5 : index < 16 ? 6 : 7
+  const fileIndex = index < 8 ? index : index < 16 ? 15 - index : index - 16
+  return `${CORE_BOARD_FILES[fileIndex]}${rank}`
+}
+
+export function expireCoreGame(state: CoreGameState): CoreGameState {
+  return state.over ? state : { ...state, over: true, endReason: 'timeout' }
 }
 
 export function rollCoreDie(random: RandomSource = Math.random): number {
@@ -139,7 +178,7 @@ export function playCoreTurn(
       entry.index === target ? { ...entry, revealed: true } : entry
     )
     const players = state.players.map((player) =>
-      player.id === active.id ? { ...player, position: 0 } : player
+      player.id === active.id ? { ...player, position: player.startPosition } : player
     )
     const next: CoreGameState = { ...state, tiles: revealedTiles, players }
     const logged = appendLog(
@@ -147,7 +186,7 @@ export function playCoreTurn(
       active,
       die,
       'bomb',
-      `${active.name} hit a bomb on tile ${target + 1} and returns to the start.`
+      `${active.name} hit a bomb on ${coreTileCoordinate(target)} and returns to their starting square (${coreTileCoordinate(active.startPosition)}).`
     )
     return { state: advanceTurn(logged), die, outcome: 'bomb', revealedScore: 0 }
   }
@@ -162,7 +201,7 @@ export function playCoreTurn(
         : player
     )
     const logged = appendLog(
-      { ...state, tiles: revealedTiles, players },
+      { ...state, tiles: revealedTiles, players, over: true, endReason: 'core' },
       active,
       die,
       'core',
@@ -184,8 +223,8 @@ export function playCoreTurn(
     die,
     'advanced',
     revealedScore > 0
-      ? `${active.name} moved ${die} and revealed ${revealedScore} points on tile ${target + 1}.`
-      : `${active.name} moved ${die} to tile ${target + 1}.`
+    ? `${active.name} moved ${die} and revealed ${revealedScore} points on ${coreTileCoordinate(target)}.`
+    : `${active.name} moved ${die} to ${coreTileCoordinate(target)}.`
   )
   return { state: advanceTurn(logged), die, outcome: 'advanced', revealedScore }
 }
@@ -215,12 +254,13 @@ function advanceTurn(state: CoreGameState): CoreGameState {
     turnIndex = (turnIndex + 1) % active
     if (!state.players[turnIndex].finished) break
   }
-  const over = state.players.every((player) => player.finished)
+  const over = state.over || state.players.every((player) => player.finished)
   return {
     ...state,
     turnIndex,
     round: over ? state.round : state.round + 1,
     over,
+    endReason: state.endReason ?? (over ? 'core' : null),
   }
 }
 

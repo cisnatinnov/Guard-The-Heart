@@ -1,35 +1,19 @@
 import { Op } from 'sequelize'
-import { Card, Challenge, ChallengeScoreboard, Team, TeamCard, type CardType } from '../models'
+import { Card, Challenge, ChallengeScoreboard, Team, TeamCard, type CardEffect, type CardType } from '../models'
+import { CARD_POOL as CARD_CATALOG } from '../data/card-pool'
 
 export interface CardPoolEntry {
   name: string
-  type: 'Normal' | 'Rare' | 'Epic'
-  effect: 'Defense' | 'Attack' | 'Heal' | 'Utility' | 'Support'
+  type: CardType
+  effect: CardEffect
+  effect_action: string
   icon: string
 }
 
-const CARD_POOL: CardPoolEntry[] = [
-  ...Array(48).fill(null).map((_, i) => ({
-    name: `Normal Card ${i + 1}`,
-    type: 'Normal' as const,
-    effect: ['Defense', 'Attack', 'Heal', 'Utility', 'Support'][i % 5] as 'Defense' | 'Attack' | 'Heal' | 'Utility' | 'Support',
-    icon: ['🛡️', '🗡️', '❤️', '🔀', '🤝'][i % 5],
-  })),
-  ...Array(24).fill(null).map((_, i) => ({
-    name: `Rare Card ${i + 1}`,
-    type: 'Rare' as const,
-    effect: ['Defense', 'Attack', 'Heal', 'Utility', 'Support'][i % 5] as 'Defense' | 'Attack' | 'Heal' | 'Utility' | 'Support',
-    icon: ['🛡️', '🗡️', '❤️', '🔀', '🤝'][i % 5],
-  })),
-  ...Array(6).fill(null).map((_, i) => ({
-    name: `Epic Card ${i + 1}`,
-    type: 'Epic' as const,
-    effect: ['Defense', 'Attack', 'Heal', 'Utility', 'Support'][i % 5] as 'Defense' | 'Attack' | 'Heal' | 'Utility' | 'Support',
-    icon: ['🛡️', '🗡️', '❤️', '🔀', '🤝'][i % 5],
-  })),
-]
+const CARD_POOL: CardPoolEntry[] = CARD_CATALOG
+const CARD_POOL_KEYS = new Set(CARD_POOL.map(poolEntryKey))
 
-export const CARD_TYPES: CardType[] = ['Normal', 'Rare', 'Epic']
+export const CARD_TYPES: CardType[] = ['Normal', 'Rare', 'Epic', 'Legendary']
 export const CARD_POOL_TOTAL = CARD_POOL.length
 
 export interface CardPoolTypeStatus {
@@ -45,8 +29,10 @@ export interface CardPoolStatus {
   byType: Record<CardType, CardPoolTypeStatus>
 }
 
-function poolEntryKey(entry: Pick<CardPoolEntry, 'name' | 'type' | 'effect' | 'icon'>): string {
-  return [entry.type, entry.name, entry.effect, entry.icon].join('|')
+function poolEntryKey(
+  entry: Pick<CardPoolEntry, 'name' | 'type' | 'effect' | 'effect_action' | 'icon'>
+): string {
+  return [entry.type, entry.name, entry.effect, entry.effect_action, entry.icon].join('|')
 }
 
 function shuffle<T>(array: T[]): T[] {
@@ -71,8 +57,59 @@ export function drawCardsFromPool(drawnKeys: Set<string>, count: number): CardPo
 }
 
 async function loadDrawnPoolKeys(): Promise<Set<string>> {
-  const drawnCards = await Card.findAll({ attributes: ['name', 'type', 'effect', 'icon'] })
+  const drawnCards = await Card.findAll({
+    where: { challenge: { [Op.ne]: null } },
+    attributes: ['name', 'type', 'effect', 'effect_action', 'icon'],
+  })
   return new Set(drawnCards.map((card) => poolEntryKey(card)))
+}
+
+/** Seeds each finite-pool card as a permanent, unassigned database row. */
+export async function seedCardPool(): Promise<void> {
+  const inventory = await Card.findAll({
+    attributes: ['id', 'name', 'type', 'effect', 'effect_action', 'icon'],
+  })
+  const existingByName = new Map(inventory.map((card) => [card.name, card]))
+  for (const card of CARD_POOL) {
+    const existing = existingByName.get(card.name)
+    if (existing) {
+      if (
+        existing.type !== card.type ||
+        existing.effect !== card.effect ||
+        existing.effect_action !== card.effect_action ||
+        existing.icon !== card.icon
+      ) {
+        await existing.update({
+          type: card.type,
+          effect: card.effect,
+          effect_action: card.effect_action,
+          icon: card.icon,
+        })
+      }
+      continue
+    }
+    const created = await Card.create({ ...card, challenge: null, team: null })
+    existingByName.set(card.name, created)
+  }
+}
+
+async function returnCardsToPool(cards: Card[]): Promise<void> {
+  if (cards.length === 0) return
+  await Card.update(
+    { challenge: null, team: null },
+    { where: { id: cards.map((card) => card.id) } }
+  )
+
+  const drawnKeys = await loadDrawnPoolKeys()
+  const returnedKeys = new Set<string>()
+  for (const card of cards) {
+    const key = poolEntryKey(card)
+    if (!CARD_POOL_KEYS.has(key) || drawnKeys.has(key) || returnedKeys.has(key)) {
+      await Card.destroy({ where: { id: card.id } })
+      continue
+    }
+    returnedKeys.add(key)
+  }
 }
 
 export async function getCardPoolStatus(): Promise<CardPoolStatus> {
@@ -81,6 +118,7 @@ export async function getCardPoolStatus(): Promise<CardPoolStatus> {
     Normal: { total: 0, drawn: 0, remaining: 0 },
     Rare: { total: 0, drawn: 0, remaining: 0 },
     Epic: { total: 0, drawn: 0, remaining: 0 },
+    Legendary: { total: 0, drawn: 0, remaining: 0 },
   }
 
   for (const entry of CARD_POOL) {
@@ -99,6 +137,16 @@ export async function getCardPoolStatus(): Promise<CardPoolStatus> {
 }
 
 const challengeDrawsInFlight = new Map<string, Promise<Card[]>>()
+let poolOperationQueue: Promise<void> = Promise.resolve()
+
+function serializePoolOperation<T>(operation: () => Promise<T>): Promise<T> {
+  const result = poolOperationQueue.then(operation, operation)
+  poolOperationQueue = result.then(
+    () => undefined,
+    () => undefined
+  )
+  return result
+}
 
 export async function isChallengeComplete(challengeId: string): Promise<boolean> {
   const count = await ChallengeScoreboard.count({ where: { challenge: challengeId } })
@@ -118,7 +166,7 @@ export async function drawBonusCardsForChallenge(challengeId: string): Promise<C
   const inFlight = challengeDrawsInFlight.get(challengeId)
   if (inFlight) return inFlight
 
-  const draw = synchronizeCompletedChallengeCards(challengeId)
+  const draw = serializePoolOperation(() => synchronizeCompletedChallengeCards(challengeId))
   challengeDrawsInFlight.set(challengeId, draw)
   try {
     return await draw
@@ -155,7 +203,7 @@ async function synchronizeCompletedChallengeCards(challengeId: string): Promise<
     ...entries.map((entry) => entry.team),
     ...existingCards.flatMap((card) => (card.team ? [card.team] : [])),
   ])
-  const drawnPoolKeys = await loadDrawnPoolKeys()
+  let drawnPoolKeys = await loadDrawnPoolKeys()
   const cardsByTeam = new Map<string, Card[]>()
 
   for (const entry of entries) {
@@ -164,21 +212,28 @@ async function synchronizeCompletedChallengeCards(challengeId: string): Promise<
     const keepCount = Math.min(desiredCount, currentCards.length)
 
     if (currentCards.length > keepCount) {
-      await Card.destroy({
-        where: { id: currentCards.slice(keepCount).map((card) => card.id) },
-      })
+      const returnedCards = currentCards.slice(keepCount)
+      await returnCardsToPool(returnedCards)
+      drawnPoolKeys = await loadDrawnPoolKeys()
     }
 
     const keptCards = currentCards.slice(0, keepCount)
     const missingCards = drawCardsFromPool(drawnPoolKeys, desiredCount - keepCount)
     for (const cardData of missingCards) {
-      keptCards.push(
-        await Card.create({
-          ...cardData,
-          challenge: challengeId,
-          team: entry.team,
-        })
-      )
+      const poolCard = await Card.findOne({
+        where: {
+          name: cardData.name,
+          type: cardData.type,
+          effect: cardData.effect,
+          effect_action: cardData.effect_action,
+          icon: cardData.icon,
+          challenge: null,
+          team: null,
+        },
+      })
+      if (!poolCard) throw new Error(`Card pool inventory is missing "${cardData.name}"`)
+      await poolCard.update({ challenge: challengeId, team: entry.team })
+      keptCards.push(poolCard)
     }
 
     cardsByTeam.set(entry.team, keptCards)
@@ -200,7 +255,24 @@ export async function synchronizeChallengeBonusCards(challengeId: string): Promi
     attributes: ['team'],
   })
   const affectedTeamIds = [...new Set(existingCards.flatMap((card) => (card.team ? [card.team] : [])))]
-  await Card.destroy({ where: { challenge: challengeId } })
+  await returnCardsToPool(
+    await Card.findAll({ where: { challenge: challengeId }, order: [['createdAt', 'ASC']] })
+  )
+  await synchronizePermanentTeamCards(affectedTeamIds)
+}
+
+/** Releases a challenge's drawn inventory before the challenge row is deleted. */
+export async function releaseChallengeBonusCards(challengeId: string): Promise<void> {
+  const existingCards = await Card.findAll({
+    where: { challenge: challengeId },
+    attributes: ['team'],
+  })
+  const affectedTeamIds = [
+    ...new Set(existingCards.flatMap((card) => (card.team ? [card.team] : []))),
+  ]
+  await returnCardsToPool(
+    await Card.findAll({ where: { challenge: challengeId }, order: [['createdAt', 'ASC']] })
+  )
   await synchronizePermanentTeamCards(affectedTeamIds)
 }
 
@@ -222,8 +294,10 @@ async function synchronizePermanentTeamCards(teamIds: string[]): Promise<void> {
     where: { team: { [Op.in]: teamIds } },
     order: [['createdAt', 'ASC']],
   })
-  const fingerprint = (card: Pick<Card, 'team' | 'name' | 'type' | 'effect' | 'icon'>) =>
-    JSON.stringify([card.team, card.name, card.type, card.effect, card.icon])
+  const fingerprint = (
+    card: Pick<Card, 'team' | 'name' | 'type' | 'effect' | 'effect_action' | 'icon'>
+  ) =>
+    JSON.stringify([card.team, card.name, card.type, card.effect, card.effect_action, card.icon])
   const expectedByFingerprint = new Map<string, Card[]>()
   const actualByFingerprint = new Map<string, TeamCard[]>()
 
@@ -256,6 +330,7 @@ async function synchronizePermanentTeamCards(teamIds: string[]): Promise<void> {
         name: card.name,
         type: card.type,
         effect: card.effect,
+        effect_action: card.effect_action,
         icon: card.icon,
         team: card.team,
       })

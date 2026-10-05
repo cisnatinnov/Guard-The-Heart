@@ -46,14 +46,15 @@ export class Scoreboard extends Model {
   declare readonly updatedAt: Date
 }
 
-export type CardType = 'Normal' | 'Rare' | 'Epic'
-export type CardEffect = 'Defense' | 'Attack' | 'Heal' | 'Utility' | 'Support'
+export type CardType = 'Normal' | 'Rare' | 'Epic' | 'Legendary'
+export type CardEffect = 'Defense' | 'Attack' | 'Heal' | 'Utility' | 'Support' | 'Thief'
 
 export class Card extends Model {
   declare id: string
   declare name: string
   declare type: CardType
   declare effect: CardEffect
+  declare effect_action: string
   declare icon: string
   declare challenge: string | null
   declare team: string | null
@@ -66,6 +67,7 @@ export class TeamCard extends Model {
   declare name: string
   declare type: CardType
   declare effect: CardEffect
+  declare effect_action: string
   declare icon: string
   declare team: string | null
   declare readonly createdAt: Date
@@ -204,12 +206,17 @@ export function defineModels(sequelize: Sequelize): void {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM('Normal', 'Rare', 'Epic'),
+        type: DataTypes.ENUM('Normal', 'Rare', 'Epic', 'Legendary'),
         allowNull: false,
       },
       effect: {
-        type: DataTypes.ENUM('Defense', 'Attack', 'Heal', 'Utility', 'Support'),
+        type: DataTypes.ENUM('Defense', 'Attack', 'Heal', 'Utility', 'Support', 'Thief'),
         allowNull: false,
+      },
+      effect_action: {
+        type: DataTypes.STRING(225),
+        allowNull: false,
+        defaultValue: 'Card action details unavailable.',
       },
       icon: {
         type: DataTypes.STRING(10),
@@ -251,12 +258,17 @@ export function defineModels(sequelize: Sequelize): void {
         allowNull: false,
       },
       type: {
-        type: DataTypes.ENUM('Normal', 'Rare', 'Epic'),
+        type: DataTypes.ENUM('Normal', 'Rare', 'Epic', 'Legendary'),
         allowNull: false,
       },
       effect: {
-        type: DataTypes.ENUM('Defense', 'Attack', 'Heal', 'Utility', 'Support'),
+        type: DataTypes.ENUM('Defense', 'Attack', 'Heal', 'Utility', 'Support', 'Thief'),
         allowNull: false,
+      },
+      effect_action: {
+        type: DataTypes.STRING(225),
+        allowNull: false,
+        defaultValue: 'Card action details unavailable.',
       },
       icon: {
         type: DataTypes.STRING(10),

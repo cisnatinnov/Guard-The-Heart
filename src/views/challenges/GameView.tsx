@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { CHALLENGE_GAMES, type ChallengeGameId } from '../../services/games'
+import {
+  CHALLENGE_GAMES,
+  isChallengeWorkInProgress,
+  type ChallengeGameId,
+} from '../../services/games'
 import type { ChallengeRun } from '../../services/games/teamRun'
 import { TeamRunPanel } from './TeamRunPanel'
 import { EmojiDecodeView } from './EmojiDecodeView'
@@ -37,6 +41,22 @@ export function GameView({ gameId, onBackToChallenges }: GameViewProps) {
   if (!gameId) return null
   const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
   if (!game) return null
+
+  if (isChallengeWorkInProgress(game.id)) {
+    return (
+      <section className="view">
+        <header className="view__header">
+          <h2>Work in progress</h2>
+          <p className="view__hint">This challenge is temporarily unavailable while its content is being updated.</p>
+        </header>
+        <div className="game__toolbar">
+          <button type="button" className="ghost" onClick={onBackToChallenges}>
+            ← All challenges
+          </button>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="view">

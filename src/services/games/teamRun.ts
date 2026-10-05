@@ -20,6 +20,9 @@ export interface TeamRun {
 export interface ChallengeRun {
   challenge: string
   questionIndex: number
+  nextTeamIndex: number
+  attemptedTeams: string[]
+  questionResolved: boolean
   questionCount: number
   pointsPerQuestion: number
   runs: TeamRun[]
@@ -53,6 +56,9 @@ export function startChallengeRun(input: {
   return {
     challenge: input.challenge,
     questionIndex: 0,
+    nextTeamIndex: 0,
+    attemptedTeams: [],
+    questionResolved: false,
     questionCount: input.questionCount,
     pointsPerQuestion: input.pointsPerQuestion,
     runs: unique.map((team) => ({
@@ -78,6 +84,17 @@ export function activeTeams(run: ChallengeRun): TeamRun[] {
   return run.runs.filter((entry) => entry.state === 'following')
 }
 
+/** The next eligible team gets a chance to answer the current question. */
+export function teamForQuestion(run: ChallengeRun): TeamRun | undefined {
+  if (run.questionResolved) return undefined
+  for (let offset = 0; offset < run.runs.length; offset += 1) {
+    const index = (run.nextTeamIndex + offset) % run.runs.length
+    const entry = run.runs[index]
+    if (!run.attemptedTeams.includes(entry.team)) return entry
+  }
+  return undefined
+}
+
 export function eliminatedTeams(run: ChallengeRun): TeamRun[] {
   return run.runs.filter((entry) => entry.state === 'eliminated')
 }
@@ -85,48 +102,61 @@ export function eliminatedTeams(run: ChallengeRun): TeamRun[] {
 export interface QuestionOutcome {
   /** Points the team earned, already clamped at zero. */
   points: number
-  /** False eliminates the team until the next question begins. */
+  /** False lets the next team try the same question. */
   correct: boolean
+  /** A timeout ends this question without another team's attempt. */
+  timedOut?: boolean
 }
 
 /**
- * Applies a graded answer. An eliminated team is skipped rather than graded,
- * which is what makes elimination last exactly one question.
+ * Applies one attempt. Wrong answers hand the same question to the next team;
+ * a correct answer, timeout, or exhausted team list resolves the question.
  */
 export function applyAnswer(run: ChallengeRun, team: string, outcome: QuestionOutcome): AnswerOutcome {
   const current = runFor(run, team)
   if (!current) throw new Error('That team is not following this challenge')
-  if (current.state === 'eliminated') {
-    return { run, team: current, gained: 0, eliminated: true, skipped: true }
-  }
-  if (current.answered >= run.questionCount) {
-    return { run, team: current, gained: 0, eliminated: false, skipped: true }
-  }
+  if (run.questionIndex >= run.questionCount) throw new Error('This challenge run is complete')
+  if (teamForQuestion(run)?.team !== team) throw new Error("It is not that team's turn to answer")
 
+  const attemptedTeams = [...run.attemptedTeams, team]
+  const nextTeamIndex = (run.runs.findIndex((entry) => entry.team === team) + 1) % run.runs.length
+  const questionResolved =
+    outcome.correct || outcome.timedOut === true || attemptedTeams.length >= run.runs.length
   const next: TeamRun = {
     ...current,
     score: current.score + outcome.points,
     answered: current.answered + 1,
     correct: current.correct + (outcome.correct ? 1 : 0),
-    state: outcome.correct ? 'following' : 'eliminated',
+    state: outcome.correct || outcome.timedOut ? 'following' : 'eliminated',
   }
-  return { run: replaceRun(run, next), team: next, gained: outcome.points, eliminated: !outcome.correct, skipped: false }
+  return {
+    run: {
+      ...replaceRun(run, next),
+      attemptedTeams,
+      nextTeamIndex,
+      questionResolved,
+    },
+    team: next,
+    gained: outcome.points,
+    eliminated: !outcome.correct,
+    skipped: false,
+  }
 }
 
-/** Applies one graded answer to several teams against the same question. */
-export function applyAnswerForTeams(
-  run: ChallengeRun,
-  teamIds: string[],
-  outcome: QuestionOutcome
-): ChallengeRun {
-  return teamIds.reduce((current, team) => applyAnswer(current, team, outcome).run, run)
-}
-
-/** Opens the next question, which is when every team may follow again. */
+/** Opens the next question after a correct answer, timeout, or exhausted attempts. */
 export function beginNextQuestion(run: ChallengeRun): ChallengeRun {
-  if (run.questionIndex >= run.questionCount - 1) return run
+  if (isRunComplete(run)) return run
+  if (!run.questionResolved) {
+    throw new Error('The question must be answered correctly, time out, or exhaust all teams first')
+  }
   const runs = run.runs.map((entry) => ({ ...entry, state: 'following' as TeamRunState }))
-  return { ...run, questionIndex: run.questionIndex + 1, runs }
+  return {
+    ...run,
+    questionIndex: run.questionIndex + 1,
+    attemptedTeams: [],
+    questionResolved: false,
+    runs,
+  }
 }
 
 export function previousQuestion(run: ChallengeRun): ChallengeRun {
@@ -143,7 +173,10 @@ export function questionsRemaining(run: ChallengeRun, team: string): number {
 }
 
 export function isRunComplete(run: ChallengeRun): boolean {
-  return run.runs.every((entry) => entry.answered >= run.questionCount)
+  return (
+    run.questionIndex >= run.questionCount ||
+    (run.questionIndex === run.questionCount - 1 && run.questionResolved)
+  )
 }
 
 export function runMaximumScore(run: ChallengeRun): number {

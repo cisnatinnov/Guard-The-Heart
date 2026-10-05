@@ -4,6 +4,7 @@ interface CardTileProps {
   name: string
   type: CardType
   effect: CardEffect
+  effect_action: string
   icon: string
   owner?: string
 }
@@ -12,9 +13,10 @@ const RARITY_MARKS: Record<CardType, number> = {
   Normal: 1,
   Rare: 2,
   Epic: 3,
+  Legendary: 4,
 }
 
-export function CardTile({ name, type, effect, icon, owner }: CardTileProps) {
+export function CardTile({ name, type, effect, effect_action, icon, owner }: CardTileProps) {
   return (
     <article className={`card-tile card-tile--${type.toLowerCase()}`}>
       <header className="card-tile__header">
@@ -37,6 +39,7 @@ export function CardTile({ name, type, effect, icon, owner }: CardTileProps) {
       <div className="card-tile__details">
         <span className="card-tile__type">{type} card</span>
         <span className="card-tile__effect">{effect}</span>
+        <span className="card-tile__action">{effect_action}</span>
         {owner && <span className="card-tile__owner">Collected by {owner}</span>}
       </div>
     </article>

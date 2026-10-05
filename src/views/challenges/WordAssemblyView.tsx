@@ -1,55 +1,50 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  WORD_ASSEMBLY_CARD_COUNT,
   WORD_ASSEMBLY_QUESTIONS,
+  closeUnmatchedWordAssemblyCards,
   createWordAssemblyState,
-  isWordAssemblyQuestionSolved,
-  placeWordAssemblyCard,
   revealWordAssemblyCard,
   scoreWordAssembly,
 } from '../../services/games'
 
+const MISMATCH_REVEAL_MS = 900
+
 export function WordAssemblyView() {
   const [state, setState] = useState(createWordAssemblyState)
-  const [activeQuestionId, setActiveQuestionId] = useState(WORD_ASSEMBLY_QUESTIONS[0].id)
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
-  const [flash, setFlash] = useState<string | null>(null)
+  const [flash, setFlash] = useState<'mismatch' | 'matched' | null>(null)
 
   const score = useMemo(() => scoreWordAssembly(state), [state])
-  const activeQuestion =
-    WORD_ASSEMBLY_QUESTIONS.find((question) => question.id === activeQuestionId) ??
-    WORD_ASSEMBLY_QUESTIONS[0]
+
+  useEffect(() => {
+    if (state.revealed.length !== 2) return
+
+    const timer = window.setTimeout(() => {
+      setState(closeUnmatchedWordAssemblyCards)
+      setFlash(null)
+    }, MISMATCH_REVEAL_MS)
+    return () => window.clearTimeout(timer)
+  }, [state])
 
   function handleTile(cardId: string) {
-    const card = state.board.find((entry) => entry.id === cardId)
-    if (!card) return
-    setState((previous) => revealWordAssemblyCard(previous, cardId))
-    setSelectedCardId((previous) => (previous === cardId ? null : cardId))
+    const next = revealWordAssemblyCard(state, cardId)
+    if (next === state) return
+    setState(next)
+    if (next.mismatches > state.mismatches) setFlash('mismatch')
+    else if (next.matchedQuestionIds.length > state.matchedQuestionIds.length) setFlash('matched')
   }
 
-  function handleSlot(slot: number) {
-    if (!selectedCardId) return
-    const card = state.board.find((entry) => entry.id === selectedCardId)
-    if (!card) return
-    const result = placeWordAssemblyCard(state, selectedCardId, activeQuestion.id, slot)
-    setState(result.state)
-    setSelectedCardId(null)
-    setFlash(result.placement === 'mismatch' ? 'mismatch' : 'matched')
+  function restart() {
+    setState(createWordAssemblyState())
+    setFlash(null)
   }
 
   return (
     <div className="game">
       <div className="stat-grid">
         <div className="stat">
-          <span className="stat__label">Cards matched</span>
+          <span className="stat__label">Pairs matched</span>
           <span className="stat__value">
-            {score.matched}/{WORD_ASSEMBLY_CARD_COUNT}
-          </span>
-        </div>
-        <div className="stat">
-          <span className="stat__label">Words closed</span>
-          <span className="stat__value">
-            {score.questionsSolved}/{WORD_ASSEMBLY_QUESTIONS.length}
+            {score.matchedPairs}/{WORD_ASSEMBLY_QUESTIONS.length}
           </span>
         </div>
         <div className="stat">
@@ -64,66 +59,48 @@ export function WordAssemblyView() {
         </div>
       </div>
 
+      <p className="muted">Find both cards with the same picture for each question:</p>
+      <ul className="word-match-prompts">
+        {WORD_ASSEMBLY_QUESTIONS.map((question) => (
+          <li key={question.id}>{question.prompt}</li>
+        ))}
+      </ul>
+
       {flash && (
         <p className={flash === 'mismatch' ? 'alert alert--error' : 'alert alert--ok'}>
-          {flash === 'mismatch' ? 'That letter belongs to another question. Tile turned back down.' : 'Matched.'}
+          {flash === 'mismatch'
+            ? 'The pictures do not match. All open cards will turn back over.'
+            : 'Match found.'}
         </p>
       )}
 
-      <ul className="word-slots">
-        {WORD_ASSEMBLY_QUESTIONS.map((question) => {
-          const solved = isWordAssemblyQuestionSolved(state, question)
-          const letters = state.placed[question.id] ?? []
-          return (
-            <li
-              key={question.id}
-              className={`word-slot${question.id === activeQuestion.id ? ' word-slot--active' : ''}${
-                solved ? ' word-slot--solved' : ''
-              }`}
-            >
-              <button type="button" className="ghost" onClick={() => setActiveQuestionId(question.id)}>
-                {question.prompt}
-              </button>
-              <div className="word-slot__tiles">
-                {Array.from({ length: question.answer.length }, (_, slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    className="word-tile"
-                    aria-label={`${question.prompt} letter ${slot + 1}`}
-                    onClick={() => handleSlot(slot)}
-                  >
-                    {letters[slot] ?? ''}
-                  </button>
-                ))}
-              </div>
-              <span className="muted">{solved ? 'Closed' : `${letters.length}/4 placed`}</span>
-            </li>
-          )
-        })}
-      </ul>
-
-      <div className="tile-grid" role="group" aria-label="Letter tiles">
+      <div className="tile-grid" role="group" aria-label="Picture matching cards">
         {state.board.map((card) => {
-          const revealed = state.revealed.includes(card.id)
+          const matched = state.matchedCardIds.includes(card.id)
+          const revealed = matched || state.revealed.includes(card.id)
+          const question = WORD_ASSEMBLY_QUESTIONS.find((entry) => entry.id === card.questionId)!
           return (
             <button
               key={card.id}
               type="button"
-              className={`tile${revealed ? ' tile--revealed' : ''}${
-                selectedCardId === card.id ? ' tile--selected' : ''
-              }`}
-              aria-label={revealed ? `Tile ${card.letter}` : 'Face-down tile'}
+              className={`tile${revealed ? ' tile--revealed' : ''}${matched ? ' tile--matched' : ''}`}
+              aria-label={revealed ? `Picture card: ${question.prompt}` : 'Face-down picture card'}
+              aria-pressed={revealed}
+              disabled={matched || state.revealed.length === 2}
               onClick={() => handleTile(card.id)}
             >
-              {revealed ? card.letter : '?'}
+              {revealed ? (
+                <img src={card.image} alt={question.prompt} draggable={false} />
+              ) : (
+                '?'
+              )}
             </button>
           )
         })}
       </div>
 
       <div className="game__toolbar">
-        <button type="button" className="ghost" onClick={() => setState(createWordAssemblyState())}>
+        <button type="button" className="ghost" onClick={restart}>
           Shuffle and restart
         </button>
       </div>

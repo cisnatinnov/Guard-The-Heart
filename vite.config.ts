@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
         // and swaps in new builds automatically once deployed.
         registerType: 'autoUpdate',
         injectRegister: false,
-        includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+        includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'Logo_Game-5.png'],
         workbox: isDev
           ? { globPatterns: [], cleanupOutdatedCaches: true }
           : {

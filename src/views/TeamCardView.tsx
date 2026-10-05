@@ -60,6 +60,7 @@ export function TeamCardView({ teamId, teamName, onClose }: TeamCardViewProps) {
               name={card.name}
               type={card.type}
               effect={card.effect}
+              effect_action={card.effect_action}
               icon={card.icon}
             />
           ))}

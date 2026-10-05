@@ -62,9 +62,7 @@ export function App() {
       <header className="app__header">
         <div className="app__header-top">
           <div className="app__brand">
-            <span className="app__logo" aria-hidden="true">
-              ♥
-            </span>
+            <img className="app__logo" src="/Logo_Game-5.png" alt="Guard The Heart logo" />
             <div>
               <h1>Guard The Heart</h1>
               <p className="app__tagline">Offline-first challenge, game and scoreboard tracker</p>
@@ -73,7 +71,7 @@ export function App() {
           <div className="app__characters" role="group" aria-label="Meet the guardians">
             <figure className="app__character">
               <img src="/gardian-male.png" alt="Male guardian in teal and orange gear" />
-              <figcaption>Guardian Male</figcaption>
+              <figcaption>Guardimon Male</figcaption>
             </figure>
             <figure className="app__character app__character--mascot">
               <img src="/gardimon.png" alt="Gardimon, the orange guardian mascot" />
@@ -81,7 +79,7 @@ export function App() {
             </figure>
             <figure className="app__character">
               <img src="/gardian-female.png" alt="Female guardian in teal and orange gear" />
-              <figcaption>Guardian Female</figcaption>
+              <figcaption>Guardimon Female</figcaption>
             </figure>
           </div>
           <figure className="app__risk-card">

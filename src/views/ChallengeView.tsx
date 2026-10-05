@@ -1,5 +1,9 @@
 import { useChallenges } from '../hooks/useChallenges'
-import { CHALLENGE_GAMES, type ChallengeGameId } from '../services/games'
+import {
+  CHALLENGE_GAMES,
+  isChallengeWorkInProgress,
+  type ChallengeGameId,
+} from '../services/games'
 import { gameIdForChallengeName } from '../services/challengeSeeds'
 
 interface ChallengeViewProps {
@@ -33,6 +37,7 @@ export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewPro
           {challenges.map((challenge) => {
             const gameId = gameIdForChallengeName(challenge.name)
             const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
+            const workInProgress = gameId !== null && isChallengeWorkInProgress(gameId)
             return (
               <li
                 key={challenge.id}
@@ -49,9 +54,9 @@ export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewPro
                     {gameId && (
                       <>
                         <button type="button" onClick={() => onPlayGame(gameId)}>
-                          Play
+                          {workInProgress ? 'Work in progress' : 'Play'}
                         </button>
-                        {game?.deckPath && (
+                        {!workInProgress && game?.deckPath && (
                           <a
                             className="deck-link"
                             href={game.deckPath}
@@ -65,7 +70,11 @@ export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewPro
                     )}
                   </div>
                 </div>
-                {game && <p className="card__note">{game.tagline}</p>}
+                {game && (
+                  <p className="card__note">
+                    {workInProgress ? 'Challenge content is temporarily unavailable.' : game.tagline}
+                  </p>
+                )}
               </li>
             )
           })}

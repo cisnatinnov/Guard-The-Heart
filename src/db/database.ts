@@ -1,6 +1,7 @@
 import { initDatabase, getSequelize } from './sequelize-provider'
+import { DataTypes } from 'sequelize'
 import { defineModels } from '../models'
-import { synchronizeAllChallengeBonusCards } from '../services/cardDraw'
+import { seedCardPool, synchronizeAllChallengeBonusCards } from '../services/cardDraw'
 import { seedLockedChallenges } from '../services/challengeSeeds'
 
 const LEGACY_TABLES = ['challange', 'challange_scoreboard']
@@ -39,11 +40,27 @@ export function initializeAppDatabase(): Promise<void> {
       // database persisted by an older build is discarded rather than
       // migrated. Current databases keep their data and are synced in place.
       await sequelize.sync({ force: await isLegacySchema(sequelize) })
+      await ensureCardActionColumns(sequelize)
       // The six playable challenges are challenge data, so they exist from the
       // first launch and cannot be added again, renamed or deleted.
       await seedLockedChallenges()
+      await seedCardPool()
       await synchronizeAllChallengeBonusCards()
     })()
+  }
+
+  async function ensureCardActionColumns(sequelize: ReturnType<typeof getSequelize>): Promise<void> {
+    const queryInterface = sequelize.getQueryInterface()
+    const fallbackAction = 'Card action details unavailable.'
+    for (const table of ['card', 'team_card']) {
+      const columns = (await queryInterface.describeTable(table)) as Record<string, unknown>
+      if ('effect_action' in columns) continue
+      await queryInterface.addColumn(table, 'effect_action', {
+        type: DataTypes.STRING(225),
+        allowNull: false,
+        defaultValue: fallbackAction,
+      })
+    }
   }
   return readyPromise
 }

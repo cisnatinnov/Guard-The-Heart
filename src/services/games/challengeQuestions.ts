@@ -33,8 +33,6 @@ import {
   WORD_ASSEMBLY_MATCH_POINTS,
   WORD_ASSEMBLY_QUESTIONS,
   WORD_ASSEMBLY_SECONDS_PER_QUESTION,
-  WORD_ASSEMBLY_SLOTS_PER_QUESTION,
-  expectedLetter,
 } from './wordAssembly'
 import type { ChallengeGameId } from './index'
 
@@ -136,25 +134,18 @@ function gardimonQuestions(): ChallengeQuestion[] {
   return questions
 }
 
-/** Word Assembly asks for each letter of the answer in turn, so a wrong letter costs the question. */
+/** Team runs identify the picture represented by each matching-card pair. */
 function wordAssemblyQuestions(): ChallengeQuestion[] {
-  const questions: ChallengeQuestion[] = []
-  let number = 0
-  for (const question of WORD_ASSEMBLY_QUESTIONS) {
-    for (let slot = 0; slot < WORD_ASSEMBLY_SLOTS_PER_QUESTION; slot += 1) {
-      number += 1
-      const expected = expectedLetter(question, slot)
-      questions.push({
-        id: `${question.id}-slot-${slot}`,
-        number,
-        prompt: `${question.prompt} — which letter fills position ${slot + 1} of ${WORD_ASSEMBLY_SLOTS_PER_QUESTION}?`,
-        hint: `${question.answer.length} letters`,
-        eliminates: true,
-        grade: (value) => (normalize(value) === normalize(expected) ? WORD_ASSEMBLY_MATCH_POINTS : 0),
-      })
-    }
-  }
-  return questions
+  return WORD_ASSEMBLY_QUESTIONS.map((question, index) =>
+    exactQuestion(
+      question.id,
+      index + 1,
+      question.prompt,
+      'Name the picture shown on the matching cards.',
+      question.answer,
+      WORD_ASSEMBLY_MATCH_POINTS
+    )
+  )
 }
 
 /** Incident Trail asks which information piece holds the clue for each crime scene. */
@@ -244,8 +235,6 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
     const questions = jawsQuestions()
     return { questions, pointsPerQuestion: JAWS_HIT_POINTS }
   },
-  // Save the Core is a race with no correct answer to grade, so it has no
-  // question set and keeps its solo scoring only.
   'save-the-core': () => ({ questions: [], pointsPerQuestion: 0 }),
 }
 

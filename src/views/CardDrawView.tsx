@@ -21,6 +21,7 @@ const EMPTY_POOL: CardPoolStatus = {
     Normal: { total: 0, drawn: 0, remaining: 0 },
     Rare: { total: 0, drawn: 0, remaining: 0 },
     Epic: { total: 0, drawn: 0, remaining: 0 },
+    Legendary: { total: 0, drawn: 0, remaining: 0 },
   },
 }
 
@@ -165,6 +166,7 @@ export function CardDrawView() {
                 name={card.name}
                 type={card.type}
                 effect={card.effect}
+                effect_action={card.effect_action}
                 icon={card.icon}
                 owner={teams.find((team) => team.id === card.team)?.name ?? 'Unknown team'}
               />

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { ScoreboardController, type ScoreboardEntry } from '../controllers/ScoreboardController'
 import { flushDatabase } from '../db/sequelize-provider'
 import { useTeams } from '../hooks/useTeams'
-import { emitDbEvent } from '../hooks/useDbEventRefresh'
 import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
 import { MAX_TOTAL_CARD } from '../services/rankRules'
@@ -56,11 +55,6 @@ export function ScoreboardTotalAdminView() {
     setBusy(false)
   }
 
-  const testEvent = () => {
-    console.log('[Leaderboard Admin] TEST: Manually emitting SCOREBOARD_CHANGED')
-    emitDbEvent(DB_EVENTS.SCOREBOARD_CHANGED)
-  }
-
   const teamNameById = new Map(teams.map((team) => [team.id, team.name]))
 
   return (
@@ -80,9 +74,6 @@ export function ScoreboardTotalAdminView() {
         </button>
         <button type="button" className="ghost" onClick={handlePersist} disabled={loading || busy}>
           Save offline copy
-        </button>
-        <button type="button" className="ghost" onClick={testEvent} disabled={loading}>
-          🧪 Test Event
         </button>
       </div>
 

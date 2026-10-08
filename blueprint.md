@@ -111,14 +111,14 @@ f. team_card
 | createdAt | datetime |
 | updatedAt | datetime |
 
-Constraints: After the fifth team is entered and the challenge is complete, the host draws bonus cards once via Scoreboard (Adm). Cards are drawn into the challenge pool (with challenge reference, no team). Admin then assigns cards to teams via Card Reveal (Adm). Each assigned card is mirrored once in `team_card` as the permanent team collection. If a team reaches 8 cards, admin chooses which card to replace. Drawn cards are saved permanently: later score corrections or removed entries never redraw or return them. Only deleting a challenge returns its cards to the pool.
+Constraints: After the fifth team is entered and the challenge is complete, the host draws bonus cards once via Scoreboard (Adm). Cards are drawn into the challenge pool (with challenge reference, no team). Admin then assigns cards to teams via Card Reveal (Adm) using drag-and-drop or click-to-assign (click a card, then click a team). Each assigned card is linked to the team's ChallengePoint entry and mirrored once in `team_card` as the permanent team collection. If a team reaches 8 cards, admin chooses which card to replace. Drawn cards are saved permanently: later score corrections or removed entries never redraw or return them. Only deleting a challenge returns its cards to the pool.
 
 ## Terms and conditions
 1. challenge_point accommodates only 5 teams each challenge. A team that has
 entered a challenge keeps its entry; its challenge point is corrected in place, which
 reranks the challenge and the overall scoreboard instead of removing the team.
 2. scoreboard (total challenge_point (total_cp(challenge_point), total_card=0, total_gp) per team)
-3. rank based on challenge_point (challenge_point) and total_cp (scoreboard), 1st rank have the highest and so on until 5th rank. Tied challenge points share a rank and the next rank skips (1, 1, 3)
+3. rank based on challenge_point (challenge_point) and total_cp (scoreboard), 1st rank have the highest and so on until 5th rank. Tied challenge points share a rank and the next rank increments by 1 (standard competition: 1, 2, 2, 3, 4)
 4. guard_power based on rank
 | rank | guard_power |
 | 1 | +3 |

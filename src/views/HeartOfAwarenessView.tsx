@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { TeamController, type HeartTowerColumn } from '../controllers/TeamController'
-import { flushDatabase } from '../db/sequelize-provider'
 import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
-import { useDbEventRefresh, emitDbEvent } from '../hooks/useDbEventRefresh'
+import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
 
 const EMPTY_TOWER: HeartTowerColumn[] = []
@@ -62,30 +61,6 @@ export function HeartOfAwarenessView() {
     console.log('[HeartOfAwareness] Event received, triggering load')
     void load()
   })
-
-  // Test button - manually emit event to verify system works
-  const testEvent = () => {
-    console.log('[HeartOfAwareness] TEST: Manually emitting TEAMS_CHANGED')
-    emitDbEvent(DB_EVENTS.TEAMS_CHANGED)
-  }
-
-  async function handleRefresh() {
-    setLoading(true)
-    try {
-      setColumns(await TeamController.heartTower())
-      setError(null)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handlePersist() {
-    setLoading(true)
-    await flushDatabase()
-    await handleRefresh()
-  }
 
   const totalGuardPower = columns.reduce((sum, column) => sum + column.team.total_gp, 0)
   const pageCount = Math.ceil(columns.length / TEAMS_PER_PAGE)
@@ -186,18 +161,6 @@ export function HeartOfAwarenessView() {
           </p>
         </>
       )}
-
-      <div className="row-form">
-        <button type="button" onClick={handleRefresh} disabled={loading}>
-          Recalculate
-        </button>
-        <button type="button" className="ghost" onClick={handlePersist} disabled={loading}>
-          Save offline copy
-        </button>
-        <button type="button" className="ghost" onClick={testEvent} disabled={loading}>
-          🧪 Test Event
-        </button>
-      </div>
     </section>
   )
 }

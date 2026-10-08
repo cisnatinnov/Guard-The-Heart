@@ -80,8 +80,9 @@ Each major view has separate **Public** and **Adm** pages:
 | View | Public | Adm |
 | --- | --- | --- |
 | Scoreboard per challenge | Read-only ranking of the selected challenge, for display | Choose Challenge, Add entry, Edit CP, Delete |
-| Leaderboard | Read-only team standings, for display | Recalculate and Save offline copy |
-| Card Reveal | Read-only team card collections | Assign drawn cards to teams, replace when at capacity |
+| Leaderboard | Read-only team standings, for display | (Auto-recalculates on changes) |
+| Card Reveal | Read-only team card collections | Assign drawn cards to teams (drag-and-drop or click-to-assign), replace when at capacity |
+| Heart of Awareness | Read-only active team tower | — |
 
 The navigation tabs show both variants explicitly (e.g., "Scoreboard (Public)" and "Scoreboard (Adm)").
 
@@ -146,8 +147,8 @@ can be downloaded from a challenge row or from its playing screen.
 
 ### Ranking and rewards
 
-Ranks use competition ranking: tied scores share a rank and the following rank
-skips the tied positions (for example, `1, 1, 3`).
+Ranks use standard competition ranking: tied scores share a rank and the following
+rank increments by 1 (for example, `1, 2, 2, 3, 4`).
 
 | Rank | Challenge points | GP earned |
 | --- | ---: | ---: |
@@ -187,11 +188,13 @@ A challenge can be drawn only once: the draw is recorded on the challenge
 challenge pool (with challenge reference but no team) permanently; later score
 corrections or removed entries do not redraw or return them.
 
-The admin then uses **Card Reveal (Adm)** to assign drawn cards to teams. Each
-team can hold a maximum of 8 cards. If a team is at capacity, the admin chooses
-which existing card to replace. Assigned cards are mirrored once in the team's
-permanent `team_card` collection. The **Card Reveal (Public)** page shows the
-permanent collections for display.
+The admin then uses **Card Reveal (Adm)** to assign drawn cards to teams via
+drag-and-drop or click-to-assign (click a card to select it, then click a team
+to assign). Each team can hold a maximum of 8 cards. If a team is at capacity,
+the admin chooses which existing card to replace. Assigned cards are linked to
+the team's ChallengePoint entry and mirrored once in the team's permanent
+`team_card` collection. The **Card Reveal (Public)** page shows the permanent
+collections for display.
 
 ## Data and offline behavior
 

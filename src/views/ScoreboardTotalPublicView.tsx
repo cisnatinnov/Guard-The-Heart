@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ScoreboardController, type ScoreboardEntry } from '../controllers/ScoreboardController'
 import { useTeams } from '../hooks/useTeams'
-import { useDbEventRefresh, emitDbEvent } from '../hooks/useDbEventRefresh'
+import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
 import { MAX_TOTAL_CARD } from '../services/rankRules'
 
@@ -33,11 +33,6 @@ export function ScoreboardTotalPublicView() {
 
   const teamNameById = new Map(teams.map((team) => [team.id, team.name]))
 
-  const testEvent = () => {
-    console.log('[Leaderboard] TEST: Manually emitting SCOREBOARD_CHANGED')
-    emitDbEvent(DB_EVENTS.SCOREBOARD_CHANGED)
-  }
-
   return (
     <section className="view">
       <header className="view__header">
@@ -49,12 +44,6 @@ export function ScoreboardTotalPublicView() {
       {loading && <p className="muted">Loading leaderboard…</p>}
 
       {!loading && entries.length === 0 && <p className="muted">No scores recorded yet.</p>}
-
-      <div className="row-form">
-        <button type="button" className="ghost" onClick={testEvent} disabled={loading}>
-          🧪 Test Event
-        </button>
-      </div>
 
       {!loading && entries.length > 0 && (
         <div className="board-panel board-panel--leaderboard">

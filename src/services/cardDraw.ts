@@ -1,6 +1,14 @@
 import { Op } from 'sequelize'
-import { Card, Challenge, ChallengeScoreboard, Team, TeamCard, type CardEffect, type CardType } from '../models'
+import { Card, Challenge, ChallengePoint, Team, TeamCard, type CardEffect, type CardType } from '../models'
 import { CARD_POOL as CARD_CATALOG } from '../data/card-pool'
+
+async function findChallengePointForCard(card: Card, teamId: string): Promise<ChallengePoint | null> {
+  if (!card.challenge) return null
+  return ChallengePoint.findOne({
+    where: { challenge: card.challenge, team: teamId },
+    attributes: ['id'],
+  })
+}
 
 export interface CardPoolEntry {
   name: string
@@ -67,9 +75,33 @@ async function loadDrawnPoolKeys(): Promise<Set<string>> {
 /** Seeds each finite-pool card as a permanent, unassigned database row. */
 export async function seedCardPool(): Promise<void> {
   const inventory = await Card.findAll({
-    attributes: ['id', 'name', 'type', 'effect', 'effect_action', 'icon'],
+    attributes: ['id', 'name', 'type', 'effect', 'effect_action', 'icon', 'challenge', 'team'],
+    order: [['createdAt', 'ASC']],
   })
-  const existingByName = new Map(inventory.map((card) => [card.name, card]))
+  const catalogNames = new Set(CARD_POOL.map((card) => card.name))
+  const existingByName = new Map<string, Card>()
+  const legacyCards: Card[] = []
+  for (const card of inventory) {
+    if (catalogNames.has(card.name) && !existingByName.has(card.name)) {
+      existingByName.set(card.name, card)
+    } else {
+      legacyCards.push(card)
+    }
+  }
+
+  for (const legacy of legacyCards) {
+    const replacement =
+      legacy.challenge || legacy.team
+        ? CARD_POOL.find((card) => card.type === legacy.type && !existingByName.has(card.name))
+        : undefined
+    if (!replacement) {
+      await legacy.destroy()
+      continue
+    }
+    await legacy.update({ ...replacement })
+    existingByName.set(replacement.name, legacy)
+  }
+
   for (const card of CARD_POOL) {
     const existing = existingByName.get(card.name)
     if (existing) {
@@ -149,24 +181,70 @@ function serializePoolOperation<T>(operation: () => Promise<T>): Promise<T> {
 }
 
 export async function isChallengeComplete(challengeId: string): Promise<boolean> {
-  const count = await ChallengeScoreboard.count({ where: { challenge: challengeId } })
+  const count = await ChallengePoint.count({ where: { challenge: challengeId } })
   return count >= 5
 }
 
-export async function getTeamsWithCardRewards(challengeId: string): Promise<Array<{ teamId: string; cardCount: number }>> {
-  const entries = await ChallengeScoreboard.findAll({
-    where: { challenge: challengeId, card: { [Op.gt]: 0 } },
-    attributes: ['team', 'card'],
-    raw: true,
-  })
-  return entries.map((e) => ({ teamId: e.team, cardCount: e.card }))
+export interface TeamCardReward {
+  teamId: string
+  teamName?: string
+  rank: number
+  cardCount: number
+  guardPower: number
 }
 
+export async function getTeamsWithCardRewards(challengeId: string): Promise<Array<{ teamId: string; guardPower: number }>> {
+  const entries = await ChallengePoint.findAll({
+    where: { challenge: challengeId },
+    attributes: ['team', 'guard_power'],
+    raw: true,
+  })
+  return entries.map((e) => ({ teamId: e.team, guardPower: e.guard_power }))
+}
+
+export async function getEligibleTeamsForChallenge(challengeId: string): Promise<TeamCardReward[]> {
+  const entries = await ChallengePoint.findAll({
+    where: { challenge: challengeId },
+    attributes: ['team', 'rank', 'guard_power'],
+    include: [{ model: Team, as: 'teamRef', attributes: ['name'] }],
+    order: [['rank', 'ASC']],
+  })
+
+  const cardRewardsByRank: Record<number, number> = { 1: 3, 2: 2, 3: 2, 4: 1, 5: 0 }
+
+  return entries.map((entry) => ({
+    teamId: entry.team,
+    teamName: (entry as any).teamRef?.name,
+    rank: entry.rank,
+    cardCount: cardRewardsByRank[entry.rank] ?? 0,
+    guardPower: entry.guard_power,
+  }))
+}
+
+export async function getEligibleTeamsForAllChallenges(): Promise<Record<string, TeamCardReward[]>> {
+  const challenges = await Challenge.findAll({ attributes: ['id'] })
+  const result: Record<string, TeamCardReward[]> = {}
+  for (const challenge of challenges) {
+    result[challenge.id] = await getEligibleTeamsForChallenge(challenge.id)
+  }
+  return result
+}
+
+export async function isChallengeCardsDrawn(challengeId: string): Promise<boolean> {
+  const challenge = await Challenge.findByPk(challengeId, { attributes: ['id', 'cards_drawn_at'] })
+  return Boolean(challenge?.cards_drawn_at)
+}
+
+/**
+ * Draws a completed challenge's bonus cards exactly once into the challenge pool
+ * (with challenge reference but no team). The drawn cards become available for
+ * admin to assign to teams via Card Reveal. A second draw request is rejected.
+ */
 export async function drawBonusCardsForChallenge(challengeId: string): Promise<Card[]> {
   const inFlight = challengeDrawsInFlight.get(challengeId)
   if (inFlight) return inFlight
 
-  const draw = serializePoolOperation(() => synchronizeCompletedChallengeCards(challengeId))
+  const draw = serializePoolOperation(() => drawChallengeCardsOnce(challengeId))
   challengeDrawsInFlight.set(challengeId, draw)
   try {
     return await draw
@@ -177,49 +255,30 @@ export async function drawBonusCardsForChallenge(challengeId: string): Promise<C
   }
 }
 
-async function synchronizeCompletedChallengeCards(challengeId: string): Promise<Card[]> {
-  const isComplete = await isChallengeComplete(challengeId)
-  if (!isComplete) {
+async function drawChallengeCardsOnce(challengeId: string): Promise<Card[]> {
+  const challenge = await Challenge.findByPk(challengeId)
+  if (!challenge) throw new Error('Challenge was not found')
+  if (challenge.cards_drawn_at) {
+    throw new Error(`Cards for "${challenge.name}" have already been drawn`)
+  }
+  if (!(await isChallengeComplete(challengeId))) {
     throw new Error('Challenge not complete: not all 5 teams have participated')
   }
 
-  const entries = await ChallengeScoreboard.findAll({
+  const entries = await ChallengePoint.findAll({
     where: { challenge: challengeId },
-    attributes: ['team', 'card'],
+    attributes: ['team', 'rank'],
+    order: [['rank', 'ASC']],
   })
-  const existingCards = await Card.findAll({
-    where: { challenge: challengeId },
-    order: [['createdAt', 'ASC']],
-  })
-  const existingByTeam = new Map<string, Card[]>()
-  for (const card of existingCards) {
-    if (!card.team) continue
-    const teamCards = existingByTeam.get(card.team) ?? []
-    teamCards.push(card)
-    existingByTeam.set(card.team, teamCards)
-  }
-
-  const affectedTeamIds = new Set<string>([
-    ...entries.map((entry) => entry.team),
-    ...existingCards.flatMap((card) => (card.team ? [card.team] : [])),
-  ])
-  let drawnPoolKeys = await loadDrawnPoolKeys()
-  const cardsByTeam = new Map<string, Card[]>()
+  const drawnPoolKeys = await loadDrawnPoolKeys()
+  const drawnCards: Card[] = []
 
   for (const entry of entries) {
-    const desiredCount = Math.min(3, Math.max(0, entry.card))
-    const currentCards = existingByTeam.get(entry.team) ?? []
-    const keepCount = Math.min(desiredCount, currentCards.length)
-
-    if (currentCards.length > keepCount) {
-      const returnedCards = currentCards.slice(keepCount)
-      await returnCardsToPool(returnedCards)
-      drawnPoolKeys = await loadDrawnPoolKeys()
-    }
-
-    const keptCards = currentCards.slice(0, keepCount)
-    const missingCards = drawCardsFromPool(drawnPoolKeys, desiredCount - keepCount)
-    for (const cardData of missingCards) {
+    // Card count based on rank (blueprint):
+    // Rank 1: 3 cards, Rank 2: 2 cards, Rank 3: 2 cards, Rank 4: 1 card, Rank 5: 0 cards
+    const cardRewardsByRank: Record<number, number> = { 1: 3, 2: 2, 3: 2, 4: 1, 5: 0 }
+    const cardCount = cardRewardsByRank[entry.rank] ?? 0
+    for (const cardData of drawCardsFromPool(drawnPoolKeys, cardCount)) {
       const poolCard = await Card.findOne({
         where: {
           name: cardData.name,
@@ -232,110 +291,138 @@ async function synchronizeCompletedChallengeCards(challengeId: string): Promise<
         },
       })
       if (!poolCard) throw new Error(`Card pool inventory is missing "${cardData.name}"`)
-      await poolCard.update({ challenge: challengeId, team: entry.team })
-      keptCards.push(poolCard)
+      // Assign to challenge only (no team yet - admin will assign later)
+      await poolCard.update({ challenge: challengeId, team: null })
+      drawnCards.push(poolCard)
     }
-
-    cardsByTeam.set(entry.team, keptCards)
   }
 
-  const syncedCards = [...cardsByTeam.values()].flat()
-  await synchronizePermanentTeamCards([...affectedTeamIds])
-  return syncedCards.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-}
-
-export async function synchronizeChallengeBonusCards(challengeId: string): Promise<void> {
-  if (await isChallengeComplete(challengeId)) {
-    await drawBonusCardsForChallenge(challengeId)
-    return
-  }
-
-  const existingCards = await Card.findAll({
-    where: { challenge: challengeId },
-    attributes: ['team'],
-  })
-  const affectedTeamIds = [...new Set(existingCards.flatMap((card) => (card.team ? [card.team] : [])))]
-  await returnCardsToPool(
-    await Card.findAll({ where: { challenge: challengeId }, order: [['createdAt', 'ASC']] })
-  )
-  await synchronizePermanentTeamCards(affectedTeamIds)
+  await challenge.update({ cards_drawn_at: new Date() })
+  return drawnCards
 }
 
 /** Releases a challenge's drawn inventory before the challenge row is deleted. */
 export async function releaseChallengeBonusCards(challengeId: string): Promise<void> {
   const existingCards = await Card.findAll({
     where: { challenge: challengeId },
-    attributes: ['team'],
+    order: [['createdAt', 'ASC']],
   })
-  const affectedTeamIds = [
-    ...new Set(existingCards.flatMap((card) => (card.team ? [card.team] : []))),
-  ]
-  await returnCardsToPool(
-    await Card.findAll({ where: { challenge: challengeId }, order: [['createdAt', 'ASC']] })
-  )
-  await synchronizePermanentTeamCards(affectedTeamIds)
+  await returnCardsToPool(existingCards)
+  await Challenge.update({ cards_drawn_at: null }, { where: { id: challengeId } })
 }
 
+/**
+ * Startup reconciliation. Challenges whose cards were drawn by an older build
+ * are marked as drawn. No automatic team assignment - admin handles that.
+ */
 export async function synchronizeAllChallengeBonusCards(): Promise<void> {
-  const challenges = await Challenge.findAll({ attributes: ['id'] })
-  for (const challenge of challenges) {
-    await synchronizeChallengeBonusCards(challenge.id)
+  const assigned = await Card.findAll({
+    where: { challenge: { [Op.ne]: null } },
+    attributes: ['challenge'],
+  })
+  const drawnChallengeIds = [...new Set(assigned.map((card) => card.challenge as string))]
+  if (drawnChallengeIds.length > 0) {
+    await Challenge.update(
+      { cards_drawn_at: new Date() },
+      { where: { id: { [Op.in]: drawnChallengeIds }, cards_drawn_at: null } }
+    )
   }
 }
 
-async function synchronizePermanentTeamCards(teamIds: string[]): Promise<void> {
-  if (teamIds.length === 0) return
+/**
+ * Admin assigns a drawn card (from challenge pool) to a team.
+ * If team already has 8 cards, the admin must choose one to replace.
+ */
+export async function assignCardToTeam(cardId: string, teamId: string): Promise<TeamCard> {
+  const card = await Card.findByPk(cardId)
+  if (!card) throw new Error('Card not found')
+  if (!card.challenge) throw new Error('Card is not from a challenge pool')
+  if (card.team) throw new Error('Card already assigned to a team')
 
-  const cards = await Card.findAll({
-    where: { team: { [Op.in]: teamIds } },
+  const team = await Team.findByPk(teamId)
+  if (!team) throw new Error('Team not found')
+
+  // Find the ChallengePoint for this team+challenge to link the card
+  const challengePoint = await findChallengePointForCard(card, teamId)
+
+  // Assign card to team and link to ChallengePoint
+  await card.update({ team: teamId, challenge_point: challengePoint?.id ?? null })
+
+  // Add to permanent TeamCard collection
+  const teamCard = await TeamCard.create({
+    name: card.name,
+    type: card.type,
+    effect: card.effect,
+    effect_action: card.effect_action,
+    icon: card.icon,
+    team: teamId,
+    challenge_point: challengePoint?.id ?? null,
+  })
+
+  return teamCard
+}
+
+/**
+ * Admin replaces a team's card: removes one TeamCard and assigns a new drawn card.
+ */
+export async function replaceTeamCard(teamId: string, oldTeamCardId: string, newCardId: string): Promise<TeamCard> {
+  const team = await Team.findByPk(teamId)
+  if (!team) throw new Error('Team not found')
+
+  const oldTeamCard = await TeamCard.findByPk(oldTeamCardId)
+  if (!oldTeamCard || oldTeamCard.team !== teamId) throw new Error('Team card not found')
+
+  const newCard = await Card.findByPk(newCardId)
+  if (!newCard) throw new Error('New card not found')
+  if (!newCard.challenge) throw new Error('New card is not from a challenge pool')
+  if (newCard.team) throw new Error('New card already assigned to a team')
+
+  // Find the ChallengePoint for this team+challenge to link the card
+  const challengePoint = await findChallengePointForCard(newCard, teamId)
+
+  // Remove old team card
+  await oldTeamCard.destroy()
+
+  // Assign new card to team and link to ChallengePoint
+  await newCard.update({ team: teamId, challenge_point: challengePoint?.id ?? null })
+
+  // Add new card to TeamCard
+  const teamCard = await TeamCard.create({
+    name: newCard.name,
+    type: newCard.type,
+    effect: newCard.effect,
+    effect_action: newCard.effect_action,
+    icon: newCard.icon,
+    team: teamId,
+    challenge_point: challengePoint?.id ?? null,
+  })
+
+  return teamCard
+}
+
+/**
+ * Get available drawn cards for a challenge (cards with challenge ref but no team).
+ */
+export async function getAvailableDrawnCards(challengeId: string): Promise<Card[]> {
+  return Card.findAll({
+    where: { challenge: challengeId, team: null },
+    include: [{ model: Challenge, as: 'challengeBonusRef' }],
     order: [['createdAt', 'ASC']],
   })
-  const teamCards = await TeamCard.findAll({
-    where: { team: { [Op.in]: teamIds } },
-    order: [['createdAt', 'ASC']],
+}
+
+/**
+ * Get all available drawn cards across all challenges (for admin overview).
+ */
+export async function getAllAvailableDrawnCards(): Promise<Card[]> {
+  return Card.findAll({
+    where: { challenge: { [Op.ne]: null }, team: null },
+    include: [
+      { model: Challenge, as: 'challengeBonusRef' },
+      { model: Team, as: 'teamRef' },
+    ],
+    order: [['challenge', 'ASC'], ['createdAt', 'ASC']],
   })
-  const fingerprint = (
-    card: Pick<Card, 'team' | 'name' | 'type' | 'effect' | 'effect_action' | 'icon'>
-  ) =>
-    JSON.stringify([card.team, card.name, card.type, card.effect, card.effect_action, card.icon])
-  const expectedByFingerprint = new Map<string, Card[]>()
-  const actualByFingerprint = new Map<string, TeamCard[]>()
-
-  for (const card of cards) {
-    const key = fingerprint(card)
-    const expected = expectedByFingerprint.get(key) ?? []
-    expected.push(card)
-    expectedByFingerprint.set(key, expected)
-  }
-  for (const card of teamCards) {
-    const key = fingerprint(card)
-    const actual = actualByFingerprint.get(key) ?? []
-    actual.push(card)
-    actualByFingerprint.set(key, actual)
-  }
-
-  for (const [key, actual] of actualByFingerprint) {
-    const expectedCount = expectedByFingerprint.get(key)?.length ?? 0
-    if (actual.length > expectedCount) {
-      await TeamCard.destroy({
-        where: { id: actual.slice(expectedCount).map((card) => card.id) },
-      })
-    }
-  }
-
-  for (const [key, expected] of expectedByFingerprint) {
-    const actualCount = actualByFingerprint.get(key)?.length ?? 0
-    for (const card of expected.slice(actualCount)) {
-      await TeamCard.create({
-        name: card.name,
-        type: card.type,
-        effect: card.effect,
-        effect_action: card.effect_action,
-        icon: card.icon,
-        team: card.team,
-      })
-    }
-  }
 }
 
 export async function getTeamDrawnCards(teamId: string): Promise<Card[]> {
@@ -351,7 +438,7 @@ export async function getChallengeBonusCards(challengeId: string): Promise<Card[
     where: { challenge: challengeId },
     include: [
       { model: Team, as: 'teamRef' },
-      { model: ChallengeScoreboard, as: 'challengeRef' },
+      { model: ChallengePoint, as: 'challengePointRef' },
     ],
     order: [['createdAt', 'DESC']],
   })
@@ -362,4 +449,8 @@ export async function getTeamCards(teamId: string): Promise<TeamCard[]> {
     where: { team: teamId },
     order: [['createdAt', 'DESC']],
   })
+}
+
+export async function getTeamCardById(teamCardId: string): Promise<TeamCard | null> {
+  return TeamCard.findByPk(teamCardId)
 }

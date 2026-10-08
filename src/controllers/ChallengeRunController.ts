@@ -1,6 +1,6 @@
 import { Team } from '../models'
-import { ChallengeScoreboardController } from './ChallengeScoreboardController'
-import type { ChallengeScoreEntry } from './ChallengeScoreboardController'
+import { ChallengePointController } from './ChallengePointController'
+import type { ChallengePointEntry } from './ChallengePointController'
 import { ChallengeController } from './ChallengeController'
 import type { ChallengeGameId } from '../services/games'
 import { challengeQuestionsFor, gradeQuestion, type ChallengeQuestion } from '../services/games/challengeQuestions'
@@ -15,7 +15,7 @@ import {
 } from '../services/games/teamRun'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
 
-const MAX_SCORE = 999
+const MAX_CHALLENGE_POINT = 999
 
 export interface TeamAnswerResult {
   teamId: string
@@ -34,9 +34,9 @@ export interface TeamAnswerResult {
 }
 
 /**
- * A team run adds score to `challenge_scoreboard` as the challenge is played.
- * It reuses ChallengeScoreboardController so ranks, guard power, bonus cards and
- * the overall totals stay consistent no matter how a score was produced.
+ * A team run adds challenge point to `challenge_point` as the challenge is played.
+ * It reuses ChallengePointController so ranks, guard power, bonus cards and
+ * the overall totals stay consistent no matter how a challenge point was produced.
  */
 export class ChallengeRunController {
   /** Builds a run for the teams chosen to follow the challenge. */
@@ -136,32 +136,32 @@ export class ChallengeRunController {
         timedOut: input.timedOut === true,
         eliminated: applied.team.state === 'eliminated',
         skipped: false,
-        recordedScore,
+        recordedScore: recordedScore,
         error,
       },
     }
   }
 
   /**
-   * Creates the entry on the first score and corrects it afterwards, so a team
+   * Creates the entry on the first challenge point and corrects it afterwards, so a team
    * that follows the challenge always has a row on the scoreboard.
    */
-  static async recordScore(challengeId: string, teamId: string, score: number): Promise<number> {
-    const clamped = Math.max(0, Math.min(MAX_SCORE, Math.trunc(score)))
-    const entries = await ChallengeScoreboardController.listByChallenge(challengeId)
+  static async recordScore(challengeId: string, teamId: string, challengePoint: number): Promise<number> {
+    const clamped = Math.max(0, Math.min(MAX_CHALLENGE_POINT, Math.trunc(challengePoint)))
+    const entries = await ChallengePointController.listByChallenge(challengeId)
     const entry = entries.find((row) => row.team === teamId)
 
     if (!entry) {
-      const created = await ChallengeScoreboardController.create({
+      const created = await ChallengePointController.create({
         challenge: challengeId,
         team: teamId,
-        score: clamped,
+        challenge_point: clamped,
       })
-      return created.score
+      return created.challenge_point
     }
-    if (entry.score === clamped) return entry.score
-    const updated = await ChallengeScoreboardController.update(entry.id, { score: clamped })
-    return updated?.score ?? entry.score
+    if (entry.challenge_point === clamped) return entry.challenge_point
+    const updated = await ChallengePointController.update(entry.id, { challenge_point: clamped })
+    return updated?.challenge_point ?? entry.challenge_point
   }
 
   /** Puts the run on the scoreboard for every team, including those still on zero. */
@@ -186,8 +186,8 @@ export class ChallengeRunController {
     return teamForQuestion(run)
   }
 
-  static scoreboardEntries(run: ChallengeRun): Promise<ChallengeScoreEntry[]> {
-    return ChallengeScoreboardController.listByChallenge(run.challenge)
+  static scoreboardEntries(run: ChallengeRun): Promise<ChallengePointEntry[]> {
+    return ChallengePointController.listByChallenge(run.challenge)
   }
 
   private static async teamName(teamId: string): Promise<string> {

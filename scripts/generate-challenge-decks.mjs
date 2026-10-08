@@ -448,7 +448,7 @@ function buildEmojiDeck() {
 
   slides.push(
     buildSlide(
-      frame('Emoji Decode', `${questions.length} questions · ${EMOJI_PER_QUESTION} emoji each · 30 second timer`).concat(
+      frame('Image Decode', `${questions.length} questions · ${EMOJI_PER_QUESTION} emoji each · 30 second timer`).concat(
         bodyBox(
           [
             {
@@ -502,95 +502,6 @@ function buildEmojiDeck() {
   }))
   slides.push(
     buildSlide(frame('Answer key', `All ${questions.length} decoded words`).concat(bodyBox(answerRuns, 1750000, 4000000)))
-  )
-
-  return slides
-}
-
-function buildIncidentTrailDeck() {
-  const data = JSON.parse(readFileSync(resolve(rootDir, 'src/data/incident-trail.json'), 'utf8'))
-  const slides = []
-
-  slides.push(
-    buildSlide(
-      frame('Incident Trail', '5 crime scenes · 5 clues · 25 information pieces').concat(
-        bodyBox(
-          [
-            { text: 'Read the scene, then find the clue that closes it.', size: 2200, bold: true, color: THEME.text },
-            { text: 'Each information piece carries its own answer sheet.', size: 1800, color: THEME.muted },
-            { text: 'Twenty points per scene closed with the right clue.', size: 1600, color: THEME.muted },
-          ],
-          2300000,
-          2800000
-        )
-      )
-    )
-  )
-
-  data.scenes.forEach((scene, index) => {
-    slides.push(
-      buildSlide(
-        frame(`Crime scene ${index + 1}: ${scene.title}`, 'Question').concat(
-          bodyBox(
-            [
-              { text: scene.question, size: 3000, bold: true, color: THEME.text },
-              { text: 'Answer: ______________________', size: 1800, color: THEME.teal },
-            ],
-            2300000,
-            2600000
-          )
-        )
-      )
-    )
-  })
-
-  slides.push(
-    buildSlide(
-      frame('Clue tray', 'Five clues, one per crime scene').concat(
-        bodyBox(
-          data.clues.map((clue) => ({
-            text: `${clue.text}  (piece #${clue.informationIndex + 1})`,
-            size: 1700,
-            color: THEME.text,
-          })),
-          1850000,
-          3700000
-        )
-      )
-    )
-  )
-
-  data.information.forEach((piece, index) => {
-    slides.push(
-      buildSlide(
-        frame(`Information #${index + 1}: ${piece.headline}`, 'Piece and answer sheet').concat(
-          bodyBox(
-            [
-              { text: piece.detail, size: 2000, color: THEME.text },
-              { text: `Answer sheet: ${piece.answerSheet}`, size: 1700, color: THEME.teal },
-            ],
-            1950000,
-            3600000
-          )
-        )
-      )
-    )
-  })
-
-  slides.push(
-    buildSlide(
-      frame('Case closed', 'Trail summary').concat(
-        bodyBox(
-          data.scenes.map((scene) => ({
-            text: `${scene.title}: ${scene.answer}`,
-            size: 1700,
-            color: THEME.text,
-          })),
-          1850000,
-          3700000
-        )
-      )
-    )
   )
 
   return slides
@@ -662,7 +573,6 @@ mkdirSync(decksDir, { recursive: true })
 
 const decks = [
   { name: 'emoji-decode.pptx', slides: buildEmojiDeck() },
-  { name: 'incident-trail.pptx', slides: buildIncidentTrailDeck() },
 ]
 
 for (const deck of decks) {

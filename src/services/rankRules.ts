@@ -1,21 +1,20 @@
 /**
  * Blueprint rules that map a finishing rank to the points a team earns.
  *
- * | rank | challenge_point | guard_power | card |
- * | ---- | --------------- | ----------- | ---- |
- * | 1    | +10             | +3          | +3   |
- * | 2    | +8              | +2          | +2   |
- * | 3    | +6              | +2          | +2   |
- * | 4    | +4              | +1          | +1   |
- * | 5    | +2              | +1          | 0    |
+ * | rank | challenge_point | guard_power |
+ * | ---- | --------------- | ----------- |
+ * | 1    | +10             | +3          |
+ * | 2    | +8              | +2          |
+ * | 3    | +6              | +2          |
+ * | 4    | +4              | +1          |
+ * | 5    | +2              | +1          |
  */
 export const MAX_ENTRIES_PER_CHALLENGE = 5
 export const MIN_RANK = 1
 export const MAX_RANK = 5
 
 /**
- * A team can hold at most 8 cards in total, so summed `card` rewards are
- * clamped instead of accumulating without bound across challenges.
+ * A team can hold at most 8 cards in total.
  */
 export const MAX_TOTAL_CARD = 8
 
@@ -34,17 +33,15 @@ export function teamGuardPower(earned: number): number {
 }
 
 export interface RankRewards {
-  challenge_point: number
   guard_power: number
-  card: number
 }
 
 const REWARDS_BY_RANK: Record<number, RankRewards> = {
-  1: { challenge_point: 10, guard_power: 3, card: 3 },
-  2: { challenge_point: 8, guard_power: 2, card: 2 },
-  3: { challenge_point: 6, guard_power: 2, card: 2 },
-  4: { challenge_point: 4, guard_power: 1, card: 1 },
-  5: { challenge_point: 2, guard_power: 1, card: 0 },
+  1: { guard_power: 3 },
+  2: { guard_power: 2 },
+  3: { guard_power: 2 },
+  4: { guard_power: 1 },
+  5: { guard_power: 1 },
 }
 
 export function isRankable(rank: number): boolean {
@@ -59,9 +56,8 @@ export function rewardsForRank(rank: number): RankRewards {
 }
 
 /**
- * Competition ranking (1, 1, 3): entries sharing a score share a rank and the
- * following rank skips the occupied slots. The result is returned in the same
- * order as the input.
+ * Standard competition ranking (1, 2, 2, 3, 4): entries sharing a score share a rank
+ * and the following rank increments by 1 (does not skip).
  */
 export function competitionRanks(scores: number[]): number[] {
   const ranked = scores
@@ -71,12 +67,20 @@ export function competitionRanks(scores: number[]): number[] {
   const ranks: number[] = new Array(scores.length)
   let previousScore: number | null = null
   let previousRank = 0
+  let tieCount = 0
 
   for (const [position, entry] of ranked.entries()) {
-    const rank = previousScore !== null && entry.score === previousScore ? previousRank : position + 1
-    ranks[entry.index] = rank
-    previousScore = entry.score
-    previousRank = rank
+    if (previousScore !== null && entry.score === previousScore) {
+      // Tie: same rank as previous, increment tie counter
+      tieCount++
+      ranks[entry.index] = previousRank
+    } else {
+      // New score: rank is position + 1 - tieCount (accounts for previous ties)
+      const rank = position + 1 - tieCount
+      ranks[entry.index] = rank
+      previousScore = entry.score
+      previousRank = rank
+    }
   }
 
   return ranks

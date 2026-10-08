@@ -5,24 +5,6 @@ import {
   checkEmojiAnswer,
 } from './emojiDecode'
 import {
-  GARDIMON_PERFECT_BONUS,
-  GARDIMON_PHASES,
-  GARDIMON_POINTS_PER_PHASE,
-  GARDIMON_ROUNDS,
-  GARDIMON_SECONDS_PER_QUESTION,
-  gardimonBlock,
-  isCorrectPick,
-  type GardimonPhase,
-} from './gardimonProtocol'
-import {
-  INCIDENT_TRAIL_CLUES,
-  INCIDENT_TRAIL_POINTS_PER_SCENE,
-  INCIDENT_TRAIL_SECONDS_PER_QUESTION,
-  INCIDENT_TRAIL_SCENES,
-  clueForScene,
-  informationForClue,
-} from './incidentTrail'
-import {
   JAWS_FALSE_FLAG_PENALTY,
   JAWS_HIT_POINTS,
   JAWS_LOOSE_COUNT,
@@ -62,7 +44,7 @@ export interface ChallengeQuestionSet {
 
 /**
  * A question is graded against an exact answer, so answers are compared the way
- * the Emoji Decode game already does it: case and punctuation insensitive.
+ * the Image Decode game already does it: case and punctuation insensitive.
  */
 function normalize(value: string): string {
   return value
@@ -102,38 +84,6 @@ function emojiDecodeQuestions(): ChallengeQuestion[] {
   }))
 }
 
-/**
- * Gardimon splits each card into its three blueprint phases, so a five card game
- * becomes fifteen questions. Answering all three phases of a card adds the
- * perfect bonus to the final phase, matching the solo game.
- */
-function gardimonQuestions(): ChallengeQuestion[] {
-  const questions: ChallengeQuestion[] = []
-  let number = 0
-  for (const round of GARDIMON_ROUNDS) {
-    for (const phase of GARDIMON_PHASES) {
-      number += 1
-      const block = gardimonBlock(round, phase)
-      const isFinalPhase = phase === GARDIMON_PHASES[GARDIMON_PHASES.length - 1]
-      questions.push({
-        id: `${round.id}-${phase.toLocaleLowerCase()}`,
-        number,
-        prompt: block.prompt,
-        hint: `${round.card.name} · ${round.card.charge} charge · ${phase}`,
-        eliminates: true,
-        grade: (value) => {
-          const option = block.options.find(
-            (entry) => normalize(entry.label) === normalize(value) || normalize(entry.detail) === normalize(value)
-          )
-          if (!option || !isCorrectPick(round, phase as GardimonPhase, option.id)) return 0
-          return GARDIMON_POINTS_PER_PHASE + (isFinalPhase ? GARDIMON_PERFECT_BONUS : 0)
-        },
-      })
-    }
-  }
-  return questions
-}
-
 /** Team runs identify the picture represented by each matching-card pair. */
 function wordAssemblyQuestions(): ChallengeQuestion[] {
   return WORD_ASSEMBLY_QUESTIONS.map((question, index) =>
@@ -146,23 +96,6 @@ function wordAssemblyQuestions(): ChallengeQuestion[] {
       WORD_ASSEMBLY_MATCH_POINTS
     )
   )
-}
-
-/** Incident Trail asks which information piece holds the clue for each crime scene. */
-function incidentTrailQuestions(): ChallengeQuestion[] {
-  return INCIDENT_TRAIL_SCENES.map((scene, index) => {
-    const clue = clueForScene(scene.id)
-    const information = clue ? informationForClue(clue.id) : undefined
-    const answer = information ? `${information.headline} — ${information.answerSheet}` : ''
-    return exactQuestion(
-      scene.id,
-      index + 1,
-      `Which information piece holds the clue to "${scene.title}"?`,
-      `${INCIDENT_TRAIL_CLUES.length} clues are hidden across the information pile`,
-      answer,
-      INCIDENT_TRAIL_POINTS_PER_SCENE
-    )
-  })
 }
 
 /**
@@ -213,11 +146,6 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
     pointsPerQuestion: EMOJI_DECODE_POINTS_PER_ANSWER,
     secondsPerQuestion: EMOJI_DECODE_SECONDS_PER_QUESTION,
   }),
-  'gardimon-protocol': () => ({
-    questions: gardimonQuestions(),
-    pointsPerQuestion: GARDIMON_POINTS_PER_PHASE,
-    secondsPerQuestion: GARDIMON_SECONDS_PER_QUESTION,
-  }),
   'word-assembly': () => {
     const questions = wordAssemblyQuestions()
     return {
@@ -226,16 +154,10 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
       secondsPerQuestion: WORD_ASSEMBLY_SECONDS_PER_QUESTION,
     }
   },
-  'incident-trail': () => ({
-    questions: incidentTrailQuestions(),
-    pointsPerQuestion: INCIDENT_TRAIL_POINTS_PER_SCENE,
-    secondsPerQuestion: INCIDENT_TRAIL_SECONDS_PER_QUESTION,
-  }),
   'jaws-of-risk': () => {
     const questions = jawsQuestions()
     return { questions, pointsPerQuestion: JAWS_HIT_POINTS }
   },
-  'save-the-core': () => ({ questions: [], pointsPerQuestion: 0 }),
 }
 
 /** True when a challenge can be answered question by question by teams. */

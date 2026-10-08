@@ -1,18 +1,15 @@
+import { useNavigate } from 'react-router-dom'
 import { useChallenges } from '../hooks/useChallenges'
-import {
-  CHALLENGE_GAMES,
-  isChallengeWorkInProgress,
-  type ChallengeGameId,
-} from '../services/games'
+import { CHALLENGE_GAMES } from '../services/games'
 import { gameIdForChallengeName } from '../services/challengeSeeds'
 
-interface ChallengeViewProps {
-  onOpenScoreboard: (challengeId: string) => void
-  onPlayGame: (gameId: ChallengeGameId) => void
-}
-
-export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewProps) {
+export function ChallengeView() {
   const { challenges, loading, error } = useChallenges()
+  const navigate = useNavigate()
+  const isAdmin = window.location.pathname.startsWith('/admin')
+
+  const scoreboardBase = isAdmin ? '/admin/scoreboard' : '/scoreboard'
+  const playBase = isAdmin ? '/admin/play' : '/play'
 
   return (
     <section className="view">
@@ -37,7 +34,6 @@ export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewPro
           {challenges.map((challenge) => {
             const gameId = gameIdForChallengeName(challenge.name)
             const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
-            const workInProgress = gameId !== null && isChallengeWorkInProgress(gameId)
             return (
               <li
                 key={challenge.id}
@@ -48,15 +44,15 @@ export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewPro
                   <span className="card__title">{challenge.name}</span>
                   {gameId && <span className="badge">Built-in</span>}
                   <div className="card__actions">
-                    <button type="button" onClick={() => onOpenScoreboard(challenge.id)}>
+                    <button type="button" onClick={() => navigate(`${scoreboardBase}/${challenge.id}`)}>
                       Scoreboard
                     </button>
                     {gameId && (
                       <>
-                        <button type="button" onClick={() => onPlayGame(gameId)}>
-                          {workInProgress ? 'Work in progress' : 'Play'}
+                        <button type="button" onClick={() => navigate(`${playBase}/${gameId}`)}>
+                          Play
                         </button>
-                        {!workInProgress && game?.deckPath && (
+                        {game?.deckPath && (
                           <a
                             className="deck-link"
                             href={game.deckPath}
@@ -70,11 +66,7 @@ export function ChallengeView({ onOpenScoreboard, onPlayGame }: ChallengeViewPro
                     )}
                   </div>
                 </div>
-                {game && (
-                  <p className="card__note">
-                    {workInProgress ? 'Challenge content is temporarily unavailable.' : game.tagline}
-                  </p>
-                )}
+                {game && <p className="card__note">{game.tagline}</p>}
               </li>
             )
           })}

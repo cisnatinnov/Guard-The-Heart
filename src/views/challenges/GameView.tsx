@@ -1,30 +1,16 @@
 import { useState } from 'react'
-import {
-  CHALLENGE_GAMES,
-  isChallengeWorkInProgress,
-  type ChallengeGameId,
-} from '../../services/games'
+import { useParams, useNavigate } from 'react-router-dom'
+import { CHALLENGE_GAMES, type ChallengeGameId } from '../../services/games'
 import type { ChallengeRun } from '../../services/games/teamRun'
 import { TeamRunPanel } from './TeamRunPanel'
 import { EmojiDecodeView } from './EmojiDecodeView'
-import { GardimonProtocolView } from './GardimonProtocolView'
 import { WordAssemblyView } from './WordAssemblyView'
-import { IncidentTrailView } from './IncidentTrailView'
 import { JawsOfRiskView } from './JawsOfRiskView'
-import { SaveTheCoreView } from './SaveTheCoreView'
 
 function GameScreen({ id }: { id: ChallengeGameId }) {
   if (id === 'emoji-decode') return <EmojiDecodeView />
-  if (id === 'gardimon-protocol') return <GardimonProtocolView />
   if (id === 'word-assembly') return <WordAssemblyView />
-  if (id === 'incident-trail') return <IncidentTrailView />
-  if (id === 'jaws-of-risk') return <JawsOfRiskView />
-  return <SaveTheCoreView />
-}
-
-export interface GameViewProps {
-  gameId: ChallengeGameId | null
-  onBackToChallenges: () => void
+  return <JawsOfRiskView />
 }
 
 /**
@@ -36,27 +22,18 @@ export interface GameViewProps {
  * so while one is running the solo screen is hidden to avoid two scoring paths
  * on screen at once.
  */
-export function GameView({ gameId, onBackToChallenges }: GameViewProps) {
+export function GameView() {
+  const params = useParams<{ gameId?: string }>()
+  const navigate = useNavigate()
   const [run, setRun] = useState<ChallengeRun | null>(null)
+  
+  const gameId = params.gameId as ChallengeGameId | undefined
   if (!gameId) return null
+  
   const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
   if (!game) return null
 
-  if (isChallengeWorkInProgress(game.id)) {
-    return (
-      <section className="view">
-        <header className="view__header">
-          <h2>Work in progress</h2>
-          <p className="view__hint">This challenge is temporarily unavailable while its content is being updated.</p>
-        </header>
-        <div className="game__toolbar">
-          <button type="button" className="ghost" onClick={onBackToChallenges}>
-            ← All challenges
-          </button>
-        </div>
-      </section>
-    )
-  }
+  const backPath = window.location.pathname.startsWith('/admin') ? '/admin/challenges' : '/challenges'
 
   return (
     <section className="view">
@@ -66,7 +43,7 @@ export function GameView({ gameId, onBackToChallenges }: GameViewProps) {
       </header>
 
       <div className="game__toolbar">
-        <button type="button" className="ghost" onClick={onBackToChallenges}>
+        <button type="button" className="ghost" onClick={() => navigate(backPath)}>
           ← All challenges
         </button>
         {game.deckPath && (
@@ -86,11 +63,13 @@ export function GameView({ gameId, onBackToChallenges }: GameViewProps) {
         onEndRun={() => setRun(null)}
       />
 
-      <ol className="rule-list">
-        {game.rules.map((rule) => (
-          <li key={rule}>{rule}</li>
-        ))}
-      </ol>
+      {game.rules.length > 0 && (
+        <ol className="rule-list">
+          {game.rules.map((rule) => (
+            <li key={rule}>{rule}</li>
+          ))}
+        </ol>
+      )}
 
       {!run && <GameScreen id={gameId} />}
     </section>

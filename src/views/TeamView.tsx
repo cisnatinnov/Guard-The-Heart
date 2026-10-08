@@ -6,11 +6,7 @@ import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 25, 50, 100] as const
 type TeamStatusFilter = 'active' | 'inactive' | 'all'
 
-interface TeamViewProps {
-  onOpenTeamCards: (teamId: string) => void
-}
-
-export function TeamView({ onOpenTeamCards }: TeamViewProps) {
+export function TeamView() {
   const { teams, loading, error: loadError, reload } = useTeams({ includeInactive: true })
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -199,13 +195,6 @@ export function TeamView({ onOpenTeamCards }: TeamViewProps) {
                       onClick={() => run(() => TeamController.toggleStatus(team.id))}
                     >
                       {team.status === 'active' ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button
-                      type="button"
-                      className="ghost"
-                      onClick={() => onOpenTeamCards(team.id)}
-                    >
-                      View Cards
                     </button>
                     <button
                       type="button"

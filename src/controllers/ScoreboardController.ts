@@ -9,7 +9,7 @@ export class ScoreboardController {
       include: [{ model: Team, as: 'teamRef' }],
       order: [
         ['rank', 'ASC'],
-        ['total_score', 'DESC'],
+        ['total_cp', 'DESC'],
       ],
     })
   }

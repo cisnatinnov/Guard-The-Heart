@@ -4,8 +4,8 @@ import { defineModels } from '../models'
 import { seedCardPool, synchronizeAllChallengeBonusCards } from '../services/cardDraw'
 import { seedLockedChallenges } from '../services/challengeSeeds'
 
-const LEGACY_TABLES = ['challange', 'challange_scoreboard']
-const REQUIRED_TABLES = ['team', 'challenge', 'challenge_scoreboard', 'scoreboard', 'card', 'team_card']
+const LEGACY_TABLES = ['challange', 'challange_scoreboard', 'challenge_scoreboard']
+const REQUIRED_TABLES = ['team', 'challenge', 'challenge_point', 'scoreboard', 'card', 'team_card']
 
 let readyPromise: Promise<void> | null = null
 
@@ -40,13 +40,28 @@ export function initializeAppDatabase(): Promise<void> {
       // database persisted by an older build is discarded rather than
       // migrated. Current databases keep their data and are synced in place.
       await sequelize.sync({ force: await isLegacySchema(sequelize) })
+      await migrateChallengePointRemoveCardColumn(sequelize)
       await ensureCardActionColumns(sequelize)
-      // The six playable challenges are challenge data, so they exist from the
+      await ensureChallengeDrawColumn(sequelize)
+      await ensureCardChallengePointColumn(sequelize)
+      await ensureTeamCardChallengePointColumn(sequelize)
+      // The playable challenges are challenge data, so they exist from the
       // first launch and cannot be added again, renamed or deleted.
       await seedLockedChallenges()
       await seedCardPool()
       await synchronizeAllChallengeBonusCards()
     })()
+  }
+
+  async function ensureChallengeDrawColumn(sequelize: ReturnType<typeof getSequelize>): Promise<void> {
+    const queryInterface = sequelize.getQueryInterface()
+    const columns = (await queryInterface.describeTable('challenge')) as Record<string, unknown>
+    if ('cards_drawn_at' in columns) return
+    await queryInterface.addColumn('challenge', 'cards_drawn_at', {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    })
   }
 
   async function ensureCardActionColumns(sequelize: ReturnType<typeof getSequelize>): Promise<void> {
@@ -61,6 +76,60 @@ export function initializeAppDatabase(): Promise<void> {
         defaultValue: fallbackAction,
       })
     }
+  }
+
+  async function ensureCardChallengePointColumn(sequelize: ReturnType<typeof getSequelize>): Promise<void> {
+    const queryInterface = sequelize.getQueryInterface()
+    const columns = (await queryInterface.describeTable('card')) as Record<string, unknown>
+    if ('challenge_point' in columns) return
+    await queryInterface.addColumn('card', 'challenge_point', {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'challenge_point', key: 'id' },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE',
+    })
+  }
+
+  async function ensureTeamCardChallengePointColumn(sequelize: ReturnType<typeof getSequelize>): Promise<void> {
+    const queryInterface = sequelize.getQueryInterface()
+    const columns = (await queryInterface.describeTable('team_card')) as Record<string, unknown>
+    if ('challenge_point' in columns) return
+    await queryInterface.addColumn('team_card', 'challenge_point', {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'challenge_point', key: 'id' },
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE',
+    })
+  }
+
+  async function migrateChallengePointRemoveCardColumn(sequelize: ReturnType<typeof getSequelize>): Promise<void> {
+    const queryInterface = sequelize.getQueryInterface()
+    const columns = (await queryInterface.describeTable('challenge_point')) as Record<string, unknown>
+    if (!('card' in columns)) return
+
+    // SQLite doesn't support DROP COLUMN directly in older versions, so we recreate the table
+    await sequelize.query(`
+      CREATE TABLE challenge_point_new (
+        id TEXT PRIMARY KEY,
+        challenge TEXT NOT NULL REFERENCES challenge(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        team TEXT NOT NULL REFERENCES team(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        rank INTEGER NOT NULL,
+        challenge_point INTEGER NOT NULL,
+        guard_power INTEGER NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    `)
+    await sequelize.query(`
+      INSERT INTO challenge_point_new (id, challenge, team, rank, challenge_point, guard_power, createdAt, updatedAt)
+      SELECT id, challenge, team, rank, challenge_point, guard_power, createdAt, updatedAt
+      FROM challenge_point
+    `)
+    await sequelize.query(`DROP TABLE challenge_point`)
+    await sequelize.query(`ALTER TABLE challenge_point_new RENAME TO challenge_point`)
+    await sequelize.query(`CREATE UNIQUE INDEX challenge_point_challenge_team_unique ON challenge_point (challenge, team)`)
   }
   return readyPromise
 }

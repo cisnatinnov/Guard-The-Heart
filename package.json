@@ -19,6 +19,7 @@
     "moment": "^2.31.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-router-dom": "^7.18.4",
     "sequelize": "^6.37.8",
     "sql.js": "^1.14.2",
     "uuid": "^13.0.0"
@@ -29,6 +30,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
+    "@types/react-router-dom": "^5.3.3",
     "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-react": "^5.1.0",
     "eslint": "^9.39.1",

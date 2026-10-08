@@ -102,7 +102,7 @@ export function EmojiDecodeView() {
           </p>
           <p
             className="emoji-decode__glyph"
-            aria-label={`Emoji puzzle ${currentIndex + 1}: ${current.emojis.join(' ')}`}
+            aria-label={`Image puzzle ${currentIndex + 1}: ${current.emojis.join(' ')}`}
           >
             {current.emojis.map((glyph, position) => (
               <span className="emoji-decode__chip" key={`${current.id}-${position}`}>

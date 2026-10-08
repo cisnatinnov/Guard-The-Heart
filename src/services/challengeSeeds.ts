@@ -1,8 +1,15 @@
-import { CHALLENGE_GAMES, type ChallengeGameId } from './games'
+import {
+  CHALLENGE_GAMES,
+  REMOVED_CHALLENGE_TITLES,
+  RENAMED_CHALLENGE_TITLES,
+  type ChallengeGameId,
+} from './games'
 import { Challenge } from '../models'
+import { releaseChallengeBonusCards } from './cardDraw'
+import { recalculateTotalScoreboard } from './scoreboardAggregator'
 
 /**
- * Blueprint point 8/9: the six playable challenges are saved as challenge data
+ * Blueprint point 8/9: the playable challenges are saved as challenge data
  * and cannot be added again, renamed or deleted.
  *
  * They are identified by their name, which is unique in the database and can
@@ -37,6 +44,7 @@ function normalize(value: string): string {
  * scoreboard, bonus cards and timestamps survive a restart.
  */
 export async function seedLockedChallenges(): Promise<Challenge[]> {
+  await migrateLegacyChallenges()
   const seeded: Challenge[] = []
   for (const game of CHALLENGE_GAMES) {
     const [challenge] = await Challenge.findOrCreate({
@@ -46,4 +54,27 @@ export async function seedLockedChallenges(): Promise<Challenge[]> {
     seeded.push(challenge)
   }
   return seeded
+}
+
+/**
+ * Renames built-in challenges saved under a former title, and removes retired
+ * challenges together with their entries and drawn cards.
+ */
+async function migrateLegacyChallenges(): Promise<void> {
+  for (const [legacyTitle, title] of Object.entries(RENAMED_CHALLENGE_TITLES)) {
+    const legacy = await Challenge.findOne({ where: { name: legacyTitle } })
+    if (!legacy) continue
+    const current = await Challenge.findOne({ where: { name: title } })
+    if (!current) await legacy.update({ name: title })
+  }
+
+  let removed = false
+  for (const title of REMOVED_CHALLENGE_TITLES) {
+    const retired = await Challenge.findOne({ where: { name: title } })
+    if (!retired) continue
+    await releaseChallengeBonusCards(retired.id)
+    await Challenge.destroy({ where: { id: retired.id } })
+    removed = true
+  }
+  if (removed) await recalculateTotalScoreboard()
 }

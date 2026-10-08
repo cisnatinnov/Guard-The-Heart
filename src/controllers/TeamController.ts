@@ -1,5 +1,6 @@
 import { Team, TEAM_STATUSES, type TeamStatus } from '../models'
 import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
+import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 
 export interface TeamInput {
   name: string
@@ -49,7 +50,9 @@ export class TeamController {
     const duplicate = await Team.findOne({ where: { name } })
     if (duplicate) throw new Error(`Team "${name}" already exists`)
 
-    return Team.create({ name, status })
+    const team = await Team.create({ name, status })
+    dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
+    return team
   }
 
   static async rename(id: string, name: string): Promise<Team | null> {
@@ -60,6 +63,7 @@ export class TeamController {
     const duplicate = await Team.findOne({ where: { name: trimmed } })
     if (duplicate && duplicate.id !== id) throw new Error(`Team "${trimmed}" already exists`)
     await team.update({ name: trimmed })
+    dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
     return team
   }
 
@@ -68,17 +72,22 @@ export class TeamController {
     const team = await Team.findByPk(id)
     if (!team) return null
     await team.update({ status })
+    dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
     return team
   }
 
   static async toggleStatus(id: string): Promise<Team | null> {
     const team = await Team.findByPk(id)
     if (!team) return null
-    return TeamController.setStatus(id, team.status === 'active' ? 'inactive' : 'active')
+    const result = await TeamController.setStatus(id, team.status === 'active' ? 'inactive' : 'active')
+    return result
   }
 
   static async remove(id: string): Promise<boolean> {
     const deleted = await Team.destroy({ where: { id } })
+    if (deleted > 0) {
+      dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
+    }
     return deleted > 0
   }
 }

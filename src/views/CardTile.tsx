@@ -1,3 +1,4 @@
+import { cardImageFor, cardTitleFor } from '../data/card-pool'
 import type { CardEffect, CardType } from '../models'
 
 interface CardTileProps {
@@ -6,42 +7,46 @@ interface CardTileProps {
   effect: CardEffect
   effect_action: string
   icon: string
-  owner?: string
+  variant?: 'reward' | 'reveal'
 }
 
-const RARITY_MARKS: Record<CardType, number> = {
-  Normal: 1,
-  Rare: 2,
-  Epic: 3,
-  Legendary: 4,
-}
+export function CardTile({ name, type, effect, effect_action, icon, variant = 'reveal' }: CardTileProps) {
+  const rarity = type.toLowerCase()
+  const image = cardImageFor(name)
+  const title = cardTitleFor(name, type)
+  const description = `${type} ${title} (${effect}): ${effect_action}`
 
-export function CardTile({ name, type, effect, effect_action, icon, owner }: CardTileProps) {
-  return (
-    <article className={`card-tile card-tile--${type.toLowerCase()}`}>
-      <header className="card-tile__header">
-        <h3 className="card-tile__name" title={name}>
-          {name}
-        </h3>
-        <span className="card-tile__rarity" aria-label={`${type} rarity`}>
-          {Array.from({ length: RARITY_MARKS[type] }, (_, index) => (
-            <span key={index} aria-hidden="true">
-              ◆
-            </span>
-          ))}
+  if (image) {
+    return (
+      <figure className={`card-art card-art--${variant}`} title={description}>
+        <img src={encodeURI(image)} alt={description} loading="lazy" />
+      </figure>
+    )
+  }
+
+  if (variant === 'reward') {
+    return (
+      <article className={`reward-card reward-card--${rarity}`} title={description}>
+        <span className="reward-card__type">{type}</span>
+        <span className="reward-card__art" aria-hidden="true">
+          {icon}
         </span>
-      </header>
+        <span className="reward-card__name">{title}</span>
+      </article>
+    )
+  }
 
-      <div className="card-tile__art" aria-hidden="true">
-        <span className="card-tile__icon">{icon}</span>
-      </div>
-
-      <div className="card-tile__details">
-        <span className="card-tile__type">{type} card</span>
-        <span className="card-tile__effect">{effect}</span>
-        <span className="card-tile__action">{effect_action}</span>
-        {owner && <span className="card-tile__owner">Collected by {owner}</span>}
-      </div>
+  return (
+    <article className={`reveal-card reveal-card--${rarity}`} title={description}>
+      <span className="reveal-card__type">{type}</span>
+      <span className="reveal-card__art" aria-hidden="true">
+        {icon}
+      </span>
+      <h4 className="reveal-card__name">{title}</h4>
+      <p className="reveal-card__action">
+        <span className="reveal-card__effect">{effect}</span>
+        {effect_action}
+      </p>
     </article>
   )
 }

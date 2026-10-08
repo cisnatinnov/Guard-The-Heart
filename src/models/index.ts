@@ -9,6 +9,7 @@ export const TEAM_STATUSES: TeamStatus[] = ['active', 'inactive']
 export class Challenge extends Model {
   declare id: string
   declare name: string
+  declare cards_drawn_at: Date | null
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -22,15 +23,13 @@ export class Team extends Model {
   declare readonly updatedAt: Date
 }
 
-export class ChallengeScoreboard extends Model {
+export class ChallengePoint extends Model {
   declare id: string
   declare challenge: string
   declare team: string
-  declare score: number
   declare rank: number
   declare challenge_point: number
   declare guard_power: number
-  declare card: number
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -38,7 +37,6 @@ export class ChallengeScoreboard extends Model {
 export class Scoreboard extends Model {
   declare id: string
   declare team: string
-  declare total_score: number
   declare rank: number
   declare total_cp: number
   declare total_card: number
@@ -58,6 +56,7 @@ export class Card extends Model {
   declare icon: string
   declare challenge: string | null
   declare team: string | null
+  declare challenge_point: string | null
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -70,6 +69,7 @@ export class TeamCard extends Model {
   declare effect_action: string
   declare icon: string
   declare team: string | null
+  declare challenge_point: string | null
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
 }
@@ -91,6 +91,11 @@ export function defineModels(sequelize: Sequelize): void {
         type: DataTypes.STRING(225),
         allowNull: false,
         unique: true,
+      },
+      cards_drawn_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
       },
     },
     { sequelize, modelName: 'challenge', tableName: 'challenge', timestamps: true }
@@ -123,7 +128,7 @@ export function defineModels(sequelize: Sequelize): void {
     { sequelize, modelName: 'team', tableName: 'team', timestamps: true }
   )
 
-  ChallengeScoreboard.init(
+  ChallengePoint.init(
     {
       id: {
         type: DataTypes.UUID,
@@ -145,16 +150,14 @@ export function defineModels(sequelize: Sequelize): void {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
-      score: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
       rank: { type: DataTypes.INTEGER({ length: 2 }), allowNull: false },
       challenge_point: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
       guard_power: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
-      card: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
     },
     {
       sequelize,
-      modelName: 'challenge_scoreboard',
-      tableName: 'challenge_scoreboard',
+      modelName: 'challenge_point',
+      tableName: 'challenge_point',
       indexes: [{ unique: true, fields: ['challenge', 'team'] }],
       timestamps: true,
     }
@@ -176,7 +179,6 @@ export function defineModels(sequelize: Sequelize): void {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
-      total_score: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
       rank: { type: DataTypes.INTEGER({ length: 2 }), allowNull: false },
       total_cp: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
       total_card: {
@@ -236,6 +238,13 @@ export function defineModels(sequelize: Sequelize): void {
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
       },
+      challenge_point: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: { model: ChallengePoint, key: 'id' },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
     },
     {
       sequelize,
@@ -281,6 +290,13 @@ export function defineModels(sequelize: Sequelize): void {
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
       },
+      challenge_point: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: { model: ChallengePoint, key: 'id' },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
     },
     {
       sequelize,
@@ -290,20 +306,24 @@ export function defineModels(sequelize: Sequelize): void {
     }
   )
 
-  Challenge.hasMany(ChallengeScoreboard, { foreignKey: 'challenge', as: 'scores' })
-  ChallengeScoreboard.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeRef' })
-  Team.hasMany(ChallengeScoreboard, { foreignKey: 'team', as: 'challengeScores' })
-  ChallengeScoreboard.belongsTo(Team, { foreignKey: 'team', as: 'teamRef' })
+  Challenge.hasMany(ChallengePoint, { foreignKey: 'challenge', as: 'scores' })
+  ChallengePoint.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeRef' })
+  Team.hasMany(ChallengePoint, { foreignKey: 'team', as: 'challengeScores' })
+  ChallengePoint.belongsTo(Team, { foreignKey: 'team', as: 'teamRef' })
   Team.hasOne(Scoreboard, { foreignKey: 'team', as: 'scoreboard' })
   Scoreboard.belongsTo(Team, { foreignKey: 'team', as: 'teamRef' })
   Challenge.hasMany(Card, { foreignKey: 'challenge', as: 'bonusCards' })
-  Card.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeRef' })
+  Card.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeBonusRef' })
   Team.hasMany(Card, { foreignKey: 'team', as: 'drawnCards' })
   Card.belongsTo(Team, { foreignKey: 'team', as: 'teamRef' })
+  ChallengePoint.hasMany(Card, { foreignKey: 'challenge_point', as: 'earnedCards' })
+  Card.belongsTo(ChallengePoint, { foreignKey: 'challenge_point', as: 'challengePointRef' })
   Team.hasMany(TeamCard, { foreignKey: 'team', as: 'teamCards' })
   TeamCard.belongsTo(Team, { foreignKey: 'team', as: 'teamRef' })
+  ChallengePoint.hasMany(TeamCard, { foreignKey: 'challenge_point', as: 'earnedTeamCards' })
+  TeamCard.belongsTo(ChallengePoint, { foreignKey: 'challenge_point', as: 'challengePointRef' })
 
   modelsDefined = true
 }
 
-export const models = { Challenge, Team, ChallengeScoreboard, Scoreboard, Card, TeamCard }
+export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard }

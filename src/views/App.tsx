@@ -1,152 +1,74 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useDatabase } from '../hooks/useDatabase'
-import type { ChallengeGameId } from '../services/games'
+
 import { TeamView } from './TeamView'
 import { ChallengeView } from './ChallengeView'
-import { ChallengeScoreboardView } from './ChallengeScoreboardView'
-import { ScoreboardTotalView } from './ScoreboardTotalView'
+import { ChallengePointPublicView } from './ChallengePointPublicView'
+import { ChallengePointAdminView } from './ChallengePointAdminView'
+import { ScoreboardTotalPublicView } from './ScoreboardTotalPublicView'
+import { ScoreboardTotalAdminView } from './ScoreboardTotalAdminView'
 import { HeartOfAwarenessView } from './HeartOfAwarenessView'
-import { CardDrawView } from './CardDrawView'
-import { TeamCardView } from './TeamCardView'
+import { CardRevealPublicView } from './CardRevealPublicView'
+import { CardRevealAdminView } from './CardRevealAdminView'
 import { GameView } from './challenges/GameView'
+import { PublicLayout } from './PublicLayout'
+import { AdminLayout } from './AdminLayout'
 
-type Tab =
-  | 'teams'
-  | 'challenges'
-  | 'scoreboard'
-  | 'total'
-  | 'heart'
-  | 'cards'
-  | 'team-cards'
-  // Reached from a built-in challenge row, never listed as a tab.
-  | 'game'
+function DatabaseProvider({ children }: { children: React.ReactNode }) {
+  const { status, error } = useDatabase()
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'teams', label: 'Team' },
-  { id: 'challenges', label: 'Challenge' },
-  { id: 'scoreboard', label: 'Scoreboard per challenge' },
-  { id: 'total', label: 'Scoreboard total' },
-  { id: 'heart', label: 'Heart of awareness' },
-  { id: 'cards', label: 'Card Draw' },
-]
+  if (status === 'loading') {
+    return (
+      <div className="app">
+        <div className="placeholder">
+          <p>Starting local SQLite database…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="app">
+        <div className="placeholder">
+          <p className="alert alert--error">Failed to start the database: {error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}
 
 export function App() {
-  const { status, error } = useDatabase()
-  const [tab, setTab] = useState<Tab>('teams')
-  const [selectedChallengeId, setSelectedChallengeId] = useState<string | null>(null)
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
-  const [selectedGameId, setSelectedGameId] = useState<ChallengeGameId | null>(null)
-
-  function openScoreboard(challengeId: string) {
-    setSelectedChallengeId(challengeId)
-    setTab('scoreboard')
-  }
-
-  function openTeamCards(teamId: string) {
-    setSelectedTeamId(teamId)
-    setTab('team-cards')
-  }
-
-  function playGame(gameId: ChallengeGameId) {
-    setSelectedGameId(gameId)
-    setTab('game')
-  }
-
-  function closeTeamCards() {
-    setSelectedTeamId(null)
-    setTab('teams')
-  }
-
   return (
-    <div className="app">
-      <header className="app__header">
-        <div className="app__header-top">
-          <div className="app__brand">
-            <img className="app__logo" src="/Logo_Game-5.png" alt="Guard The Heart logo" />
-            <div>
-              <h1>Guard The Heart</h1>
-              <p className="app__tagline">Offline-first challenge, game and scoreboard tracker</p>
-            </div>
-          </div>
-          <div className="app__characters" role="group" aria-label="Meet the guardians">
-            <figure className="app__character">
-              <img src="/gardian-male.png" alt="Male guardian in teal and orange gear" />
-              <figcaption>Guardimon Male</figcaption>
-            </figure>
-            <figure className="app__character app__character--mascot">
-              <img src="/gardimon.png" alt="Gardimon, the orange guardian mascot" />
-              <figcaption>Guardimon</figcaption>
-            </figure>
-            <figure className="app__character">
-              <img src="/gardian-female.png" alt="Female guardian in teal and orange gear" />
-              <figcaption>Guardimon Female</figcaption>
-            </figure>
-          </div>
-          <figure className="app__risk-card">
-            <img src="/gigarisk-portrait.jpg" alt="Giga Risk, a black dragon with purple flames" />
-            <figcaption>Giga Risk</figcaption>
-          </figure>
-        </div>
-        <nav className="tabs" aria-label="Views">
-          {TABS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={tab === item.id ? 'tab tab--active' : 'tab'}
-              aria-current={tab === item.id ? 'page' : undefined}
-              onClick={() => setTab(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-      </header>
+    <BrowserRouter>
+      <DatabaseProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
+            <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
+            <Route path="/heart" element={<HeartOfAwarenessView />} />
+            <Route path="/cards" element={<CardRevealPublicView />} />
+            <Route path="/play/:gameId" element={<GameView />} />
+          </Route>
 
-      <main className="app__main">
-        {status === 'loading' && (
-          <div className="placeholder">
-            <p>Starting local SQLite database…</p>
-          </div>
-        )}
+          {/* Admin routes */}
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<TeamView />} />
+            <Route path="/admin/challenges" element={<ChallengeView />} />
+            <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
+            <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />
+            <Route path="/admin/heart" element={<HeartOfAwarenessView />} />
+            <Route path="/admin/cards" element={<CardRevealAdminView />} />
+            <Route path="/admin/play/:gameId" element={<GameView />} />
+          </Route>
 
-        {status === 'error' && (
-          <div className="placeholder">
-            <p className="alert alert--error">Failed to start the database: {error}</p>
-          </div>
-        )}
-
-        {status === 'ready' && (
-          <>
-            {tab === 'teams' && <TeamView onOpenTeamCards={openTeamCards} />}
-            {tab === 'challenges' && (
-              <ChallengeView onOpenScoreboard={openScoreboard} onPlayGame={playGame} />
-            )}
-            {tab === 'scoreboard' && (
-              <ChallengeScoreboardView
-                selectedChallengeId={selectedChallengeId}
-                onSelectChallenge={setSelectedChallengeId}
-              />
-            )}
-            {tab === 'total' && <ScoreboardTotalView />}
-            {tab === 'heart' && <HeartOfAwarenessView />}
-            {tab === 'cards' && <CardDrawView />}
-            {tab === 'team-cards' && selectedTeamId && (
-              <TeamCardView
-                teamId={selectedTeamId}
-                teamName="Team Cards"
-                onClose={closeTeamCards}
-              />
-            )}
-            {tab === 'game' && (
-              <GameView gameId={selectedGameId} onBackToChallenges={() => setTab('challenges')} />
-            )}
-          </>
-        )}
-      </main>
-
-      <footer className="app__footer">
-        <span>Data stored locally in SQLite (WASM) and persisted offline.</span>
-      </footer>
-    </div>
+          {/* Redirect unknown routes to public scoreboard */}
+          <Route path="*" element={<Navigate to="/scoreboard" replace />} />
+        </Routes>
+      </DatabaseProvider>
+    </BrowserRouter>
   )
 }

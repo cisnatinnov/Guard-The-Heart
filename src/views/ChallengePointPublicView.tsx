@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { ChallengePointController } from '../controllers/ChallengePointController'
 import { useChallenges } from '../hooks/useChallenges'
 import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
@@ -11,7 +11,6 @@ const EMPTY_ENTRIES: ChallengePointEntry[] = []
 export function ChallengePointPublicView() {
   const { challenges } = useChallenges()
   const params = useParams<{ challengeId?: string }>()
-  const navigate = useNavigate()
   const [entriesByChallenge, setEntriesByChallenge] = useState<Record<string, ChallengePointEntry[]>>({})
   const [error, setError] = useState<string | null>(null)
 
@@ -39,23 +38,9 @@ export function ChallengePointPublicView() {
     void load(activeId)
   })
 
-  function handleSelectChallenge(challengeId: string) {
-    navigate(`/scoreboard/${challengeId}`)
-  }
-
-  const header = (
-    <header className="view__header view__header--split">
-      <div>
-        <h2>Scoreboard per challenge</h2>
-        <p className="view__hint">Live ranking for the selected challenge.</p>
-      </div>
-    </header>
-  )
-
   if (challenges.length === 0) {
     return (
       <section className="view">
-        {header}
         <p className="muted">No challenges are available yet.</p>
       </section>
     )
@@ -63,22 +48,7 @@ export function ChallengePointPublicView() {
 
   return (
     <section className="view">
-      {header}
-
       {error && <p className="alert alert--error">{error}</p>}
-
-      <div className="row-form">
-        <label className="field">
-          <span>Challenge</span>
-          <select value={activeId ?? ''} onChange={(event) => handleSelectChallenge(event.target.value)}>
-            {challenges.map((challenge) => (
-              <option key={challenge.id} value={challenge.id}>
-                {challenge.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
 
       {entries.length === 0 ? (
         <p className="muted">No entries for this challenge yet.</p>

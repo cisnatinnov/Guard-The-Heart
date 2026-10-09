@@ -12,7 +12,6 @@
 | Challenge |
 | Scoreboard per challenge (Public: read-only; Adm: Choose Challenge, Add entry, Edit CP, Delete) |
 | Leaderboard (Public: read-only; Adm: Recalculate, Save offline copy) |
-| Heart of awareness (Tower that only shows total gp for active teams) |
 | Card Reveal (Public: read-only team collections; Adm: Assign drawn cards to teams, replace at capacity) |
 - **PWA**: vite-plugin-pwa with Workbox, auto-update service worker, offline caching for static assets
 - **colour themes** (current interface tokens; CSS custom properties live in `src/styles/index.css`)

@@ -35,11 +35,6 @@ export function ScoreboardTotalPublicView() {
 
   return (
     <section className="view">
-      <header className="view__header">
-        <h2>Leaderboard</h2>
-        <p className="view__hint">Team standings across every challenge.</p>
-      </header>
-
       {error && <p className="alert alert--error">{error}</p>}
       {loading && <p className="muted">Loading leaderboard…</p>}
 

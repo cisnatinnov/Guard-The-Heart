@@ -42,11 +42,6 @@ export function CardRevealPublicView() {
 
   return (
     <section className="view">
-      <header className="view__header">
-        <h2>Card Reveal</h2>
-        <p className="view__hint">Permanent collection of cards earned from challenge bonuses.</p>
-      </header>
-
       {error && <p className="alert alert--error">{error}</p>}
       {loading && <p className="muted">Loading cards…</p>}
 

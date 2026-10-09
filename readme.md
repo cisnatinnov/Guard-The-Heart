@@ -2,8 +2,7 @@
 
 Guard The Heart is an offline-first challenge tracker for teams. Record team
 scores, calculate challenge and overall rankings, award guard power and bonus
-cards, and view active teams' guard power in the Heart of Awareness tower. It
-also ships three playable challenges, saved as locked challenge data and played
+cards. It also ships three playable challenges, saved as locked challenge data and played
 from the **Challenge** view, one of which is also available as an offline
 PowerPoint deck.
 
@@ -68,9 +67,7 @@ when the app starts.
    once; the drawn cards are saved to the challenge pool.
 8. Use **Card Reveal (Adm)** to assign drawn cards to teams. If a team has
    reached its 8-card limit, choose which card to replace.
-9. Review team card collections in **Card Reveal (Public)**, the **Leaderboard (Public/Adm)**,
-   and the **Heart of Awareness** tower from their respective views.
-10. Download the offline PowerPoint deck from a challenge row or from its
+9. Download the offline PowerPoint deck from a challenge row or from its
     playing screen.
 
 ### Public and Adm pages
@@ -82,7 +79,6 @@ Each major view has separate **Public** and **Adm** pages:
 | Scoreboard per challenge | Read-only ranking of the selected challenge, for display | Choose Challenge, Add entry, Edit CP, Delete |
 | Leaderboard | Read-only team standings, for display | (Auto-recalculates on changes) |
 | Card Reveal | Read-only team card collections | Assign drawn cards to teams (drag-and-drop or click-to-assign), replace when at capacity |
-| Heart of Awareness | Read-only active team tower | — |
 
 The navigation tabs show both variants explicitly (e.g., "Scoreboard (Public)" and "Scoreboard (Adm)").
 

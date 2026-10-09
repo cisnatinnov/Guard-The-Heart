@@ -6,7 +6,6 @@ const ADMIN_NAV = [
   { path: '/admin/challenges', label: 'Challenges' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },
-  { path: '/admin/heart', label: 'Heart of Awareness' },
   { path: '/admin/cards', label: 'Card Reveal' },
 ] as const
 

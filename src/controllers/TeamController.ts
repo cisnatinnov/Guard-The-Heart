@@ -25,21 +25,6 @@ export class TeamController {
     return Team.findByPk(id)
   }
 
-  /**
-   * Backs the "Heart of Awareness" tower: the guard power of every active team
-   * only. Inactive teams are excluded so deactivating one hides its column.
-   */
-  static async heartTower(options: { includeInactive?: boolean } = {}): Promise<HeartTowerColumn[]> {
-    const teams = await TeamController.list(options)
-
-    return teams
-      .map((team) => ({
-        team,
-        earned: Math.max(0, team.total_gp - BASE_TEAM_GUARD_POWER),
-      }))
-      .sort((a, b) => b.team.total_gp - a.team.total_gp || a.team.name.localeCompare(b.team.name))
-  }
-
   static async create(input: string | TeamInput): Promise<Team> {
     const raw = typeof input === 'string' ? { name: input } : input
     const name = raw.name.trim()

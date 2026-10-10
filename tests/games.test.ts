@@ -82,14 +82,12 @@ describe('challenge registry', () => {
 describe('team challenge turns', () => {
   it('scores self answers and passed answers using the challenge rules', () => {
     let run = startChallengeRun({ challenge: 'challenge-id', teams: ['alpha', 'beta'], questionCount: 1, pointsPerQuestion: 10 })
-    run = applyAnswer(run, 'alpha', { points: -10, correct: false }).run
-    expect(run.runs[0].score).toBe(-10)
-    run = applyPassedAnswer(run, 'beta', 'alpha', true)
-    expect(run.runs.map((entry) => entry.score)).toEqual([-5, -10])
+    run = applyPassedAnswer(run, 'alpha', 'beta', true)
+    expect(run.runs.map((entry) => entry.score)).toEqual([-10, 5])
     expect(run.questionResolved).toBe(true)
   })
 
-  it('passes wrong answers to another team and advances after a correct answer or timeout', () => {
+  it('passes wrong answers and timeouts to another team, then advances after a correct answer', () => {
     let run = startChallengeRun({
       challenge: 'challenge-id',
       teams: ['alpha', 'beta'],
@@ -116,15 +114,17 @@ describe('team challenge turns', () => {
     expect(teamForQuestion(run)?.team).toBe('alpha')
     expect(run.runs.every((entry) => entry.state === 'following')).toBe(true)
     run = applyAnswer(run, 'alpha', { points: 0, correct: false, timedOut: true }).run
-    expect(run.questionResolved).toBe(true)
-    run = beginNextQuestion(run)
-    expect(run.questionIndex).toBe(2)
+    expect(run.questionResolved).toBe(false)
     expect(teamForQuestion(run)?.team).toBe('beta')
     run = applyAnswer(run, 'beta', { points: 10, correct: true }).run
+    run = beginNextQuestion(run)
+    expect(run.questionIndex).toBe(2)
+    expect(teamForQuestion(run)?.team).toBe('alpha')
+    run = applyAnswer(run, 'alpha', { points: 10, correct: true }).run
 
     expect(isRunComplete(run)).toBe(true)
-    expect(run.runs.map((entry) => entry.answered)).toEqual([2, 2])
-    expect(run.runs.map((entry) => entry.score)).toEqual([0, 20])
+    expect(run.runs.map((entry) => entry.answered)).toEqual([3, 2])
+    expect(run.runs.map((entry) => entry.score)).toEqual([10, 20])
     expect(beginNextQuestion(run)).toEqual(run)
   })
 

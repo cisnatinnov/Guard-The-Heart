@@ -80,6 +80,7 @@ export interface Sqlite3DriverModule {
 export interface SqlJsEngine {
   driver: Sqlite3DriverModule
   export(): Uint8Array
+  reload(data: Uint8Array): void
   setMutationListener(listener: (() => void) | null): void
 }
 
@@ -91,6 +92,7 @@ export interface SqlJsEngine {
 export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | null): SqlJsEngine {
   let activeDb: SqlJsDatabase | null = null
   let mutationListener: (() => void) | null = null
+  const connections = new Set<SqlConnection>()
 
   function registerActive(db: SqlJsDatabase): void {
     activeDb = db
@@ -113,6 +115,7 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
         initialData && initialData.length > 0 ? new SQL.Database(initialData) : new SQL.Database()
       initialData = null
       registerActive(this.db)
+      connections.add(this)
       // Defer so Sequelize can store the connection before the callback fires,
       // matching the asynchronous native sqlite3 driver contract.
       if (callback) queueMicrotask(() => callback(null))
@@ -120,6 +123,14 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
 
     exportBytes(): Uint8Array {
       return this.db.export()
+    }
+
+    reload(data: Uint8Array): void {
+      const previous = this.db
+      previous.close()
+      releaseActive(previous)
+      this.db = new SQL.Database(data)
+      registerActive(this.db)
     }
 
     private refreshMeta() {
@@ -194,6 +205,7 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
         if (callback) callback.call(this, tagError(raw))
       }
       releaseActive(db)
+      connections.delete(this)
       return this
     }
   }
@@ -209,6 +221,9 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
     export() {
       if (!activeDb) throw new Error('No active SQLite connection to export')
       return activeDb.export()
+    },
+    reload(data) {
+      for (const connection of connections) connection.reload(data)
     },
     setMutationListener(listener) {
       mutationListener = listener

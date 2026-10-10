@@ -55,7 +55,10 @@ when the app starts.
    opponent answer gives that opponent +5 and the passing team −10; a wrong
    opponent answer gives both teams −5. Self-answer misses pass the same
    question to the next team. Each team's
-   score is saved directly to the challenge scoreboard.
+   score is saved directly to the challenge scoreboard. A correct answer opens
+   the next question automatically. A wrong answer or timer expiry keeps the
+   same question open and moves the turn to the next eligible team. Each new
+   turn starts with **Answer yourself** selected.
 4. Alternatively, open a challenge's scoreboard in **Scoreboard (Adm)** and enter one
    score per participating team manually with **Add entry**.
 5. Correct a score with **Edit CP**. The team stays in the challenge and its
@@ -66,9 +69,11 @@ when the app starts.
 6. Rankings and guard power rewards are recalculated from scores.
 7. When all five teams have joined a challenge, use **Scoreboard (Adm)** to draw
    its bonus cards via **Draw Bonus Cards**. Each challenge can be drawn only
-   once; the drawn cards are saved to the challenge pool.
-8. Use **Card Reveal (Adm)** to assign drawn cards to teams. If a team has
-   reached its 8-card limit, choose which card to replace.
+   once; its cards are assigned at random to eligible teams within their reward
+   quotas. Teams at the 8-card limit keep their current cards; those rewards
+   remain in the pool.
+8. Use **Card Reveal (Adm)** to view team collections. The random assignment
+   button is available for any unassigned cards already waiting in the pool.
 9. Download the offline PowerPoint deck from a challenge row or from its
     playing screen.
 
@@ -80,7 +85,7 @@ Each major view has separate **Public** and **Adm** pages:
 | --- | --- | --- |
 | Scoreboard per challenge | Read-only ranking of the selected challenge, for display | Choose Challenge, Add entry, Edit CP, Delete |
 | Leaderboard | Read-only team standings, for display | (Auto-recalculates on changes) |
-| Card Reveal | Read-only team card collections | Assign drawn cards to teams (drag-and-drop or click-to-assign), replace when at capacity |
+| Card Reveal | Read-only team card collections, updates as cards are assigned | Randomly assign drawn cards to eligible teams; cards wait in the pool when teams are at capacity |
 
 The navigation tabs show both variants explicitly (e.g., "Scoreboard (Public)" and "Scoreboard (Adm)").
 
@@ -89,14 +94,14 @@ The navigation tabs show both variants explicitly (e.g., "Scoreboard (Public)" a
 The **Challenge** view is the only challenge screen. Each built-in row opens
 its own game with a rules list, score counters and a restart button. Team-run
 turn order is randomized when a run starts, and the current answering team is
-highlighted in the turn table. Jaws of Risk is question-only and has no tooth
-board or tooth selection. Game state lives in the browser tab
-only; it is not written to the database.
+highlighted in the turn table. Admin controls team runs and the matching Public
+game page mirrors the live run as a read-only display. Jaws of Risk is
+question-only and has no tooth board or tooth selection.
 
 | Challenge | Contents | Scoring |
 | --- | --- | --- |
 | Image Decode | 11 banking-term clues from slides 3–24 of the reference deck, with a live 30 second countdown in solo and team play | 10 per decoded answer, 110 max |
-| Match Card | Ten picture pairs from 20 cards; each matched pair unlocks one of 50 stored multiple-choice questions. The answering team gets two attempts before its turn passes. | 10 per matched pair, minus 5 per mismatch (100 max) |
+| Match Card | Ten picture pairs from 20 cards; each matched pair unlocks one of 50 stored multiple-choice questions. Team runs use the shared one-attempt turn flow. | 10 per matched pair, minus 5 per mismatch (100 max) |
 | Jaws of Risk | Solo and team runs use the 20 stored questions from slides 3–42 of the Match Card reference, in sequence. No tooth board or tooth selection. | +10 correct, −10 wrong |
 
 The game screens use the supplied art direction: Image Decode uses the question
@@ -120,16 +125,14 @@ the first launch:
   Their names stay reserved so a row can never be created with one of them.
 - Each row offers **Scoreboard**, **Play**, and a deck link when one exists.
   Every challenge offers **Team run**, which lets the host run the challenge
-  question by question with up to five teams; one team answers at a time, and a
-  wrong Match Card answer gives that team one more try before the next team can
-  answer the same question. A correct answer or
-  timeout advances to the next question; if every team is wrong, the host can
-  advance. Match Card allows one more attempt after a wrong answer; correct
-  answers and the second wrong answer close that team's turn. Team-run timers are
+  question by question with up to five teams; one team answers at a time. A
+  correct answer advances automatically, while a wrong answer or timeout moves
+  the same question to the next eligible team. If every team is unsuccessful,
+  the run advances automatically. Team-run timers are
   30 seconds for Image Decode and 15 seconds for Match Card.
   Jaws of Risk has no team-run timer. When a timer expires, only the team
-  currently answering is graded incorrect and the host can advance to the next
-  question.
+  currently answering is graded incorrect and the turn moves to the next
+  eligible team for the same question.
 - A built-in challenge accepts up to 5 teams like any other, so ranks and guard
   power are calculated from scores entered either by hand or via the team run.
   Team-run answer/pass scoring is shared by Image Decode, Match Card and Jaws of
@@ -221,6 +224,15 @@ to the browser's IndexedDB after changes. It is local to the browser profile
 and device; it is not synchronized to other users or devices. Clearing browser
 site data may delete the saved database.
 
+Scoreboards, leaderboard, teams and card reveal listen for database-change
+events. Within the same browser profile, those events and the active team-run
+state are shared live across tabs and windows through `BroadcastChannel` with a
+`localStorage` fallback. The active run is stored separately from SQLite and is
+keyed by challenge, so an admin's **Start team run** action updates the matching
+Public View for Image Decode, Match Card, or Jaws of Risk and opens that Public
+View in a new window. **End run** is available only to admin and ends the shared
+run on both views, returning the Public View to its waiting state.
+
 On startup the app syncs the schema, migrates renamed and retired challenges,
 seeds the built-in challenge rows (`src/services/challengeSeeds.ts`), seeds the
 card pool, and marks challenges whose cards were drawn by older builds. Seeding
@@ -240,7 +252,7 @@ src/
   hooks/        React hooks for database, teams, and challenges
   models/       Sequelize model definitions
   services/     Ranking, scoreboard aggregation, card drawing, challenge seeding
-  services/games/  Pure rules and content for the three challenges
+  services/games/  Rules, content, and shared active-run synchronization
   styles/       Shared responsive theme and component styles
   views/        App shell and feature screens
   views/challenges/  The game screens and their shared playing frame

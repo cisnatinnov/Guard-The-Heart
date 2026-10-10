@@ -7,7 +7,6 @@ import { ChallengePointPublicView } from './ChallengePointPublicView'
 import { ChallengePointAdminView } from './ChallengePointAdminView'
 import { ScoreboardTotalPublicView } from './ScoreboardTotalPublicView'
 import { ScoreboardTotalAdminView } from './ScoreboardTotalAdminView'
-import { HeartOfAwarenessView } from './HeartOfAwarenessView'
 import { CardRevealPublicView } from './CardRevealPublicView'
 import { CardRevealAdminView } from './CardRevealAdminView'
 import { GameView } from './challenges/GameView'
@@ -49,9 +48,8 @@ export function App() {
           <Route element={<PublicLayout />}>
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
-            <Route path="/heart" element={<HeartOfAwarenessView />} />
             <Route path="/cards" element={<CardRevealPublicView />} />
-            <Route path="/play/:gameId" element={<GameView />} />
+            <Route path="/play/:gameId/:challengeId?" element={<GameView />} />
           </Route>
 
           {/* Admin routes */}
@@ -60,9 +58,8 @@ export function App() {
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />
-            <Route path="/admin/heart" element={<HeartOfAwarenessView />} />
             <Route path="/admin/cards" element={<CardRevealAdminView />} />
-            <Route path="/admin/play/:gameId" element={<GameView />} />
+            <Route path="/admin/play/:gameId/:challengeId?" element={<GameView />} />
           </Route>
 
           {/* Redirect unknown routes to public scoreboard */}

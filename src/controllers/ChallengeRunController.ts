@@ -67,7 +67,7 @@ export class ChallengeRunController {
     return questions[run.questionIndex] ?? questions[0]
   }
 
-  /** Opens the next question after a correct answer, timeout, or exhausted attempts. */
+  /** Opens the next question after a correct answer or exhausted attempts. */
   static nextQuestion(run: ChallengeRun): ChallengeRun {
     return beginNextQuestion(run)
   }

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { TeamController } from '../controllers/TeamController'
 import type { Team } from '../models'
+import { useDbEventRefresh } from './useDbEventRefresh'
+import { DB_EVENTS } from './useDbEvents'
 
 export function useTeams(options: { includeInactive?: boolean } = {}) {
   const { includeInactive = false } = options
@@ -23,6 +25,8 @@ export function useTeams(options: { includeInactive?: boolean } = {}) {
   useEffect(() => {
     void reload()
   }, [reload])
+
+  useDbEventRefresh(DB_EVENTS.TEAMS_CHANGED, () => { void reload() })
 
   return { teams, loading, error, reload }
 }

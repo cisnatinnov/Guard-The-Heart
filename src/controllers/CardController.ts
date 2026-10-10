@@ -19,6 +19,7 @@ import {
   type TeamCardReward,
 } from '../services/cardDraw'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
+import { MAX_TOTAL_CARD } from '../services/rankRules'
 
 export class CardController {
   static async checkChallengeComplete(challengeId: string): Promise<boolean> {
@@ -34,7 +35,10 @@ export class CardController {
   }
 
   static async drawBonusCards(challengeId: string): Promise<Card[]> {
-    return drawBonusCardsForChallenge(challengeId)
+    const cards = await drawBonusCardsForChallenge(challengeId)
+    await CardController.assignAvailableCardsRandomly(challengeId)
+    dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
+    return cards
   }
 
   static async listTeamCards(teamId: string): Promise<Card[]> {
@@ -99,6 +103,43 @@ export class CardController {
     dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
     dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
     return result
+  }
+
+  /** Assign all available cards to eligible teams using a randomized allocation. */
+  static async assignAvailableCardsRandomly(challengeId: string): Promise<{ assigned: number; waiting: number }> {
+    const cards = await getAvailableDrawnCards(challengeId)
+    const eligible = await getEligibleTeamsForChallenge(challengeId)
+    const quotas = new Map<string, number>()
+    const counts = new Map<string, number>()
+    for (const team of eligible) {
+      const alreadyAssigned = await Card.count({ where: { challenge: challengeId, team: team.teamId } })
+      quotas.set(team.teamId, Math.max(0, team.cardCount - alreadyAssigned))
+      counts.set(team.teamId, await TeamCard.count({ where: { team: team.teamId } }))
+    }
+
+    for (let i = cards.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[cards[i], cards[j]] = [cards[j], cards[i]]
+    }
+
+    let assigned = 0
+    for (const card of cards) {
+      const candidates = eligible.filter((team) =>
+        (quotas.get(team.teamId) ?? 0) > 0 && (counts.get(team.teamId) ?? 0) < MAX_TOTAL_CARD
+      )
+      if (candidates.length === 0) break
+      const team = candidates[Math.floor(Math.random() * candidates.length)]
+      await assignCardToTeamFn(card.id, team.teamId)
+      quotas.set(team.teamId, (quotas.get(team.teamId) ?? 0) - 1)
+      counts.set(team.teamId, (counts.get(team.teamId) ?? 0) + 1)
+      assigned += 1
+    }
+
+    if (assigned > 0) {
+      dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
+      dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
+    }
+    return { assigned, waiting: cards.length - assigned }
   }
 
   /** Replace a team's card with a new drawn card. */

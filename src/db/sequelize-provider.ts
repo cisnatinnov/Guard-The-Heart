@@ -79,3 +79,14 @@ export async function flushDatabase(): Promise<void> {
   }
   await flushToStorage()
 }
+
+/** Replace this tab's in-memory SQLite contents with the latest saved copy. */
+export async function refreshDatabaseFromStorage(): Promise<void> {
+  const [persisted] = await Promise.all([loadDatabaseBytes()])
+  if (!persisted?.length || !engineInstance) return
+  if (saveTimer) {
+    clearTimeout(saveTimer)
+    saveTimer = null
+  }
+  engineInstance.reload(persisted)
+}

@@ -462,9 +462,16 @@ describe('ChallengePointController', () => {
   it('validates the challenge point range', async () => {
     const challenge = await ChallengeController.create('Arena Range')
     const team = await TeamController.create('Range Team')
+    const negative = await ChallengePointController.create({
+      challenge: challenge.id,
+      team: team.id,
+      challenge_point: -1,
+    })
+    expect(negative.challenge_point).toBe(-1)
+    const lowerBoundTeam = await TeamController.create('Range Lower Bound Team')
     await expect(
-      ChallengePointController.create({ challenge: challenge.id, team: team.id, challenge_point: -1 })
-    ).rejects.toThrow(/cannot be negative/i)
+      ChallengePointController.create({ challenge: challenge.id, team: lowerBoundTeam.id, challenge_point: -1000 })
+    ).rejects.toThrow(/cannot be less than -999/i)
     await expect(
       ChallengePointController.create({ challenge: challenge.id, team: team.id, challenge_point: 1000 })
     ).rejects.toThrow(/cannot exceed 999/i)

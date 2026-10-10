@@ -49,7 +49,7 @@ export function ChallengeView() {
                     </button>
                     {gameId && (
                       <>
-                        <button type="button" onClick={() => navigate(`${playBase}/${gameId}`)}>
+                        <button type="button" onClick={() => navigate(`${playBase}/${gameId}/${challenge.id}`)}>
                           Play
                         </button>
                         {game?.deckPath && (

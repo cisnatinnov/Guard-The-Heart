@@ -1,27 +1,16 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { dbEvents } from './useDbEvents'
+import { flushDatabase, refreshDatabaseFromStorage } from '../db/sequelize-provider'
 
 console.log('[useDbEventRefresh] Module loaded')
 
 const BROADCAST_CHANNEL_NAME = 'guard-the-heart-events'
 const STORAGE_EVENT_KEY = 'guard-the-heart-db-event'
 
-// Create BroadcastChannel EAGERLY at module load time
-// This ensures it exists before any events are emitted
 let broadcastChannel: BroadcastChannel | null = null
 if (typeof window !== 'undefined') {
   try {
     broadcastChannel = new BroadcastChannel(BROADCAST_CHANNEL_NAME)
-    broadcastChannel.onmessage = (event) => {
-      if (event.data?.type === 'db_event' && event.data?.eventName) {
-        console.log('[BroadcastChannel] Received:', event.data.eventName)
-        localStorage.setItem(STORAGE_EVENT_KEY, JSON.stringify({ 
-          eventName: event.data.eventName, 
-          timestamp: Date.now() 
-        }))
-      }
-    }
-    console.log('[BroadcastChannel] Created eagerly at module load with onmessage handler')
   } catch (e) {
     console.warn('[BroadcastChannel] Failed to create:', e)
     broadcastChannel = null
@@ -32,36 +21,43 @@ function getBroadcastChannel(): BroadcastChannel | null {
   return broadcastChannel
 }
 
+let outboundQueue = Promise.resolve()
+
 function broadcastEvent(eventName: string): void {
-  const channel = getBroadcastChannel()
-  if (channel) {
-    try {
+  outboundQueue = outboundQueue.then(async () => {
+    await flushDatabase()
+    const channel = getBroadcastChannel()
+    if (channel) {
       channel.postMessage({ type: 'db_event', eventName })
-      console.log('[BroadcastChannel] Sent:', eventName)
-    } catch (e) {
-      console.warn('[BroadcastChannel] Send failed:', e)
+      return
     }
-  }
-  try {
-    localStorage.setItem(STORAGE_EVENT_KEY, JSON.stringify({ 
-      eventName, 
-      timestamp: Date.now(),
-      source: 'broadcast'
-    }))
-    console.log('[localStorage] Event stored:', eventName)
-  } catch (e) {
-    console.warn('[localStorage] Store failed:', e)
-  }
+    try {
+      localStorage.setItem(STORAGE_EVENT_KEY, JSON.stringify({ eventName, timestamp: Date.now() }))
+    } catch (e) {
+      console.warn('[localStorage] Event store failed:', e)
+    }
+  }).catch((error: unknown) => {
+    console.warn('[BroadcastChannel] Could not persist or send update:', error)
+  })
 }
 
 function listenForBroadcastEvents(onEvent: (eventName: string) => void): () => void {
+  let inboundQueue = Promise.resolve()
+  const receive = (eventName: string) => {
+    inboundQueue = inboundQueue.then(async () => {
+      await refreshDatabaseFromStorage()
+      onEvent(eventName)
+    }).catch((error: unknown) => {
+      console.warn('[Database sync] Could not load the latest saved data:', error)
+      onEvent(eventName)
+    })
+  }
   const channel = getBroadcastChannel()
   let bcCleanup = () => {}
   if (channel) {
     const bcHandler = (event: MessageEvent) => {
       if (event.data?.type === 'db_event' && event.data?.eventName) {
-        console.log('[BroadcastChannel] Handler got:', event.data.eventName)
-        onEvent(event.data.eventName)
+        receive(event.data.eventName)
       }
     }
     channel.addEventListener('message', bcHandler)
@@ -73,8 +69,7 @@ function listenForBroadcastEvents(onEvent: (eventName: string) => void): () => v
       try {
         const data = JSON.parse(event.newValue)
         if (data?.eventName) {
-          console.log('[localStorage] Storage event:', data.eventName)
-          onEvent(data.eventName)
+          receive(data.eventName)
         }
       } catch {
         // Ignore parse errors

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ChallengeRunController, type TeamAnswerResult } from '../../controllers/ChallengeRunController'
 import { useTeams } from '../../hooks/useTeams'
 import type { ChallengeGameId } from '../../services/games'
-import { challengeQuestionsFor, gradeQuestion } from '../../services/games/challengeQuestions'
+import { challengeQuestionsFor } from '../../services/games/challengeQuestions'
 import {
   eliminatedTeams,
   isRunComplete,
@@ -13,8 +13,12 @@ import { MAX_ENTRIES_PER_CHALLENGE } from '../../services/rankRules'
 export interface TeamRunPanelProps {
   gameId: ChallengeGameId
   challengeId: string
+  sharedRun: ChallengeRun | null
+  canControl: boolean
   /** True while a team run is under way, which hides the solo screen. */
   running: boolean
+  /** True when the solo game screen is shown below the panel. */
+  showSolo: boolean
   onStartRun: (run: ChallengeRun) => void
   onUpdateRun: (run: ChallengeRun) => void
   onEndRun: () => void
@@ -28,7 +32,10 @@ export interface TeamRunPanelProps {
 export function TeamRunPanel({
   gameId,
   challengeId,
+  sharedRun,
+  canControl,
   running,
+  showSolo,
   onStartRun,
   onUpdateRun,
   onEndRun,
@@ -38,8 +45,6 @@ export function TeamRunPanel({
   const [chosen, setChosen] = useState<string[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [results, setResults] = useState<TeamAnswerResult[]>([])
-  const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>({})
-  const [attemptNotice, setAttemptNotice] = useState<string | null>(null)
   const [answerMode, setAnswerMode] = useState<'self' | 'pass'>('self')
   const [opponentId, setOpponentId] = useState('')
   const [busy, setBusy] = useState(false)
@@ -50,6 +55,10 @@ export function TeamRunPanel({
   }>({ attemptKey: null, remaining: 0 })
   const answersFormRef = useRef<HTMLFormElement | null>(null)
   const timeoutAttemptKey = useRef<string | null>(null)
+
+  useEffect(() => {
+    setRun(sharedRun)
+  }, [sharedRun])
 
   const questionSet = challengeQuestionsFor(gameId)
   const questions = questionSet.questions
@@ -87,6 +96,14 @@ export function TeamRunPanel({
     }, 1000)
     return () => window.clearInterval(interval)
   }, [running, attemptKey, timerDuration, graded])
+
+  // Each new team turn starts with its own answer, never a pass selection left
+  // over from the preceding turn.
+  useEffect(() => {
+    if (!running || attemptKey === null) return
+    setAnswerMode('self')
+    setOpponentId('')
+  }, [running, attemptKey])
 
   useEffect(() => {
     if (
@@ -131,8 +148,6 @@ export function TeamRunPanel({
       onStartRun(started)
       setAnswers({})
       setResults([])
-      setAttemptCounts({})
-      setAttemptNotice(null)
       setAnswerMode('self')
       setOpponentId('')
       setTimer({ attemptKey: null, remaining: timerDuration ?? 0 })
@@ -148,8 +163,6 @@ export function TeamRunPanel({
     onEndRun()
     setAnswers({})
     setResults([])
-    setAttemptCounts({})
-    setAttemptNotice(null)
     setTimer({ attemptKey: null, remaining: timerDuration ?? 0 })
     timeoutAttemptKey.current = null
     setError(null)
@@ -166,21 +179,20 @@ export function TeamRunPanel({
       const submittedAnswer = timedOut ? '' : answerOwnerAnswer
       if (answerMode === 'pass' && opponentId && !timedOut) {
         const passed = await ChallengeRunController.pass({ gameId, run, fromTeamId: currentTurnTeam.team, toTeamId: opponentId, answer: submittedAnswer })
-        setRun(passed)
-        onUpdateRun(passed)
+        setAnswers({})
         setResults([])
+        setAnswerMode('self')
+        setOpponentId('')
+        if (passed.questionResolved) {
+          const advanced = ChallengeRunController.nextQuestion(passed)
+          setRun(advanced)
+          onUpdateRun(advanced)
+        } else {
+          setRun(passed)
+          onUpdateRun(passed)
+        }
         return
       }
-      if (gameId === 'word-assembly' && !timedOut) {
-        const count = (attemptCounts[currentTurnTeam.team] ?? 0) + 1
-        setAttemptCounts((current) => ({ ...current, [currentTurnTeam.team]: count }))
-        if (!gradeQuestion(question!, submittedAnswer).correct && count < 2) {
-          setAnswers((current) => ({ ...current, [currentTurnTeam.team]: '' }))
-          setAttemptNotice(`${teamName(currentTurnTeam.team)}: incorrect. One answer chance remains.`)
-          return
-        }
-      }
-      setAttemptNotice(null)
       const outcome = await ChallengeRunController.answer({
         gameId,
         run,
@@ -188,9 +200,28 @@ export function TeamRunPanel({
         answer: submittedAnswer,
         timedOut,
       })
+      setResults([outcome.result])
+      setAnswers({})
+
+      // A correct answer (or the final unsuccessful attempt) completes this
+      // question. Advance immediately so the next question opens ready for the
+      // new team's own answer.
+      if (outcome.run.questionResolved) {
+        const advanced = ChallengeRunController.nextQuestion(outcome.run)
+        setRun(advanced)
+        onUpdateRun(advanced)
+        setResults([])
+        setAnswerMode('self')
+        setOpponentId('')
+        return
+      }
+
+      // Incorrect answers and timeouts remain on this question. The run state
+      // has already moved its turn to the next eligible team.
       setRun(outcome.run)
       onUpdateRun(outcome.run)
-      setResults([outcome.result])
+      setAnswerMode('self')
+      setOpponentId('')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
     } finally {
@@ -205,8 +236,8 @@ export function TeamRunPanel({
     onUpdateRun(advanced)
     setAnswers({})
     setResults([])
-    setAttemptCounts({})
-    setAttemptNotice(null)
+    setAnswerMode('self')
+    setOpponentId('')
     setError(null)
   }
 
@@ -235,25 +266,32 @@ export function TeamRunPanel({
                 : 'This question is resolved; move to the next question.'}
             </p>
           </div>
-          <div className="run-panel__actions">
+          {canControl && <div className="run-panel__actions">
             <button type="button" className="ghost" onClick={end}>
               End run
             </button>
-          </div>
+          </div>}
         </header>
 
         {error && <p className="alert alert--error">{error}</p>}
-        {attemptNotice && <p className="alert alert--info" role="status">{attemptNotice}</p>}
 
         <form ref={answersFormRef} className="run-panel__answers" onSubmit={submitAnswers}>
-          {!graded && currentTurnTeam && (
+          {canControl && !graded && currentTurnTeam && (
             <fieldset className="run-panel__teams">
               <legend>How will {teamName(currentTurnTeam.team)} play?</legend>
-              <label className="checkbox"><input type="radio" checked={answerMode === 'self'} onChange={() => setAnswerMode('self')} /> Answer yourself (+10 correct, −10 wrong)</label>
-              <label className="checkbox"><input type="radio" checked={answerMode === 'pass'} onChange={() => setAnswerMode('pass')} /> Pass to an opponent</label>
+              <label className="checkbox">
+                <input name="answer-mode" type="radio" value="self" checked={answerMode === 'self'} onChange={() => setAnswerMode('self')} />
+                <span className="checkbox__text">Answer yourself (+10 correct, −10 wrong)</span>
+              </label>
+              <label className="checkbox">
+                <input name="answer-mode" type="radio" value="pass" checked={answerMode === 'pass'} onChange={() => setAnswerMode('pass')} />
+                <span className="checkbox__text">Pass to an opponent</span>
+              </label>
               {answerMode === 'pass' && <select aria-label="Opponent team" value={opponentId} onChange={(event) => setOpponentId(event.target.value)}>
                 <option value="">Choose opponent</option>
-                {run.runs.filter((entry) => entry.team !== currentTurnTeam.team).map((entry) => <option key={entry.team} value={entry.team}>{teamName(entry.team)}</option>)}
+                {run.runs
+                  .filter((entry) => entry.team !== currentTurnTeam.team && !run.attemptedTeams.includes(entry.team))
+                  .map((entry) => <option key={entry.team} value={entry.team}>{teamName(entry.team)}</option>)}
               </select>}
             </fieldset>
           )}
@@ -291,16 +329,19 @@ export function TeamRunPanel({
                   const out = entry.state === 'eliminated'
                   const result = results.find((row) => row.teamId === entry.team)
                   const isCurrentTurn = currentTurnTeam?.team === entry.team
+                  const isAnswering = answerOwnerId === entry.team
                   return (
-                    <tr key={entry.team} className={`${out ? 'run-panel__row--out ' : ''}${isCurrentTurn ? 'run-panel__row--turn' : ''}`}>
+                    <tr key={entry.team} className={`${out ? 'run-panel__row--out ' : ''}${isAnswering ? 'run-panel__row--turn' : ''}`}>
                       <td>{teamName(entry.team)}</td>
                       <td>
                         {result && !result.skipped ? (
                           <span className={`badge${result.eliminated ? ' badge--muted' : ''}`}>
                             {result.eliminated ? 'Out this question' : 'Answered'}
                           </span>
-                        ) : isCurrentTurn ? (
+                        ) : isAnswering ? (
                           <span className="badge">Answering</span>
+                        ) : isCurrentTurn && answerMode === 'pass' ? (
+                          <span className="badge badge--muted">Passed</span>
                         ) : (
                           <span className="badge badge--muted">Waiting</span>
                         )}
@@ -328,10 +369,10 @@ export function TeamRunPanel({
                           <select
                             value={answers[entry.team] ?? ''}
                             aria-label={`${teamName(entry.team)} answer`}
-                            disabled={answerOwnerId !== entry.team || out || graded || busy || (hasTimer && remaining === 0)}
+                            disabled={!canControl || answerOwnerId !== entry.team || out || graded || busy || (hasTimer && remaining === 0)}
                             onChange={(event) => setAnswers((current) => ({ ...current, [entry.team]: event.target.value }))}
                           >
-                            <option value="">{isCurrentTurn ? 'Choose an answer' : 'Waiting for this team'}</option>
+                            <option value="">{isAnswering ? 'Choose an answer' : 'Waiting for this team'}</option>
                             {question.options.map((option) => <option key={option} value={option}>{option}</option>)}
                           </select>
                         ) : (
@@ -340,8 +381,8 @@ export function TeamRunPanel({
                             value={answers[entry.team] ?? ''}
                             maxLength={80}
                             aria-label={`${teamName(entry.team)} answer`}
-                            placeholder={isCurrentTurn ? 'Type the answer' : result ? 'Answered this question' : "Waiting for this team's turn"}
-                            disabled={answerOwnerId !== entry.team || out || graded || busy || (hasTimer && remaining === 0)}
+                            placeholder={isAnswering ? 'Type the answer' : result ? 'Answered this question' : "Waiting for this team's turn"}
+                            disabled={!canControl || answerOwnerId !== entry.team || out || graded || busy || (hasTimer && remaining === 0)}
                             onChange={(event) => setAnswers((current) => ({ ...current, [entry.team]: event.target.value }))}
                           />
                         )}
@@ -354,7 +395,7 @@ export function TeamRunPanel({
             </table>
           </div>
 
-          <div className="run-panel__actions">
+          {canControl && <div className="run-panel__actions">
             {!graded ? (
               <button type="submit" disabled={busy || !currentTurnTeam || (answerMode === 'pass' && !opponentId) || (!timerExpired && !answerOwnerAnswer.trim())}>
                 {run.attemptedTeams.length === 0 ? 'Grade this question' : 'Next team answer'}
@@ -374,13 +415,22 @@ export function TeamRunPanel({
                 Next question →
               </button>
             )}
-          </div>
+          </div>}
         </form>
 
         <p className="muted">
           One team answers at a time · a wrong answer passes this question to the next team ·{' '}
           {outCount} team{outCount === 1 ? '' : 's'} already tried this question.
         </p>
+      </section>
+    )
+  }
+
+  if (!canControl) {
+    return (
+      <section className="run-panel" aria-live="polite">
+        <h3 className="run-panel__title">Waiting for the team run</h3>
+        <p className="muted">The public screen will update as soon as the admin starts this challenge.</p>
       </section>
     )
   }
@@ -420,7 +470,7 @@ export function TeamRunPanel({
           Start team run{chosen.length > 0 ? ` (${chosen.length})` : ''}
         </button>
       </div>
-      <p className="muted">Or play solo below and record the score afterwards.</p>
+      {showSolo && <p className="muted">Or play solo below and record the score afterwards.</p>}
     </div>
   )
 }

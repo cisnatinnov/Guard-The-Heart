@@ -156,7 +156,7 @@ g. Only deleting a challenge returns its cards to the pool, preserving the 80-ca
 h. `getCardPoolStatus()` reports total, drawn and remaining counts overall and per type, and the Card Reveal (Adm) view shows them. An action description is card data; it does not by itself apply gameplay effects.
 8. **Challenges**
 a. Image Decode (formerly Emoji Decode) : Eleven banking-term clues and answers from slides 3–24 of `public/ui/Image_Decode.pptx`; 30-second timed play.
-b. Match Card (formerly Word Assembly) : A 20-card picture-matching game. Its 50 multiple-choice questions and answers come from slides 3–75 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; the answering team has two attempts before the turn passes.
+b. Match Card (formerly Word Assembly) : A 20-card picture-matching game. Its 50 multiple-choice questions and answers come from slides 3–75 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; team runs use one answer per team turn.
 c. Jaws of Risk: question-only challenge; answer stored questions in sequence. No teeth are displayed or selected.
 d. Retired: Gardimon Protocol, Incident Trail and Save the Core were removed together with all related code, content and decks. Older databases drop these challenge rows (with their entries) on startup and return their drawn cards to the pool.
 
@@ -173,16 +173,16 @@ and seeded into SQLite's `game_question` table at startup.
    `public/ui/Image_Decode.pptx` are stored in SQLite. The screen scores 10
    points per decoded answer (110 total) and uses a live 30-second countdown;
    letting it expire counts as a miss. Team runs use the same timer for each team's
-   attempt. Self-answer scores +10 when correct and −10 when wrong. A wrong
-   answer passes the question to the next team; a correct
-   answer or timeout ends the question.
+   attempt. Self-answer scores +10 when correct and −10 when wrong. A correct
+   answer advances automatically; a wrong answer or timeout passes the same
+   question to the next eligible team.
 2. **Match Card** — 50 multiple-choice question rows and correct answers from
    slides 3–75 of `public/ui/Match-Card.pptx` are stored in SQLite. The 20
    picture cards still form 10 pairs sourced from `public/match-card/`. Players reveal two
    cards at a time; a matching pair remains face up, while a mismatch turns all
    open cards face down after a brief reveal. A matched pair draws the next
-   question from a shuffled selection of ten bank rows. A team has two attempts
-   before a wrong answer passes to the next team. Each matched pair is worth 10 points, and each
+   question from a shuffled selection of ten bank rows. Team runs use one
+   answer per turn before a wrong answer passes to the next team. Each matched pair is worth 10 points, and each
    mismatch costs 5 (100 max). Team-run questions have a 15-second timer and ask
    teams to choose among the bank question's options.
 3. **Jaws of Risk** — the first 20 Match Card questions (slides 3–42) are stored
@@ -234,17 +234,19 @@ every launch and behave like any other challenge:
   **← All challenges** button is the only way back. Each challenge also offers
   **Team run**, letting the host run the challenge question by question with up
   to five teams. One team answers at a time in the order selected when the run
-  starts. The turn table highlights the team answering now. Teams may pass a
+  starts. The turn table highlights the team answering now. Admin controls the
+  run and **Start team run** opens the matching Public game page in a new window,
+  where it mirrors the run live. **End run** is an admin-only control that ends
+  the shared run on both pages. Teams may pass a
   question to an opponent: a correct opponent answer gives that team +5 and the
   passing team −10; a wrong opponent answer gives both teams −5. Self-answer
-  scoring is +10 correct and −10 wrong for all three challenges. Match Card gives a
-  team two attempts before a wrong answer passes the same question to the next
-  team. Other challenges pass a wrong answer after one attempt. A correct answer or timeout ends
-  the question, after which the host advances and the next team's input becomes
-  available. If every team answers incorrectly, the host can advance as well.
+  scoring is +10 correct and −10 wrong for all three challenges. A correct answer
+  advances automatically. A wrong answer or timeout keeps the same question and
+  moves the turn to the next eligible team, with **Answer yourself** selected.
+  If every team answers incorrectly, the run advances automatically.
   Team-run timers are 30 seconds for Image Decode and 15 seconds for Match Card.
   Jaws of Risk has no timer. Timeout grades only the team currently answering
-  and moves the run to the next question.
+  and moves the same question to the next eligible team.
 - Because the rows are ordinary challenge data, the existing rules apply to them:
   up to 5 teams per challenge, ranks derived from scores, rank rewards awarding
   guard power, and a single permanent bonus-card draw depleting the card pool.
@@ -268,7 +270,9 @@ applied with **Edit CP** (Adm), which calls `ChallengePointController.update()`
 and keeps the team in the challenge. Reranking and guard power follow the
 corrected value; bonus cards already drawn for the challenge stay as drawn.
 
-Game state is intentionally kept in the browser tab only. The games themselves
+The active team-run state is shared live across tabs and windows in the same
+browser profile through `BroadcastChannel` with a `localStorage` fallback. It
+is separate from the SQLite data and is keyed by challenge. The games themselves
 are never written to the database. In the team run, each answering team's challenge point
 is persisted to the challenge point as it is earned; in solo play, the
 challenge's scoreboard is filled in by hand with the player's result. The card

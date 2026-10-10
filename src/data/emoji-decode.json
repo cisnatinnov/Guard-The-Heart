@@ -1,95 +1,93 @@
 {
-  "emojiPerQuestion": 4,
+  "emojiPerQuestion": 1,
   "questions": [
     {
-      "id": "emoji-01",
-      "emojis": ["🔥", "👨‍🚒", "🚒", "🧯"],
-      "answer": "Firefighter",
-      "hint": "The job that brings the truck and the extinguisher"
+      "id": "decode-01",
+      "emojis": [
+        "Nasabah"
+      ],
+      "answer": "Rekening",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-02",
-      "emojis": ["🌧️", "☔", "☂️", "🧥"],
-      "answer": "Raincoat",
-      "hint": "Pulled on when the sky opens up"
+      "id": "decode-02",
+      "emojis": [
+        "Dokumen"
+      ],
+      "answer": "SLIK",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-03",
-      "emojis": ["📕", "📖", "✏️", "📚"],
-      "answer": "Library",
-      "hint": "Where the shelves keep quiet"
+      "id": "decode-03",
+      "emojis": [
+        "Dana"
+      ],
+      "answer": "Selisih Kas",
+      "hint": "2 Kata"
     },
     {
-      "id": "emoji-04",
-      "emojis": ["🌞", "🕶️", "🌞", "🕶️"],
-      "answer": "Sunglasses",
-      "hint": "Two lenses that hide your eyes from the sun"
+      "id": "decode-04",
+      "emojis": [
+        "Kepercayaan"
+      ],
+      "answer": "Amanah",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-05",
-      "emojis": ["🌋", "🔥", "💨", "🌡️"],
-      "answer": "Volcano",
-      "hint": "A mountain that can erupt"
+      "id": "decode-05",
+      "emojis": [
+        "Peraturan"
+      ],
+      "answer": "Regulasi",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-06",
-      "emojis": ["🐍", "➰", "🦎", "🐍"],
-      "answer": "Snake",
-      "hint": "Two of these coil, one only has legs"
+      "id": "decode-06",
+      "emojis": [
+        "Nasabah"
+      ],
+      "answer": "Tunggakan",
+      "hint": "1Kata"
     },
     {
-      "id": "emoji-07",
-      "emojis": ["🦷", "😬", "🦷", "🦷"],
-      "answer": "Tooth",
-      "hint": "A guardian smiles with these"
+      "id": "decode-07",
+      "emojis": [
+        "AI"
+      ],
+      "answer": "Siber",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-08",
-      "emojis": ["🔑", "🗝️", "🚪", "🔒"],
-      "answer": "Key",
-      "hint": "It opens a locked door"
+      "id": "decode-08",
+      "emojis": [
+        "Akun"
+      ],
+      "answer": "Password",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-09",
-      "emojis": ["⛵", "🌊", "🧭", "⚓"],
-      "answer": "Sailboat",
-      "hint": "Wind, waves, compass and anchor"
+      "id": "decode-09",
+      "emojis": [
+        "Informasi"
+      ],
+      "answer": "Data Pribadi",
+      "hint": "2 Kata"
     },
     {
-      "id": "emoji-10",
-      "emojis": ["🦈", "🌊", "🩸", "🦷"],
-      "answer": "Shark",
-      "hint": "An ocean predator with fins"
+      "id": "decode-10",
+      "emojis": [
+        "Prinsip"
+      ],
+      "answer": "Syariah",
+      "hint": "1 Kata"
     },
     {
-      "id": "emoji-11",
-      "emojis": ["🧩", "🧠", "🔲", "🧩"],
-      "answer": "Puzzle",
-      "hint": "Pieces that only fit one way"
-    },
-    {
-      "id": "emoji-12",
-      "emojis": ["🚁", "🛬", "🧭", "🛩️"],
-      "answer": "Helicopter",
-      "hint": "It hovers instead of rolling on a runway"
-    },
-    {
-      "id": "emoji-13",
-      "emojis": ["🦉", "🌙", "🌙", "🦉"],
-      "answer": "Owl",
-      "hint": "The bird of the night shift"
-    },
-    {
-      "id": "emoji-14",
-      "emojis": ["🛰️", "🌍", "📡", "🛰️"],
-      "answer": "Satellite",
-      "hint": "It orbits the earth"
-    },
-    {
-      "id": "emoji-15",
-      "emojis": ["🧊", "❄️", "🥶", "🧊"],
-      "answer": "Ice",
-      "hint": "Water that has frozen solid"
+      "id": "decode-11",
+      "emojis": [
+        "KDO"
+      ],
+      "answer": "Lapor",
+      "hint": "1 Kata"
     }
   ]
 }

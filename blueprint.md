@@ -7,6 +7,7 @@
 | Scoreboard |
 | Card |
 | TeamCard |
+| GameQuestion |
 - **Views**
 | Team |
 | Challenge |
@@ -112,6 +113,23 @@ f. team_card
 
 Constraints: After the fifth team is entered and the challenge is complete, the host draws bonus cards once via Scoreboard (Adm). Cards are drawn into the challenge pool (with challenge reference, no team). Admin then assigns cards to teams via Card Reveal (Adm) using drag-and-drop or click-to-assign (click a card, then click a team). Each assigned card is linked to the team's ChallengePoint entry and mirrored once in `team_card` as the permanent team collection. If a team reaches 8 cards, admin chooses which card to replace. Drawn cards are saved permanently: later score corrections or removed entries never redraw or return them. Only deleting a challenge returns its cards to the pool.
 
+g. game_question
+| Field | type |
+| id | varchar(100) |
+| game_key | varchar(40) |
+| number | integer |
+| prompt | text |
+| answer | text |
+| options | JSON-encoded text |
+| kind | varchar(16) |
+| hint | text |
+| createdAt | datetime |
+| updatedAt | datetime |
+
+Constraints: unique (`game_key`, `number`). This table stores the correct
+answer alongside every question and answer choice. Startup seeds 11 Image
+Decode, 50 Match Card and 20 Jaws of Risk rows from the reference deck data.
+
 ## Terms and conditions
 1. challenge_point accommodates only 5 teams each challenge. A team that has
 entered a challenge keeps its entry; its challenge point is corrected in place, which
@@ -137,41 +155,56 @@ f. A challenge's cards can be drawn only once. The draw is saved permanently and
 g. Only deleting a challenge returns its cards to the pool, preserving the 80-card pool.
 h. `getCardPoolStatus()` reports total, drawn and remaining counts overall and per type, and the Card Reveal (Adm) view shows them. An action description is card data; it does not by itself apply gameplay effects.
 8. **Challenges**
-a. Image Decode (formerly Emoji Decode) : "'Image Decode' challenge that includes a link to a PPTX file. The presentation must feature 15 questions and include a built-in animated timer for each slide."
-b. Match Card (formerly Word Assembly) : "'Match Card' picture matching game featuring 10 questions and 20 cards, with two identical image cards for each question. Mismatched open cards turn face down again."
-c. Jaws of Risk : "Digital application interface inspired by the physical crocodile dentist toy. The digital version must allow the user to select, interact with, or label specific teeth before 'pressing' them."
+a. Image Decode (formerly Emoji Decode) : Eleven banking-term clues and answers from slides 3–24 of `public/ui/Image_Decode.pptx`; 30-second timed play.
+b. Match Card (formerly Word Assembly) : A 20-card picture-matching game. Its 50 multiple-choice questions and answers come from slides 3–75 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; the answering team has two attempts before the turn passes.
+c. Jaws of Risk: question-only challenge; answer stored questions in sequence. No teeth are displayed or selected.
 d. Retired: Gardimon Protocol, Incident Trail and Save the Core were removed together with all related code, content and decks. Older databases drop these challenge rows (with their entries) on startup and return their drawn cards to the pool.
 
 9. Point 8 link to Challenge feature (save as challenge data and cannot be added more, edited and deleted)
 
 ## Implementation notes
 
-The three challenges above are played from the **Challenge** view. Their rules
-and content are pure modules under `src/services/games/`, their screens are
-under `src/views/challenges/`, and the Image Decode deck is generated from the
-same JSON content the app reads.
+The three challenges above are played from the **Challenge** view. Game rules
+and screens are in `src/services/games/` and `src/views/challenges/`. The
+reference question bank is bundled at `src/data/reference-question-bank.json`
+and seeded into SQLite's `game_question` table at startup.
 
-1. **Image Decode** — `src/data/emoji-decode.json` holds the 15 questions. Each
-   question combines **four images (emoji)** into a single answer (emoji,
-   answer, hint), and the app and the deck render all four together. The app
-   screen scores 10 points per decoded answer, 150 in total, and mirrors the
-   deck timing with a live countdown per question; letting the countdown expire
-   counts as a miss. Team runs use the same 30-second timer for each team's
-   attempt. A wrong answer passes the question to the next team; a correct
+1. **Image Decode** — 11 clue/answer pairs from slides 3–24 of
+   `public/ui/Image_Decode.pptx` are stored in SQLite. The screen scores 10
+   points per decoded answer (110 total) and uses a live 30-second countdown;
+   letting it expire counts as a miss. Team runs use the same timer for each team's
+   attempt. Self-answer scores +10 when correct and −10 when wrong. A wrong
+   answer passes the question to the next team; a correct
    answer or timeout ends the question.
-   The deck `public/decks/emoji-decode.pptx` carries a title slide, one slide per
-   question and an answer key. Each question slide animates a 30 second timer
-   bar and auto-advances, so no presenter input is needed.
-2. **Match Card** — 10 questions, each represented by two identical image
-   cards sourced from `public/match-card/` (20 cards total). Players reveal two
+2. **Match Card** — 50 multiple-choice question rows and correct answers from
+   slides 3–75 of `public/ui/Match-Card.pptx` are stored in SQLite. The 20
+   picture cards still form 10 pairs sourced from `public/match-card/`. Players reveal two
    cards at a time; a matching pair remains face up, while a mismatch turns all
-   open cards face down after a brief reveal. Each matched pair is worth 10
-   points, and each mismatch costs 5 (100 max). Team-run questions have a
-   15-second timer and ask teams to identify the matching image.
-3. **Jaws of Risk** — team runs use 24 teeth; the solo game shows 8 teeth in two
-   rows, 6 of them loose. A tooth is selected, labelled (Suspect, Firm or
-   Unmarked) and only then graded by pressing. Loose
-   teeth are worth 10 points, each false alarm costs 5, never below zero.
+   open cards face down after a brief reveal. A matched pair draws the next
+   question from a shuffled selection of ten bank rows. A team has two attempts
+   before a wrong answer passes to the next team. Each matched pair is worth 10 points, and each
+   mismatch costs 5 (100 max). Team-run questions have a 15-second timer and ask
+   teams to choose among the bank question's options.
+3. **Jaws of Risk** — the first 20 Match Card questions (slides 3–42) are stored
+   for this game. Solo and team runs ask these questions in sequence. The game
+   has no tooth board, click-tooth action or automatic tooth selection. Answers
+   score +10 when correct and −10 when wrong.
+
+The game screen styles follow their references in `public/ui/`: Image Decode
+uses the question-panel styling in `Image_Decode.pptx` with the clue images from
+slides 3–24 stored as WebP files in `public/image-decode/questions/`; Match Card
+uses the hidden and revealed board
+art in `Preview-CH-3_Online_Card-Hidden.png` and
+`Preview-CH-3_Online_Card-Reveal.png`, cropped into individual lightweight
+card faces in `public/match-card/reference/`; and Jaws of Risk follows the blue,
+gold and purple question styling in `Jaw-of-risk.pptx`.
+Both the Match Card Q&A deck and Jaw of Risk visual deck are available from its
+screen. A matched card image remains visible beside its database-backed question
+while the answer is open.
+
+The `game_question` table stores a stable id, game key, order, prompt, answer,
+JSON answer choices, question kind and hint. Startup upserts all 81 seeded
+question rows without resetting existing teams, scores or cards.
 
 Internal identifiers keep their original names (`emoji-decode`,
 `word-assembly`, `emojiDecode.ts`, `wordAssembly.ts`) so existing ids and the
@@ -201,8 +234,12 @@ every launch and behave like any other challenge:
   **← All challenges** button is the only way back. Each challenge also offers
   **Team run**, letting the host run the challenge question by question with up
   to five teams. One team answers at a time in the order selected when the run
-  starts. A wrong answer passes the same question to the next team; teams that
-  have already tried it cannot try it again. A correct answer or timeout ends
+  starts. The turn table highlights the team answering now. Teams may pass a
+  question to an opponent: a correct opponent answer gives that team +5 and the
+  passing team −10; a wrong opponent answer gives both teams −5. Self-answer
+  scoring is +10 correct and −10 wrong for all three challenges. Match Card gives a
+  team two attempts before a wrong answer passes the same question to the next
+  team. Other challenges pass a wrong answer after one attempt. A correct answer or timeout ends
   the question, after which the host advances and the next team's input becomes
   available. If every team answers incorrectly, the host can advance as well.
   Team-run timers are 30 seconds for Image Decode and 15 seconds for Match Card.

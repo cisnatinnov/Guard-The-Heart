@@ -3,6 +3,7 @@ import { DataTypes } from 'sequelize'
 import { defineModels } from '../models'
 import { seedCardPool, synchronizeAllChallengeBonusCards } from '../services/cardDraw'
 import { seedLockedChallenges } from '../services/challengeSeeds'
+import { seedGameQuestions } from '../services/gameQuestionSeeds'
 
 const LEGACY_TABLES = ['challange', 'challange_scoreboard', 'challenge_scoreboard']
 const REQUIRED_TABLES = ['team', 'challenge', 'challenge_point', 'scoreboard', 'card', 'team_card']
@@ -48,6 +49,7 @@ export function initializeAppDatabase(): Promise<void> {
       // The playable challenges are challenge data, so they exist from the
       // first launch and cannot be added again, renamed or deleted.
       await seedLockedChallenges()
+      await seedGameQuestions()
       await seedCardPool()
       await synchronizeAllChallengeBonusCards()
     })()

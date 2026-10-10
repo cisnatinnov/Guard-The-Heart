@@ -36,7 +36,7 @@ export function GameView() {
   const backPath = window.location.pathname.startsWith('/admin') ? '/admin/challenges' : '/challenges'
 
   return (
-    <section className="view">
+    <section className={`view view--game view--game-${game.id}`}>
       <header className="view__header">
         <h2>{game.title}</h2>
         <p className="view__hint">{game.tagline}</p>
@@ -49,6 +49,11 @@ export function GameView() {
         {game.deckPath && (
           <a className="deck-link" href={game.deckPath} download aria-label={game.deckLabel}>
             ⬇ {game.deckLabel}
+          </a>
+        )}
+        {game.id === 'jaws-of-risk' && (
+          <a className="deck-link" href="/ui/Jaw-of-risk.pptx" download>
+            ⬇ Jaws of Risk UI reference (PPTX)
           </a>
         )}
       </div>

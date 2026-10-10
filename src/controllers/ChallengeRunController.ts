@@ -6,6 +6,7 @@ import type { ChallengeGameId } from '../services/games'
 import { challengeQuestionsFor, gradeQuestion, type ChallengeQuestion } from '../services/games/challengeQuestions'
 import {
   applyAnswer,
+  applyPassedAnswer,
   beginNextQuestion,
   isRunComplete,
   runFor,
@@ -90,7 +91,7 @@ export class ChallengeRunController {
     const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
     const graded = gradeQuestion(question, input.answer)
     const applied = applyAnswer(input.run, input.teamId, {
-      points: graded.points,
+      points: graded.correct ? 10 : -10,
       correct: graded.correct,
       timedOut: input.timedOut,
     })
@@ -130,7 +131,7 @@ export class ChallengeRunController {
       result: {
         teamId: input.teamId,
         teamName: team,
-        points: graded.points,
+        points: applied.gained,
         correct: graded.correct,
         bitten: graded.bitten,
         timedOut: input.timedOut === true,
@@ -142,12 +143,24 @@ export class ChallengeRunController {
     }
   }
 
+  /** Grades a question thrown by the current team to a selected opponent. */
+  static async pass(input: { gameId: ChallengeGameId; run: ChallengeRun; fromTeamId: string; toTeamId: string; answer: string }): Promise<ChallengeRun> {
+    const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
+    const correct = gradeQuestion(question, input.answer).correct
+    const run = applyPassedAnswer(input.run, input.fromTeamId, input.toTeamId, correct)
+    for (const entry of run.runs) {
+      const previous = input.run.runs.find((item) => item.team === entry.team)
+      if (entry.score !== previous?.score) await ChallengeRunController.recordScore(run.challenge, entry.team, entry.score)
+    }
+    return run
+  }
+
   /**
    * Creates the entry on the first challenge point and corrects it afterwards, so a team
    * that follows the challenge always has a row on the scoreboard.
    */
   static async recordScore(challengeId: string, teamId: string, challengePoint: number): Promise<number> {
-    const clamped = Math.max(0, Math.min(MAX_CHALLENGE_POINT, Math.trunc(challengePoint)))
+    const clamped = Math.max(-MAX_CHALLENGE_POINT, Math.min(MAX_CHALLENGE_POINT, Math.trunc(challengePoint)))
     const entries = await ChallengePointController.listByChallenge(challengeId)
     const entry = entries.find((row) => row.team === teamId)
 

@@ -1,81 +1,67 @@
-import { useState } from 'react'
-import {
-  JAWS_LOOSE_COUNT,
-  JAWS_ROWS,
-  JAWS_SOLO_TOOTH_COUNT,
-  createJawsBoard,
-  toggleJawSelection,
-  type JawsBoard,
-  type JawsOutcome,
-} from '../../services/games'
+import { useState, type FormEvent } from 'react'
+import { JAWS_HIT_POINTS } from '../../services/games'
+import { getGameQuestions, type GameQuestionRecord } from '../../services/gameQuestionCache'
 
 export function JawsOfRiskView() {
-  const [board, setBoard] = useState<JawsBoard>(() =>
-    createJawsBoard(Math.random, JAWS_LOOSE_COUNT, JAWS_SOLO_TOOTH_COUNT)
-  )
-  const [outcome] = useState<JawsOutcome | null>(null)
-  const [wobbleId, setWobbleId] = useState<string | null>(null)
+  const questions = getGameQuestions('jaws-of-risk')
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [answer, setAnswer] = useState('')
+  const [questionResult, setQuestionResult] = useState<string | null>(null)
+  const [score, setScore] = useState(0)
+  const question: GameQuestionRecord | undefined = questions[questionIndex]
+  const complete = questionIndex >= questions.length
 
-  const rows = Array.from({ length: JAWS_ROWS }, (_, row) =>
-    board.teeth.filter((tooth) => tooth.row === row)
-  )
+  function submitAnswer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!question || questionResult || !answer) return
+    if (answer === question.answer) {
+      setScore((current) => current + JAWS_HIT_POINTS)
+      setQuestionResult(`Correct — ${question.answer}. +${JAWS_HIT_POINTS} points.`)
+    } else {
+      setScore((current) => current - JAWS_HIT_POINTS)
+      setQuestionResult(`Incorrect. Answer: ${question.answer}. −${JAWS_HIT_POINTS} points.`)
+    }
+  }
 
-  function handleTooth(toothId: string) {
-    if (outcome) return
-    setBoard((previous) => toggleJawSelection(previous, toothId))
-    setWobbleId(toothId)
-    window.setTimeout(() => setWobbleId((current) => (current === toothId ? null : current)), 420)
+  function nextQuestion() {
+    setQuestionIndex((current) => current + 1)
+    setAnswer('')
+    setQuestionResult(null)
+  }
+
+  function restart() {
+    setQuestionIndex(0)
+    setAnswer('')
+    setQuestionResult(null)
+    setScore(0)
   }
 
   return (
     <div className="game">
-      <div className="jaws jaws--solo">
-        {rows.map((teeth) => (
-          <div key={teeth[0]?.row} className="jaws__row">
-            {teeth.map((tooth) => {
-              const isLoose = outcome ? board.looseIds.includes(tooth.id) : false
-              const isHit = outcome ? outcome.hits.includes(tooth.id) : false
-              const isMiss = outcome ? outcome.misses.includes(tooth.id) : false
-              const isFalseFlag = outcome ? outcome.falseFlags.includes(tooth.id) : false
-              const className = [
-                'jaw',
-                tooth.label === 'Suspect' ? 'jaw--suspect' : '',
-                tooth.label === 'Firm' ? 'jaw--firm' : '',
-                wobbleId === tooth.id ? 'jaw--wobble' : '',
-                isHit ? 'jaw--hit' : '',
-                isMiss ? 'jaw--miss' : '',
-                isFalseFlag ? 'jaw--false' : '',
-                isLoose ? 'jaw--loose' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')
-              return (
-                <button
-                  key={tooth.id}
-                  type="button"
-                  className={className}
-                  disabled={outcome !== null}
-                  aria-pressed={tooth.label === 'Suspect'}
-                  aria-label={`Tooth ${tooth.number}, ${tooth.label}`}
-                  onClick={() => handleTooth(tooth.id)}
-                >
-                  <span className="jaw__number">{tooth.number}</span>
-                </button>
-              )
-            })}
-          </div>
-        ))}
-        <div className="jaws__gauge" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100}>
-          <span className="jaws__gauge-fill" />
-        </div>
+      <div className="stat-grid">
+        <div className="stat"><span className="stat__label">Question</span><span className="stat__value">{complete ? questions.length : questionIndex + 1}/{questions.length}</span></div>
+        <div className="stat"><span className="stat__label">Score</span><span className="stat__value">{score}</span></div>
       </div>
-
-      {outcome && (
-        <p className="alert alert--info">
-          {outcome.hits.length} loose tooth caught, {outcome.falseFlags.length} false alarm
-          {outcome.falseFlags.length === 1 ? '' : 's'}, {outcome.accuracy}% accuracy.
-        </p>
-      )}
+      {question ? <form className="match-question" onSubmit={submitAnswer}>
+        <p className="muted">Question {question.number}</p>
+        <h3>{question.prompt}</h3>
+        <fieldset className="game-options" disabled={!!questionResult}>
+          <legend>Choose the best answer</legend>
+          {question.options.map((option, index) => (
+            <label className="game-options__choice" key={option}>
+              <input type="radio" name="jaws-answer" value={option} checked={answer === option} onChange={() => setAnswer(option)} />
+              <span><b>{String.fromCharCode(65 + index)}</b>{option}</span>
+            </label>
+          ))}
+        </fieldset>
+        {!questionResult ? <button type="submit" disabled={!answer}>Submit answer</button> : <>
+          <p className={questionResult.startsWith('Correct') ? 'alert alert--ok' : 'alert alert--error'} role="status">{questionResult}</p>
+          <button type="button" onClick={nextQuestion}>Next question →</button>
+        </>}
+      </form> : <p className="alert alert--ok" role="status">{complete ? `All questions complete. Final score: ${score}.` : 'Loading questions…'}</p>}
+      <div className="game__toolbar">
+        {complete && <button type="button" className="ghost" onClick={restart}>Play again</button>}
+      </div>
     </div>
   )
 }

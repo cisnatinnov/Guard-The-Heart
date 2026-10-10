@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { initializeAppDatabase } from '../src/db/database'
 import { getSequelize } from '../src/db/sequelize-provider'
-import { Card, Challenge, ChallengePoint, Scoreboard, TeamCard } from '../src/models'
+import { Card, Challenge, ChallengePoint, GameQuestion, Scoreboard, TeamCard } from '../src/models'
 import { type HeartTowerColumn } from '../src/controllers/TeamController'
 import { ChallengeController } from '../src/controllers/ChallengeController'
 import { TeamController } from '../src/controllers/TeamController'
@@ -78,6 +78,17 @@ describe('database bootstrap', () => {
       expect.arrayContaining(['challenge', 'team', 'challenge_point', 'scoreboard'])
     )
     expect(tables).not.toContain('challange')
+  })
+
+  it('persists the PPTX question and answer banks in SQLite', async () => {
+    expect(await GameQuestion.count({ where: { game_key: 'image-decode' } })).toBe(11)
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(50)
+    expect(await GameQuestion.count({ where: { game_key: 'jaws-of-risk' } })).toBe(20)
+    const first = await GameQuestion.findOne({ where: { game_key: 'image-decode', number: 1 } })
+    expect(first?.prompt).toBe('Nasabah')
+    expect(first?.answer).toBe('Rekening')
+    const matchQuestion = await GameQuestion.findOne({ where: { game_key: 'match-card', number: 1 } })
+    expect(matchQuestion?.answer).toBe('Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan')
   })
 
   it('exposes the blueprint columns on challenge_point', async () => {
@@ -547,6 +558,30 @@ describe('ScoreboardController', () => {
     expect(runnerUpRow?.total_cp).toBe(40)
     // Ranks are global across every team, so only the ordering is asserted.
     expect(leaderRow!.rank).toBeLessThan(runnerUpRow!.rank)
+  })
+
+  it('includes the per-challenge scores on each scoreboard row', async () => {
+    const first = await ChallengeController.create('Arena Detail One')
+    const second = await ChallengeController.create('Arena Detail Two')
+    const team = await TeamController.create('Detail Team')
+    const other = await TeamController.create('Detail Other')
+
+    await ChallengePointController.create({ challenge: first.id, team: team.id, challenge_point: 70 })
+    await ChallengePointController.create({ challenge: second.id, team: team.id, challenge_point: 30 })
+    await ChallengePointController.create({ challenge: second.id, team: other.id, challenge_point: 50 })
+
+    const rows = await ScoreboardController.list()
+    const row = rows.find((entry) => entry.team === team.id)
+    expect(row?.challengeScores?.map((score) => score.challengeName).sort()).toEqual([
+      'Arena Detail One',
+      'Arena Detail Two',
+    ])
+    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail One')?.challenge_point).toBe(70)
+    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail Two')?.challenge_point).toBe(30)
+
+    const otherRow = rows.find((entry) => entry.team === other.id)
+    expect(otherRow?.challengeScores).toHaveLength(1)
+    expect(otherRow?.challengeScores?.[0]?.challenge_point).toBe(50)
   })
 
   it('sums totals across multiple challenges for the same team', async () => {

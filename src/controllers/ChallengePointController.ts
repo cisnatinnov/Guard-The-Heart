@@ -23,7 +23,7 @@ export type ChallengePointEntry = ChallengePointModel & {
 function parseChallengePoint(raw: number): number {
   const cp = Math.trunc(Number(raw))
   if (!Number.isFinite(cp)) throw new Error('Challenge point must be a number')
-  if (cp < 0) throw new Error('Challenge point cannot be negative')
+  if (cp < -999) throw new Error('Challenge point cannot be less than -999')
   if (cp > 999) throw new Error('Challenge point cannot exceed 999')
   return cp
 }

@@ -50,9 +50,11 @@ when the app starts.
    renamed or deleted.
 3. Play a question-based challenge with teams using **Team run**. Choose up to
    five teams.
-   One team answers at a time in selection order. If its answer is wrong, the
-   next team can try the same question. A correct answer or time-up moves to the
-   next question; if all teams are wrong, the host can also advance. Each team's
+   Roulette selects the first team. On each turn, it can answer itself (+10
+   correct, −10 wrong) or pass the question to an opponent. On a pass, a correct
+   opponent answer gives that opponent +5 and the passing team −10; a wrong
+   opponent answer gives both teams −5. Self-answer misses pass the same
+   question to the next team. Each team's
    score is saved directly to the challenge scoreboard.
 4. Alternatively, open a challenge's scoreboard in **Scoreboard (Adm)** and enter one
    score per participating team manually with **Add entry**.
@@ -85,14 +87,28 @@ The navigation tabs show both variants explicitly (e.g., "Scoreboard (Public)" a
 ## Challenges
 
 The **Challenge** view is the only challenge screen. Each built-in row opens
-its own game with a rules list, score counters and a restart button. Game state
-lives in the browser tab only; it is not written to the database.
+its own game with a rules list, score counters and a restart button. Team-run
+turn order is randomized when a run starts, and the current answering team is
+highlighted in the turn table. Jaws of Risk is question-only and has no tooth
+board or tooth selection. Game state lives in the browser tab
+only; it is not written to the database.
 
 | Challenge | Contents | Scoring |
 | --- | --- | --- |
-| Image Decode | 15 questions that each combine **four images** into one answer, with a live 30 second countdown in solo and team play, plus a PPTX deck where every slide carries a built-in animated timer and auto-advances | 10 per decoded answer, 150 max |
-| Match Card | Ten picture-matching questions using 20 cards (two identical copies of each image); mismatched open cards turn face down after a short reveal | 10 per matched pair, minus 5 per mismatch (100 max) |
-| Jaws of Risk | Team runs use 24 teeth; the solo game below uses 8 teeth in two rows, with 6 loose | 10 per loose tooth found, minus 5 per false alarm (60 max) |
+| Image Decode | 11 banking-term clues from slides 3–24 of the reference deck, with a live 30 second countdown in solo and team play | 10 per decoded answer, 110 max |
+| Match Card | Ten picture pairs from 20 cards; each matched pair unlocks one of 50 stored multiple-choice questions. The answering team gets two attempts before its turn passes. | 10 per matched pair, minus 5 per mismatch (100 max) |
+| Jaws of Risk | Solo and team runs use the 20 stored questions from slides 3–42 of the Match Card reference, in sequence. No tooth board or tooth selection. | +10 correct, −10 wrong |
+
+The game screens use the supplied art direction: Image Decode uses the question
+panel styling from `public/ui/Image_Decode.pptx` and the matching clue images
+from slides 3–24 under `public/image-decode/questions/`,
+Match Card uses the hidden/revealed card artwork from
+`public/ui/Preview-CH-3_Online_Card-Hidden.png` and
+`public/ui/Preview-CH-3_Online_Card-Reveal.png` (cropped into lightweight
+faces under `public/match-card/reference/`), and Jaws of Risk follows the blue,
+gold and purple question styling from `public/ui/Jaw-of-risk.pptx`. Match Card keeps
+the two-at-a-time reveal, mismatch turn-back, and two-answer-attempt flow; the
+matched image stays beside its unlocked question.
 
 ### The challenges are challenge data
 
@@ -105,14 +121,19 @@ the first launch:
 - Each row offers **Scoreboard**, **Play**, and a deck link when one exists.
   Every challenge offers **Team run**, which lets the host run the challenge
   question by question with up to five teams; one team answers at a time, and a
-  wrong answer lets the next team try the same question. A correct answer or
+  wrong Match Card answer gives that team one more try before the next team can
+  answer the same question. A correct answer or
   timeout advances to the next question; if every team is wrong, the host can
-  advance. Team-run timers are 30 seconds for Image Decode and 15 seconds for Match Card.
+  advance. Match Card allows one more attempt after a wrong answer; correct
+  answers and the second wrong answer close that team's turn. Team-run timers are
+  30 seconds for Image Decode and 15 seconds for Match Card.
   Jaws of Risk has no team-run timer. When a timer expires, only the team
   currently answering is graded incorrect and the host can advance to the next
   question.
 - A built-in challenge accepts up to 5 teams like any other, so ranks and guard
   power are calculated from scores entered either by hand or via the team run.
+  Team-run answer/pass scoring is shared by Image Decode, Match Card and Jaws of
+  Risk. Challenge scores can fall below zero after penalties.
 
 Older databases are migrated on startup: rows saved as **Emoji Decode** and
 **Word Assembly** are renamed to **Image Decode** and **Match Card**, and the
@@ -130,16 +151,15 @@ teams. Views are otherwise reached from the top navigation tabs.
 
 ### PowerPoint deck
 
-`public/decks/emoji-decode.pptx` is the Image Decode deck: a title slide, 15
-question slides and an answer key. Each question slide shows the four images
-that combine into one answer, animates a 30 second timer bar, and advances
-automatically.
-
-The deck is generated from `src/data/emoji-decode.json`, not hand-authored. Run
-`npm run decks` to rebuild it. The generator writes the ZIP and OOXML parts
-itself, so there is no PowerPoint dependency, and it verifies the archive and
-every XML part before writing. The deck is precached by the service worker and
-can be downloaded from a challenge row or from its playing screen.
+The reference decks are supplied in `public/ui/`. Startup seeds the Image Decode
+clues from slides 3–24, the 50 Match Card questions from slides 3–75, and the
+first 20 Match Card questions for Jaws of Risk from slides 3–42 into SQLite's
+`game_question` table. Prompts, answer options, correct answers and clue hints
+are loaded from those database rows by the game screens. The three reference
+decks, including the Jaws of Risk visual reference, are downloadable from their
+game screens and excluded from service-worker precaching because of their size.
+`npm run decks` can still generate the
+separate Image Decode presentation from `src/data/emoji-decode.json`.
 
 ### Ranking and rewards
 
@@ -194,7 +214,8 @@ collections for display.
 
 ## Data and offline behavior
 
-Sequelize models manage the app data using SQLite compiled to WebAssembly by
+Sequelize models manage the app data, including the persisted game question and
+answer bank, using SQLite compiled to WebAssembly by
 `sql.js`. The SQLite database runs in memory while the app is open and is saved
 to the browser's IndexedDB after changes. It is local to the browser profile
 and device; it is not synchronized to other users or devices. Clearing browser

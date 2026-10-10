@@ -108,6 +108,17 @@ export function ScoreboardTotalAdminView() {
                     <strong>{entry.total_card}</strong>
                   </span>
                 </span>
+                {entry.challengeScores && entry.challengeScores.length > 0 && (
+                  <span className="leaderboard__scores" aria-label="Per-challenge scores">
+                    <span className="leaderboard__scores-title">Scores</span>
+                    {entry.challengeScores.map((score) => (
+                      <span key={score.challengeId} className="leaderboard__score">
+                        <span className="leaderboard__score-name">{score.challengeName}</span>
+                        <span className="leaderboard__score-point">{score.challenge_point}</span>
+                      </span>
+                    ))}
+                  </span>
+                )}
               </li>
             ))}
           </ol>

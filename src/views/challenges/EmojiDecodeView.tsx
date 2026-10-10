@@ -1,61 +1,58 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   EMOJI_DECODE_POINTS_PER_ANSWER,
-  EMOJI_DECODE_QUESTIONS,
   EMOJI_DECODE_SECONDS_PER_QUESTION,
   checkEmojiAnswer,
+  getEmojiDecodeQuestions,
   scoreEmojiDecode,
   type EmojiDecodeAttempt,
 } from '../../services/games'
 
 export function EmojiDecodeView() {
+  const questions = useMemo(() => getEmojiDecodeQuestions(), [])
   const [attempts, setAttempts] = useState<Record<string, string>>({})
   const [checked, setChecked] = useState<Record<string, boolean>>({})
+  const [timedOutQuestions, setTimedOutQuestions] = useState<Record<string, boolean>>({})
   const [currentIndex, setCurrentIndex] = useState(0)
   const [remaining, setRemaining] = useState(EMOJI_DECODE_SECONDS_PER_QUESTION)
-  const timerQuestionId = useRef<string | null>(null)
+  const remainingRef = useRef(EMOJI_DECODE_SECONDS_PER_QUESTION)
+  const timerQuestionId = useRef<string | null>(questions[0]?.id ?? null)
+  const checkedQuestionIds = useRef(new Set<string>())
 
-  const history = useMemo<EmojiDecodeAttempt[]>(
-    () =>
-      EMOJI_DECODE_QUESTIONS.map((question) => ({
+  const history: EmojiDecodeAttempt[] = questions.map((question) => ({
         questionId: question.id,
         guess: attempts[question.id] ?? '',
         correct: checked[question.id] ?? false,
-      })),
-    [attempts, checked]
-  )
+      }))
   const result = scoreEmojiDecode(history)
-  const current = EMOJI_DECODE_QUESTIONS[currentIndex]
+  const current = questions[currentIndex]
   const answered = current ? checked[current.id] !== undefined : false
-  const timedOut = answered && remaining === 0
-
-  // Mirrors the deck: every question starts a fresh 30 second countdown.
-  useEffect(() => {
-    setRemaining(EMOJI_DECODE_SECONDS_PER_QUESTION)
-    timerQuestionId.current = current?.id ?? null
-  }, [currentIndex, current?.id])
+  const timedOut = current ? timedOutQuestions[current.id] === true : false
 
   useEffect(() => {
-    if (answered || !current) return
+    const questionId = current?.id
+    if (answered || !questionId) return
     const timer = window.setInterval(() => {
-      setRemaining((value) => Math.max(0, value - 1))
+      if (timerQuestionId.current !== questionId) return
+      if (remainingRef.current <= 1) {
+        if (checkedQuestionIds.current.has(questionId)) return
+        checkedQuestionIds.current.add(questionId)
+        remainingRef.current = 0
+        setRemaining(0)
+        setChecked((previous) => ({ ...previous, [questionId]: false }))
+        setTimedOutQuestions((previous) => ({ ...previous, [questionId]: true }))
+        return
+      }
+      remainingRef.current -= 1
+      setRemaining(remainingRef.current)
     }, 1000)
     return () => window.clearInterval(timer)
-  }, [answered, current])
-
-  // Mark timeout only when timer naturally reaches 0 for the question the timer belongs to
-  useEffect(() => {
-    if (remaining !== 0 || !current) return
-    if (timerQuestionId.current !== current.id) return // stale timer from previous question
-    if (checked[current.id] !== undefined) return // already graded
-    setChecked((previous) =>
-      previous[current.id] === undefined ? { ...previous, [current.id]: false } : previous
-    )
-  }, [remaining, current, checked])
+  }, [answered, current?.id])
 
   function submit(index: number) {
-    const question = EMOJI_DECODE_QUESTIONS[index]
-    if (!question || checked[question.id] !== undefined) return
+    const question = questions[index]
+    if (!question || checkedQuestionIds.current.has(question.id)) return
+    checkedQuestionIds.current.add(question.id)
     setAttempts((previous) => ({ ...previous, [question.id]: attempts[question.id] ?? '' }))
     setChecked((previous) => ({
       ...previous,
@@ -63,9 +60,22 @@ export function EmojiDecodeView() {
     }))
   }
 
+  function goToQuestion(index: number) {
+    const nextIndex = Math.max(0, Math.min(questions.length - 1, index))
+    if (nextIndex === currentIndex) return
+    timerQuestionId.current = questions[nextIndex]?.id ?? null
+    remainingRef.current = EMOJI_DECODE_SECONDS_PER_QUESTION
+    setRemaining(EMOJI_DECODE_SECONDS_PER_QUESTION)
+    setCurrentIndex(nextIndex)
+  }
+
   function reset() {
     setAttempts({})
     setChecked({})
+    setTimedOutQuestions({})
+    checkedQuestionIds.current.clear()
+    timerQuestionId.current = questions[0]?.id ?? null
+    remainingRef.current = EMOJI_DECODE_SECONDS_PER_QUESTION
     setCurrentIndex(0)
     setRemaining(EMOJI_DECODE_SECONDS_PER_QUESTION)
   }
@@ -76,7 +86,7 @@ export function EmojiDecodeView() {
         <div className="stat">
           <span className="stat__label">Solved</span>
           <span className="stat__value">
-            {result.solved}/{EMOJI_DECODE_QUESTIONS.length}
+            {result.solved}/{questions.length}
           </span>
         </div>
         <div className="stat">
@@ -95,20 +105,20 @@ export function EmojiDecodeView() {
         </div>
       </div>
 
-      <div className="emoji-decode">
+      <div className="emoji-decode emoji-decode--reference">
         <div className="emoji-decode__stage">
           <p className="muted">
-            Question {currentIndex + 1} of {EMOJI_DECODE_QUESTIONS.length}
+          Question {currentIndex + 1} of {questions.length}
           </p>
           <p
-            className="emoji-decode__glyph"
-            aria-label={`Image puzzle ${currentIndex + 1}: ${current.emojis.join(' ')}`}
+            className="emoji-decode__glyph emoji-decode__question-art"
+            aria-label={`Image clue ${currentIndex + 1}`}
           >
-            {current.emojis.map((glyph, position) => (
-              <span className="emoji-decode__chip" key={`${current.id}-${position}`}>
-                {glyph}
-              </span>
-            ))}
+            <img
+              src={`/image-decode/questions/decode-${String(currentIndex + 1).padStart(2, '0')}.webp`}
+              alt={`Visual clue for question ${currentIndex + 1}`}
+              draggable={false}
+            />
           </p>
           <p className="emoji-decode__hint">{answered ? current.hint : `Hint: ${current.hint}`}</p>
 
@@ -139,7 +149,7 @@ export function EmojiDecodeView() {
                 if (event.key === 'Enter') submit(currentIndex)
               }}
             />
-            <button type="button" disabled={answered} onClick={() => submit(currentIndex)}>
+            <button type="button" disabled={answered || !(attempts[current?.id ?? ''] ?? '').trim()} onClick={() => submit(currentIndex)}>
               Decode
             </button>
           </div>
@@ -148,7 +158,9 @@ export function EmojiDecodeView() {
             <p className={checked[current.id] ? 'alert alert--ok' : 'alert alert--error'}>
               {checked[current.id]
                 ? `Correct — ${current.answer}`
-                : `Not this time. The answer was ${current.answer}.`}
+                : timedOut
+                  ? `Time ran out. The answer was ${current.answer}.`
+                  : `Not this time. The answer was ${current.answer}.`}
             </p>
           )}
 
@@ -157,15 +169,15 @@ export function EmojiDecodeView() {
               type="button"
               className="ghost"
               disabled={currentIndex === 0}
-              onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+              onClick={() => goToQuestion(currentIndex - 1)}
             >
               ← Previous
             </button>
             <button
               type="button"
               className="ghost"
-              disabled={currentIndex >= EMOJI_DECODE_QUESTIONS.length - 1}
-              onClick={() => setCurrentIndex((index) => Math.min(EMOJI_DECODE_QUESTIONS.length - 1, index + 1))}
+              disabled={currentIndex >= questions.length - 1}
+              onClick={() => goToQuestion(currentIndex + 1)}
             >
               Next →
             </button>
@@ -176,14 +188,14 @@ export function EmojiDecodeView() {
         </div>
 
         <ol className="emoji-decode__index">
-          {EMOJI_DECODE_QUESTIONS.map((question, index) => {
+        {questions.map((question, index) => {
             const state = checked[question.id] === undefined ? 'open' : checked[question.id] ? 'hit' : 'miss'
             return (
               <li key={question.id}>
                 <button
                   type="button"
                   className={`emoji-chip emoji-chip--${state}${index === currentIndex ? ' emoji-chip--active' : ''}`}
-                  onClick={() => setCurrentIndex(index)}
+                  onClick={() => goToQuestion(index)}
                 >
                   <span aria-hidden="true" className="emoji-chip__glyphs">
                     {question.emojis.join('')}

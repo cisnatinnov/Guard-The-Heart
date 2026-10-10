@@ -74,6 +74,19 @@ export class TeamCard extends Model {
   declare readonly updatedAt: Date
 }
 
+export class GameQuestion extends Model {
+  declare id: string
+  declare game_key: string
+  declare number: number
+  declare prompt: string
+  declare answer: string
+  declare options: string
+  declare kind: 'decode' | 'choice'
+  declare hint: string
+  declare readonly createdAt: Date
+  declare readonly updatedAt: Date
+}
+
 let modelsDefined = false
 
 export function defineModels(sequelize: Sequelize): void {
@@ -306,6 +319,26 @@ export function defineModels(sequelize: Sequelize): void {
     }
   )
 
+  GameQuestion.init(
+    {
+      id: { type: DataTypes.STRING(100), primaryKey: true, allowNull: false },
+      game_key: { type: DataTypes.STRING(40), allowNull: false },
+      number: { type: DataTypes.INTEGER, allowNull: false },
+      prompt: { type: DataTypes.TEXT, allowNull: false },
+      answer: { type: DataTypes.TEXT, allowNull: false },
+      options: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
+      kind: { type: DataTypes.STRING(16), allowNull: false },
+      hint: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
+    },
+    {
+      sequelize,
+      modelName: 'game_question',
+      tableName: 'game_question',
+      indexes: [{ unique: true, fields: ['game_key', 'number'] }],
+      timestamps: true,
+    }
+  )
+
   Challenge.hasMany(ChallengePoint, { foreignKey: 'challenge', as: 'scores' })
   ChallengePoint.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeRef' })
   Team.hasMany(ChallengePoint, { foreignKey: 'team', as: 'challengeScores' })
@@ -326,4 +359,4 @@ export function defineModels(sequelize: Sequelize): void {
   modelsDefined = true
 }
 
-export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard }
+export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard, GameQuestion }

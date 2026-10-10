@@ -37,6 +37,24 @@ export interface AnswerOutcome {
   skipped: boolean
 }
 
+/** Resolves a passed question and applies the screenshot's two-team scoring. */
+export function applyPassedAnswer(run: ChallengeRun, fromTeam: string, toTeam: string, correct: boolean): ChallengeRun {
+  if (run.questionResolved || run.questionIndex >= run.questionCount) throw new Error('This question is already resolved')
+  if (fromTeam === toTeam) throw new Error('Choose a different team to receive the question')
+  const from = runFor(run, fromTeam)
+  const to = runFor(run, toTeam)
+  if (!from || !to) throw new Error('Both teams must be following this challenge')
+  if (teamForQuestion(run)?.team !== fromTeam) throw new Error("It is not that team's turn to pass")
+  const fromPoints = correct ? -10 : -5
+  const toPoints = correct ? 5 : -5
+  const updated = run.runs.map((entry) => {
+    if (entry.team === fromTeam) return { ...entry, score: entry.score + fromPoints, answered: entry.answered + 1 }
+    if (entry.team === toTeam) return { ...entry, score: entry.score + toPoints, answered: entry.answered + 1, correct: entry.correct + (correct ? 1 : 0) }
+    return entry
+  })
+  return { ...run, runs: updated, attemptedTeams: [...run.attemptedTeams, fromTeam, toTeam], questionResolved: true }
+}
+
 export function startChallengeRun(input: {
   challenge: string
   teams: string[]

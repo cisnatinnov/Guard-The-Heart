@@ -1,13 +1,12 @@
 import {
   EMOJI_DECODE_POINTS_PER_ANSWER,
-  EMOJI_DECODE_QUESTIONS,
+  getEmojiDecodeQuestions,
   EMOJI_DECODE_SECONDS_PER_QUESTION,
   checkEmojiAnswer,
 } from './emojiDecode'
 import {
   JAWS_FALSE_FLAG_PENALTY,
   JAWS_HIT_POINTS,
-  JAWS_LOOSE_COUNT,
   JAWS_TOOTH_COUNT,
   type JawsBoard,
 } from './jawsOfRisk'
@@ -16,6 +15,7 @@ import {
   WORD_ASSEMBLY_QUESTIONS,
   WORD_ASSEMBLY_SECONDS_PER_QUESTION,
 } from './wordAssembly'
+import { getGameQuestions } from '../gameQuestionCache'
 import type { ChallengeGameId } from './index'
 
 /**
@@ -31,6 +31,7 @@ export interface ChallengeQuestion {
   number: number
   prompt: string
   hint: string
+  options?: string[]
   grade: (answer: string) => number
   /** When true a wrong answer removes the team until the next question. */
   eliminates: boolean
@@ -74,7 +75,8 @@ function exactQuestion(
 }
 
 function emojiDecodeQuestions(): ChallengeQuestion[] {
-  return EMOJI_DECODE_QUESTIONS.map((question, index) => ({
+  const questions = getEmojiDecodeQuestions()
+  return questions.map((question, index) => ({
     id: question.id,
     number: index + 1,
     prompt: question.emojis.join(' '),
@@ -86,6 +88,16 @@ function emojiDecodeQuestions(): ChallengeQuestion[] {
 
 /** Team runs identify the picture represented by each matching-card pair. */
 function wordAssemblyQuestions(): ChallengeQuestion[] {
+  const bank = getGameQuestions('match-card')
+  if (bank.length > 0) return bank.map((question, index) => ({
+    id: question.id,
+    number: index + 1,
+    prompt: question.prompt,
+    hint: 'Choose the best answer.',
+    options: question.options,
+    eliminates: true,
+    grade: (value) => (normalize(value) === normalize(question.answer) ? WORD_ASSEMBLY_MATCH_POINTS : 0),
+  }))
   return WORD_ASSEMBLY_QUESTIONS.map((question, index) =>
     exactQuestion(
       question.id,
@@ -104,22 +116,24 @@ function wordAssemblyQuestions(): ChallengeQuestion[] {
  * sends the team out until the next tooth.
  */
 function jawsQuestions(): ChallengeQuestion[] {
-  const questions: ChallengeQuestion[] = []
-  for (let number = 1; number <= JAWS_TOOTH_COUNT; number += 1) {
-    questions.push({
-      id: `jaw-tooth-${number}`,
-      number,
-      prompt: `Is tooth ${number} loose or firm?`,
-      hint: `Type loose or firm. ${JAWS_LOOSE_COUNT} of ${JAWS_TOOTH_COUNT} teeth are loose.`,
-      eliminates: true,
-      grade: (value) => {
-        const guess = normalize(value)
-        if (guess !== 'loose' && guess !== 'firm') return 0
-        return guess === 'loose' ? JAWS_HIT_POINTS : -JAWS_FALSE_FLAG_PENALTY
-      },
-    })
-  }
-  return questions
+  const bank = getGameQuestions('jaws-of-risk')
+  if (bank.length > 0) return bank.map((question, index) => ({
+    id: question.id,
+    number: index + 1,
+    prompt: question.prompt,
+    hint: 'Choose the best answer.',
+    options: question.options,
+    eliminates: true,
+    grade: (value) => (normalize(value) === normalize(question.answer) ? JAWS_HIT_POINTS : 0),
+  }))
+  return Array.from({ length: JAWS_TOOTH_COUNT }, (_, index) => ({
+    id: `jaw-question-${index + 1}`,
+    number: index + 1,
+    prompt: `Is tooth ${index + 1} loose or firm?`,
+    hint: 'Type loose or firm.',
+    eliminates: true,
+    grade: (value) => (normalize(value) === 'loose' ? JAWS_HIT_POINTS : -JAWS_FALSE_FLAG_PENALTY),
+  }))
 }
 
 /**

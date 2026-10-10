@@ -21,6 +21,9 @@ export default defineConfig(({ mode }) => {
           ? { globPatterns: [], cleanupOutdatedCaches: true }
           : {
               globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,pptx,ico,woff,woff2,ttf,wasm}'],
+              // These supplied design/Q&A reference decks are large source files,
+              // not playable app assets; leave them out of the offline precache.
+              globIgnores: ['**/ui/*.pptx'],
               cleanupOutdatedCaches: true,
               clientsClaim: true,
               skipWaiting: true,

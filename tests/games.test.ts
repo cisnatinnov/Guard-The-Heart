@@ -26,6 +26,7 @@ import {
 import { challengeQuestionsFor } from '../src/services/games/challengeQuestions'
 import {
   applyAnswer,
+  applyPassedAnswer,
   beginNextQuestion,
   isRunComplete,
   startChallengeRun,
@@ -62,11 +63,13 @@ describe('challenge registry', () => {
     }
   })
 
-  it('ships a pptx deck only for Image Decode', () => {
+  it('links each game to its supplied question reference deck', () => {
     expect(CHALLENGE_GAMES.filter((game) => game.deckPath).map((game) => game.id)).toEqual([
       'emoji-decode',
+      'word-assembly',
+      'jaws-of-risk',
     ])
-    expect(CHALLENGE_GAMES[0].deckPath).toMatch(/emoji-decode\.pptx$/)
+    expect(CHALLENGE_GAMES[0].deckPath).toMatch(/Image_Decode\.pptx$/)
   })
 
   it('uses the configured timer for question-based team runs only', () => {
@@ -77,6 +80,15 @@ describe('challenge registry', () => {
 })
 
 describe('team challenge turns', () => {
+  it('scores self answers and passed answers using the challenge rules', () => {
+    let run = startChallengeRun({ challenge: 'challenge-id', teams: ['alpha', 'beta'], questionCount: 1, pointsPerQuestion: 10 })
+    run = applyAnswer(run, 'alpha', { points: -10, correct: false }).run
+    expect(run.runs[0].score).toBe(-10)
+    run = applyPassedAnswer(run, 'beta', 'alpha', true)
+    expect(run.runs.map((entry) => entry.score)).toEqual([-5, -10])
+    expect(run.questionResolved).toBe(true)
+  })
+
   it('passes wrong answers to another team and advances after a correct answer or timeout', () => {
     let run = startChallengeRun({
       challenge: 'challenge-id',
@@ -134,8 +146,8 @@ describe('team challenge turns', () => {
 })
 
 describe('Image Decode', () => {
-  it('ships 15 questions that each combine four emoji', () => {
-    expect(EMOJI_DECODE_QUESTIONS).toHaveLength(15)
+  it('ships the eleven clue and answer pairs from the supplied reference deck', () => {
+    expect(EMOJI_DECODE_QUESTIONS).toHaveLength(11)
     for (const question of EMOJI_DECODE_QUESTIONS) {
       expect(question.emojis).toHaveLength(EMOJI_DECODE_EMOJIS_PER_QUESTION)
       for (const glyph of question.emojis) {
@@ -144,16 +156,16 @@ describe('Image Decode', () => {
       expect(question.answer.length).toBeGreaterThan(1)
       expect(question.hint.length).toBeGreaterThan(0)
     }
-    expect(EMOJI_DECODE_EMOJIS_PER_QUESTION).toBe(4)
-    expect(new Set(EMOJI_DECODE_QUESTIONS.map((q) => q.id)).size).toBe(15)
+    expect(EMOJI_DECODE_EMOJIS_PER_QUESTION).toBe(1)
+    expect(new Set(EMOJI_DECODE_QUESTIONS.map((q) => q.id)).size).toBe(11)
   })
 
   it('accepts loose spellings but rejects other words', () => {
     const question = EMOJI_DECODE_QUESTIONS[0]
     expect(normalizeEmojiAnswer(' Fire-Engine! ')).toBe('fireengine')
-    expect(checkEmojiAnswer(question, ' firefighter ')).toBe(true)
-    expect(checkEmojiAnswer(question, 'FIREFIGHTER')).toBe(true)
-    expect(checkEmojiAnswer(question, 'fire-fighter')).toBe(true)
+    expect(checkEmojiAnswer(question, ' rekening ')).toBe(true)
+    expect(checkEmojiAnswer(question, 'REKENING')).toBe(true)
+    expect(checkEmojiAnswer(question, 're-kening')).toBe(true)
     expect(checkEmojiAnswer(question, 'astronaut')).toBe(false)
     expect(checkEmojiAnswer(question, '   ')).toBe(false)
   })
@@ -169,7 +181,7 @@ describe('Image Decode', () => {
     expect(result.solved).toBe(2)
     expect(result.attempted).toBe(3)
     expect(result.score).toBe(20)
-    expect(result.maximum).toBe(150)
+    expect(result.maximum).toBe(110)
   })
 })
 

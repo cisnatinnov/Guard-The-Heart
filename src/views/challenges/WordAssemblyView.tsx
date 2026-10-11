@@ -15,7 +15,7 @@ const REFERENCE_ART: Record<string, number> = {
   'word-6': 2, 'word-7': 4, 'word-8': 8, 'word-9': 9, 'word-10': 15,
 }
 
-export function WordAssemblyView() {
+export function WordAssemblyView({ onComplete }: { onComplete?: () => void } = {}) {
   const questionBank = getGameQuestions('match-card')
   const [roundQuestions, setRoundQuestions] = useState(() => drawQuestions(questionBank))
   const [state, setState] = useState(createWordAssemblyState)
@@ -40,6 +40,10 @@ export function WordAssemblyView() {
     }, MISMATCH_REVEAL_MS)
     return () => window.clearTimeout(timer)
   }, [state])
+
+  useEffect(() => {
+    if (score.matchedPairs === 10 && !!answerFinished) onComplete?.()
+  }, [score.matchedPairs, answerFinished, onComplete])
 
   function handleTile(cardId: string) {
     const next = revealWordAssemblyCard(state, cardId)

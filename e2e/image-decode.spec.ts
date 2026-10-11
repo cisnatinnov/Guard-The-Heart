@@ -8,6 +8,7 @@ test('Image Decode advances after a wrong answer and after time runs out', async
   await page.getByRole('navigation', { name: 'Admin views' }).getByRole('link', { name: 'Challenges', exact: true }).click()
   await page.locator('.card--locked', { hasText: 'Image Decode' }).getByRole('button', { name: 'Play' }).click()
 
+  await page.getByText('Play solo instead', { exact: true }).click()
   const answerInput = page.getByRole('textbox', { name: 'Decoded answer' })
   await answerInput.fill('not the answer')
   await page.getByRole('button', { name: 'Decode', exact: true }).click()

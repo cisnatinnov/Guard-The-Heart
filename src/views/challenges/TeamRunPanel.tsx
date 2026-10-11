@@ -20,7 +20,7 @@ export interface TeamRunPanelProps {
   /** True when the solo game screen is shown below the panel. */
   showSolo: boolean
   onStartRun: (run: ChallengeRun) => void
-  onUpdateRun: (run: ChallengeRun) => void
+  onUpdateRun: (run: ChallengeRun) => void | Promise<void>
   onEndRun: () => void
 }
 
@@ -186,10 +186,10 @@ export function TeamRunPanel({
         if (passed.questionResolved) {
           const advanced = ChallengeRunController.nextQuestion(passed)
           setRun(advanced)
-          onUpdateRun(advanced)
+          await onUpdateRun(advanced)
         } else {
           setRun(passed)
-          onUpdateRun(passed)
+          await onUpdateRun(passed)
         }
         return
       }
@@ -200,6 +200,7 @@ export function TeamRunPanel({
         answer: submittedAnswer,
         timedOut,
       })
+      if (outcome.result.error) throw new Error(outcome.result.error)
       setResults([outcome.result])
       setAnswers({})
 
@@ -209,7 +210,7 @@ export function TeamRunPanel({
       if (outcome.run.questionResolved) {
         const advanced = ChallengeRunController.nextQuestion(outcome.run)
         setRun(advanced)
-        onUpdateRun(advanced)
+        await onUpdateRun(advanced)
         setResults([])
         setAnswerMode('self')
         setOpponentId('')
@@ -219,7 +220,7 @@ export function TeamRunPanel({
       // Incorrect answers and timeouts remain on this question. The run state
       // has already moved its turn to the next eligible team.
       setRun(outcome.run)
-      onUpdateRun(outcome.run)
+      await onUpdateRun(outcome.run)
       setAnswerMode('self')
       setOpponentId('')
     } catch (cause) {
@@ -229,11 +230,11 @@ export function TeamRunPanel({
     }
   }
 
-  function nextQuestion() {
+  async function nextQuestion() {
     if (!run) return
     const advanced = ChallengeRunController.nextQuestion(run)
     setRun(advanced)
-    onUpdateRun(advanced)
+    await onUpdateRun(advanced)
     setAnswers({})
     setResults([])
     setAnswerMode('self')

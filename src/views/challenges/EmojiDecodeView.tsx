@@ -8,7 +8,7 @@ import {
   type EmojiDecodeAttempt,
 } from '../../services/games'
 
-export function EmojiDecodeView() {
+export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}) {
   const questions = useMemo(() => getEmojiDecodeQuestions(), [])
   const [attempts, setAttempts] = useState<Record<string, string>>({})
   const [checked, setChecked] = useState<Record<string, boolean>>({})
@@ -48,6 +48,10 @@ export function EmojiDecodeView() {
     }, 1000)
     return () => window.clearInterval(timer)
   }, [answered, current?.id])
+
+  useEffect(() => {
+    if (questions.length > 0 && questions.every((question) => checked[question.id] !== undefined)) onComplete?.()
+  }, [questions, checked, onComplete])
 
   function submit(index: number) {
     const question = questions[index]

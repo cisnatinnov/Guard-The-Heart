@@ -20,6 +20,8 @@ import {
 } from '../services/cardDraw'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 import { MAX_TOTAL_CARD } from '../services/rankRules'
+import { cardDesignKey } from '../data/card-pool'
+import { allocateUniqueCards } from '../services/cardAllocation'
 
 export class CardController {
   static async checkChallengeComplete(challengeId: string): Promise<boolean> {
@@ -109,12 +111,11 @@ export class CardController {
   static async assignAvailableCardsRandomly(challengeId: string): Promise<{ assigned: number; waiting: number }> {
     const cards = await getAvailableDrawnCards(challengeId)
     const eligible = await getEligibleTeamsForChallenge(challengeId)
-    const quotas = new Map<string, number>()
-    const counts = new Map<string, number>()
+    const allocationTeams = []
     for (const team of eligible) {
       const alreadyAssigned = await Card.count({ where: { challenge: challengeId, team: team.teamId } })
-      quotas.set(team.teamId, Math.max(0, team.cardCount - alreadyAssigned))
-      counts.set(team.teamId, await TeamCard.count({ where: { team: team.teamId } }))
+      const owned = await getTeamCards(team.teamId)
+      allocationTeams.push({ id: team.teamId, quota: Math.max(0, Math.min(team.cardCount - alreadyAssigned, MAX_TOTAL_CARD - owned.length)), ownedDesigns: new Set(owned.map(cardDesignKey)) })
     }
 
     for (let i = cards.length - 1; i > 0; i -= 1) {
@@ -122,18 +123,15 @@ export class CardController {
       ;[cards[i], cards[j]] = [cards[j], cards[i]]
     }
 
-    let assigned = 0
-    for (const card of cards) {
-      const candidates = eligible.filter((team) =>
-        (quotas.get(team.teamId) ?? 0) > 0 && (counts.get(team.teamId) ?? 0) < MAX_TOTAL_CARD
-      )
-      if (candidates.length === 0) break
-      const team = candidates[Math.floor(Math.random() * candidates.length)]
-      await assignCardToTeamFn(card.id, team.teamId)
-      quotas.set(team.teamId, (quotas.get(team.teamId) ?? 0) - 1)
-      counts.set(team.teamId, (counts.get(team.teamId) ?? 0) + 1)
-      assigned += 1
+    // Shuffle team preference too; the planner can move earlier choices to avoid
+    // stranding a reward that only one team is allowed to receive.
+    for (let i = allocationTeams.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[allocationTeams[i], allocationTeams[j]] = [allocationTeams[j], allocationTeams[i]]
     }
+    const assignments = allocateUniqueCards(cards, allocationTeams)
+    for (const { card, teamId } of assignments) await assignCardToTeamFn(card.id, teamId)
+    const assigned = assignments.length
 
     if (assigned > 0) {
       dbEvents.emit(DB_EVENTS.CARDS_CHANGED)

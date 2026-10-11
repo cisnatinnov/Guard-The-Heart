@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { JAWS_HIT_POINTS } from '../../services/games'
 import { getGameQuestions, type GameQuestionRecord } from '../../services/gameQuestionCache'
 
-export function JawsOfRiskView() {
+export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {}) {
   const questions = getGameQuestions('jaws-of-risk')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [answer, setAnswer] = useState('')
@@ -10,6 +10,10 @@ export function JawsOfRiskView() {
   const [score, setScore] = useState(0)
   const question: GameQuestionRecord | undefined = questions[questionIndex]
   const complete = questionIndex >= questions.length
+
+  useEffect(() => {
+    if (questions.length > 0 && questionIndex === questions.length - 1 && !!questionResult) onComplete?.()
+  }, [questions.length, questionIndex, questionResult, onComplete])
 
   function submitAnswer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

@@ -1,8 +1,21 @@
-import { Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { displayPath, listenForPublicDisplay } from '../services/publicDisplay'
+import { refreshDatabaseFromStorage } from '../db/sequelize-provider'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useDatabase } from '../hooks/useDatabase'
 
 export function PublicLayout() {
   const { status, error } = useDatabase()
+  const navigate = useNavigate()
+  useEffect(() => {
+    let queue = Promise.resolve()
+    return listenForPublicDisplay((display) => {
+      queue = queue.then(async () => {
+        await refreshDatabaseFromStorage()
+        navigate(displayPath(display))
+      }).catch(console.error)
+    })
+  }, [navigate])
 
   if (status === 'loading') {
     return (

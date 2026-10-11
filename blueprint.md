@@ -13,7 +13,7 @@
 | Challenge |
 | Scoreboard per challenge (Public: read-only; Adm: Choose Challenge, Add entry, Edit CP, Delete) |
 | Leaderboard (Public: read-only; Adm: Recalculate, Save offline copy) |
-| Card Reveal (Public: read-only team collections; Adm: Assign drawn cards to teams, replace at capacity) |
+| Reward Claim and Card Reveal (Public: challenge rewards; Adm: synchronized reward flow plus collection management) |
 - **PWA**: vite-plugin-pwa with Workbox, auto-update service worker, offline caching for static assets
 - **colour themes** (current interface tokens; CSS custom properties live in `src/styles/index.css`)
   - White / card surfaces: `#ffffff`
@@ -85,7 +85,7 @@ d. scoreboard
 
 Constraints: one row per team (unique team). Totals are summed from challenge_point per team
 and rank is derived from total_cp. total_gp is synced from team.total_gp.
-total_card is always 0 on the scoreboard; cards are managed via TeamCard.
+total_card counts the permanent TeamCard collection, capped at 8; GP is read from the related Team.
 e. card
 | Field | type |
 | id | uuid |
@@ -96,6 +96,7 @@ e. card
 | icon | varchar(10) |
 | challenge | uuid(refer to challenge table, nullable) |
 | team | uuid(refer to team table, nullable) |
+| challenge_point | uuid(refer to challenge_point table, nullable) |
 | createdAt | datetime |
 | updatedAt | datetime |
 
@@ -108,10 +109,11 @@ f. team_card
 | effect_action | varchar(225) |
 | icon | varchar(10) |
 | team | uuid(refer to team table, nullable) |
+| challenge_point | uuid(refer to challenge_point table, nullable) |
 | createdAt | datetime |
 | updatedAt | datetime |
 
-Constraints: After the fifth team is entered and the challenge is complete, the host draws bonus cards once via Scoreboard (Adm). Cards are drawn into the challenge pool (with challenge reference, no team). Admin then assigns cards to teams via Card Reveal (Adm) using drag-and-drop or click-to-assign (click a card, then click a team). Each assigned card is linked to the team's ChallengePoint entry and mirrored once in `team_card` as the permanent team collection. If a team reaches 8 cards, admin chooses which card to replace. Drawn cards are saved permanently: later score corrections or removed entries never redraw or return them. Only deleting a challenge returns its cards to the pool.
+Constraints: After the fifth team is entered and the challenge is complete, the host draws bonus cards once via Scoreboard (Adm). Cards are drawn into the challenge pool (with challenge reference, no team). Cards are assigned randomly within quotas; admin can assign waiting cards via Card Reveal (Adm) using drag-and-drop or click-to-assign (click a card, then click a team). Each assigned card is linked to the team's ChallengePoint entry and mirrored once in `team_card` as the permanent team collection. If a team reaches 8 cards, admin chooses which card to replace. Drawn cards are saved permanently: later score corrections or removed entries never redraw or return them. Only deleting a challenge returns its cards to the pool.
 
 g. game_question
 | Field | type |
@@ -134,7 +136,7 @@ Decode, 50 Match Card and 20 Jaws of Risk rows from the reference deck data.
 1. challenge_point accommodates only 5 teams each challenge. A team that has
 entered a challenge keeps its entry; its challenge point is corrected in place, which
 reranks the challenge and the overall scoreboard instead of removing the team.
-2. scoreboard (total challenge_point (total_cp(challenge_point), total_card=0, total_gp) per team)
+2. scoreboard (total challenge_point (total_cp(challenge_point), total_card=count(TeamCard) capped at 8, total_gp from Team) per team)
 3. rank based on challenge_point (challenge_point) and total_cp (scoreboard), 1st rank have the highest and so on until 5th rank. Tied challenge points share a rank and the next rank increments by 1 (standard competition: 1, 2, 2, 3, 4)
 4. guard_power based on rank
 | rank | guard_power |
@@ -181,7 +183,7 @@ and seeded into SQLite's `game_question` table at startup.
    picture cards still form 10 pairs sourced from `public/match-card/`. Players reveal two
    cards at a time; a matching pair remains face up, while a mismatch turns all
    open cards face down after a brief reveal. A matched pair draws the next
-   question from a shuffled selection of ten bank rows. Team runs use one
+   question from a shuffled selection of ten bank rows. Team runs use ten bank questions, with one
    answer per turn before a wrong answer passes to the next team. Each matched pair is worth 10 points, and each
    mismatch costs 5 (100 max). Team-run questions have a 15-second timer and ask
    teams to choose among the bank question's options.
@@ -190,7 +192,7 @@ and seeded into SQLite's `game_question` table at startup.
    has no tooth board, click-tooth action or automatic tooth selection. Answers
    score +10 when correct and −10 when wrong.
 
-The game screen styles follow their references in `public/ui/`: Image Decode
+The admin solo game screen styles follow their references in `public/ui/`: Image Decode
 uses the question-panel styling in `Image_Decode.pptx` with the clue images from
 slides 3–24 stored as WebP files in `public/image-decode/questions/`; Match Card
 uses the hidden and revealed board
@@ -231,7 +233,7 @@ every launch and behave like any other challenge:
 - A built-in row offers **Scoreboard**, **Play** and a deck link when one exists.
   **Play** opens the game's screen, which is a detail view and is not listed in
   the navigation; it is reachable only from its challenge row, and its
-  **← All challenges** button is the only way back. Each challenge also offers
+  **← All challenges** button returns to the challenge list. Each challenge also offers
   **Team run**, letting the host run the challenge question by question with up
   to five teams. One team answers at a time in the order selected when the run
   starts. The turn table highlights the team answering now. Admin controls the
@@ -257,8 +259,7 @@ There is no separate games or Challenges tab. The games are listed as rows on
 the Challenge view, the playing screen is a detail view reachable only from a
 built-in row's Play button. The team run panel is shown within the same detail
 view when the host chooses **Team run**. All other views are reached from the
-top navigation tabs, which now include separate Public and Adm tabs for
-Scoreboard, Leaderboard, and Card Reveal.
+admin navigation links. Public pages use their own routes and the projector window follows the host’s completion and reward actions.
 
 ### Correcting a built-in challenge score
 
@@ -281,3 +282,60 @@ pool and scoreboard rules are unchanged by the games.
 The deck is regenerated with `npm run decks`. The generator writes the ZIP and
 OOXML parts without any PowerPoint dependency and validates the archive and all
 XML parts before writing, so content edits only require re-running the script.
+
+
+## Challenge completion and synchronized rewards
+
+Team runs finish after all 11 Image Decode, 10 Match Card, or 20 Jaws of Risk
+questions are resolved. A correct answer resolves the question; wrong answers
+and Image Decode/Match Card timeouts continue the existing next-team attempt
+flow until the question is resolved or every participating team has tried it.
+The final resolved question automatically saves every participating team's
+score (including zero), then opens `/admin/scoreboard/:challengeId` for the host
+and `/scoreboard/:challengeId` in open public windows. Early **End run** still
+cancels the active run and leaves the public question screen waiting.
+
+Solo screens also open the scoreboard after all eleven Image Decode answers
+or timeouts, ten Match Card pair questions, or twenty Jaws of Risk questions
+are graded. Solo scores continue to require manual entry because solo play has
+no selected team. The 50-question Match Card database bank remains intact;
+team runs use its first ten rows, and solo rounds select ten bank questions.
+
+On the admin scoreboard, **Claim Rewards** opens
+`/admin/rewards/:challengeId` and sends the public display to
+`/rewards/:challengeId`. For a five-team challenge it draws and randomly assigns
+rewards once if they have not been drawn. Revisiting does not redraw. Runs with
+fewer than five participants still show earned rank rewards; the existing
+five-team requirement for drawing remains in force. **Rewards** on the admin
+reward-count screen opens `/admin/cards/:challengeId` and sends the public
+display to `/cards/:challengeId`. `/admin/cards` remains the collection and
+assignment management screen. Cards shown on the reveal belong to that
+challenge through their ChallengePoint link.
+
+Navigation is synchronized through same-origin `localStorage` events between
+windows in the same browser profile. SQLite is flushed before publishing each
+transition, and the public window refreshes its saved database before opening
+the requested view. Direct links remain usable. Public controls do not move
+the admin window. Score correction, rank/GP calculations, collection capacity,
+and the once-only reward draw retain their existing rules.
+
+A team cannot receive the same card design and rarity twice across challenges,
+even when the inventory names have different copy numbers. Automatic assignment,
+manual assignment, and replacement enforce this rule. A startup repair replaces
+older duplicate designs while retaining earned card counts and challenge links,
+preferring the same rarity where inventory permits. Teams remain capped at eight
+cards; unassignable rewards wait in the pool.
+
+Admin and public scoreboards use the artwork from slide 9 of
+`Guard The Heart_Main PPT.pptx` (`public/ui/scoreboard-slide9.png`), with live
+challenge names, ranks and points. Admin editing controls sit below the board.
+Public leaderboards use `Page_Leaderboard.jpeg`; the leaderboard has no total-score column. Shared public
+Q&A uses the orange question/answer frame. Reward counts and card reveals use
+backgrounds extracted from slides 11 and 12 of `Guard The Heart_Main PPT.pptx`.
+`src/styles/layout.css` and `src/styles/rewards.css` maintain spacing and proportions.
+
+Validation: `npm test` covers game rules, database/controller flows and duplicate
+card protection. `npm run test:e2e -- --workers=1` covers completion of each
+challenge, Image Decode's final timeout, two-window reward navigation, once-only
+claiming, unique five-team rewards, score correction, leaderboard and reload.
+`npm run lint` and `npm run build` check source and production output.

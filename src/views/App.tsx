@@ -8,6 +8,7 @@ import { ChallengePointAdminView } from './ChallengePointAdminView'
 import { ScoreboardTotalPublicView } from './ScoreboardTotalPublicView'
 import { ScoreboardTotalAdminView } from './ScoreboardTotalAdminView'
 import { CardRevealPublicView } from './CardRevealPublicView'
+import { RewardClaimPublicView } from './RewardClaimPublicView'
 import { CardRevealAdminView } from './CardRevealAdminView'
 import { GameView } from './challenges/GameView'
 import { PublicLayout } from './PublicLayout'
@@ -48,7 +49,8 @@ export function App() {
           <Route element={<PublicLayout />}>
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
-            <Route path="/cards" element={<CardRevealPublicView />} />
+            <Route path="/rewards/:challengeId?" element={<RewardClaimPublicView />} />
+            <Route path="/cards/:challengeId?" element={<CardRevealPublicView />} />
             <Route path="/play/:gameId/:challengeId?" element={<GameView />} />
           </Route>
 
@@ -58,6 +60,8 @@ export function App() {
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />
+            <Route path="/admin/rewards/:challengeId?" element={<RewardClaimPublicView admin />} />
+            <Route path="/admin/cards/:challengeId" element={<RewardClaimPublicView admin reveal />} />
             <Route path="/admin/cards" element={<CardRevealAdminView />} />
             <Route path="/admin/play/:gameId/:challengeId?" element={<GameView />} />
           </Route>

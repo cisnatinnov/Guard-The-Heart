@@ -1,3 +1,7 @@
+import { refreshDatabaseFromStorage } from '../../db/sequelize-provider'
+import { useEffect, useState } from 'react'
+import { ChallengeRunController } from '../../controllers/ChallengeRunController'
+import { displayPath, publishPublicDisplay } from '../../services/publicDisplay'
 import { useParams, useNavigate } from 'react-router-dom'
 import { CHALLENGE_GAMES, type ChallengeGameId } from '../../services/games'
 import { useChallenges } from '../../hooks/useChallenges'
@@ -7,17 +11,17 @@ import { TeamRunPanel } from './TeamRunPanel'
 import { EmojiDecodeView } from './EmojiDecodeView'
 import { WordAssemblyView } from './WordAssemblyView'
 import { JawsOfRiskView } from './JawsOfRiskView'
+import { PublicQuestionView } from './PublicQuestionView'
 
-function GameScreen({ id }: { id: ChallengeGameId }) {
-  if (id === 'emoji-decode') return <EmojiDecodeView />
-  if (id === 'word-assembly') return <WordAssemblyView />
-  return <JawsOfRiskView />
+function GameScreen({ id, onComplete }: { id: ChallengeGameId; onComplete: () => void }) {
+  if (id === 'emoji-decode') return <EmojiDecodeView onComplete={onComplete} />
+  if (id === 'word-assembly') return <WordAssemblyView onComplete={onComplete} />
+  return <JawsOfRiskView onComplete={onComplete} />
 }
 
 /**
  * The playing screen for one built-in challenge. It is deliberately not a tab:
- * the only way in is a built-in challenge row on the Challenge view, and the
- * back button is the only way out.
+ * opened from a built-in challenge row. Completed runs open the scoreboard.
  *
  * A team run scores each team's answers straight onto the challenge scoreboard,
  * so while one is running the solo screen is hidden to avoid two scoring paths
@@ -26,23 +30,38 @@ function GameScreen({ id }: { id: ChallengeGameId }) {
 export function GameView() {
   const params = useParams<{ gameId?: string; challengeId?: string }>()
   const navigate = useNavigate()
+  const [completionError, setCompletionError] = useState<string | null>(null)
   const { challenges } = useChallenges()
   
   const gameId = params.gameId as ChallengeGameId | undefined
-  if (!gameId) return null
-  
   const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
-  if (!game) return null
-
-  const matchingChallenge = challenges.find((challenge) => challenge.name === game.title)
-  const challengeId = params.challengeId ?? matchingChallenge?.id ?? game.challengeId
+  const matchingChallenge = challenges.find((challenge) => challenge.name === game?.title)
+  const challengeId = params.challengeId ?? matchingChallenge?.id ?? game?.challengeId ?? ''
 
   const isAdmin = window.location.pathname.startsWith('/admin')
   const backPath = isAdmin ? '/admin/challenges' : '/challenges'
-  const run = useSharedChallengeRun(game.id, challengeId)
+  const run = useSharedChallengeRun(game?.id ?? 'emoji-decode', challengeId)
+  useEffect(() => {
+    let cancelled = false
+    if (!isAdmin && run && ChallengeRunController.complete(run)) {
+      void refreshDatabaseFromStorage().then(() => {
+        if (!cancelled) navigate(`/scoreboard/${encodeURIComponent(challengeId)}`, { replace: true })
+      }).catch(console.error)
+    }
+    return () => { cancelled = true }
+  }, [isAdmin, run, challengeId, navigate])
+  if (!game || !gameId) return null
 
-  const publishRun = (nextRun: ChallengeRun | null) => {
-    if (isAdmin) publishSharedChallengeRun(game.id, challengeId, nextRun)
+  if (!isAdmin) return <PublicQuestionView key={`${game.id}:${challengeId}`} gameId={game.id} run={run} />
+
+  const publishRun = async (nextRun: ChallengeRun) => {
+    if (!isAdmin) return
+    if (ChallengeRunController.complete(nextRun)) {
+      await ChallengeRunController.syncAll(nextRun)
+      await publishPublicDisplay('scoreboard', challengeId)
+      publishSharedChallengeRun(game.id, challengeId, nextRun)
+      navigate(displayPath({ stage: 'scoreboard', challengeId }, true))
+    } else publishSharedChallengeRun(game.id, challengeId, nextRun)
   }
 
   const startSharedRun = (nextRun: ChallengeRun) => {
@@ -50,6 +69,12 @@ export function GameView() {
     publishSharedChallengeRun(game.id, challengeId, nextRun)
     const publicPath = `/play/${game.id}/${challengeId}`
     window.open(publicPath, `guard-the-heart-public-${game.id}-${challengeId}`, 'popup=yes,width=1440,height=920')
+  }
+
+  const completeSolo = () => {
+    void publishPublicDisplay('scoreboard', challengeId).then(() => {
+      navigate(displayPath({ stage: 'scoreboard', challengeId }, true))
+    }).catch((cause: unknown) => setCompletionError(cause instanceof Error ? cause.message : String(cause)))
   }
 
   const endSharedRun = () => {
@@ -87,6 +112,7 @@ export function GameView() {
             )}
           </div>
 
+          {completionError && <p className="alert alert--error">{completionError}</p>}
           <TeamRunPanel
             key={`${game.id}:${challengeId}`}
             gameId={game.id}
@@ -112,7 +138,7 @@ export function GameView() {
             <details className="game-stage__solo">
               <summary>Play solo instead</summary>
               <div className="game-stage__solo-content">
-                <GameScreen id={gameId} />
+                <GameScreen id={gameId} onComplete={completeSolo} />
               </div>
             </details>
           )}

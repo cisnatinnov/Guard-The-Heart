@@ -142,6 +142,11 @@ export function cardImageFor(name: string): string | null {
   return IMAGE_BY_NAME.get(name) ?? null
 }
 
+/** Numbered inventory copies of the same rarity/design share one identity. */
+export function cardDesignKey(card: { name: string; type: CardType }): string {
+  return `${card.type}|${cardImageFor(card.name) ?? cardTitleFor(card.name, card.type)}`
+}
+
 export function cardTitleFor(name: string, type: CardType): string {
   const design = CARD_DESIGNS.find((candidate) => IMAGE_BY_NAME.get(name) === designImage(candidate))
   return design && design.type === type ? design.title : name

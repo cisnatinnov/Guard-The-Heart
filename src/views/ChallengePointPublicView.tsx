@@ -6,6 +6,8 @@ import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import type { ChallengePointEntry } from '../controllers/ChallengePointController'
 import { DB_EVENTS } from '../hooks/useDbEvents'
 
+import { PublicRankingBoard } from './PublicRankingBoard'
+
 const EMPTY_ENTRIES: ChallengePointEntry[] = []
 
 export function ChallengePointPublicView() {
@@ -38,46 +40,14 @@ export function ChallengePointPublicView() {
     void load(activeId)
   })
 
-  if (challenges.length === 0) {
-    return (
-      <section className="view">
-        <p className="muted">No challenges are available yet.</p>
-      </section>
-    )
-  }
-
   return (
-    <section className="view">
-      {error && <p className="alert alert--error">{error}</p>}
-
-      {entries.length === 0 ? (
-        <p className="muted">No entries for this challenge yet.</p>
-      ) : (
-        <div className="board-panel">
-          <div className="board-banner">
-            <span className="board-banner__title">Score Board</span>
-            <span className="board-banner__sub">{activeChallenge?.name ?? 'Challenge'}</span>
-          </div>
-          <div className="board-medals" aria-hidden="true">
-            <span className="board-medals__item board-medals__item--sword">⚔</span>
-            <span className="board-medals__item board-medals__item--shield">🛡</span>
-            <span className="board-medals__item board-medals__item--star">★</span>
-          </div>
-          <ol className="board board--public" aria-label="Challenge ranking">
-            {entries.map((entry) => (
-              <li key={entry.id} className={`board__row board__row--${Math.min(entry.rank, 5)}`}>
-                <span className="rank-badge" aria-label={`Rank ${entry.rank}`}>
-                  {entry.rank}
-                </span>
-                <span className="board__team">{entry.teamRef?.name ?? '—'}</span>
-                <span className="board__points" title="Challenge point">
-                  {entry.challenge_point}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+    <section className="view view--public-ranking">
+      <PublicRankingBoard
+        variant="scoreboard"
+        challenge={activeChallenge?.name}
+        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.challenge_point }))}
+        message={error ?? (challenges.length === 0 ? 'No challenges are available yet.' : entries.length === 0 ? 'No entries for this challenge yet.' : undefined)}
+      />
     </section>
   )
 }

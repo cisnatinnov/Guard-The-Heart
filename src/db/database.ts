@@ -1,7 +1,7 @@
 import { initDatabase, getSequelize } from './sequelize-provider'
 import { DataTypes } from 'sequelize'
 import { defineModels } from '../models'
-import { seedCardPool, synchronizeAllChallengeBonusCards } from '../services/cardDraw'
+import { seedCardPool, synchronizeAllChallengeBonusCards, repairDuplicateTeamCards } from '../services/cardDraw'
 import { seedLockedChallenges } from '../services/challengeSeeds'
 import { seedGameQuestions } from '../services/gameQuestionSeeds'
 
@@ -51,6 +51,7 @@ export function initializeAppDatabase(): Promise<void> {
       await seedLockedChallenges()
       await seedGameQuestions()
       await seedCardPool()
+      await repairDuplicateTeamCards()
       await synchronizeAllChallengeBonusCards()
     })()
   }

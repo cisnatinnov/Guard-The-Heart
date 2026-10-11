@@ -1,0 +1,221 @@
+/* Shared spacing and proportions; presenter artwork remains a single canvas. */
+.app--admin {
+  --bg: #fff9f2;
+  --surface: #fff;
+  --surface-2: #fff8ee;
+  --border: #e6d9c8;
+  --text: #263639;
+  --muted: #586a6d;
+  --accent-strong: #a9470c;
+  --danger: #be392a;
+  --danger-soft: rgb(190 57 42 / 10%);
+  --accent-soft: rgb(244 130 32 / 12%);
+  width: min(100%, 1240px);
+  padding: clamp(16px, 3vw, 32px);
+  gap: 24px;
+  color: var(--text);
+  color-scheme: light;
+  background: #fff9f2;
+  min-height: 100dvh;
+}
+.app--admin .app__header {
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgb(100 57 20 / 5%);
+}
+.app--admin .app__header-top {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  align-items: center;
+  gap: 24px;
+}
+.app--admin .app__brand { min-width: 0; }
+.app--admin .app__logo-link { gap: 12px; }
+.app--admin .app__logo { width: 80px; height: 80px; }
+.app--admin .app__brand h1 { font-size: clamp(20px, 2vw, 26px); line-height: 1.2; }
+.app--admin .app__tagline { margin-top: 6px; line-height: 1.4; }
+.app--admin .app__characters { gap: 6px; padding: 6px; background: #fff6e8; border-radius: 14px; }
+.app--admin .app__character,
+.app--admin .app__character--mascot { width: 72px; border-radius: 10px; }
+.app--admin .app__character img,
+.app--admin .app__character--mascot img { height: 78px; object-fit: contain; }
+.app--admin .app__character figcaption { font-size: 9px; letter-spacing: 0; padding: 4px 2px; }
+.app--admin .app__risk-card { width: 140px; border-radius: 12px; }
+.tabs--admin { gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+.tabs--admin .tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.tabs--admin .tab:hover { border-color: #027479; }
+.tabs--admin .tab:focus-visible { outline: 3px solid #027479; outline-offset: 3px; }
+.app--admin .view { gap: 20px; min-width: 0; }
+.app--admin .view__header h2 { font-size: clamp(22px, 2.5vw, 28px); line-height: 1.25; }
+.app--admin .view__hint { max-width: 72ch; line-height: 1.6; }
+.app--admin button,
+.app--admin .deck-link { min-height: 42px; padding: 10px 14px; border-radius: 10px; font-size: 14px; line-height: 1.25; }
+.app--admin button { color: #fff; }
+.app--admin button.ghost { color: var(--text); }
+.app--admin button.danger { color: var(--danger); }
+.app--admin input:not([type='checkbox']):not([type='radio']),
+.app--admin select { min-height: 44px; padding: 10px 12px; width: 100%; }
+.app--admin .field { gap: 6px; font-size: 13px; font-weight: 600; }
+.app--admin .row-form { gap: 12px; }
+.app--admin .row-form > .field { flex: 1 1 220px; max-width: 420px; }
+.app--admin .row-form input[type='text'] { width: auto; }
+.app--admin .grid-form { padding: 20px; gap: 16px; border-radius: 16px; }
+.app--admin .team-list-toolbar { gap: 16px; padding: 16px; background: #fff; border: 1px solid var(--border); border-radius: 14px; }
+.app--admin .card-list { gap: 12px; }
+.app--admin .card { padding: 18px 20px; border-radius: 14px; }
+.app--admin .card__body { gap: 12px; }
+.app--admin .card__title { min-width: 0; overflow-wrap: anywhere; font-size: 16px; }
+.app--admin .card__actions { align-items: center; gap: 8px; }
+.app--admin .card__note { margin-top: 10px; max-width: 80ch; color: var(--muted); line-height: 1.5; }
+.app--admin .alert { margin: 0; padding: 14px 16px; line-height: 1.5; }
+.app--admin .alert--error { color: #8e271d; }
+.app--admin .alert--info { color: #165d59; }
+.app--admin .board-panel { padding: 52px 20px 20px; color: #263639; }
+.board-banner { width: min(90%, 36rem); min-width: 0; }
+.board-banner__title { line-height: 1.2; }
+.board-banner__sub { margin-top: 4px; letter-spacing: 0.06em; }
+.app--admin .board__row { grid-template-columns: 56px minmax(0, 1fr) auto 80px; gap: 16px; padding: 10px 14px; font-size: 16px; }
+.app--admin .board__actions { flex-wrap: wrap; justify-content: flex-end; }
+.app--admin .board__points { font-size: 22px; }
+.app--admin .leaderboard { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 16px; align-items: stretch; }
+.app--admin .leaderboard__card { padding: 20px 12px; gap: 10px; }
+.app--admin .leaderboard__team { min-height: 3.9em; display: grid; place-items: center; line-height: 1.3; letter-spacing: 0; }
+.app--admin .leaderboard__scores { margin-top: auto; width: 100%; }
+.app--admin .leaderboard__score { align-items: center; gap: 8px; }
+.app--admin .leaderboard__score-name { overflow-wrap: anywhere; }
+.app--admin .run-panel { padding: 24px; gap: 20px; }
+.app--admin .run-panel__header { align-items: flex-start; }
+.app--admin .run-panel__prompt { max-width: 75ch; font-size: 18px; line-height: 1.5; }
+.app--admin .run-panel .muted { line-height: 1.5; }
+.app--admin .run-panel th,
+.app--admin .run-panel td { padding: 14px 16px; vertical-align: middle; }
+.app--admin .run-panel__answers table { min-width: 640px; }
+.app--admin .game-stage__intro h2 { color: #7e3510; text-shadow: none; }
+.app--admin .game-stage__intro .view__hint,
+.app--admin .rule-list { color: var(--muted); }
+.app--admin .game__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.app--admin .app__footer { padding-top: 16px; border-top: 1px solid var(--border); line-height: 1.5; }
+.app__footer a { color: #027479; }
+
+/* Cards retain their natural proportions at every viewport width. */
+.card-reveal__teams { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important; gap: 20px; }
+.card-reveal__team { padding: 0 14px 14px; gap: 14px; }
+.card-reveal__name { min-height: 52px; display: grid; place-items: center; line-height: 1.35; }
+.card-reveal__eligibility { min-height: 32px; align-items: center; }
+.card-reveal__cards { gap: 10px; }
+.card-reveal__count { margin-top: auto; }
+.card-art { min-width: 0; }
+.card-art--reveal { width: 100%; }
+.card-art--reward { width: 74px; }
+.card-art img { width: 100%; height: auto; object-fit: contain; }
+.reveal-card__name { white-space: normal; overflow-wrap: anywhere; line-height: 1.3; }
+.app--public:not(:has(.public-ranking, .qa-stage, .reward-stage)) { width: min(100%, 1440px); max-width: 1440px; padding: clamp(16px, 3vw, 32px); }
+.app--public .card-reveal { color: #263639; }
+
+/* Public question typography stays inside the illustrated frame. */
+.qa-stage__header { gap: 0; }
+.qa-stage__heading { min-width: 0; }
+.qa-stage__heading h1 { font-size: 2.2cqw; }
+.qa-stage__question h2 { font-size: 2.6cqw; line-height: 1.35; overflow-wrap: anywhere; text-wrap: pretty; }
+.qa-stage__answer { scrollbar-width: thin; scrollbar-color: #db8d38 transparent; }
+.qa-stage__options { align-items: start; font-size: 1.4cqw; line-height: 1.25; }
+.public-ranking__team { text-overflow: ellipsis; }
+.public-ranking--leaderboard .public-ranking__team { display: block; align-content: center; font-size: 1.65cqw !important; }
+.public-ranking--scoreboard .public-ranking__team { display: block; align-content: center; }
+.public-ranking__challenge { padding-inline: 8px; font-size: 1.8cqw; }
+
+@media (max-width: 1024px) {
+  .app--admin .app__header-top { grid-template-columns: minmax(0, 1fr) auto; gap: 16px; }
+  .app--admin .app__risk-card { display: none; }
+  .app--admin .team-list-toolbar { grid-template-columns: 1fr 1fr; }
+  .app--admin .board__row { gap: 12px; }
+}
+@media (max-width: 680px) {
+  .app--admin { padding: 16px 12px; gap: 20px; }
+  .app--admin .app__header { padding: 16px; gap: 16px; }
+  .app--admin .app__header-top { grid-template-columns: minmax(0, 1fr); }
+  .app--admin .app__characters { display: none; }
+  .app--admin .app__logo { width: 64px; height: 64px; }
+  .tabs--admin { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .tabs--admin .tab { padding-inline: 8px; width: 100%; }
+  .tabs--admin .tab--public-link { margin: 0; }
+  .app--admin .card { padding: 16px; }
+  .app--admin .card__actions { width: 100%; }
+  .app--admin .card__actions button { flex: 1 1 auto; }
+  .app--admin .row-form > button { flex: 1 1 auto; }
+  .app--admin .row-form > .field { max-width: none; }
+  .app--admin .grid-form { grid-template-columns: 1fr; padding: 16px; }
+  .app--admin .team-list-toolbar { grid-template-columns: 1fr; padding: 16px; }
+  .app--admin .board-panel { padding: 60px 12px 16px; border-radius: 16px; }
+  .app--admin .board-banner { width: 90%; min-width: 0; max-width: 90%; padding: 8px 12px; }
+  .app--admin .board-banner__title { font-size: 18px; }
+  .app--admin .board__row { grid-template-columns: 44px minmax(0, 1fr) 64px; gap: 10px; padding: 12px 10px; }
+  .app--admin .board__actions { grid-column: 1 / -1; grid-row: 2; justify-content: stretch; }
+  .app--admin .board__actions button { flex: 1; }
+  .app--admin .board__points { grid-column: 3; grid-row: 1; }
+  .app--admin .rank-badge { max-width: 44px; }
+  .app--admin .leaderboard { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .app--admin .leaderboard__card { padding-inline: 8px; }
+  .app--admin .leaderboard__team { font-size: 14px; }
+  .app--admin .run-panel { padding: 16px; }
+  .app--admin .run-panel__header { flex-direction: column; }
+  .app--admin .run-panel__answers .table-wrap { margin: 0; }
+  .app--admin .pagination { align-items: flex-start; gap: 12px; }
+  .app--admin .pagination__controls { flex-wrap: wrap; gap: 8px; }
+  .card-reveal__teams { grid-template-columns: 1fr !important; }
+}
+
+/* Portrait Q&A keeps the same question/answer hierarchy with readable text. */
+@media (max-width: 680px) and (orientation: portrait) {
+  .qa-stage {
+    width: 100%; min-height: 100dvh; aspect-ratio: auto;
+    display: flex; flex-direction: column; gap: 16px;
+    padding: 20px 16px; border-width: 3px; border-radius: 0;
+  }
+  .qa-stage__header { position: static; height: auto; display: grid; grid-template-columns: 56px minmax(0, 1fr) 72px; gap: 8px; }
+  .qa-stage__logo { width: 56px; height: 64px; }
+  .qa-stage__heading { width: 100%; height: 64px; padding: 8px 14px; border-width: 2px; }
+  .qa-stage__heading h1 { font-size: 16px; }
+  .qa-stage__heading span { font-size: 11px; white-space: normal; }
+  .qa-stage__timer { width: 72px; height: 56px; margin: 0; gap: 4px; border-width: 3px; font-size: 18px; }
+  .qa-stage__timer span { font-size: 16px; }
+  .qa-stage__frame { display: none; }
+  .qa-stage__question {
+    position: static; width: 100%; min-height: 300px; height: auto;
+    flex: 1; padding: 24px 16px; overflow: visible;
+    border: 4px solid #f7830b; border-radius: 16px;
+    background: linear-gradient(#fffdf0, #f4d49c);
+    box-shadow: inset 0 0 0 2px #ffc458;
+  }
+  .qa-stage__question h2 { font-size: 22px; line-height: 1.4; }
+  .qa-stage__question p { font-size: 20px; }
+  .qa-stage__question img { width: 100%; height: auto; max-height: 45dvh; object-fit: contain; }
+  .qa-stage__answer-label {
+    position: static; width: 170px; height: 36px; align-self: center;
+    margin: -34px 0 -28px; z-index: 1;
+    border: 3px solid #ffbd30; background: #a7311a;
+    clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
+    font-size: 15px;
+  }
+  .qa-stage__answer {
+    position: static; width: 100%; height: auto; min-height: 120px;
+    padding: 32px 16px 20px; overflow: visible;
+    border: 4px solid #f7830b; border-radius: 16px;
+    background: linear-gradient(#fffdf0, #f4d49c); font-size: 16px;
+  }
+  .qa-stage__options { grid-template-columns: 1fr; gap: 12px; font-size: 16px; line-height: 1.45; }
+}

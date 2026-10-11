@@ -161,7 +161,7 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
     secondsPerQuestion: EMOJI_DECODE_SECONDS_PER_QUESTION,
   }),
   'word-assembly': () => {
-    const questions = wordAssemblyQuestions()
+    const questions = wordAssemblyQuestions().slice(0, 10)
     return {
       questions,
       pointsPerQuestion: WORD_ASSEMBLY_MATCH_POINTS,

@@ -1,0 +1,112 @@
+.app--public:has(.reward-stage) {
+  width: 100%; max-width: none; min-height: 100dvh;
+  margin: 0; padding: 0; background: #102b42;
+}
+.app--public:has(.reward-stage) .app__main { display: grid; min-height: 100dvh; place-items: center; }
+.reward-stage {
+  position: relative; width: min(100vw, 177.777778dvh); aspect-ratio: 16 / 9;
+  container-type: inline-size; isolation: isolate;
+  color: #451408; font-family: Georgia, serif;
+}
+.reward-stage__art { display: block; width: 100%; height: 100%; }
+.reward-stage__toolbar {
+  position: absolute; z-index: 2; right: 2%; top: 2%;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 0.5cqw;
+}
+.reward-stage__challenge select,
+.reward-stage__toolbar a,
+.reward-stage__toolbar button {
+  display: block; max-width: 22cqw; padding: 0.45cqw 0.8cqw;
+  border: 0.12cqw solid #ed8e18; border-radius: 0.6cqw;
+  background: #fff7e7; color: #5d230b;
+  font: 700 1.1cqw/1.3 Arial, sans-serif;
+  text-decoration: none;
+}
+.reward-stage__rows { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+.reward-stage__row {
+  --reward-wash: linear-gradient(110deg, #fff0a6, #ffe28a);
+  position: absolute; left: 0; width: 100%;
+  top: calc(35.7% + var(--slot) * 10.9%); height: 10%;
+}
+.reward-stage__row--2 { --reward-wash: linear-gradient(110deg, #b6d9f5, #c5dff3); }
+.reward-stage__row--3 { --reward-wash: linear-gradient(110deg, #f8cca9, #ffe1c2); }
+.reward-stage__row--4,
+.reward-stage__row--5 { --reward-wash: linear-gradient(110deg, #f9ead2, #fff2dc); }
+.reward-stage__team {
+  position: absolute; left: 28.4%; top: 9%; width: 13.35%; height: 80%;
+  display: block; align-content: center; overflow: hidden;
+  background: var(--reward-wash);
+  font-size: 2cqw; font-weight: 700; line-height: 1.2;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.reward-stage__earned {
+  position: absolute; left: 44.3%; top: 0; width: 25.3%; height: 100%;
+  display: flex; align-items: center; gap: 1.1cqw; padding: 0.25cqw;
+  background: var(--reward-wash);
+}
+.reward-stage__earned strong { white-space: nowrap; font-size: 2.1cqw; }
+.reward-stage__backs { display: flex; height: 100%; gap: 0.55cqw; align-items: center; }
+.reward-stage__backs img { display: block; height: 100%; max-width: 4.2cqw; object-fit: contain; }
+.reward-stage__gp {
+  position: absolute; left: 78.8%; width: 5.65%; top: 13%; height: 74%;
+  display: grid; place-items: center;
+  background: #fff0db; color: #a8160c; font-size: 3.2cqw; font-weight: 700;
+}
+.reward-stage__rank { position: absolute; left: 20.15%; top: 15%; width: 2.05%; height: 65%; }
+.reward-stage__rank-value { display: grid; place-items: center; width: 100%; height: 100%; background: #95160b; color: white; font-size: 3cqw; font-weight: 700; }
+.reward-stage__row--2 .reward-stage__rank-value { background: #1e5093; }
+.reward-stage__row--3 .reward-stage__rank-value { background: #8d250e; }
+.reward-stage__row--4 .reward-stage__rank-value,
+.reward-stage__row--5 .reward-stage__rank-value { background: #683711; }
+.reward-stage__tabs {
+  position: absolute; left: 13.15%; top: 25.8%; width: 73.9%; height: 5.35%;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.55cqw;
+}
+.reward-stage__tab {
+  min-width: 0; border: 0; border-radius: 0; padding: 0.4cqw;
+  background: linear-gradient(#ffd47c, #f6b75b); color: #471700;
+  font: 700 1.65cqw/1.2 Arial, sans-serif;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  clip-path: polygon(4% 0, 96% 0, 100% 50%, 96% 100%, 4% 100%, 0 50%);
+}
+.reward-stage__tab--active { background: linear-gradient(#f02306, #af1000); color: white; }
+.reward-stage__tab:disabled { opacity: 1; color: #734a2d; }
+.reward-stage__tab:hover:not(:disabled) { transform: none; background: #ffc26b; color: #471700; }
+.reward-stage__tab--active:hover:not(:disabled) { background: #c51a06; color: white; }
+.reward-stage__cards {
+  position: absolute; left: 11.8%; top: 39.5%; width: 76.3%; height: 46.2%;
+  display: flex; align-items: center; justify-content: center; gap: 3cqw; padding: 1cqw 5cqw 2cqw;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 4cqw, rgb(240 75 6 / 6%) 4cqw 8cqw),
+    radial-gradient(ellipse at center, #c03b07, #8a1505 76%);
+}
+.reward-stage__card {
+  display: grid; place-items: center; flex: 0 1 auto;
+  width: min(17.1cqw, calc((63cqw - (var(--cards) - 1) * 3cqw) / var(--cards)));
+  max-height: 100%; aspect-ratio: 1040 / 1500;
+  margin: 0; padding: 0; border: 0; border-radius: 1cqw;
+  background: transparent; color: #fff;
+  filter: drop-shadow(0 0 0.4cqw #ff9a24);
+}
+.reward-stage__card > img,
+.reward-stage__card .card-art,
+.reward-stage__card .card-art img { display: block; width: 100%; height: 100%; object-fit: contain; margin: 0; }
+.reward-stage__card:hover:not(:disabled) { transform: translateY(-0.3cqw); filter: drop-shadow(0 0 0.6cqw #ffe579); }
+.reward-stage__card--revealed { animation: reward-card-reveal 260ms ease-out; }
+.reward-stage__empty { max-width: 50cqw; margin: 0; text-align: center; color: #fff6d9; font: 700 2cqw/1.4 Arial, sans-serif; }
+.reward-stage__reveal-actions {
+  position: absolute; left: 35%; top: 84%; width: 30%;
+  display: flex; align-items: center; justify-content: center; gap: 1cqw;
+  color: #fff3c4; font: 700 1.2cqw/1.2 Arial, sans-serif;
+}
+.reward-stage__reveal-actions button { min-height: 0; padding: 0.35cqw 0.8cqw; border: 0.12cqw solid #ffc762; border-radius: 0.5cqw; background: #8f200a; color: #fff3c4; font: inherit; }
+.reward-stage__next { position: absolute; left: 85.3%; top: 85.9%; width: 13%; height: 11%; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.reward-stage--reveal .reward-stage__next { left: 82%; top: 84.8%; width: 14.8%; height: 11.5%; }
+.reward-stage__next:hover:not(:disabled) { background: rgb(255 255 255 / 12%); transform: none; }
+.reward-stage__next:disabled { background: rgb(72 27 4 / 35%); }
+.reward-stage button:focus-visible,
+.reward-stage a:focus-visible,
+.reward-stage select:focus-visible { outline: 0.3cqw solid #fff5a6; outline-offset: 0.2cqw; }
+.reward-stage__status { position: absolute; left: 30%; bottom: 2%; width: 40%; margin: 0; padding: 0.45cqw; border-radius: 0.5cqw; background: #fff7e5; color: #65220a; text-align: center; font: 700 1.3cqw/1.3 Arial, sans-serif; }
+@keyframes reward-card-reveal { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
+@media (prefers-reduced-motion: reduce) { .reward-stage__card--revealed { animation: none; } }

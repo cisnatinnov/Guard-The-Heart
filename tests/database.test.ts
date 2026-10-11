@@ -1,3 +1,4 @@
+import { challengeQuestionsFor } from '../src/services/games/challengeQuestions'
 import { describe, it, expect, beforeAll } from 'vitest'
 import { initializeAppDatabase } from '../src/db/database'
 import { getSequelize } from '../src/db/sequelize-provider'
@@ -83,6 +84,9 @@ describe('database bootstrap', () => {
   it('persists the PPTX question and answer banks in SQLite', async () => {
     expect(await GameQuestion.count({ where: { game_key: 'image-decode' } })).toBe(11)
     expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(50)
+    expect(challengeQuestionsFor('word-assembly').questions).toHaveLength(10)
+    expect(challengeQuestionsFor('emoji-decode').questions).toHaveLength(11)
+    expect(challengeQuestionsFor('jaws-of-risk').questions).toHaveLength(20)
     expect(await GameQuestion.count({ where: { game_key: 'jaws-of-risk' } })).toBe(20)
     const first = await GameQuestion.findOne({ where: { game_key: 'image-decode', number: 1 } })
     expect(first?.prompt).toBe('Nasabah')

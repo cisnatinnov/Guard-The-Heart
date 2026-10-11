@@ -1,6 +1,7 @@
 import { Op } from 'sequelize'
 import { Card, Challenge, ChallengePoint, Team, TeamCard, type CardEffect, type CardType } from '../models'
-import { CARD_POOL as CARD_CATALOG } from '../data/card-pool'
+import { CARD_POOL as CARD_CATALOG, cardDesignKey } from '../data/card-pool'
+import { MAX_TOTAL_CARD } from './rankRules'
 
 async function findChallengePointForCard(card: Card, teamId: string): Promise<ChallengePoint | null> {
   if (!card.challenge) return null
@@ -56,9 +57,14 @@ export function availablePoolCards(drawnKeys: ReadonlySet<string>): CardPoolEntr
   return CARD_POOL.filter((entry) => !drawnKeys.has(poolEntryKey(entry)))
 }
 
-export function drawCardsFromPool(drawnKeys: Set<string>, count: number): CardPoolEntry[] {
-  const picked = shuffle(availablePoolCards(drawnKeys)).slice(0, Math.max(0, Math.trunc(count)))
-  for (const card of picked) {
+export function drawCardsFromPool(drawnKeys: Set<string>, count: number, excludedDesigns: ReadonlySet<string> = new Set()): CardPoolEntry[] {
+  const picked: CardPoolEntry[] = []
+  const designs = new Set(excludedDesigns)
+  for (const card of shuffle(availablePoolCards(drawnKeys))) {
+    if (picked.length >= Math.max(0, Math.trunc(count))) break
+    if (designs.has(cardDesignKey(card))) continue
+    picked.push(card)
+    designs.add(cardDesignKey(card))
     drawnKeys.add(poolEntryKey(card))
   }
   return picked
@@ -278,7 +284,8 @@ async function drawChallengeCardsOnce(challengeId: string): Promise<Card[]> {
     // Rank 1: 3 cards, Rank 2: 2 cards, Rank 3: 2 cards, Rank 4: 1 card, Rank 5: 0 cards
     const cardRewardsByRank: Record<number, number> = { 1: 3, 2: 2, 3: 2, 4: 1, 5: 0 }
     const cardCount = cardRewardsByRank[entry.rank] ?? 0
-    for (const cardData of drawCardsFromPool(drawnPoolKeys, cardCount)) {
+    const ownedDesigns = new Set((await getTeamCards(entry.team)).map(cardDesignKey))
+    for (const cardData of drawCardsFromPool(drawnPoolKeys, cardCount, ownedDesigns)) {
       const poolCard = await Card.findOne({
         where: {
           name: cardData.name,
@@ -334,6 +341,18 @@ export async function synchronizeAllChallengeBonusCards(): Promise<void> {
  * If team already has 8 cards, the admin must choose one to replace.
  */
 export async function assignCardToTeam(cardId: string, teamId: string): Promise<TeamCard> {
+  return serializePoolOperation(() => assignUniqueCardToTeam(cardId, teamId))
+}
+
+async function ensureUniqueTeamCard(teamId: string, card: Card, excludeId?: string): Promise<void> {
+  const owned = await getTeamCards(teamId)
+  if (owned.some((entry) => entry.id !== excludeId && cardDesignKey(entry) === cardDesignKey(card))) {
+    throw new Error('This team already owns this card design. Choose a different card.')
+  }
+  if (!excludeId && owned.length >= MAX_TOTAL_CARD) throw new Error(`Team already has ${MAX_TOTAL_CARD} cards. Replace a card instead.`)
+}
+
+async function assignUniqueCardToTeam(cardId: string, teamId: string): Promise<TeamCard> {
   const card = await Card.findByPk(cardId)
   if (!card) throw new Error('Card not found')
   if (!card.challenge) throw new Error('Card is not from a challenge pool')
@@ -341,6 +360,8 @@ export async function assignCardToTeam(cardId: string, teamId: string): Promise<
 
   const team = await Team.findByPk(teamId)
   if (!team) throw new Error('Team not found')
+
+  await ensureUniqueTeamCard(teamId, card)
 
   // Find the ChallengePoint for this team+challenge to link the card
   const challengePoint = await findChallengePointForCard(card, teamId)
@@ -366,6 +387,10 @@ export async function assignCardToTeam(cardId: string, teamId: string): Promise<
  * Admin replaces a team's card: removes one TeamCard and assigns a new drawn card.
  */
 export async function replaceTeamCard(teamId: string, oldTeamCardId: string, newCardId: string): Promise<TeamCard> {
+  return serializePoolOperation(() => replaceUniqueTeamCard(teamId, oldTeamCardId, newCardId))
+}
+
+async function replaceUniqueTeamCard(teamId: string, oldTeamCardId: string, newCardId: string): Promise<TeamCard> {
   const team = await Team.findByPk(teamId)
   if (!team) throw new Error('Team not found')
 
@@ -376,6 +401,8 @@ export async function replaceTeamCard(teamId: string, oldTeamCardId: string, new
   if (!newCard) throw new Error('New card not found')
   if (!newCard.challenge) throw new Error('New card is not from a challenge pool')
   if (newCard.team) throw new Error('New card already assigned to a team')
+
+  await ensureUniqueTeamCard(teamId, newCard, oldTeamCardId)
 
   // Find the ChallengePoint for this team+challenge to link the card
   const challengePoint = await findChallengePointForCard(newCard, teamId)
@@ -453,4 +480,32 @@ export async function getTeamCards(teamId: string): Promise<TeamCard[]> {
 
 export async function getTeamCardById(teamCardId: string): Promise<TeamCard | null> {
   return TeamCard.findByPk(teamCardId)
+}
+
+/** Repair older collections without deleting earned reward slots. */
+export async function repairDuplicateTeamCards(): Promise<void> {
+  await serializePoolOperation(async () => {
+    const teams = await Team.findAll({ attributes: ['id'] })
+    for (const team of teams) {
+      const owned = await TeamCard.findAll({ where: { team: team.id }, order: [['createdAt', 'ASC'], ['id', 'ASC']] })
+      const allDesigns = new Set(owned.map(cardDesignKey))
+      const seen = new Set<string>()
+      for (const duplicate of owned) {
+        const key = cardDesignKey(duplicate)
+        if (!seen.has(key)) { seen.add(key); continue }
+        const inventory = await Card.findAll({ where: { challenge: null, team: null } })
+        const candidates = inventory.filter((entry) => !allDesigns.has(cardDesignKey(entry)))
+        const replacement = candidates.find((entry) => entry.type === duplicate.type) ?? candidates[0]
+        if (!replacement) throw new Error('No distinct card designs are available to repair duplicate rewards.')
+        const source = await Card.findOne({ where: { name: duplicate.name, team: team.id } })
+        const point = duplicate.challenge_point ? await ChallengePoint.findByPk(duplicate.challenge_point) : null
+        const challenge = source?.challenge ?? point?.challenge ?? null
+        await replacement.update({ challenge, team: team.id, challenge_point: duplicate.challenge_point })
+        await duplicate.update({ name: replacement.name, type: replacement.type, effect: replacement.effect, effect_action: replacement.effect_action, icon: replacement.icon })
+        if (source) await source.update({ challenge: null, team: null, challenge_point: null })
+        allDesigns.add(cardDesignKey(replacement))
+        seen.add(cardDesignKey(replacement))
+      }
+    }
+  })
 }

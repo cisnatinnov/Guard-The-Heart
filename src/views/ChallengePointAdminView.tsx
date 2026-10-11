@@ -1,5 +1,7 @@
+import { PublicRankingBoard } from './PublicRankingBoard'
+import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { ChallengePointController } from '../controllers/ChallengePointController'
 import { CardController } from '../controllers/CardController'
 import { useChallenges } from '../hooks/useChallenges'
@@ -128,6 +130,17 @@ export function ChallengePointAdminView() {
     }
   }
 
+  async function claimRewards() {
+    if (!activeId) return
+    await run(async () => {
+      if (isFull && !(await CardController.isChallengeCardsDrawn(activeId))) {
+        await CardController.drawBonusCards(activeId)
+      }
+      await publishPublicDisplay('rewards', activeId)
+      navigate(displayPath({ stage: 'rewards', challengeId: activeId }, true))
+    })
+  }
+
   const updateField = (key: keyof typeof EMPTY_FORM) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [key]: event.target.value }))
 
@@ -175,6 +188,11 @@ export function ChallengePointAdminView() {
                 ))}
               </select>
             </label>
+            {activeId && <>
+              <button type="button" disabled={busy || checkingDraw || !entries.length} onClick={claimRewards}>Claim Rewards</button>
+              <Link className="deck-link" to={`/rewards/${activeId}`} target="_blank" rel="noopener">Reward Claim (Public)</Link>
+              <Link className="deck-link" to={`/cards/${activeId}`} target="_blank" rel="noopener">Reveal Cards (Public)</Link>
+            </>}
           </div>
 
           {activeId && isFull && !isDrawn && (
@@ -195,12 +213,6 @@ export function ChallengePointAdminView() {
               Bonus cards already drawn for this challenge. <strong>{drawnCards.length}</strong> card(s) added to pool.
               <br />
               Go to <strong>Card Reveal (Adm)</strong> to assign them to teams.
-            </p>
-          )}
-
-          {activeId && isFull && isDrawn && (
-            <p className="alert alert--info">
-              Bonus cards already drawn for this challenge.
             </p>
           )}
 
@@ -254,52 +266,19 @@ export function ChallengePointAdminView() {
 
       {error && <p className="alert alert--error">{error}</p>}
 
-      {entries.length === 0 ? (
-        <p className="muted">No entries for this challenge yet.</p>
-      ) : (
-        <div className="board-panel">
-          <div className="board-banner">
-            <span className="board-banner__title">Score Board</span>
-            <span className="board-banner__sub">{activeChallenge?.name ?? 'Challenge'}</span>
-          </div>
-          <div className="board-medals" aria-hidden="true">
-            <span className="board-medals__item board-medals__item--sword">⚔</span>
-            <span className="board-medals__item board-medals__item--shield">🛡</span>
-            <span className="board-medals__item board-medals__item--star">★</span>
-          </div>
-          <ol className="board" aria-label="Challenge ranking">
-            {entries.map((entry) => (
-              <li key={entry.id} className={`board__row board__row--${Math.min(entry.rank, 5)}`}>
-                <span className="rank-badge" aria-label={`Rank ${entry.rank}`}>
-                  {entry.rank}
-                </span>
-                <span className="board__team">{entry.teamRef?.name ?? '—'}</span>
-                <span className="board__actions">
-                  <button
-                    type="button"
-                    className="ghost"
-                    disabled={busy}
-                    onClick={() => startEdit(entry)}
-                  >
-                    Edit CP
-                  </button>
-                  <button
-                    type="button"
-                    className="danger"
-                    disabled={busy}
-                    onClick={() => handleDelete(entry.id)}
-                  >
-                    Delete
-                  </button>
-                </span>
-                <span className="board__points" title="Challenge point">
-                  {entry.challenge_point}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+      <PublicRankingBoard
+        variant="scoreboard"
+        challenge={activeChallenge?.name}
+        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.challenge_point }))}
+        message={entries.length === 0 ? 'No entries for this challenge yet.' : undefined}
+      />
+      {entries.length > 0 && <div className="scoreboard-admin-actions" aria-label="Edit challenge results">
+        {entries.map((entry) => <div className="board__row" key={entry.id}>
+          <span>{entry.teamRef?.name ?? '—'} · {entry.challenge_point} CP</span>
+          <button type="button" className="ghost" disabled={busy} onClick={() => startEdit(entry)}>Edit CP</button>
+          <button type="button" className="danger" disabled={busy} onClick={() => handleDelete(entry.id)}>Delete</button>
+        </div>)}
+      </div>}
     </section>
   )
 }

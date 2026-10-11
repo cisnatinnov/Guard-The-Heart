@@ -5,6 +5,7 @@ import { useTeams } from '../hooks/useTeams'
 import type { Card, TeamCard } from '../models'
 import { CARD_TYPES, type CardPoolStatus, type TeamCardReward } from '../services/cardDraw'
 import { CardTile } from './CardTile'
+import { cardDesignKey } from '../data/card-pool'
 
 const EMPTY_POOL: CardPoolStatus = {
   total: 0,
@@ -167,7 +168,9 @@ export function CardRevealAdminView() {
   function isTeamEligibleForSelectedCard(teamId: string): boolean {
     if (!selectedCardChallenge) return false
     const eligible = eligibleTeamsByChallenge[selectedCardChallenge]?.find((t) => t.teamId === teamId)
-    return Boolean(eligible && eligible.cardCount > 0)
+    const card = availableCards.find((entry) => entry.id === selectedCardId)
+    const owned = teamCards[teamId] ?? []
+    return Boolean(eligible && eligible.cardCount > 0 && card && !owned.some((entry) => cardDesignKey(entry) === cardDesignKey(card)))
   }
 
   const teamCardsMemo = useMemo((): TeamWithCards[] => {

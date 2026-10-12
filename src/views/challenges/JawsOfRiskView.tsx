@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { JAWS_HIT_POINTS } from '../../services/games'
 import { getGameQuestions, type GameQuestionRecord } from '../../services/gameQuestionCache'
+import { challengeQuestionsFor } from '../../services/games/challengeQuestions'
+import { QuestionPresentation } from './QuestionPresentation'
 
 export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {}) {
   const questions = getGameQuestions('jaws-of-risk')
@@ -46,9 +48,11 @@ export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {})
         <div className="stat"><span className="stat__label">Question</span><span className="stat__value">{complete ? questions.length : questionIndex + 1}/{questions.length}</span></div>
         <div className="stat"><span className="stat__label">Score</span><span className="stat__value">{score}</span></div>
       </div>
+      {question && <QuestionPresentation gameId="jaws-of-risk" question={challengeQuestionsFor('jaws-of-risk').questions[questionIndex]}
+        counter={`Soal ${question.number} / ${questions.length}`} />}
       {question ? <form className="match-question" onSubmit={submitAnswer}>
         <p className="muted">Question {question.number}</p>
-        <h3>{question.prompt}</h3>
+
         <fieldset className="game-options" disabled={!!questionResult}>
           <legend>Choose the best answer</legend>
           {question.options.map((option, index) => (

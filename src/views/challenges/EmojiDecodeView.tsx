@@ -1,3 +1,4 @@
+import { QuestionPresentation } from './QuestionPresentation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   EMOJI_DECODE_POINTS_PER_ANSWER,
@@ -111,20 +112,11 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
 
       <div className="emoji-decode emoji-decode--reference">
         <div className="emoji-decode__stage">
-          <p className="muted">
-          Question {currentIndex + 1} of {questions.length}
-          </p>
-          <p
-            className="emoji-decode__glyph emoji-decode__question-art"
-            aria-label={`Image clue ${currentIndex + 1}`}
-          >
-            <img
-              src={`/image-decode/questions/decode-${String(currentIndex + 1).padStart(2, '0')}.webp`}
-              alt={`Visual clue for question ${currentIndex + 1}`}
-              draggable={false}
-            />
-          </p>
-          <p className="emoji-decode__hint">{answered ? current.hint : `Hint: ${current.hint}`}</p>
+          <QuestionPresentation gameId="emoji-decode"
+            question={{ id: current.id, number: currentIndex + 1, prompt: current.emojis.join(' '),
+              hint: current.hint, eliminates: true, grade: () => 0 }}
+            counter={`Question ${currentIndex + 1} of ${questions.length}`}
+            seconds={remaining} status={answered ? current.answer : '—'} />
 
           <div className="emoji-timer" role="timer" aria-label={`Time left for question ${currentIndex + 1}`}>
             <span className="emoji-timer__track">

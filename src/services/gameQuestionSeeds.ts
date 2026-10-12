@@ -18,6 +18,11 @@ const sources: Record<string, QuestionSeed[]> = {
 /** Upserts the bundled PPTX question bank into SQLite and primes its read cache. */
 export async function seedGameQuestions(): Promise<void> {
   for (const [gameKey, questions] of Object.entries(sources)) {
+    // Retire rows outside the reference range when updating an older database.
+    const previous = await GameQuestion.findAll({ where: { game_key: gameKey } })
+    for (const row of previous) {
+      if (!questions.some((question) => question.number === row.number)) await row.destroy()
+    }
     for (const question of questions) {
       const id = `${gameKey}-${String(question.number).padStart(3, '0')}`
       const values = {

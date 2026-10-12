@@ -32,6 +32,7 @@ import {
   seedLockedChallenges,
 } from '../src/services/challengeSeeds'
 import { CHALLENGE_GAMES, EMOJI_DECODE_CHALLENGE_ID } from '../src/services/games'
+import { seedGameQuestions } from '../src/services/gameQuestionSeeds'
 
 beforeAll(async () => {
   await initializeAppDatabase()
@@ -83,8 +84,8 @@ describe('database bootstrap', () => {
 
   it('persists the PPTX question and answer banks in SQLite', async () => {
     expect(await GameQuestion.count({ where: { game_key: 'image-decode' } })).toBe(11)
-    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(50)
-    expect(challengeQuestionsFor('word-assembly').questions).toHaveLength(10)
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(21)
+    expect(challengeQuestionsFor('word-assembly').questions).toHaveLength(21)
     expect(challengeQuestionsFor('emoji-decode').questions).toHaveLength(11)
     expect(challengeQuestionsFor('jaws-of-risk').questions).toHaveLength(20)
     expect(await GameQuestion.count({ where: { game_key: 'jaws-of-risk' } })).toBe(20)
@@ -93,6 +94,14 @@ describe('database bootstrap', () => {
     expect(first?.answer).toBe('Rekening')
     const matchQuestion = await GameQuestion.findOne({ where: { game_key: 'match-card', number: 1 } })
     expect(matchQuestion?.answer).toBe('Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan')
+  })
+
+  it('removes old questions outside the requested reference range on reseeding', async () => {
+    await GameQuestion.create({ id: 'match-card-050', game_key: 'match-card', number: 50,
+      prompt: 'Old question', answer: 'Old answer', options: '[]', kind: 'choice', hint: '' })
+    await seedGameQuestions()
+    expect(await GameQuestion.findByPk('match-card-050')).toBeNull()
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(21)
   })
 
   it('exposes the blueprint columns on challenge_point', async () => {
@@ -231,7 +240,7 @@ describe('built-in challenges', () => {
 
   it('does not let a custom challenge borrow a built-in name', async () => {
     const custom = await ChallengeController.create('Arena Borrow')
-    await expect(ChallengeController.rename(custom.id, 'Match Card')).rejects.toThrow(/built-in/)
+    await expect(ChallengeController.rename(custom.id, 'Flipping Card')).rejects.toThrow(/built-in/)
     expect((await ChallengeController.getById(custom.id))?.name).toBe('Arena Borrow')
     await ChallengeController.remove(custom.id)
   })

@@ -7,7 +7,8 @@ export interface WordAssemblyQuestion {
   image: string
 }
 
-export const WORD_ASSEMBLY_SECONDS_PER_QUESTION = 15
+export const WORD_ASSEMBLY_SECONDS_PER_QUESTION = 20
+export const WORD_ASSEMBLY_SECONDS_PER_MATCH = 20
 export const WORD_ASSEMBLY_QUESTIONS: WordAssemblyQuestion[] = [
   {
     id: 'word-1',
@@ -92,8 +93,8 @@ export interface WordAssemblyState {
   mismatches: number
 }
 
-export function createWordAssemblyDeck(random: RandomSource = Math.random): WordAssemblyCard[] {
-  const deck = WORD_ASSEMBLY_QUESTIONS.flatMap((question) =>
+export function createWordAssemblyDeck(random: RandomSource = Math.random, pairCount = WORD_ASSEMBLY_QUESTIONS.length): WordAssemblyCard[] {
+  const deck = WORD_ASSEMBLY_QUESTIONS.slice(0, pairCount).flatMap((question) =>
     Array.from({ length: WORD_ASSEMBLY_CARDS_PER_QUESTION }, (_, copy) => ({
       id: `${question.id}-card-${copy + 1}`,
       questionId: question.id,
@@ -109,9 +110,9 @@ export function createWordAssemblyDeck(random: RandomSource = Math.random): Word
   return deck
 }
 
-export function createWordAssemblyState(random: RandomSource = Math.random): WordAssemblyState {
+export function createWordAssemblyState(random: RandomSource = Math.random, pairCount = WORD_ASSEMBLY_QUESTIONS.length): WordAssemblyState {
   return {
-    board: createWordAssemblyDeck(random),
+    board: createWordAssemblyDeck(random, pairCount),
     revealed: [],
     matchedCardIds: [],
     matchedQuestionIds: [],

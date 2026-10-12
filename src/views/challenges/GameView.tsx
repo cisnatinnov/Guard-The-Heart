@@ -68,7 +68,8 @@ export function GameView() {
     if (!isAdmin) return
     publishSharedChallengeRun(game.id, challengeId, nextRun)
     const publicPath = `/play/${game.id}/${challengeId}`
-    window.open(publicPath, `guard-the-heart-public-${game.id}-${challengeId}`, 'popup=yes,width=1440,height=920')
+    // Omit popup sizing features so the browser opens a regular tab.
+    window.open(publicPath, '_blank')
   }
 
   const completeSolo = () => {
@@ -105,11 +106,7 @@ export function GameView() {
                 ⬇ {game.deckLabel}
               </a>
             )}
-            {game.id === 'jaws-of-risk' && (
-              <a className="deck-link" href="/ui/Jaw-of-risk.pptx" download>
-                ⬇ Jaws of Risk UI reference (PPTX)
-              </a>
-            )}
+
           </div>
 
           {completionError && <p className="alert alert--error">{completionError}</p>}

@@ -31,27 +31,29 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   },
   {
     id: 'word-assembly',
-    title: 'Match Card',
+    title: 'Flipping Card',
     tagline: 'Match a picture pair, then answer a question from the reference deck.',
     rules: [
       'Flip two cards at a time and match identical pictures before answering the associated question.',
       'A matched pair unlocks a reference question; the answering team gets two attempts before the turn passes.',
-      'Fifteen seconds per question in a team run.',
-      'Ten points per matched pair, minus five for each mismatch.',
+      'Roulette draws the team order before matching. Each matching turn lasts twenty seconds; a mismatch or timeout passes the turn.',
+      'After a match, answer yourself or give the question to another team. Twenty seconds and two attempts per answering team.',
+      'Twenty-one questions from slides 3–44 of the Match Card deck. The board refreshes after ten pairs.',
+      'Self answers score +10 correct or −10 wrong. A passed answer scores +5 or −5 for the recipient, and −10 or −5 for the giver. A mismatch costs five points.',
     ],
     deckPath: '/ui/Match-Card.pptx',
-    deckLabel: 'Match Card question deck (PPTX)',
+    deckLabel: 'Flipping Card question deck (PPTX)',
     challengeId: WORD_ASSEMBLY_CHALLENGE_ID,
   },
   {
     id: 'jaws-of-risk',
-    title: 'Jaws of Risk',
+    title: 'Jaw of Risk',
     tagline: 'Answer each question to protect the jaw.',
     rules: [
       'Answer questions in sequence; there is no tooth selection or tooth board.',
-      'Questions use slides 3–42 of the supplied Match Card deck.',
+      'Twenty questions use slides 3–42 of the supplied Jaw of Risk deck.',
     ],
-    deckPath: '/ui/Match-Card.pptx',
+    deckPath: '/ui/Jaw-of-risk.pptx',
     deckLabel: 'Jaws question reference (PPTX)',
     challengeId: JAWS_CHALLENGE_ID,
   },
@@ -60,7 +62,10 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
 /** Former built-in challenge names, mapped to their current title. */
 export const RENAMED_CHALLENGE_TITLES: Readonly<Record<string, string>> = {
   'Emoji Decode': 'Image Decode',
-  'Word Assembly': 'Match Card',
+  'Word Assembly': 'Flipping Card',
+  'Match Card': 'Flipping Card',
+  'Flipping Connect': 'Flipping Card',
+  'Jaws of Risk': 'Jaw of Risk',
 }
 
 /** Built-in challenges that were retired and are removed from older databases. */

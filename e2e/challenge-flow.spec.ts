@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Match Card', 'word-assembly', 10], ['Jaws of Risk', 'jaws-of-risk', 20]] as const) {
+for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Flipping Card', 'word-assembly', 21], ['Jaw of Risk', 'jaws-of-risk', 20]] as const) {
   test(`${title} final answer opens both scoreboards and rewards stay synchronized`, async ({ page, context }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
@@ -17,8 +17,30 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Matc
     const projector = await popupPromise
     projector.on('pageerror', (error) => errors.push(error.message))
     await expect(projector).toHaveURL(new RegExp(`/play/${game}/`))
+    if (game === 'emoji-decode') {
+      await page.clock.runFor(5_000)
+      await expect(page.locator('.qa-stage__timer')).toContainText('25s')
+      await projector.clock.install({ time: await page.evaluate(() => Date.now()) })
+      await projector.reload()
+      await expect(projector.locator('.qa-stage__timer')).toContainText('25s')
+      await expect(projector.locator('.qa-stage__hint')).toHaveText('1 Kata')
+      await projector.screenshot({ path: 'test-results/image-decode-public.png' })
+    }
     for (let number = 1; number <= count; number++) {
       await expect(page.locator('.run-panel__title')).toContainText(`question ${number} of ${count}`)
+      if (game === 'word-assembly') {
+        await expect(page.getByRole('combobox', { name: 'Team A answer' })).toHaveCount(0)
+        const pair = page.locator(`.tile[data-pair="word-${(number - 1) % 10 + 1}"]`)
+        await pair.nth(0).click()
+        await pair.nth(1).click()
+        await page.getByRole('button', { name: 'Answer myself', exact: true }).click()
+        await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
+      }
+      if (game === 'jaws-of-risk' && number === 1) {
+        await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
+        await projector.screenshot({ path: 'test-results/jaw-of-risk-question.png' })
+      }
+      if (game === 'word-assembly' && number === 17) await projector.screenshot({ path: 'test-results/flipping-card-long-question.png' })
       if (game === 'emoji-decode' && number === count) {
         await page.clock.runFor(31_000)
       } else {
@@ -26,6 +48,10 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Matc
         if (game === 'emoji-decode') await input.fill('wrong answer')
         else await page.getByRole('combobox', { name: 'Team A answer' }).selectOption({ index: number % 4 + 1 })
         await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
+        if (game === 'word-assembly' && await page.getByText('Answer attempts: 1/2', { exact: true }).isVisible()) {
+          await page.getByRole('combobox', { name: 'Team A answer' }).selectOption({ index: number % 4 + 1 })
+          await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
+        }
       }
     }
     await expect(page).toHaveURL(/\/admin\/scoreboard\//)

@@ -5,6 +5,9 @@ import { ChallengeController } from './ChallengeController'
 import type { ChallengeGameId } from '../services/games'
 import { challengeQuestionsFor, gradeQuestion, type ChallengeQuestion } from '../services/games/challengeQuestions'
 import {
+  enableRunMatching,
+  advanceMatchingTurn,
+  chooseMatchingAnswerTeam,
   applyAnswer,
   applyPassedAnswer,
   beginNextQuestion,
@@ -50,12 +53,15 @@ export class ChallengeRunController {
     if (questionSet.questions.length === 0) {
       throw new Error('This challenge cannot be answered question by question')
     }
-    return startChallengeRun({
+    const run = startChallengeRun({
       challenge: input.challengeId,
       teams: input.teamIds,
       questionCount: questionSet.questions.length,
       pointsPerQuestion: questionSet.pointsPerQuestion,
     })
+    return input.gameId === 'word-assembly' ? enableRunMatching(run)
+      : questionSet.secondsPerQuestion ? { ...run, secondsPerTurn: questionSet.secondsPerQuestion,
+        turnDeadline: Date.now() + questionSet.secondsPerQuestion * 1000 } : run
   }
 
   static questionsFor(gameId: ChallengeGameId): ChallengeQuestion[] {
@@ -74,6 +80,24 @@ export class ChallengeRunController {
 
   static complete(run: ChallengeRun): boolean {
     return isRunComplete(run)
+  }
+
+  static chooseAnswerTeam(run: ChallengeRun, teamId: string): ChallengeRun {
+    return chooseMatchingAnswerTeam(run, teamId)
+  }
+
+  static async finishMatchingTurn(run: ChallengeRun, timedOut = false): Promise<ChallengeRun> {
+    const updated = advanceMatchingTurn(run, timedOut)
+    await ChallengeRunController.recordChangedScores(run, updated)
+    return updated
+  }
+
+  private static async recordChangedScores(previous: ChallengeRun, next: ChallengeRun): Promise<void> {
+    for (const entry of next.runs) {
+      if (entry.score !== runFor(previous, entry.team)?.score) {
+        await ChallengeRunController.recordScore(next.challenge, entry.team, entry.score)
+      }
+    }
   }
 
   /**
@@ -122,6 +146,8 @@ export class ChallengeRunController {
         input.teamId,
         applied.team.score
       )
+      // A given question can change the giver's score as well as the recipient's.
+      await ChallengeRunController.recordChangedScores(input.run, applied.run)
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause)
     }

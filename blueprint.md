@@ -130,7 +130,7 @@ g. game_question
 
 Constraints: unique (`game_key`, `number`). This table stores the correct
 answer alongside every question and answer choice. Startup seeds 11 Image
-Decode, 50 Match Card and 20 Jaws of Risk rows from the reference deck data.
+Decode, 21 Flipping Card and 20 Jaw of Risk rows from the reference deck data.
 
 ## Terms and conditions
 1. challenge_point accommodates only 5 teams each challenge. A team that has
@@ -158,8 +158,8 @@ g. Only deleting a challenge returns its cards to the pool, preserving the 80-ca
 h. `getCardPoolStatus()` reports total, drawn and remaining counts overall and per type, and the Card Reveal (Adm) view shows them. An action description is card data; it does not by itself apply gameplay effects.
 8. **Challenges**
 a. Image Decode (formerly Emoji Decode) : Eleven banking-term clues and answers from slides 3–24 of `public/ui/Image_Decode.pptx`; 30-second timed play.
-b. Match Card (formerly Word Assembly) : A 20-card picture-matching game. Its 50 multiple-choice questions and answers come from slides 3–75 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; team runs use one answer per team turn.
-c. Jaws of Risk: question-only challenge; answer stored questions in sequence. No teeth are displayed or selected.
+b. Flipping Card (formerly Word Assembly) : A 20-card picture-matching game. Its 21 multiple-choice questions and answers come from slides 3–44 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; team runs allow two attempts per answering team after matching.
+c. Jaw of Risk: question-only challenge; answer stored questions in sequence. No teeth are displayed or selected.
 d. Retired: Gardimon Protocol, Incident Trail and Save the Core were removed together with all related code, content and decks. Older databases drop these challenge rows (with their entries) on startup and return their drawn cards to the pool.
 
 9. Point 8 link to Challenge feature (save as challenge data and cannot be added more, edited and deleted)
@@ -178,34 +178,36 @@ and seeded into SQLite's `game_question` table at startup.
    attempt. Self-answer scores +10 when correct and −10 when wrong. A correct
    answer advances automatically; a wrong answer or timeout passes the same
    question to the next eligible team.
-2. **Match Card** — 50 multiple-choice question rows and correct answers from
-   slides 3–75 of `public/ui/Match-Card.pptx` are stored in SQLite. The 20
-   picture cards still form 10 pairs sourced from `public/match-card/`. Players reveal two
-   cards at a time; a matching pair remains face up, while a mismatch turns all
-   open cards face down after a brief reveal. A matched pair draws the next
-   question from a shuffled selection of ten bank rows. Team runs use ten bank questions, with one
-   answer per turn before a wrong answer passes to the next team. Each matched pair is worth 10 points, and each
-   mismatch costs 5 (100 max). Team-run questions have a 15-second timer and ask
-   teams to choose among the bank question's options.
-3. **Jaws of Risk** — the first 20 Match Card questions (slides 3–42) are stored
-   for this game. Solo and team runs ask these questions in sequence. The game
-   has no tooth board, click-tooth action or automatic tooth selection. Answers
-   score +10 when correct and −10 when wrong.
+2. **Flipping Card** — 21 question/answer pairs from slides 3–44 of
+   `public/ui/Match-Card.pptx`, in slide order. Starting a run randomly draws
+   the roulette team order. Teams have 20 seconds to match a pair; a mismatch
+   costs 5 points and moves the matching turn to the next roulette team.
+   A match unlocks the question. The matcher chooses to answer or give it to
+   another team before the 20-second answering timer starts. Each answering
+   team has two attempts within that timer; the first miss has no penalty.
+   After two misses or expiry, the next eligible team answers the same question.
+   Self answers score +10 correct or −10 after exhausting attempts. Passed
+   answers retain the shared +5/−10 and −5/−5 rules. Ten-pair boards refresh
+   after ten and twenty questions, so every reference question is playable.
+   Matching and answering deadlines persist across public-screen reloads.
+3. **Jaw of Risk** — 20 question/answer pairs from slides 3–42 of
+   `public/ui/Jaw-of-risk.pptx`. Solo and team runs use the questions in
+   sequence without a tooth board. Self answers score +10 correct, −10 wrong;
+   team runs have no countdown.
 
 The admin solo game screen styles follow their references in `public/ui/`: Image Decode
 uses the question-panel styling in `Image_Decode.pptx` with the clue images from
-slides 3–24 stored as WebP files in `public/image-decode/questions/`; Match Card
+slides 3–24 stored as WebP files in `public/image-decode/questions/`; Flipping Card
 uses the hidden and revealed board
 art in `Preview-CH-3_Online_Card-Hidden.png` and
 `Preview-CH-3_Online_Card-Reveal.png`, cropped into individual lightweight
-card faces in `public/match-card/reference/`; and Jaws of Risk follows the blue,
-gold and purple question styling in `Jaw-of-risk.pptx`.
-Both the Match Card Q&A deck and Jaw of Risk visual deck are available from its
+card faces in `public/match-card/reference/`; and Jaw of Risk follows the orange question/answer frame in `Jaw-of-risk.pptx`.
+Both the Flipping Card Q&A deck and Jaw of Risk visual deck are available from its
 screen. A matched card image remains visible beside its database-backed question
 while the answer is open.
 
 The `game_question` table stores a stable id, game key, order, prompt, answer,
-JSON answer choices, question kind and hint. Startup upserts all 81 seeded
+JSON answer choices, question kind and hint. Startup upserts all 52 seeded
 question rows without resetting existing teams, scores or cards.
 
 Internal identifiers keep their original names (`emoji-decode`,
@@ -237,17 +239,17 @@ every launch and behave like any other challenge:
   **Team run**, letting the host run the challenge question by question with up
   to five teams. One team answers at a time in the order selected when the run
   starts. The turn table highlights the team answering now. Admin controls the
-  run and **Start team run** opens the matching Public game page in a new window,
-  where it mirrors the run live. **End run** is an admin-only control that ends
-  the shared run on both pages. Teams may pass a
+  run and **Start team run** opens the matching Public game route in a new browser
+  tab, where it mirrors the run live. **End run** is an admin-only control that
+  ends the shared run on both pages. Teams may pass a
   question to an opponent: a correct opponent answer gives that team +5 and the
   passing team −10; a wrong opponent answer gives both teams −5. Self-answer
   scoring is +10 correct and −10 wrong for all three challenges. A correct answer
-  advances automatically. A wrong answer or timeout keeps the same question and
+  advances automatically. An unsuccessful turn keeps the same question and
   moves the turn to the next eligible team, with **Answer yourself** selected.
-  If every team answers incorrectly, the run advances automatically.
-  Team-run timers are 30 seconds for Image Decode and 15 seconds for Match Card.
-  Jaws of Risk has no timer. Timeout grades only the team currently answering
+  If every team exhausts its attempts, the run advances automatically.
+  Team-run timers are 30 seconds for Image Decode and 20 seconds for Flipping Card.
+  Jaw of Risk has no timer. Timeout grades only the team currently answering
   and moves the same question to the next eligible team.
 - Because the rows are ordinary challenge data, the existing rules apply to them:
   up to 5 teams per challenge, ranks derived from scores, rank rewards awarding
@@ -259,7 +261,7 @@ There is no separate games or Challenges tab. The games are listed as rows on
 the Challenge view, the playing screen is a detail view reachable only from a
 built-in row's Play button. The team run panel is shown within the same detail
 view when the host chooses **Team run**. All other views are reached from the
-admin navigation links. Public pages use their own routes and the projector window follows the host’s completion and reward actions.
+admin navigation links. Public pages use their own routes. The run opens its Public page in a new tab, and that page follows the host’s completion and reward actions.
 
 ### Correcting a built-in challenge score
 
@@ -286,20 +288,20 @@ XML parts before writing, so content edits only require re-running the script.
 
 ## Challenge completion and synchronized rewards
 
-Team runs finish after all 11 Image Decode, 10 Match Card, or 20 Jaws of Risk
+Team runs finish after all 11 Image Decode, 21 Flipping Card, or 20 Jaw of Risk
 questions are resolved. A correct answer resolves the question; wrong answers
-and Image Decode/Match Card timeouts continue the existing next-team attempt
+and Image Decode/Flipping Card timeouts continue the existing next-team attempt
 flow until the question is resolved or every participating team has tried it.
 The final resolved question automatically saves every participating team's
 score (including zero), then opens `/admin/scoreboard/:challengeId` for the host
-and `/scoreboard/:challengeId` in open public windows. Early **End run** still
+and updates `/scoreboard/:challengeId` in public pages that are already open. Early **End run** still
 cancels the active run and leaves the public question screen waiting.
 
 Solo screens also open the scoreboard after all eleven Image Decode answers
-or timeouts, ten Match Card pair questions, or twenty Jaws of Risk questions
+or timeouts, twenty-one Flipping Card pair questions, or twenty Jaw of Risk questions
 are graded. Solo scores continue to require manual entry because solo play has
-no selected team. The 50-question Match Card database bank remains intact;
-team runs use its first ten rows, and solo rounds select ten bank questions.
+no selected team. Solo and team Flipping Card runs use all 21 reference questions in slide order.
+Each board contains at most ten pairs and refreshes when its pairs are used.
 
 On the admin scoreboard, **Claim Rewards** opens
 `/admin/rewards/:challengeId` and sends the public display to
@@ -307,8 +309,8 @@ On the admin scoreboard, **Claim Rewards** opens
 rewards once if they have not been drawn. Revisiting does not redraw. Runs with
 fewer than five participants still show earned rank rewards; the existing
 five-team requirement for drawing remains in force. **Rewards** on the admin
-reward-count screen opens `/admin/cards/:challengeId` and sends the public
-display to `/cards/:challengeId`. `/admin/cards` remains the collection and
+reward-count screen opens `/admin/cards/:challengeId` and updates an already-open
+public display at `/cards/:challengeId`. `/admin/cards` remains the collection and
 assignment management screen. Cards shown on the reveal belong to that
 challenge through their ChallengePoint link.
 
@@ -339,3 +341,58 @@ card protection. `npm run test:e2e -- --workers=1` covers completion of each
 challenge, Image Decode's final timeout, two-window reward navigation, once-only
 claiming, unique five-team rewards, score correction, leaderboard and reload.
 `npm run lint` and `npm run build` check source and production output.
+
+## Reference content maintenance
+
+`python scripts/import-reference-questions.py` imports the supplied decks into
+`src/data/reference-question-bank.json`: 11 Image Decode pairs (slides 3–24),
+21 Flipping Card pairs (slides 3–44), and 20 Jaw of Risk pairs (slides 3–42).
+Startup upserts these 52 rows and removes obsolete out-of-range seeded rows.
+Image Decode question 11 uses the answer **Lapor**, exactly as slide 24; its
+clue is KDO. Question and answer slide numbers are retained as source metadata.
+For multiple-choice slides, letters follow their visual positions (A/B left,
+C/D right), and the answer slide's red outline identifies the correct choice.
+The shared question presentation preserves the arena, frame, logo, clue art,
+letter positions and Image Decode word-count hints. Admin inputs remain outside
+that presentation so public screens display only the live question.
+
+Flipping Card retains roulette: the start draw establishes a random team order,
+and each new matching turn follows that order. A pair must be matched before
+its question is shown. The matcher commits to self-answering or a recipient;
+each answering team then gets two attempts within 20 seconds. The first wrong
+attempt keeps the same deadline and has no score penalty. Matching timeout
+rotates the matching turn; answering timeout consumes the remaining attempts.
+The roulette, pair states, recipient, attempts and countdown deadline are
+shared with the public display. All 21 questions are used in solo and team play.
+
+Internal game ids remain `emoji-decode`, `word-assembly` and `jaws-of-risk` for
+saved-data compatibility. Old Match Card and Flipping Connect titles migrate
+to Flipping Card, and Jaws of Risk migrates to Jaw of Risk.
+
+Image Decode team turns also store their 30-second deadline in the shared run,
+so reloading the public display preserves the host countdown.
+
+Portrait layouts stack the Q&A header, clue and answer panels with readable
+text; wide displays preserve the reference slide proportions. Browser checks
+include a 390-pixel viewport and shared Image Decode countdown after reload.
+
+### Flipping Card question handoff
+
+After a correct answer, the next question starts on the matching board and
+stays hidden until another pair is matched. After two incorrect attempts or
+an answering timeout, another eligible team answers the same unlocked question.
+The question remains open until a team answers correctly or every participating
+team has exhausted its answering turn (all five in a five-team run). Giving a
+question does not count as answering it: the giver remains eligible to answer
+later in the same roulette order. Existing pass-score penalties still apply.
+After all teams fail, the next question also starts with matching. The roulette
+order, two attempts per answering team, 20-second timers, scoring, other games,
+and scoreboard/reward transitions retain their existing behavior.
+
+### Opening public displays
+
+Starting a team run opens its public game route in a new browser tab, without
+popup sizing. The admin scoreboard's Reward Claim (Public) and Reveal Cards
+(Public) links also open their display routes in new tabs. If a public page is
+already open in the same browser profile, it follows team-run updates and the
+host's completion and reward transitions.

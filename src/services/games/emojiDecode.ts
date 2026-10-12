@@ -1,4 +1,5 @@
 import raw from '../../data/emoji-decode.json'
+import reference from '../../data/reference-question-bank.json'
 import { getGameQuestions } from '../gameQuestionCache'
 
 export interface EmojiDecodeQuestion {
@@ -18,18 +19,18 @@ export function getEmojiDecodeQuestions(): EmojiDecodeQuestion[] {
       hint: question.hint,
     }))
   }
-  return raw.questions.map((question) => ({
-    id: question.id,
-    emojis: question.emojis,
+  return reference.imageDecode.map((question) => ({
+    id: `image-decode-${String(question.number).padStart(3, '0')}`,
+    emojis: [question.prompt],
     answer: question.answer,
     hint: question.hint,
   }))
 }
 
 /** Static fallback retained for pure game-service callers before DB startup. */
-export const EMOJI_DECODE_QUESTIONS: EmojiDecodeQuestion[] = raw.questions.map((question) => ({
-  id: question.id,
-  emojis: question.emojis,
+export const EMOJI_DECODE_QUESTIONS: EmojiDecodeQuestion[] = reference.imageDecode.map((question) => ({
+  id: `image-decode-${String(question.number).padStart(3, '0')}`,
+  emojis: [question.prompt],
   answer: question.answer,
   hint: question.hint,
 }))

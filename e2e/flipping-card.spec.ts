@@ -46,6 +46,8 @@ test('roulette matching turns, timer, given questions and two attempts synchroni
 
   await page.locator('.tile[data-pair="word-1"]').nth(0).click()
   await page.locator('.tile[data-pair="word-1"]').nth(1).click()
+  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('5s')
+  await page.clock.runFor(5000)
   await expect(page.getByRole('button', { name: 'Answer myself', exact: true })).toBeVisible()
   await expect(page.getByRole('combobox', { name: `${order[2]} answer` })).toHaveCount(0)
   await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
@@ -79,6 +81,7 @@ test('roulette matching turns, timer, given questions and two attempts synchroni
 
 
 test('five teams answer the same unlocked question, including the giver, before returning to matching', async ({ page, context }) => {
+  test.setTimeout(120000)
   await page.goto('/admin')
   for (const name of ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon']) {
     await page.getByRole('textbox', { name: 'New team name' }).fill(name)
@@ -94,13 +97,16 @@ test('five teams answer the same unlocked question, including the giver, before 
   const popupPromise = context.waitForEvent('page')
   await page.getByRole('button', { name: 'Start team run (5)' }).click()
   const projector = await popupPromise
+  await projector.clock.install({ time })
+  await projector.clock.pauseAt(time)
   const order = await page.getByRole('list', { name: 'Roulette turn order' }).locator('li').allTextContents()
   await page.locator('.tile[data-pair="word-1"]').nth(0).click()
   await page.locator('.tile[data-pair="word-1"]').nth(1).click()
-  await page.getByRole('combobox', { name: 'Opponent team' }).selectOption({ label: order[1] })
-  await page.getByRole('button', { name: 'Give question', exact: true }).click()
+  await page.clock.runFor(5000)
+  await page.getByRole('button', { name: 'Answer myself', exact: true }).click()
   const wrong = reference.matchCard[0].options.find((option) => option !== reference.matchCard[0].answer)!
-  for (const name of [...order.slice(1), order[0]]) {
+  for (let index = 0; index < 5; index += 1) {
+    const name = await page.locator('.roulette-order li[aria-current]').innerText()
     await expect(page.locator('.run-panel__title')).toContainText('question 1 of 21')
     await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
     const answer = page.getByRole('combobox', { name: `${name} answer` })
@@ -109,11 +115,13 @@ test('five teams answer the same unlocked question, including the giver, before 
       await answer.selectOption(wrong)
       await page.getByRole('button', { name: /^(Grade this question|Next team answer)$/ }).click()
     }
+    if (index < 4) await page.clock.runFor(5000)
   }
   await expect(page.locator('.run-panel__title')).toContainText('question 2 of 21')
   await expect(projector.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
   await page.locator('.tile[data-pair="word-2"]').nth(0).click()
   await page.locator('.tile[data-pair="word-2"]').nth(1).click()
+  await page.clock.runFor(5000)
   await page.getByRole('button', { name: 'Answer myself', exact: true }).click()
   await page.getByRole('combobox', { name: `${order[1]} answer` }).selectOption(reference.matchCard[1].answer)
   await page.getByRole('button', { name: /^(Grade this question|Next team answer)$/ }).click()

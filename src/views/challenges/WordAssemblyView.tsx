@@ -3,6 +3,7 @@ import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAss
 import { challengeQuestionsFor, gradeQuestion } from '../../services/games/challengeQuestions'
 import { MatchingCards } from './MatchingCards'
 import { QuestionPresentation } from './QuestionPresentation'
+import { useSoloQuestionTimer } from './useSoloQuestionTimer'
 
 export function WordAssemblyView({ onComplete }: { onComplete?: () => void } = {}) {
   const questions = challengeQuestionsFor('word-assembly').questions
@@ -15,6 +16,13 @@ export function WordAssemblyView({ onComplete }: { onComplete?: () => void } = {
   const [feedback, setFeedback] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const question = questions[questionIndex]
+  const remaining = useSoloQuestionTimer(String(questionIndex), unlocked && !finished, () => {
+    if (finished) return
+    setScore((current) => current - 10)
+    setAnswerAttempts(2)
+    setFinished(true)
+    setFeedback('Time ran out. −10 points.')
+  })
 
   useEffect(() => {
     if (state.revealed.length !== 2) return
@@ -31,7 +39,6 @@ export function WordAssemblyView({ onComplete }: { onComplete?: () => void } = {
     const next = revealWordAssemblyCard(state, cardId)
     setState(next)
     if (next.mismatches > state.mismatches) {
-      setScore((current) => current - 5)
       setFeedback('The pictures do not match. Try another pair.')
     }
     if (next.matchedQuestionIds.length > state.matchedQuestionIds.length) {
@@ -70,12 +77,12 @@ export function WordAssemblyView({ onComplete }: { onComplete?: () => void } = {
       <div className="stat"><span className="stat__label">Question</span><span className="stat__value">{questionIndex + 1}/{questions.length}</span></div>
       <div className="stat"><span className="stat__label">Score</span><span className="stat__value">{score}</span></div>
     </div>
-    <p className="muted">Match a pair first to unlock its question. Each question allows two answer attempts.</p>
+    <p className="muted">Match a pair first to unlock its question. Each question allows two answer attempts within 15 seconds.</p>
     {unlocked && question ? <>
-      <QuestionPresentation gameId="word-assembly" question={question} counter={`Soal ${question.number} / ${questions.length}`} />
+      <QuestionPresentation gameId="word-assembly" question={question} seconds={remaining} counter={`Soal ${question.number} / ${questions.length}`} />
       <form className="match-question" onSubmit={(event) => {
         event.preventDefault()
-        if (finished || !answer) return
+        if (finished || remaining === 0 || !answer) return
         const attempts = answerAttempts + 1
         setAnswerAttempts(attempts)
         if (gradeQuestion(question, answer).correct) {

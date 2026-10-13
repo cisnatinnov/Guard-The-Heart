@@ -3641,9 +3641,13 @@ tbody tr:last-child td {
 .qa-stage__options b { font-size: 1.65cqw; color: #431d10; }
 .qa-stage__options span { padding: 0 0.25cqw; }
 .run-panel .qa-stage { width: 100%; }
-.matching-cards .tile { aspect-ratio: 1.47 / 1; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 0.5rem; }
+.matching-cards .tile {
+  display: grid; place-items: center; min-width: 0; aspect-ratio: 1.47 / 1; padding: 0;
+  background-color: transparent; background-size: contain; background-position: center; background-repeat: no-repeat;
+  border: 0; border-radius: 0.5rem; overflow: hidden; line-height: 0;
+}
 .matching-cards .tile:disabled { opacity: 1; }
-.matching-cards .tile--matched { filter: saturate(0.5); box-shadow: 0 0 0 2px #168477; }
+.matching-cards .tile--matched { filter: saturate(0.72); box-shadow: 0 0 0 2px #168477; }
 .matching-timer { margin: 0; font-size: 2rem; font-weight: 800; text-align: center; color: #a5350a; }
 .matching-choice { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; border: 2px solid #f48220; padding: 1rem; }
 .matching-choice label { display: grid; gap: 0.5rem; }
@@ -3695,14 +3699,16 @@ tbody tr:last-child td {
 }
 .qa-stage--emoji-decode .qa-stage__timer {
   left: 77%; top: 23%; width: 19%; height: 60%; background: transparent; clip-path: none;
+  gap: 0.5cqw;
 }
+.qa-stage--emoji-decode .qa-stage__timer > span { font-size: 3.6cqw; }
+.qa-stage--emoji-decode .qa-stage__timer strong { display: block; font-size: 2.5cqw; white-space: nowrap; }
 .qa-stage--emoji-decode .qa-stage__question { top: 27%; height: 36%; }
 .qa-stage--emoji-decode .qa-stage__answer p { font-size: 4cqw; margin: 0; }
 .emoji-decode--reference { display: block; }
 .emoji-decode--reference .emoji-decode__stage { padding: 0; background: transparent; border: 0; }
 .emoji-decode--reference .qa-stage { width: 100%; }
-.emoji-decode--reference .row-form, .emoji-decode--reference .game__toolbar,
-.emoji-decode--reference .emoji-timer { margin-top: 1rem; }
+.emoji-decode--reference .row-form, .emoji-decode--reference .game__toolbar { margin-top: 1rem; }
 .emoji-decode--reference .emoji-decode__index { margin-top: 1rem; }
 
 .view--game-emoji-decode .emoji-decode--reference .emoji-decode__stage {
@@ -3710,3 +3716,65 @@ tbody tr:last-child td {
 }
 .qa-stage--emoji-decode .qa-stage__timer { border: 0; box-shadow: none; }
 .emoji-decode--reference .emoji-chip__glyphs { color: var(--text, #20292b); }
+
+/* Slide 3 references: original PowerPoint artwork, with live text on top. */
+@font-face { font-family: 'Reference Aptos Display'; src: url('/ui/fonts/aptos-display.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Reference Aptos'; src: url('/ui/fonts/aptos.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+.qa-stage--slide-reference { color: #000; }
+.qa-stage--slide-reference .qa-stage__logo,
+.qa-stage--slide-reference .qa-stage__frame,
+.qa-stage--slide-reference .qa-stage__answer-label { visibility: hidden; }
+.qa-stage.qa-stage--slide-reference .qa-stage__timer {
+  left: 79%; top: 28%; width: 12%; height: 55%; padding: 0;
+  border: 0; background: none; clip-path: none; color: #fff;
+}
+.qa-stage--slide-reference .qa-stage__timer > span { display: none; }
+.qa-stage--slide-reference .qa-stage__timer strong { font: 700 2.5cqw/1 Arial, sans-serif; }
+.qa-stage--slide-reference .qa-stage__heading span,
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__heading {
+  position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+.qa-stage--slide-reference .qa-stage__heading span { display: none; }
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__question {
+  left: 10.20144%; top: 31.8705%; width: 79.79856%; height: 28.9425%;
+  padding: 0.4cqw 0.75cqw 0; align-items: flex-start;
+}
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__question h2 {
+  font: 400 3.875cqw/1.2 'Reference Aptos Display', Arial, sans-serif;
+  text-wrap: wrap; overflow-wrap: normal;
+}
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__answer {
+  left: 10.20144%; top: 74.89055%; width: 80.20144%; height: 16.432%;
+  font-weight: 400;
+}
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__options { display: block; position: relative; font: 400 1.5625cqw/1.2 Arial, sans-serif; }
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__options li {
+  position: absolute; left: 0; top: 0; width: 39.911cqw; height: 7.6294cqw;
+  display: block; text-align: left;
+}
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__options li:nth-child(n+3) { left: 49.6235%; }
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__options li:nth-child(even) { top: 53.59%; }
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__options b {
+  position: absolute; left: 0; top: 0.5cqw; width: 4.9428cqw;
+  text-align: center; color: #000; font-size: 1.875cqw;
+}
+.qa-stage--word-assembly.qa-stage--slide-reference .qa-stage__options span {
+  position: absolute; left: 3.9477cqw; top: 0.5cqw; width: 34.9654cqw;
+  padding: 0 0.75cqw; line-height: 1.4;
+}
+.qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__heading {
+  left: 28.133%; top: 40.3%; width: 28.883%; height: 33.07%; padding: 0 0.75cqw;
+  background: none; align-items: flex-start; justify-content: flex-start; text-align: left;
+}
+.qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__heading h1 { font: 400 2.916667cqw/1.2 'Reference Aptos', Arial, sans-serif; }
+.qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__hint {
+  left: 59.65%; top: 40%; width: 12%; height: 31%; padding: 0 0 0 0.4cqw; background: none;
+  justify-content: flex-start;
+  color: #000; font: 400 2.708333cqw/1.2 'Reference Aptos', Arial, sans-serif;
+}
+.qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__question {
+  left: 28.133%; top: 29.211%; width: 39.306%; height: 34.94%; padding: 0;
+}
+.qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__question img { height: 100%; width: auto; }
+.qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__answer p { font: 400 4cqw/1.2 'Reference Aptos', Arial, sans-serif; }

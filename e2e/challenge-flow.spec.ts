@@ -10,7 +10,7 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Flip
     await expect(page.getByText('Team A', { exact: true })).toBeVisible()
     await page.goto('/admin/challenges')
     await page.locator('.card--locked', { hasText: title }).getByRole('button', { name: 'Play', exact: true }).click()
-    if (game === 'emoji-decode') await page.clock.install()
+    if (game === 'emoji-decode' || game === 'word-assembly') await page.clock.install()
     await page.locator('.run-panel__teams').getByRole('checkbox').check()
     const popupPromise = context.waitForEvent('page')
     await page.getByRole('button', { name: 'Start team run (1)' }).click()
@@ -19,10 +19,10 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Flip
     await expect(projector).toHaveURL(new RegExp(`/play/${game}/`))
     if (game === 'emoji-decode') {
       await page.clock.runFor(5_000)
-      await expect(page.locator('.qa-stage__timer')).toContainText('25s')
+      await expect(page.locator('.qa-stage__timer')).toContainText('10s')
       await projector.clock.install({ time: await page.evaluate(() => Date.now()) })
       await projector.reload()
-      await expect(projector.locator('.qa-stage__timer')).toContainText('25s')
+      await expect(projector.locator('.qa-stage__timer')).toContainText('10s')
       await expect(projector.locator('.qa-stage__hint')).toHaveText('1 Kata')
       await projector.screenshot({ path: 'test-results/image-decode-public.png' })
     }
@@ -33,6 +33,7 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Flip
         const pair = page.locator(`.tile[data-pair="word-${(number - 1) % 10 + 1}"]`)
         await pair.nth(0).click()
         await pair.nth(1).click()
+        await page.clock.runFor(5_000)
         await page.getByRole('button', { name: 'Answer myself', exact: true }).click()
         await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
       }
@@ -42,7 +43,7 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Flip
       }
       if (game === 'word-assembly' && number === 17) await projector.screenshot({ path: 'test-results/flipping-card-long-question.png' })
       if (game === 'emoji-decode' && number === count) {
-        await page.clock.runFor(31_000)
+        await page.clock.runFor(16_000)
       } else {
         const input = page.getByRole('textbox', { name: 'Team A answer' })
         if (game === 'emoji-decode') await input.fill('wrong answer')

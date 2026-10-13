@@ -14,6 +14,7 @@
 | Scoreboard per challenge (Public: read-only; Adm: Choose Challenge, Add entry, Edit CP, Delete) |
 | Leaderboard (Public: read-only; Adm: Recalculate, Save offline copy) |
 | Reward Claim and Card Reveal (Public: challenge rewards; Adm: synchronized reward flow plus collection management) |
+| Main presentation (Public: synchronized deck slides; Adm: slide controls and preview) |
 - **PWA**: vite-plugin-pwa with Workbox, auto-update service worker, offline caching for static assets
 - **colour themes** (current interface tokens; CSS custom properties live in `src/styles/index.css`)
   - White / card surfaces: `#ffffff`
@@ -157,7 +158,7 @@ f. A challenge's cards can be drawn only once. The draw is saved permanently and
 g. Only deleting a challenge returns its cards to the pool, preserving the 80-card pool.
 h. `getCardPoolStatus()` reports total, drawn and remaining counts overall and per type, and the Card Reveal (Adm) view shows them. An action description is card data; it does not by itself apply gameplay effects.
 8. **Challenges**
-a. Image Decode (formerly Emoji Decode) : Eleven banking-term clues and answers from slides 3–24 of `public/ui/Image_Decode.pptx`; 30-second timed play.
+a. Image Decode (formerly Emoji Decode) : Eleven banking-term clues and answers from slides 3–24 of `public/ui/Image_Decode.pptx`; 15-second timed play.
 b. Flipping Card (formerly Word Assembly) : A 20-card picture-matching game. Its 21 multiple-choice questions and answers come from slides 3–44 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; team runs allow two attempts per answering team after matching.
 c. Jaw of Risk: question-only challenge; answer stored questions in sequence. No teeth are displayed or selected.
 d. Retired: Gardimon Protocol, Incident Trail and Save the Core were removed together with all related code, content and decks. Older databases drop these challenge rows (with their entries) on startup and return their drawn cards to the pool.
@@ -172,18 +173,18 @@ reference question bank is bundled at `src/data/reference-question-bank.json`
 and seeded into SQLite's `game_question` table at startup.
 
 1. **Image Decode** — 11 clue/answer pairs from slides 3–24 of
-   `public/ui/Image_Decode.pptx` are stored in SQLite. The screen scores 10
-   points per decoded answer (110 total) and uses a live 30-second countdown;
-   letting it expire counts as a miss. Team runs use the same timer for each team's
+   `public/ui/Image_Decode.pptx` are stored in SQLite. Solo and team self answers
+   score +10 correct and −10 wrong or timed out (110 maximum), with a live
+   15-second countdown. Team runs use the same timer for each team's
    attempt. Self-answer scores +10 when correct and −10 when wrong. A correct
    answer advances automatically; a wrong answer or timeout passes the same
    question to the next eligible team.
 2. **Flipping Card** — 21 question/answer pairs from slides 3–44 of
    `public/ui/Match-Card.pptx`, in slide order. Starting a run randomly draws
    the roulette team order. Teams have 20 seconds to match a pair; a mismatch
-   costs 5 points and moves the matching turn to the next roulette team.
+   moves the matching turn to the next roulette team without deducting points.
    A match unlocks the question. The matcher chooses to answer or give it to
-   another team before the 20-second answering timer starts. Each answering
+   another team before the 15-second answering timer starts. Each answering
    team has two attempts within that timer; the first miss has no penalty.
    After two misses or expiry, the next eligible team answers the same question.
    Self answers score +10 correct or −10 after exhausting attempts. Passed
@@ -248,8 +249,8 @@ every launch and behave like any other challenge:
   advances automatically. An unsuccessful turn keeps the same question and
   moves the turn to the next eligible team, with **Answer yourself** selected.
   If every team exhausts its attempts, the run advances automatically.
-  Team-run timers are 30 seconds for Image Decode and 20 seconds for Flipping Card.
-  Jaw of Risk has no timer. Timeout grades only the team currently answering
+  Solo and team question timers are 15 seconds for all three challenges.
+  Flipping Card matching turns remain 20 seconds. Timeout grades only the team currently answering
   and moves the same question to the next eligible team.
 - Because the rows are ordinary challenge data, the existing rules apply to them:
   up to 5 teams per challenge, ranks derived from scores, rank rewards awarding
@@ -339,7 +340,8 @@ backgrounds extracted from slides 11 and 12 of `Guard The Heart_Main PPT.pptx`.
 Validation: `npm test` covers game rules, database/controller flows and duplicate
 card protection. `npm run test:e2e -- --workers=1` covers completion of each
 challenge, Image Decode's final timeout, two-window reward navigation, once-only
-claiming, unique five-team rewards, score correction, leaderboard and reload.
+claiming, unique five-team rewards, score correction, leaderboard and reload,
+plus synchronized presentation navigation through slide 7.
 `npm run lint` and `npm run build` check source and production output.
 
 ## Reference content maintenance
@@ -359,7 +361,7 @@ that presentation so public screens display only the live question.
 Flipping Card retains roulette: the start draw establishes a random team order,
 and each new matching turn follows that order. A pair must be matched before
 its question is shown. The matcher commits to self-answering or a recipient;
-each answering team then gets two attempts within 20 seconds. The first wrong
+each answering team then gets two attempts within 15 seconds. The first wrong
 attempt keeps the same deadline and has no score penalty. Matching timeout
 rotates the matching turn; answering timeout consumes the remaining attempts.
 The roulette, pair states, recipient, attempts and countdown deadline are
@@ -369,7 +371,7 @@ Internal game ids remain `emoji-decode`, `word-assembly` and `jaws-of-risk` for
 saved-data compatibility. Old Match Card and Flipping Connect titles migrate
 to Flipping Card, and Jaws of Risk migrates to Jaw of Risk.
 
-Image Decode team turns also store their 30-second deadline in the shared run,
+Image Decode team turns also store their 15-second deadline in the shared run,
 so reloading the public display preserves the host countdown.
 
 Portrait layouts stack the Q&A header, clue and answer panels with readable
@@ -386,7 +388,7 @@ team has exhausted its answering turn (all five in a five-team run). Giving a
 question does not count as answering it: the giver remains eligible to answer
 later in the same roulette order. Existing pass-score penalties still apply.
 After all teams fail, the next question also starts with matching. The roulette
-order, two attempts per answering team, 20-second timers, scoring, other games,
+order, two attempts per answering team, 15-second question timers, scoring, other games,
 and scoreboard/reward transitions retain their existing behavior.
 
 ### Opening public displays
@@ -395,4 +397,9 @@ Starting a team run opens its public game route in a new browser tab, without
 popup sizing. The admin scoreboard's Reward Claim (Public) and Reveal Cards
 (Public) links also open their display routes in new tabs. If a public page is
 already open in the same browser profile, it follows team-run updates and the
-host's completion and reward transitions.
+host's completion and reward transitions. The Admin **Public** link opens the
+main presentation at slide 1 in a new tab and moves the admin view to its
+presentation controller. **Previous** and **Next** synchronize slides 1–7
+between the controller preview and public display; slides 1–3 and 5 use supplied
+deck artwork, slide 4 reproduces the reward table, and slides 6–7 use supplied
+deck artwork.

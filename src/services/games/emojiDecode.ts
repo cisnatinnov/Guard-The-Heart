@@ -37,7 +37,7 @@ export const EMOJI_DECODE_QUESTIONS: EmojiDecodeQuestion[] = reference.imageDeco
 
 export const EMOJI_DECODE_QUESTION_COUNT = EMOJI_DECODE_QUESTIONS.length
 export const EMOJI_DECODE_EMOJIS_PER_QUESTION = raw.emojiPerQuestion
-export const EMOJI_DECODE_SECONDS_PER_QUESTION = 30
+export const EMOJI_DECODE_SECONDS_PER_QUESTION = 15
 export const EMOJI_DECODE_POINTS_PER_ANSWER = 10
 export const EMOJI_DECODE_DECK_PATH = '/ui/Image_Decode.pptx'
 export const EMOJI_DECODE_CHALLENGE_ID = '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10'
@@ -70,7 +70,7 @@ export function scoreEmojiDecode(attempts: EmojiDecodeAttempt[]): {
   return {
     solved,
     attempted: attempts.length,
-    score: solved * EMOJI_DECODE_POINTS_PER_ANSWER,
+    score: (solved - (attempts.length - solved)) * EMOJI_DECODE_POINTS_PER_ANSWER,
     maximum: getEmojiDecodeQuestions().length * EMOJI_DECODE_POINTS_PER_ANSWER,
   }
 }

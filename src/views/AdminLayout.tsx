@@ -1,4 +1,5 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
+import { publishPresentationSlide } from '../services/publicPresentation'
 import { useDatabase } from '../hooks/useDatabase'
 
 const ADMIN_NAV = [
@@ -78,7 +79,15 @@ export function AdminLayout() {
               {item.label}
             </Link>
           ))}
-          <Link to="/" className="tab tab--public-link" title="Switch to Public">
+          <Link
+            to="/admin/presentation"
+            className="tab tab--public-link"
+            title="Open the public presentation"
+            onClick={() => {
+              publishPresentationSlide(1)
+              window.open('/', '_blank')
+            }}
+          >
             Public
           </Link>
         </nav>

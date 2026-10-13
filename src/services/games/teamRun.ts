@@ -20,7 +20,7 @@ export interface TeamRun {
 
 export interface ChallengeRun {
   matchingBoard?: WordAssemblyState
-  matchingPhase?: 'matching' | 'choice' | 'answer'
+  matchingPhase?: 'matching' | 'matched-delay' | 'choice' | 'answer' | 'handoff-delay'
   matchingTurn?: number
   matchedByTeam?: string
   matchingTeamIndex?: number
@@ -75,15 +75,18 @@ function scorePassedAnswer(run: ChallengeRun, fromTeam: string, toTeam: string, 
   const attemptedTeams = Array.from(new Set([...run.attemptedTeams,
     ...(run.matchingBoard ? [] : [fromTeam]), toTeam]))
   const nextTeamIndex = (run.runs.findIndex((entry) => entry.team === toTeam) + 1) % run.runs.length
+  const questionResolved = correct || attemptedTeams.length >= run.runs.length
+  const delayForNextTeam = !!run.matchingBoard && !correct && !questionResolved
   return {
     ...run,
     runs: updated,
     attemptedTeams,
     nextTeamIndex,
-    questionResolved: correct || attemptedTeams.length >= run.runs.length,
+    questionResolved,
     answerAttempts: 0,
     passedByTeam: undefined,
-    turnDeadline: run.matchingBoard ? Date.now() + WORD_ASSEMBLY_SECONDS_PER_QUESTION * 1000
+    ...(delayForNextTeam ? { matchingPhase: 'handoff-delay' as const } : {}),
+    turnDeadline: delayForNextTeam ? Date.now() + 5000 : run.matchingBoard ? Date.now() + WORD_ASSEMBLY_SECONDS_PER_QUESTION * 1000
       : run.secondsPerTurn ? Date.now() + run.secondsPerTurn * 1000 : undefined,
   }
 }
@@ -151,7 +154,7 @@ export function eliminatedTeams(run: ChallengeRun): TeamRun[] {
 }
 
 export interface QuestionOutcome {
-  /** Points the team earned, already clamped at zero. */
+  /** Signed points earned or lost by the team. */
   points: number
   /** False lets the next team try the same question. */
   correct: boolean
@@ -191,6 +194,7 @@ export function applyAnswer(run: ChallengeRun, team: string, outcome: QuestionOu
   const attemptedTeams = [...run.attemptedTeams, team]
   const nextTeamIndex = (run.runs.findIndex((entry) => entry.team === team) + 1) % run.runs.length
   const questionResolved = outcome.correct || attemptedTeams.length >= run.runs.length
+  const delayForNextTeam = !!run.matchingBoard && !outcome.correct && !questionResolved
   const next: TeamRun = {
     ...current,
     score: current.score + outcome.points,
@@ -205,7 +209,8 @@ export function applyAnswer(run: ChallengeRun, team: string, outcome: QuestionOu
       answerAttempts: 0,
       nextTeamIndex,
       questionResolved,
-      turnDeadline: run.matchingBoard ? Date.now() + WORD_ASSEMBLY_SECONDS_PER_QUESTION * 1000
+      ...(delayForNextTeam ? { matchingPhase: 'handoff-delay' as const } : {}),
+      turnDeadline: delayForNextTeam ? Date.now() + 5000 : run.matchingBoard ? Date.now() + WORD_ASSEMBLY_SECONDS_PER_QUESTION * 1000
       : run.secondsPerTurn ? Date.now() + run.secondsPerTurn * 1000 : undefined,
     },
     team: next,
@@ -277,14 +282,27 @@ export function questionWasClean(run: ChallengeRun): boolean {
 /** Matching progress is part of the shared run, including public spectators. */
 export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
   if (!run.matchingBoard || run.questionResolved || isRunComplete(run) ||
-      isMatchingQuestionUnlocked(run) || (run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run
+      (run.matchingPhase !== undefined && run.matchingPhase !== 'matching') || isMatchingQuestionUnlocked(run) ||
+      (run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run
   const board = revealWordAssemblyCard(run.matchingBoard, cardId)
   if (board === run.matchingBoard) return run
   const matched = board.matchedQuestionIds.length > run.matchingBoard.matchedQuestionIds.length
   return {
     ...run, matchingBoard: board,
-    ...(matched ? { matchingPhase: 'choice' as const, matchedByTeam: teamForQuestion(run)?.team, matchingTeamIndex: run.nextTeamIndex, turnDeadline: undefined } : {}),
+    ...(matched ? { matchingPhase: 'matched-delay' as const, matchedByTeam: teamForQuestion(run)?.team, matchingTeamIndex: run.nextTeamIndex, turnDeadline: Date.now() + 5000 } : {}),
   }
+}
+
+/** Completes the shared five-second pause after a match or a wrong answer. */
+export function advanceMatchingTransition(run: ChallengeRun): ChallengeRun {
+  if (!run.matchingBoard || run.turnDeadline === undefined || Date.now() < run.turnDeadline) return run
+  if (run.matchingPhase === 'matched-delay') {
+    return { ...run, matchingPhase: 'choice', turnDeadline: undefined }
+  }
+  if (run.matchingPhase === 'handoff-delay') {
+    return { ...run, matchingPhase: 'answer', turnDeadline: Date.now() + WORD_ASSEMBLY_SECONDS_PER_QUESTION * 1000 }
+  }
+  return run
 }
 
 export function enableRunMatching(run: ChallengeRun): ChallengeRun {
@@ -296,7 +314,7 @@ export function enableRunMatching(run: ChallengeRun): ChallengeRun {
 }
 
 export function isMatchingQuestionUnlocked(run: ChallengeRun): boolean {
-  return run.matchingPhase !== undefined ? run.matchingPhase !== 'matching'
+  return run.matchingPhase !== undefined ? ['choice', 'answer', 'handoff-delay'].includes(run.matchingPhase)
     : (run.matchingBoard?.matchedQuestionIds.length ?? 0) > run.questionIndex
 }
 
@@ -309,7 +327,6 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
   if (!team) return run
   return {
     ...run,
-    runs: run.runs.map((entry) => entry.team === team.team && !timedOut ? { ...entry, score: entry.score - 5 } : entry),
     matchingBoard: closeUnmatchedWordAssemblyCards(run.matchingBoard),
     nextTeamIndex: (run.runs.findIndex((entry) => entry.team === team.team) + 1) % run.runs.length,
     matchingTurn: (run.matchingTurn ?? 0) + 1,

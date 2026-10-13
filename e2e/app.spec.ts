@@ -36,6 +36,22 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
   await expect(page.getByRole('table', { name: 'Team leaderboard' })).toContainText('Sentinels')
   await expect(page.getByRole('button', { name: 'Recalculate', exact: true })).toHaveCount(0)
   await expect(page.getByRole('columnheader', { name: 'Total score', exact: true })).toHaveCount(0)
+
+  await page.goto('/admin')
+  const publicTabPromise = page.context().waitForEvent('page')
+  await page.getByRole('link', { name: 'Public', exact: true }).click()
+  const publicTab = await publicTabPromise
+  await expect(page.getByRole('heading', { name: 'Public presentation' })).toBeVisible()
+  await expect(publicTab.locator('.main-presentation__slide img')).toHaveAttribute('src', '/ui/main-presentation/slide-01.png')
+  for (let slide = 2; slide <= 7; slide += 1) {
+    await page.getByRole('button', { name: 'Next →' }).click()
+    await expect(page.locator('.presentation-admin__controls span')).toHaveText(`Slide ${slide} of 7`)
+    if (slide === 6 || slide === 7) {
+      await expect(publicTab.locator('.main-presentation__slide img')).toHaveAttribute('src', `/ui/main-presentation/slide-0${slide}.png`)
+      await expect.poll(() => publicTab.locator('.main-presentation__slide img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+    }
+  }
+  await expect(page.getByRole('button', { name: 'Next →' })).toBeDisabled()
 })
 
 

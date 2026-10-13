@@ -77,6 +77,8 @@ export function TeamRunPanel({
   const matching = gameId === 'word-assembly'
   const unlocked = !matching || !!run && isMatchingQuestionUnlocked(run)
   const choosingAnswerTeam = matching && run?.matchingPhase === 'choice'
+  const matchedDelay = matching && run?.matchingPhase === 'matched-delay'
+  const handoffDelay = matching && run?.matchingPhase === 'handoff-delay'
   const timerDuration = matching && !unlocked ? WORD_ASSEMBLY_SECONDS_PER_MATCH : questionSet.secondsPerQuestion
   const sharedRemaining = useRunCountdown(run?.turnDeadline)
   const hasTimer = timerDuration !== undefined && !choosingAnswerTeam
@@ -92,6 +94,17 @@ export function TeamRunPanel({
   const answerOwnerId = !matching && answerMode === 'pass' && opponentId ? opponentId : currentTurnTeam?.team
   const answerOwnerAnswer = answerOwnerId ? answers[answerOwnerId] ?? '' : ''
   const timerExpired = hasTimer && remaining === 0
+
+  useEffect(() => {
+    if (!canControl || busy || !run || (!matchedDelay && !handoffDelay) || remaining !== 0) return
+    const updated = ChallengeRunController.finishMatchingTransition(run)
+    if (updated === run) return
+    setBusy(true)
+    setRun(updated)
+    void Promise.resolve(onUpdateRun(updated)).catch((cause: unknown) => {
+      setError(cause instanceof Error ? cause.message : String(cause))
+    }).finally(() => setBusy(false))
+  }, [canControl, busy, run, matchedDelay, handoffDelay, remaining, onUpdateRun])
 
   useEffect(() => {
     if (run?.turnDeadline !== undefined || matching || !running || !unlocked || attemptKey === null || timerDuration === undefined || graded) return
@@ -119,6 +132,8 @@ export function TeamRunPanel({
     if (
       !running ||
       !canControl ||
+      matchedDelay ||
+      handoffDelay ||
       attemptKey === null ||
       !hasTimer ||
       remaining !== 0 ||
@@ -141,10 +156,10 @@ export function TeamRunPanel({
       return
     }
     answersFormRef.current?.requestSubmit()
-  }, [running, canControl, matching, unlocked, run, onUpdateRun, attemptKey, hasTimer, remaining, graded, busy, timer.attemptKey])
+  }, [running, canControl, matching, unlocked, matchedDelay, handoffDelay, run, onUpdateRun, attemptKey, hasTimer, remaining, graded, busy, timer.attemptKey])
 
   useEffect(() => {
-    if (!canControl || busy || !run?.matchingBoard || run.matchingBoard.revealed.length !== 2 || unlocked) return
+    if (!canControl || busy || run?.matchingPhase !== 'matching' || !run.matchingBoard || run.matchingBoard.revealed.length !== 2 || unlocked) return
     const timeout = window.setTimeout(() => {
       setBusy(true)
       void ChallengeRunController.finishMatchingTurn(run).then(async (updated) => {
@@ -241,7 +256,7 @@ export function TeamRunPanel({
       const timedOut = timerExpired
       if (!currentTurnTeam) return
       const submittedAnswer = timedOut ? '' : answerOwnerAnswer
-      if (!matching && answerMode === 'pass' && opponentId && !timedOut) {
+      if (!matching && answerMode === 'pass' && opponentId) {
         const passed = await ChallengeRunController.pass({ gameId, run, fromTeamId: currentTurnTeam.team, toTeamId: opponentId, answer: submittedAnswer })
         setAnswers({})
         setResults([])
@@ -320,7 +335,7 @@ export function TeamRunPanel({
             {unlocked && <p className="muted">{question.hint}</p>}
             <p className="muted">
               {currentTurnTeam
-                ? matching && !unlocked ? `${teamName(currentTurnTeam.team)} matches the cards now.` : choosingAnswerTeam ? `${teamName(currentTurnTeam.team)} chooses who will answer.` : `${teamName(currentTurnTeam.team)} answers this question.`
+              ? matching && !unlocked ? matchedDelay ? `Pair matched. The question unlocks in ${remaining} seconds.` : `${teamName(currentTurnTeam.team)} matches the cards now.` : handoffDelay ? `Next team gets a chance in ${remaining} seconds.` : choosingAnswerTeam ? `${teamName(currentTurnTeam.team)} chooses who will answer.` : `${teamName(currentTurnTeam.team)} answers this question.`
                 : 'This question is resolved; move to the next question.'}
             </p>
           </div>
@@ -341,8 +356,9 @@ export function TeamRunPanel({
           <p className="muted">Match a pair first to unlock its question. Each team gets two answer attempts. A correct answer returns to matching; otherwise the same question passes to the next eligible team until everyone has tried.</p>
           <RouletteOrder run={run} teamName={teamName} />
           {hasTimer && !unlocked && <p className="matching-timer" role="timer" aria-label="Matching time remaining">{remaining}s</p>}
+          {handoffDelay && <p className="matching-timer" role="timer" aria-label="Next team chance in">Next team in {remaining}s</p>}
           {!unlocked && run.matchingBoard && <MatchingCards board={run.matchingBoard}
-            disabled={!canControl || busy || remaining === 0} onFlip={(cardId) => void flipCard(cardId)} />}
+            disabled={!canControl || busy || matchedDelay || remaining === 0} onFlip={(cardId) => void flipCard(cardId)} />}
           {choosingAnswerTeam && canControl && currentTurnTeam && <fieldset className="matching-choice" disabled={busy}>
             <legend>{teamName(currentTurnTeam.team)} matched a pair. Who will answer?</legend>
             <button type="button" onClick={() => void chooseAnswerTeam(currentTurnTeam.team)}>Answer myself</button>
@@ -358,7 +374,8 @@ export function TeamRunPanel({
           {unlocked && !choosingAnswerTeam && !graded && <p className="muted">Answer attempts: {run.answerAttempts ?? 0}/2</p>}
         </>}
 
-        {unlocked && !choosingAnswerTeam && <form ref={answersFormRef} className="run-panel__answers" onSubmit={submitAnswers}>
+        {handoffDelay && <p className="muted" role="status">The question is ready. The next team can answer when the countdown ends.</p>}
+        {unlocked && !choosingAnswerTeam && !handoffDelay && <form ref={answersFormRef} className="run-panel__answers" onSubmit={submitAnswers}>
           {canControl && !matching && !graded && currentTurnTeam && (
             <fieldset className="run-panel__teams">
               <legend>How will {teamName(currentTurnTeam.team)} play?</legend>
@@ -378,7 +395,7 @@ export function TeamRunPanel({
               </select>}
             </fieldset>
           )}
-          {hasTimer && (
+          {hasTimer && gameId !== 'emoji-decode' && (
             <div className="emoji-timer" role="timer" aria-label={`Time left for question ${question.number}`}>
               <span className="emoji-timer__track">
                 <span
@@ -523,7 +540,7 @@ export function TeamRunPanel({
       <h3 className="run-panel__title">Play this challenge with teams</h3>
       <p className="muted">
         {matching
-          ? 'Choose the participating teams. Roulette draws their matching order. A mismatch or a 20-second matching timeout moves to the next team. Match a pair, then answer yourself or give the question to another team. Each answering team has 20 seconds and two attempts.'
+          ? 'Choose the participating teams. Roulette draws their matching order. A mismatch or a 20-second matching timeout moves to the next team. Match a pair, then answer yourself or give the question to another team. Each answering team has 15 seconds and two attempts.'
           : 'Choose the participating teams. One team answers at a time. A wrong answer or timeout gives the next team in the roulette order a chance to answer the same question.'}
         {' '}Each team's score is saved straight to the challenge scoreboard.
       </p>

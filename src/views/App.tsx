@@ -13,6 +13,8 @@ import { CardRevealAdminView } from './CardRevealAdminView'
 import { GameView } from './challenges/GameView'
 import { PublicLayout } from './PublicLayout'
 import { AdminLayout } from './AdminLayout'
+import { PresentationPublicView } from './PresentationPublicView'
+import { PresentationAdminView } from './PresentationAdminView'
 
 function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const { status, error } = useDatabase()
@@ -47,6 +49,7 @@ export function App() {
         <Routes>
           {/* Public routes */}
           <Route element={<PublicLayout />}>
+            <Route path="/" element={<PresentationPublicView />} />
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
             <Route path="/rewards/:challengeId?" element={<RewardClaimPublicView />} />
@@ -57,6 +60,7 @@ export function App() {
           {/* Admin routes */}
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<TeamView />} />
+            <Route path="/admin/presentation" element={<PresentationAdminView />} />
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />

@@ -86,8 +86,10 @@ Each major view has separate **Public** and **Adm** pages:
 | Leaderboard | Read-only team standings, for display | (Auto-recalculates on changes) |
 | Reward Claim | `/rewards/:challengeId` shows earned card counts and GP | `/admin/rewards/:challengeId` has **Rewards** to open card reveal on both screens |
 | Card Reveal | `/cards/:challengeId` shows cards earned in that challenge | `/admin/cards/:challengeId` mirrors the reveal; `/admin/cards` retains collection management |
+| Main presentation | `/` displays slides 1–7 from `public/ui/Guard The Heart_Main PPT.pptx` | **Public** opens slide 1 in a new tab and shows synchronized slide controls |
 
 Admin pages use the admin navigation. Public pages use separate routes and follow the host’s scoreboard and reward transitions in the same browser profile.
+On the admin presentation page, **Previous** and **Next** advance both the admin preview and open public display. Slides 1–3 and 5–7 use supplied deck artwork; slide 4 reproduces the reward table from the deck.
 
 ## Challenges
 
@@ -100,8 +102,8 @@ question-only and has no tooth board or tooth selection.
 
 | Challenge | Contents | Scoring |
 | --- | --- | --- |
-| Image Decode | 11 banking-term clues from slides 3–24 of the reference deck, with a live 30 second countdown in solo and team play | 10 per decoded answer, 110 max |
-| Flipping Card | Ten picture pairs from 20 cards; each matched pair unlocks one of 21 multiple-choice questions from slides 3–44. Match a pair before each question; each answering team has two attempts. Boards refresh after ten pairs. | +10 correct, −10 after two wrong answers, −5 per mismatch (210 max before penalties) |
+| Image Decode | 11 banking-term clues from slides 3–24 of the reference deck, with a live 15 second countdown in solo and team play | +10 correct, −10 wrong or timed out, 110 max |
+| Flipping Card | Ten picture pairs from 20 cards; each matched pair unlocks one of 21 multiple-choice questions from slides 3–44. Match a pair before each question; each answering team has two attempts. Boards refresh after ten pairs. | +10 correct, −10 after two wrong answers, no mismatch penalty (210 max before penalties) |
 | Jaw of Risk | Solo and team runs use the 20 stored questions from slides 3–42 of the Jaw of Risk reference, in sequence. No tooth board or tooth selection. | +10 correct, −10 wrong |
 
 The admin solo game screens use the supplied art direction: Image Decode uses the question
@@ -129,8 +131,8 @@ the first launch:
   question to the next eligible team; Flipping Card allows two attempts before
   a turn is unsuccessful, while the other games allow one. If every team is unsuccessful,
   the run advances automatically. Team-run timers are
-  30 seconds for Image Decode and 20 seconds for Flipping Card.
-  Jaw of Risk has no team-run timer. When a timer expires, only the team
+  15 seconds per question for Image Decode, Flipping Card, and Jaw of Risk.
+  Flipping Card matching turns remain 20 seconds. When a timer expires, only the team
   currently answering is graded incorrect and the turn moves to the next
   eligible team for the same question.
 - A built-in challenge accepts up to 5 teams like any other, so ranks and guard
@@ -330,7 +332,8 @@ backgrounds extracted from slides 11 and 12 of `Guard The Heart_Main PPT.pptx`.
 Validation: `npm test` covers game rules, database/controller flows and duplicate
 card protection. `npm run test:e2e -- --workers=1` covers completion of each
 challenge, Image Decode's final timeout, two-window reward navigation, once-only
-claiming, unique five-team rewards, score correction, leaderboard and reload.
+claiming, unique five-team rewards, score correction, leaderboard and reload,
+plus synchronized presentation navigation through slide 7.
 `npm run lint` and `npm run build` check source and production output.
 
 ## Reference content maintenance
@@ -350,7 +353,7 @@ that presentation so public screens display only the live question.
 Flipping Card retains roulette: the start draw establishes a random team order,
 and each new matching turn follows that order. A pair must be matched before
 its question is shown. The matcher commits to self-answering or a recipient;
-each answering team then gets two attempts within 20 seconds. The first wrong
+each answering team then gets two attempts within 15 seconds. The first wrong
 attempt keeps the same deadline and has no score penalty. Matching timeout
 rotates the matching turn; answering timeout consumes the remaining attempts.
 The roulette, pair states, recipient, attempts and countdown deadline are
@@ -360,7 +363,7 @@ Internal game ids remain `emoji-decode`, `word-assembly` and `jaws-of-risk` for
 saved-data compatibility. Old Match Card and Flipping Connect titles migrate
 to Flipping Card, and Jaws of Risk migrates to Jaw of Risk.
 
-Image Decode team turns also store their 30-second deadline in the shared run,
+Image Decode team turns also store their 15-second deadline in the shared run,
 so reloading the public display preserves the host countdown.
 
 Portrait layouts stack the Q&A header, clue and answer panels with readable
@@ -377,7 +380,7 @@ team has exhausted its answering turn (all five in a five-team run). Giving a
 question does not count as answering it: the giver remains eligible to answer
 later in the same roulette order. Existing pass-score penalties still apply.
 After all teams fail, the next question also starts with matching. The roulette
-order, two attempts per answering team, 20-second timers, scoring, other games,
+order, two attempts per answering team, 15-second question timers, scoring, other games,
 and scoreboard/reward transitions retain their existing behavior.
 
 ### Opening public displays
@@ -386,4 +389,7 @@ Starting a team run opens its public game route in a new browser tab, without
 popup sizing. The admin scoreboard's Reward Claim (Public) and Reveal Cards
 (Public) links also open their display routes in new tabs. If a public page is
 already open in the same browser profile, it follows team-run updates and the
-host's completion and reward transitions.
+host's completion and reward transitions. The Admin **Public** link opens the
+main presentation at slide 1 in a new tab and moves the admin view to its
+presentation controller. **Previous** and **Next** synchronize slides 1–7
+between the controller preview and public display.

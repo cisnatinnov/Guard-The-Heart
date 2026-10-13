@@ -176,7 +176,7 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
   },
   'jaws-of-risk': () => {
     const questions = jawsQuestions()
-    return { questions, pointsPerQuestion: JAWS_HIT_POINTS }
+    return { questions, pointsPerQuestion: JAWS_HIT_POINTS, secondsPerQuestion: 15 }
   },
 }
 

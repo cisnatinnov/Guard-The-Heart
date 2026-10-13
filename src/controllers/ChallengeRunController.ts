@@ -7,6 +7,7 @@ import { challengeQuestionsFor, gradeQuestion, type ChallengeQuestion } from '..
 import {
   enableRunMatching,
   advanceMatchingTurn,
+  advanceMatchingTransition,
   chooseMatchingAnswerTeam,
   applyAnswer,
   applyPassedAnswer,
@@ -92,6 +93,10 @@ export class ChallengeRunController {
     return updated
   }
 
+  static finishMatchingTransition(run: ChallengeRun): ChallengeRun {
+    return advanceMatchingTransition(run)
+  }
+
   private static async recordChangedScores(previous: ChallengeRun, next: ChallengeRun): Promise<void> {
     for (const entry of next.runs) {
       if (entry.score !== runFor(previous, entry.team)?.score) {
@@ -113,7 +118,7 @@ export class ChallengeRunController {
   }): Promise<{ run: ChallengeRun; result: TeamAnswerResult }> {
     const team = await ChallengeRunController.teamName(input.teamId)
     const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
-    const graded = gradeQuestion(question, input.answer)
+    const graded = gradeQuestion(question, input.timedOut ? '' : input.answer)
     const applied = applyAnswer(input.run, input.teamId, {
       points: graded.correct ? 10 : -10,
       correct: graded.correct,
@@ -146,8 +151,12 @@ export class ChallengeRunController {
         input.teamId,
         applied.team.score
       )
-      // A given question can change the giver's score as well as the recipient's.
-      await ChallengeRunController.recordChangedScores(input.run, applied.run)
+      // A given question can also change the giver's score.
+      for (const entry of applied.run.runs) {
+        if (entry.team !== input.teamId && entry.score !== runFor(input.run, entry.team)?.score) {
+          await ChallengeRunController.recordScore(input.run.challenge, entry.team, entry.score)
+        }
+      }
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause)
     }

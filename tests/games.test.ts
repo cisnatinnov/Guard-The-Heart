@@ -28,6 +28,7 @@ import { challengeQuestionsFor } from '../src/services/games/challengeQuestions'
 import {
   enableRunMatching,
   advanceMatchingTurn,
+  advanceMatchingTransition,
   chooseMatchingAnswerTeam,
   isMatchingQuestionUnlocked,
   flipRunCard,
@@ -38,6 +39,10 @@ import {
   startChallengeRun,
   teamForQuestion,
 } from '../src/services/games/teamRun'
+
+function finishMatchingDelay(run: ReturnType<typeof startChallengeRun>) {
+  return advanceMatchingTransition({ ...run, turnDeadline: Date.now() - 1 })
+}
 
 function seededRandom(seed: number): () => number {
   let state = seed >>> 0
@@ -82,9 +87,9 @@ describe('challenge registry', () => {
   })
 
   it('uses the configured timer for question-based team runs only', () => {
-    expect(challengeQuestionsFor('emoji-decode').secondsPerQuestion).toBe(30)
-    expect(challengeQuestionsFor('word-assembly').secondsPerQuestion).toBe(20)
-    expect(challengeQuestionsFor('jaws-of-risk').secondsPerQuestion).toBeUndefined()
+    expect(challengeQuestionsFor('emoji-decode').secondsPerQuestion).toBe(15)
+    expect(challengeQuestionsFor('word-assembly').secondsPerQuestion).toBe(15)
+    expect(challengeQuestionsFor('jaws-of-risk').secondsPerQuestion).toBe(15)
   })
 })
 
@@ -96,6 +101,11 @@ describe('team challenge turns', () => {
     run = flipRunCard(run, pair[0].id)
     run = flipRunCard(run, pair[1].id)
     expect(run.matchingBoard!.matchedQuestionIds).toEqual(['word-1'])
+    expect(run.matchingPhase).toBe('matched-delay')
+    expect(isMatchingQuestionUnlocked(run)).toBe(false)
+    const otherCard = run.matchingBoard!.board.find((card) => !run.matchingBoard!.matchedCardIds.includes(card.id))!
+    expect(flipRunCard(run, otherCard.id)).toBe(run)
+    run = finishMatchingDelay(run)
     run = chooseMatchingAnswerTeam(run, 'alpha')
     run = applyAnswer(run, 'alpha', { points: -10, correct: false }).run
     expect(teamForQuestion(run)?.team).toBe('alpha')
@@ -104,6 +114,7 @@ describe('team challenge turns', () => {
     run = applyAnswer(run, 'alpha', { points: -10, correct: false }).run
     expect(teamForQuestion(run)?.team).toBe('beta')
     expect(run.answerAttempts).toBe(0)
+    run = finishMatchingDelay(run)
     run = applyAnswer(run, 'beta', { points: 10, correct: true }).run
     run = beginNextQuestion(run)
     expect(run.matchingBoard!.matchedQuestionIds).toHaveLength(1)
@@ -119,7 +130,7 @@ describe('team challenge turns', () => {
       run = flipRunCard(flipRunCard(run, first.id), other.id)
       run = advanceMatchingTurn(run)
       expect(teamForQuestion(run)?.team).toBe('beta')
-      expect(run.runs[0].score).toBe(-5)
+      expect(run.runs.map((entry) => entry.score)).toEqual([0, 0])
       expect(run.matchingBoard!.revealed).toEqual([])
       expect(isMatchingQuestionUnlocked(run)).toBe(false)
       expect(advanceMatchingTurn(run, true)).toBe(run)
@@ -136,6 +147,7 @@ describe('team challenge turns', () => {
     expect(() => chooseMatchingAnswerTeam(run, 'gamma')).toThrow('Match a pair')
     const pair = run.matchingBoard!.board.filter((card) => card.questionId === 'word-1')
     run = flipRunCard(flipRunCard(run, pair[0].id), pair[1].id)
+    run = finishMatchingDelay(run)
     expect(run.matchingPhase).toBe('choice')
     expect(run.turnDeadline).toBeUndefined()
     expect(() => applyAnswer(run, 'alpha', { points: 10, correct: true })).toThrow('Choose who')
@@ -160,6 +172,7 @@ describe('team challenge turns', () => {
       const first = board.board.find((card) => !board.matchedCardIds.includes(card.id))!
       const pair = board.board.filter((card) => card.questionId === first.questionId)
       run = flipRunCard(flipRunCard(run, pair[0].id), pair[1].id)
+      run = finishMatchingDelay(run)
       run = chooseMatchingAnswerTeam(run, 'alpha')
       run = applyAnswer(run, 'alpha', { points: 10, correct: true }).run
       if (index < 20) run = beginNextQuestion(run)
@@ -174,10 +187,13 @@ describe('team challenge turns', () => {
     let run = enableRunMatching(startChallengeRun({ challenge: 'matching', teams: ['alpha', 'beta', 'gamma'], questionCount: 21, pointsPerQuestion: 10 }))
     const pair = run.matchingBoard!.board.filter((card) => card.questionId === 'word-1')
     run = flipRunCard(flipRunCard(run, pair[0].id), pair[1].id)
+    run = finishMatchingDelay(run)
     run = chooseMatchingAnswerTeam(run, 'gamma')
     run = applyAnswer(run, 'gamma', { points: -10, correct: false }).run
     run = applyAnswer(run, 'gamma', { points: -10, correct: false }).run
     expect(run.runs.map((entry) => entry.score)).toEqual([-5, 0, -5])
+    expect(run.matchingPhase).toBe('handoff-delay')
+    run = finishMatchingDelay(run)
     expect(teamForQuestion(run)?.team).toBe('alpha')
     expect(run.questionResolved).toBe(false)
     expect(run.passedByTeam).toBeUndefined()
@@ -190,12 +206,14 @@ describe('team challenge turns', () => {
     let run = enableRunMatching(startChallengeRun({ challenge: 'matching', teams, questionCount: 21, pointsPerQuestion: 10 }))
     const pair = run.matchingBoard!.board.filter((card) => card.questionId === 'word-1')
     run = flipRunCard(flipRunCard(run, pair[0].id), pair[1].id)
+    run = finishMatchingDelay(run)
     run = chooseMatchingAnswerTeam(run, 'beta')
     for (const [index, team] of ['beta', 'gamma', 'delta', 'epsilon', 'alpha'].entries()) {
       expect(teamForQuestion(run)?.team).toBe(team)
       run = applyAnswer(run, team, { points: -10, correct: false }).run
       expect(teamForQuestion(run)?.team).toBe(team)
       run = applyAnswer(run, team, { points: -10, correct: false }).run
+      if (index < 4) run = finishMatchingDelay(run)
       expect(run.attemptedTeams).toHaveLength(index + 1)
       expect(run.questionResolved).toBe(index === 4)
       expect(run.questionIndex).toBe(0)
@@ -309,7 +327,7 @@ describe('Image Decode', () => {
     )
     expect(result.solved).toBe(2)
     expect(result.attempted).toBe(3)
-    expect(result.score).toBe(20)
+    expect(result.score).toBe(10)
     expect(result.maximum).toBe(110)
   })
 })
@@ -370,7 +388,7 @@ describe('Flipping Card', () => {
     const closed = closeUnmatchedWordAssemblyCards(opened)
     expect(closed.revealed).toEqual([])
     expect(closed.matchedCardIds).toEqual([])
-    expect(scoreWordAssembly(closed)).toMatchObject({ matchedPairs: 0, mismatches: 1, score: -5 })
+    expect(scoreWordAssembly(closed)).toMatchObject({ matchedPairs: 0, mismatches: 1, score: 0 })
   })
 
   it('prevents opening another card while a mismatched pair is showing', () => {

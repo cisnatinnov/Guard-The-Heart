@@ -3,6 +3,7 @@ import { JAWS_HIT_POINTS } from '../../services/games'
 import { getGameQuestions, type GameQuestionRecord } from '../../services/gameQuestionCache'
 import { challengeQuestionsFor } from '../../services/games/challengeQuestions'
 import { QuestionPresentation } from './QuestionPresentation'
+import { useSoloQuestionTimer } from './useSoloQuestionTimer'
 
 export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {}) {
   const questions = getGameQuestions('jaws-of-risk')
@@ -12,6 +13,11 @@ export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {})
   const [score, setScore] = useState(0)
   const question: GameQuestionRecord | undefined = questions[questionIndex]
   const complete = questionIndex >= questions.length
+  const remaining = useSoloQuestionTimer(String(questionIndex), !!question && !questionResult, () => {
+    if (questionResult) return
+    setScore((current) => current - JAWS_HIT_POINTS)
+    setQuestionResult(`Time ran out. Answer: ${question?.answer}. −${JAWS_HIT_POINTS} points.`)
+  })
 
   useEffect(() => {
     if (questions.length > 0 && questionIndex === questions.length - 1 && !!questionResult) onComplete?.()
@@ -19,7 +25,7 @@ export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {})
 
   function submitAnswer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!question || questionResult || !answer) return
+    if (!question || questionResult || remaining === 0 || !answer) return
     if (answer === question.answer) {
       setScore((current) => current + JAWS_HIT_POINTS)
       setQuestionResult(`Correct — ${question.answer}. +${JAWS_HIT_POINTS} points.`)
@@ -49,7 +55,7 @@ export function JawsOfRiskView({ onComplete }: { onComplete?: () => void } = {})
         <div className="stat"><span className="stat__label">Score</span><span className="stat__value">{score}</span></div>
       </div>
       {question && <QuestionPresentation gameId="jaws-of-risk" question={challengeQuestionsFor('jaws-of-risk').questions[questionIndex]}
-        counter={`Soal ${question.number} / ${questions.length}`} />}
+        seconds={remaining} counter={`Soal ${question.number} / ${questions.length}`} />}
       {question ? <form className="match-question" onSubmit={submitAnswer}>
         <p className="muted">Question {question.number}</p>
 

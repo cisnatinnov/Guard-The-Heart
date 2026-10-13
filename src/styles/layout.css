@@ -111,6 +111,56 @@
 .app--admin .app__footer { padding-top: 16px; border-top: 1px solid var(--border); line-height: 1.5; }
 .app__footer a { color: #027479; }
 
+/* Main presentation: a synchronized public display with an admin preview. */
+.app--public:has(.main-presentation) {
+  width: 100%; max-width: none; min-height: 100dvh; padding: 0;
+  color: #fff; background: #100d16;
+}
+.app--public:has(.main-presentation) .app__main {
+  min-height: 100dvh; display: grid; place-items: center; padding: 0;
+}
+.main-presentation { width: 100%; container-type: inline-size; }
+.main-presentation--public {
+  min-height: 100dvh; display: grid; place-items: center;
+  background: #100d16;
+}
+.main-presentation__slide {
+  position: relative; width: min(100%, 177.778dvh); aspect-ratio: 16 / 9;
+  overflow: hidden; background: #171321; color: #fff; container-type: inline-size;
+}
+.main-presentation__slide > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.presentation-admin { width: 100%; }
+.presentation-admin__controls {
+  display: flex; justify-content: center; align-items: center; gap: 20px;
+  padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff;
+}
+.presentation-admin__controls span { min-width: 110px; text-align: center; font-weight: 700; }
+.presentation-admin .main-presentation__slide { width: min(100%, 1100px); margin-inline: auto; border-radius: 12px; box-shadow: 0 12px 36px rgb(34 22 46 / 18%); }
+.main-presentation__slide--four { padding: 5.2% 4.5%; color: #2b1c47; background: #fff; }
+.main-presentation__slide--four h1 { margin: 0 0 2.3%; font-size: 3.05cqw; line-height: 1.1; font-weight: 800; }
+.main-presentation__rewards { width: 100%; height: 56%; border-collapse: collapse; table-layout: fixed; font-size: 1.65cqw; text-align: center; }
+.main-presentation__rewards th, .main-presentation__rewards td { padding: .35em .5em; }
+.main-presentation__rewards thead { color: #fff; background: #2b1c47; }
+.main-presentation__rewards thead th { font-weight: 700; }
+.main-presentation__rewards tbody tr:nth-child(odd) { background: #eeeaf2; }
+.main-presentation__rewards tbody tr:nth-child(even) { background: #fff; }
+.main-presentation__rewards tbody th { font-weight: 700; }
+.main-presentation__cap { display: flex; align-items: center; gap: 1.3%; margin: 1.8% 0 0; font-size: 1.5cqw; }
+.main-presentation__cap strong { padding: .35em .9em; border-radius: 999px; color: white; background: #2b1c47; }
+.main-presentation__note, .main-presentation__winner { margin: 1.2% 0 0; font-size: 1.38cqw; line-height: 1.25; }
+.main-presentation__winner { margin-top: 1.5%; font-weight: 700; }
+.main-presentation__page-number { position: absolute; right: 2.5%; bottom: 2%; font-size: 1.2cqw; }
+.main-presentation__slide--five h1 {
+  position: absolute; left: 4.6%; top: 79.5%; width: 56%; margin: 0;
+  color: #fff; font-size: 4cqw; line-height: 1.1; font-weight: 900;
+  text-shadow: 0 .08em .18em #1b0f2c, 0 0 .25em #1b0f2c;
+}
+@media (max-width: 680px) {
+  .presentation-admin__controls { gap: 8px; padding: 10px; }
+  .presentation-admin__controls span { min-width: 88px; font-size: 13px; }
+  .presentation-admin__controls button { min-height: 40px; padding: 8px 10px; }
+}
+
 /* Cards retain their natural proportions at every viewport width. */
 .card-reveal__teams { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important; gap: 20px; }
 .card-reveal__team { padding: 0 14px 14px; gap: 14px; }
@@ -133,6 +183,28 @@
 .qa-stage__question h2 { font-size: 2.6cqw; line-height: 1.35; overflow-wrap: anywhere; text-wrap: pretty; }
 .qa-stage__answer { scrollbar-width: thin; scrollbar-color: #db8d38 transparent; }
 .qa-stage__options { align-items: start; font-size: 1.4cqw; line-height: 1.25; }
+.qa-stage--emoji-decode .qa-stage__logo { display: none; }
+.qa-stage--emoji-decode .qa-stage__heading {
+  left: 0; top: -14%; width: 44%; height: 141%; padding: 0 0 0 7.5%;
+  align-items: flex-start; justify-content: center; text-align: left;
+}
+.qa-stage--emoji-decode .qa-stage__heading h1 {
+  font-size: 2.6cqw; font-weight: 400; line-height: 1.2; text-align: left;
+}
+.qa-stage--emoji-decode .qa-stage__heading span { display: none; }
+.qa-stage--emoji-decode .qa-stage__hint {
+  left: 43%; top: -14%; width: 27%; height: 141%; padding: 0;
+  justify-content: center; color: #26180d; font-size: 2.4cqw; font-weight: 400; text-align: center;
+}
+.qa-stage--emoji-decode .qa-stage__timer {
+  left: 67%; top: 28%; width: 30%; height: 60%; z-index: 2;
+  gap: 0; border: 0; border-radius: 0;
+  background: linear-gradient(145deg, #c91c0b, #780c04);
+  clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
+  color: #fff; font-size: 3.6cqw;
+}
+.qa-stage--emoji-decode .qa-stage__timer > span { font-size: 4.8cqw; line-height: 1; }
+.qa-stage--emoji-decode .qa-stage__timer strong { display: block; }
 .public-ranking__team { text-overflow: ellipsis; }
 .public-ranking--leaderboard .public-ranking__team { display: block; align-content: center; font-size: 1.65cqw !important; }
 .public-ranking--scoreboard .public-ranking__team { display: block; align-content: center; }
@@ -154,6 +226,9 @@
   .tabs--admin .tab { padding-inline: 8px; width: 100%; }
   .tabs--admin .tab--public-link { margin: 0; }
   .app--admin .card { padding: 16px; }
+  .app--admin .card-pool .stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .app--admin .card-pool .stat { min-width: 0; padding: 12px 10px; }
+  .app--admin .card-pool .stat__label { font-size: 11px; line-height: 1.2; }
   .app--admin .card__actions { width: 100%; }
   .app--admin .card__actions button { flex: 1 1 auto; }
   .app--admin .row-form > button { flex: 1 1 auto; }
@@ -242,6 +317,8 @@
     grid-row: 1; grid-column: 3; width: 64px; height: 56px;
     font-size: 18px; background: #a7311a; border-radius: 8px;
   }
+  .qa-stage--emoji-decode .qa-stage__timer > span { font-size: 20px; }
+  .qa-stage--emoji-decode .qa-stage__timer strong { font-size: 12px; }
   .qa-stage--emoji-decode .qa-stage__question { height: auto; min-height: 180px; }
   .qa-stage--emoji-decode .qa-stage__answer p { font-size: 22px; overflow-wrap: anywhere; }
   .app--admin .qa-stage { min-height: 0; }
@@ -253,4 +330,23 @@
   .qa-stage__options li { grid-template-columns: 24px minmax(0, 1fr); gap: 8px; }
   .qa-stage__options b { font-size: 18px; }
   .qa-stage__options span { padding: 0; }
+}
+
+/* Reference screens retain the slide's proportions at every viewport size. */
+@media (max-width: 680px) and (orientation: portrait) {
+  .qa-stage.qa-stage--slide-reference {
+    min-height: 0; aspect-ratio: 16 / 9; display: block; padding: 0; border: 0;
+  }
+  .qa-stage--slide-reference .qa-stage__header { position: absolute; inset: 0; height: 21%; display: block; }
+  .qa-stage--slide-reference .qa-stage__heading,
+  .qa-stage--slide-reference .qa-stage__hint,
+  .qa-stage--slide-reference .qa-stage__timer,
+  .qa-stage--slide-reference .qa-stage__question,
+  .qa-stage--slide-reference .qa-stage__answer { position: absolute; }
+  .qa-stage--slide-reference .qa-stage__question {
+    min-height: 0; flex: none; border: 0; border-radius: 0; background: none; box-shadow: none;
+  }
+  .qa-stage--slide-reference .qa-stage__answer { min-height: 0; padding: 0; border: 0; border-radius: 0; background: none; }
+  .qa-stage--slide-reference .qa-stage__answer-label { display: none; }
+  .qa-stage--slide-reference .qa-stage__question img { max-height: 100%; max-width: 100%; }
 }

@@ -20,7 +20,7 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
   const timerQuestionId = useRef<string | null>(questions[0]?.id ?? null)
   const checkedQuestionIds = useRef(new Set<string>())
 
-  const history: EmojiDecodeAttempt[] = questions.map((question) => ({
+  const history: EmojiDecodeAttempt[] = questions.filter((question) => checked[question.id] !== undefined).map((question) => ({
         questionId: question.id,
         guess: attempts[question.id] ?? '',
         correct: checked[question.id] ?? false,
@@ -117,18 +117,6 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
               hint: current.hint, eliminates: true, grade: () => 0 }}
             counter={`Question ${currentIndex + 1} of ${questions.length}`}
             seconds={remaining} status={answered ? current.answer : '—'} />
-
-          <div className="emoji-timer" role="timer" aria-label={`Time left for question ${currentIndex + 1}`}>
-            <span className="emoji-timer__track">
-              <span
-                className={`emoji-timer__fill${
-                  remaining <= 5 && !answered ? ' emoji-timer__fill--urgent' : ''
-                }`}
-                style={{ width: `${(remaining / EMOJI_DECODE_SECONDS_PER_QUESTION) * 100}%` }}
-              />
-            </span>
-            <span className="emoji-timer__value">{timedOut ? 'Time up' : `${remaining}s`}</span>
-          </div>
 
           <div className="row-form">
             <input

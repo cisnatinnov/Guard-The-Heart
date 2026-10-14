@@ -1,7 +1,7 @@
 import { PublicRankingBoard } from './PublicRankingBoard'
 import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { ChallengePointController } from '../controllers/ChallengePointController'
 import { CardController } from '../controllers/CardController'
 import { useChallenges } from '../hooks/useChallenges'
@@ -93,6 +93,7 @@ export function ChallengePointAdminView() {
   function handleSelectChallenge(challengeId: string) {
     setEditingId(null)
     setForm(EMPTY_FORM)
+    void publishPublicDisplay('scoreboard', challengeId).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
     navigate(`/admin/scoreboard/${challengeId}`)
   }
 
@@ -189,9 +190,7 @@ export function ChallengePointAdminView() {
               </select>
             </label>
             {activeId && <>
-              <button type="button" disabled={busy} onClick={() => void run(async () => { window.open(`/scoreboard/${activeId}`, '_blank', 'noopener'); await publishPublicDisplay('scoreboard', activeId) })}>Show Scoreboard (Public)</button>
               <button type="button" disabled={busy || checkingDraw || !entries.length} onClick={claimRewards}>Claim Rewards</button>
-              <Link className="deck-link" to={`/rewards/${activeId}`} target="_blank" rel="noopener">Reward Claim (Public)</Link>
             </>}
           </div>
 

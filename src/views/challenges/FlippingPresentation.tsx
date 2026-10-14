@@ -4,10 +4,11 @@ import { MatchingCards } from './MatchingCards'
 import type { ChallengeRun } from '../../services/games/teamRun'
 import '../../styles/flipping.css'
 
-export function FlippingPresentation({ board, run, teamName, complete, disabled, onFlip, onChooseTeam, teamSelectionDisabled }: {
+export function FlippingPresentation({ board, run, teamName, teamGP, complete, disabled, onFlip, onChooseTeam, teamSelectionDisabled }: {
   board?: WordAssemblyState
   run?: ChallengeRun | null
   teamName: (id: string) => string
+  teamGP?: (id: string) => number | undefined
   complete?: boolean
   disabled?: boolean
   onFlip?: (id: string) => void
@@ -22,7 +23,7 @@ export function FlippingPresentation({ board, run, teamName, complete, disabled,
         const entry = run?.runs[slot]
         const active = !!entry && !complete && slot === run?.nextTeamIndex
         return <li key={entry?.team ?? slot} aria-hidden={!entry || undefined} aria-current={active ? 'step' : undefined}>
-          {entry && onChooseTeam ? <button className="flipping-presentation__team-button" type="button" title={teamName(entry.team)} aria-pressed={active} disabled={teamSelectionDisabled || complete} onClick={() => onChooseTeam(entry.team)}><span className="flipping-presentation__team-name">{teamName(entry.team)}</span></button> : <span className="flipping-presentation__team-name" title={entry ? teamName(entry.team) : undefined}>{entry ? teamName(entry.team) : run ? '—' : ['Tim Pink', 'Tim Merah', 'Tim Biru', 'Tim Hijau', 'Tim Kuning'][slot]}</span>}{active && <span className="flipping-presentation__turn">Giliran</span>}
+          {entry && onChooseTeam ? <button className="flipping-presentation__team-button" type="button" aria-label={teamName(entry.team)} title={teamName(entry.team)} aria-pressed={active} disabled={teamSelectionDisabled || complete} onClick={() => onChooseTeam(entry.team)}><span className="flipping-presentation__team-name">{teamName(entry.team)}</span><span className="flipping-presentation__team-gp">{teamGP?.(entry.team) ?? '—'} GP</span></button> : <div className="flipping-presentation__team-info"><span className="flipping-presentation__team-name" title={entry ? teamName(entry.team) : undefined}>{entry ? teamName(entry.team) : run ? '—' : ['Tim Pink', 'Tim Merah', 'Tim Biru', 'Tim Hijau', 'Tim Kuning'][slot]}</span>{entry && <span className="flipping-presentation__team-gp">{teamGP?.(entry.team) ?? '—'} GP</span>}</div>}{active && <span className="flipping-presentation__turn">Giliran</span>}
         </li>
       })}
     </ol>

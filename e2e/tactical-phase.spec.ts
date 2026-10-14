@@ -69,11 +69,8 @@ test('earned cards select by click and drag, stay hidden publicly, and reveal on
   await expect(projector.locator('.tactical-stage__team').filter({ hasText: 'Tim Merah' })).toContainText('2 Kartu siap')
   await page.reload()
   await expect(red.locator('.tactical-admin__selection button')).toHaveCount(2)
-  const revealTabPromise = context.waitForEvent('page')
   await page.getByRole('button', { name: 'Card Reveal', exact: true }).click()
-  const revealTab = await revealTabPromise
-  await expect(revealTab).toHaveURL(new RegExp(`/card-reveal/${id}$`))
-  await expect(revealTab.locator('.card-art')).toHaveCount(2)
+  expect(context.pages()).toHaveLength(2)
   await expect(page).toHaveURL(new RegExp(`/admin/tactical/${id}$`))
   await expect(projector).toHaveURL(/\/card-reveal\//)
   await expect(projector.locator('.card-art')).toHaveCount(2)

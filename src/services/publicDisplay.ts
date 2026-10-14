@@ -1,4 +1,5 @@
 import { flushDatabase } from '../db/sequelize-provider'
+import { openPublicDisplay } from './publicWindow'
 
 export type DisplayStage = 'scoreboard' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk' | 'timer'
 export interface PublicDisplay { stage: DisplayStage; challengeId: string; id: string }
@@ -6,11 +7,12 @@ const KEY = 'guard-the-heart-public-display'
 
 export function displayPath(display: Pick<PublicDisplay, 'stage' | 'challengeId'>, admin = false): string {
   if (['leaderboard', 'podium', 'turn-order', 'timer'].includes(display.stage)) return `${admin ? '/admin' : ''}/${display.stage}`
-  return `${admin ? '/admin' : ''}/${display.stage}/${encodeURIComponent(display.challengeId)}`
+  return `${admin ? '/admin' : ''}/${display.stage}${display.challengeId ? `/${encodeURIComponent(display.challengeId)}` : ''}`
 }
 
 /** Persist scores/cards before telling the projector window to read them. */
 export async function publishPublicDisplay(stage: DisplayStage, challengeId: string): Promise<void> {
+  openPublicDisplay(displayPath({ stage, challengeId }))
   await flushDatabase()
   const display: PublicDisplay = { stage, challengeId, id: crypto.randomUUID() }
   localStorage.setItem(KEY, JSON.stringify(display))

@@ -1,5 +1,8 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useDatabase } from '../hooks/useDatabase'
+import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, publicFeatureForAdmin } from '../services/publicWindow'
+import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 
 const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
@@ -18,6 +21,9 @@ const ADMIN_NAV = [
 export function AdminLayout() {
   const { status, error } = useDatabase()
   const location = useLocation()
+  useEffect(() => {
+    if (window.name === PUBLIC_WINDOW_NAME || window.name === TIMER_WINDOW_NAME) window.name = ''
+  }, [])
 
   if (status === 'loading') {
     return (
@@ -75,7 +81,13 @@ export function AdminLayout() {
           {ADMIN_NAV.map((item) => (
             <Link
               key={item.path}
-              to={item.path}
+              to={publicFeatureForAdmin(item.path, location.pathname)
+                ? displayPath(publicFeatureForAdmin(item.path, location.pathname)!, true)
+                : item.path}
+              onClick={() => {
+                const display = publicFeatureForAdmin(item.path, location.pathname)
+                if (display) void publishPublicDisplay(display.stage, display.challengeId).catch(console.error)
+              }}
               className={location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path))
                 ? 'tab tab--active'
                 : 'tab'}

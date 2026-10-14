@@ -1,3 +1,4 @@
+import { openPublicDisplay } from '../../services/publicWindow'
 import { refreshDatabaseFromStorage } from '../../db/sequelize-provider'
 import { useEffect, useState } from 'react'
 import { ChallengeRunController } from '../../controllers/ChallengeRunController'
@@ -72,7 +73,7 @@ export function GameView() {
     publishSharedChallengeRun(game.id, challengeId, nextRun)
     const publicPath = `/play/${game.id}/${challengeId}`
     // Omit popup sizing features so the browser opens a regular tab.
-    window.open(publicPath, '_blank')
+    openPublicDisplay(publicPath, true)
   }
 
   const completeSolo = () => {

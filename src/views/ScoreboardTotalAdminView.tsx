@@ -9,7 +9,6 @@ import { MAX_TOTAL_CARD } from '../services/rankRules'
 import { useChallenges } from '../hooks/useChallenges'
 import { latestTacticalResolution } from '../services/tacticalPhase'
 import { PublicRankingBoard } from './PublicRankingBoard'
-import { publishPublicDisplay } from '../services/publicDisplay'
 
 export function ScoreboardTotalAdminView() {
   const { challenges } = useChallenges()
@@ -102,7 +101,6 @@ export function ScoreboardTotalAdminView() {
       {loading && <p className="muted">Loading leaderboard…</p>}
 
       <div className="row-form">
-        <button type="button" disabled={loading || busy} onClick={() => { window.open('/leaderboard', '_blank', 'noopener'); void publishPublicDisplay('leaderboard', '').catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause))) }}>Show Leaderboard (Public)</button>
         <button type="button" onClick={handleRecalculate} disabled={loading || busy}>
           Recalculate
         </button>

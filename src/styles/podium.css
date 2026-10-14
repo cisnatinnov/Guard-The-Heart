@@ -40,3 +40,12 @@
 .podium-tied-rank { line-height:1; clip-path:polygon(0 0,100% 0,100% 85%,50% 100%,0 85%); }
 .podium-winner--2 .podium-tied-rank { left:18.2%; top:58.5%; width:4%; height:9%; background:linear-gradient(#28496f,#152b4a); }
 .podium-winner--3 .podium-tied-rank { left:79.2%; top:60.2%; width:4%; height:8.8%; background:linear-gradient(#a63f18,#66200c); }
+.podium-cp { position:absolute; top:89%; width:22%; height:6%; display:flex; align-items:center; justify-content:center; border:.15cqw solid #ffffffb3; border-radius:2cqw; background:#e7e9ed; color:#243447; font:700 1.8cqw/1 Arial,sans-serif; font-variant-numeric:tabular-nums; box-shadow:0 .25cqw .6cqw #102b4233; }
+.podium-winner--1 .podium-cp { left:39%; }
+.podium-winner--2 .podium-cp { left:8%; }
+.podium-winner--3 .podium-cp { left:70%; }
+.podium-cp--merah { background:#fac6c3; color:#7b1e26; }
+.podium-cp--biru { background:#b8def5; color:#123f68; }
+.podium-cp--kuning { background:#ffe4a0; color:#69460c; }
+.podium-cp--pink { background:#fcd0e5; color:#76294e; }
+.podium-cp--hijau { background:#bfedca; color:#195532; }

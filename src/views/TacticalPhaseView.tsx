@@ -2,7 +2,10 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useChallenges } from '../hooks/useChallenges'
 import { useTacticalTeams } from '../hooks/useTacticalTeams'
-import { chooseTacticalCard, publishTacticalPhase, readTacticalPhase, setTacticalVisibility, subscribeTacticalPhase, usedTacticalCardIds } from '../services/tacticalPhase'
+import { attackTacticalPhaseOnce, chooseTacticalCard, needsCardTarget, validateTacticalAttack, publishTacticalPhase, readTacticalPhase, setTacticalVisibility, subscribeTacticalPhase, usedTacticalCardIds } from '../services/tacticalPhase'
+import { recordGigaRiskGP } from '../services/gpTransactions'
+import { useTeams } from '../hooks/useTeams'
+import { openPublicDisplay } from '../services/publicWindow'
 import { publishPublicDisplay } from '../services/publicDisplay'
 import { teamColour } from '../services/defaultTeams'
 import { CARD_BACK_IMAGE, cardTitleFor } from '../data/card-pool'
@@ -19,7 +22,9 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
   const { challenges } = useChallenges()
   const id = challengeId ?? challenges[0]?.id ?? ''
   const navigate = useNavigate()
-  const { teams, error } = useTacticalTeams(id)
+  const { teams, error, loading } = useTacticalTeams(id)
+  const { teams: allTeams, error: teamError, loading: teamsLoading } = useTeams()
+  const [busy, setBusy] = useState(false)
   const [, refresh] = useState(0)
   const [actionError, setActionError] = useState<string | null>(null)
   const [logIndex, setLogIndex] = useState(0)
@@ -32,9 +37,35 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
   const phase = readTacticalPhase(id)
   const usedCards = usedTacticalCardIds()
   const resolution = phase.resolution ?? phase.strike
-  const locked = phase.revealed || !!resolution
+  const locked = busy || phase.revealed || !!resolution
+  const inputs = allTeams.map((team) => ({ id: team.id, name: team.name, gp: team.total_gp,
+    cards: teams.find((entry) => entry.id === team.id)?.cards ?? [] }))
   const revealedCards = teams.flatMap((team) => team.cards.filter((card) => !phase.choices[team.id]?.skipped && phase.choices[team.id]?.cards.includes(card.id)).map((card) => ({ team, card })))
   const currentLog = revealedCards[logIndex % revealedCards.length]
+  function targetCard(teamId: string, cardId: string, targetId: string) {
+    const current = readTacticalPhase(id)
+    if (busy || current.resolution || current.strike) return
+    const choice = current.choices[teamId]
+    if (!choice?.cards.includes(cardId)) return
+    publishTacticalPhase(id, { ...current, choices: { ...current.choices,
+      [teamId]: { ...choice, targets: { ...choice.targets, [cardId]: targetId } } } })
+    setActionError(null)
+  }
+  async function attack() {
+    if (!id || busy || loading || teamsLoading) return
+    try {
+      if (error || teamError) throw new Error(error || teamError || '')
+      const current = readTacticalPhase(id)
+      if (current.resolution || current.strike) return
+      validateTacticalAttack(inputs, current)
+      openPublicDisplay(`/gigarisk/${encodeURIComponent(id)}`)
+      setBusy(true)
+      await attackTacticalPhaseOnce(id, inputs, (result) => recordGigaRiskGP(id, result))
+      await publishPublicDisplay('gigarisk', id)
+      setActionError(null)
+    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    finally { setBusy(false) }
+  }
   async function selectChallenge(nextId: string) {
     try {
       await publishPublicDisplay('tactical', nextId)
@@ -58,17 +89,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
         return [team.id, { cards, targets: choice?.targets, skipped: choice?.skipped || (showReveal && !cards.length) || false }]
       }))
       publishTacticalPhase(id, setTacticalVisibility({ ...current, choices }, showReveal))
-      // Open during the click event so the browser permits the new public tab.
-      if (showReveal) window.open(`/card-reveal/${encodeURIComponent(id)}`, '_blank', 'noopener')
       await publishPublicDisplay(showReveal ? 'card-reveal' : 'tactical', id)
-      setActionError(null)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
-  }
-  async function showPublicTactical() {
-    if (!id) return
-    window.open(`/tactical/${encodeURIComponent(id)}`, '_blank', 'noopener')
-    try {
-      await publishPublicDisplay('tactical', id)
       setActionError(null)
     } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
   }
@@ -76,10 +97,14 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     <header className="view__header"><h2>Tactical Phase</h2><p className="view__hint">Select up to two earned cards per team. Click a card or drag it into that team’s selection, or skip.</p></header>
     <div className="admin-toolbar">
       <label className="field"><span>Challenge</span><select value={id} onChange={(event) => void selectChallenge(event.target.value)}>{challenges.map((challenge) => <option key={challenge.id} value={challenge.id}>{challenge.name}</option>)}</select></label>
-      <button disabled={!id} onClick={() => void showPublicTactical()}>Show Tactical Phase (Public)</button>
       <button className="ghost" onClick={() => void display(false)}>{phase.revealed ? 'Return to Tactical Phase' : 'Show Tactical Phase'}</button><button disabled={!id || !teams.length} onClick={() => void display(true)}>{phase.revealed || resolution ? 'Show Card Reveal' : 'Card Reveal'}</button>
+      <button disabled={!id || !allTeams.length || loading || teamsLoading || busy || !!resolution} onClick={() => void attack()}>{resolution ? 'Serangan selesai' : busy ? 'Memproses serangan…' : 'Serang semua tim −2 GP'}</button>
     </div>
-    {(actionError || error) && <p className="alert alert--error" role="alert">{actionError || error}</p>}
+    {(actionError || error || teamError) && <p className="alert alert--error" role="alert">{actionError || error || teamError}</p>}
+    {revealedCards.length > 0 && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.map(({ team, card }) => <article key={card.id}>
+      <div><strong>Tim {team.name.replace(/^tim\s+/i, '')} · {card.name}</strong><p>{card.effect_action}</p></div>
+      {needsCardTarget(card) && <label className="field"><span>Tim lawan untuk {card.name}</span><select aria-label={`Target ${card.name} milik ${team.name}`} value={phase.choices[team.id]?.targets?.[card.id] ?? ''} disabled={busy || !!resolution} onChange={(event) => targetCard(team.id, card.id, event.target.value)}><option value="">Pilih tim lawan</option>{allTeams.filter((opponent) => opponent.id !== team.id).map((opponent) => <option key={opponent.id} value={opponent.id}>{opponent.name} · {opponent.total_gp} GP</option>)}</select></label>}
+    </article>)}</div>}
     {teams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team.name) ?? 'neutral'}`}>
       <header className="tactical-admin__team-header"><h3>Tim {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{phase.choices[team.id]?.skipped ? 'SKIP' : `${phase.choices[team.id]?.cards.length ?? 0}/2 selected`}</span></header>
       <div className="tactical-admin__body"><div><h4>Earned cards</h4>

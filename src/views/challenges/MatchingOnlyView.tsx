@@ -77,6 +77,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     finally { setBusy(false) }
   }
   const presentation = <FlippingPresentation board={run?.matchingBoard} run={run} teamName={teamName}
+    teamGP={(teamId) => teams.find((entry) => entry.id === teamId)?.total_gp}
     complete={complete} disabled={busy || complete}
     onFlip={canControl ? (id) => void flip(id) : undefined}
     onChooseTeam={canControl ? (id) => void chooseTeam(id) : undefined} teamSelectionDisabled={busy} />

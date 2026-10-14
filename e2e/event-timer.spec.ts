@@ -60,7 +60,8 @@ test('public timer opens as a standalone display and slide navigation is removed
   await expect(page).toHaveURL(/\/admin\/timer$/)
   await expect(page.getByRole('heading', { name: 'Timer', exact: true })).toBeVisible()
   const popupPromise = page.waitForEvent('popup')
-  await page.getByRole('button', { name: 'Show Timer (Public)' }).click()
+  await expect(page.getByRole('button', { name: 'Show Timer (Public)' })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Timer', exact: true }).click()
   const projector = await popupPromise
   await expect(projector).toHaveURL(/\/timer$/)
   await expect(projector.getByRole('timer')).toBeVisible()

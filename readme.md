@@ -53,10 +53,11 @@ public display is `/timer`. Production hosting must serve `index.html` for appli
 6. From **Rewards**, open **Tactical Phase**. Select up to two cards earned by
    each team in that challenge, by clicking or dragging, or choose **Skip**.
    **Card Reveal** displays those selections without applying an attack.
-7. In **Serangan GigaRisk**, select the challenge, choose an opponent for each
+7. In **Tactical Phase**, choose an opponent for each
    Thief card, then click **Serang semua tim −2 GP**. The attack and selected
    effects apply once. An empty tactical phase blocks the attack with a message;
    explicit SKIP is a valid decision. Used cards leave available inventory.
+   **Serangan GigaRisk** only displays the saved attack result.
 8. Show the **Leaderboard** or **Podium** to display standings based on current
    GP. Configure the three podium prizes in the admin podium page.
 9. Review **Transaksi GP** for opening balances, challenge rewards, GigaRisk and
@@ -85,13 +86,14 @@ Display buttons open a new tab and publish the chosen public screen.
 | Serangan GigaRisk | `/admin/gigarisk/:challengeId?` | `/gigarisk/:challengeId?` |
 | Event timer | `/admin/timer` | `/timer` |
 
-The scoreboard and leaderboard each have a **Show … (Public)** button. The Timer
-admin page has **Show Timer (Public)**. The former `/admin/presentation` URL
-redirects to `/admin/timer`; the slideshow and its public controls have been removed.
-Rewards and Tactical Phase also have **Show Rewards (Public)** and
-**Show Tactical Phase (Public)** buttons in their admin toolbars. Each opens
-the selected challenge in a new tab and synchronizes existing public displays.
-These display buttons preserve tactical selections and reveal state.
+Clicking an admin feature tab with a public view opens a separate public window
+while keeping the admin window active. Later feature clicks update that window
+without opening a duplicate or focusing it. If it is closed, the next feature
+click opens a replacement. Separate public-view buttons have been removed.
+Timer uses its own window, separate from the other public features. Other feature
+clicks leave the timer visible and running; clicking Timer reuses its window or
+reopens it if closed.
+The former `/admin/presentation` URL redirects to `/admin/timer`.
 Public game, reward, tactical, reveal and ranking pages display live state. Urutan Main
 is interactive on its public page. The retired `/cards` and `/admin/cards`
 routes are not current features; unknown routes redirect to `/scoreboard`.

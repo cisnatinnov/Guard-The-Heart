@@ -17,3 +17,10 @@
 
 .flipping-presentation .matching-cards--reference .tile:not(.tile--revealed) { background-image: none; }
 .flipping-presentation .flipping-presentation__team-button { display:grid; place-items:center; width:100%; height:100%; min-height:0; margin:0; padding:0; border:0; border-radius:.7cqw; color:inherit; background:transparent; font:inherit; box-shadow:none; cursor:pointer; } .flipping-presentation .flipping-presentation__team-button:focus-visible { outline:.22cqw solid #61e6e6; outline-offset:.12cqw; } .flipping-presentation .flipping-presentation__team-button:disabled { opacity:1; cursor:default; }
+.flipping-presentation__teams { height:8.1%; }
+.flipping-presentation__teams::after { content:none; }
+.flipping-presentation__teams li { font-size:1.65cqw; }
+.flipping-presentation .flipping-presentation__team-button,.flipping-presentation__team-info { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:.3cqw; min-width:0; width:100%; }
+.flipping-presentation__team-gp { padding:.18cqw .65cqw; border-radius:1cqw; background:#ffffff24; font:700 1.2cqw/1.1 Arial,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.flipping-presentation__teams li[aria-current] .flipping-presentation__team-gp { background:#ffffff80; }
+.flipping-presentation__turn { top:102%; font-size:1.1cqw; }

@@ -4,7 +4,7 @@ import { rankGuardPointStandings } from '../services/rankRules'
 import { ScoreboardController } from '../controllers/ScoreboardController'
 import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
-import { publishPublicDisplay } from '../services/publicDisplay'
+import { teamColour } from '../services/defaultTeams'
 import '../styles/podium.css'
 const PRIZES_KEY='guard-the-heart-podium-prizes'
 function readPrizes(): string[] { try { const values=JSON.parse(localStorage.getItem(PRIZES_KEY)??'[]');return Array.from({length:3},(_,i)=>String(values[i]??'')) } catch {return ['','','']} }
@@ -22,7 +22,7 @@ export function PodiumView({admin=false}:{admin?:boolean}) {
   const ranks=sorted.map(team=>team.rank)
   function savePrize(slot:number,value:string){const next=prizes.map((prize,index)=>index===slot?value:prize);localStorage.setItem(PRIZES_KEY,JSON.stringify(next));setPrizes(next)}
   return <section className={admin?'view podium-admin':'podium-public'}>
-    {admin&&<><header className="view__header"><h2>Podium</h2><p className="view__hint">Top three teams by final GP.</p></header><div className="admin-toolbar"><button onClick={()=>{window.open('/podium','_blank','noopener');void publishPublicDisplay('podium','').catch((cause:unknown)=>setError(cause instanceof Error?cause.message:String(cause)))}}>Show Podium (Public)</button>{prizes.map((prize,index)=><label className="field" key={index}><span>Prize position {index+1} (Rp)</span><input type="number" min="0" inputMode="numeric" value={prize} onChange={event=>savePrize(index,event.target.value)}/></label>)}</div></>}
+    {admin&&<><header className="view__header"><h2>Podium</h2><p className="view__hint">Top three teams by final GP.</p></header><div className="admin-toolbar">{prizes.map((prize,index)=><label className="field" key={index}><span>Prize position {index+1} (Rp)</span><input type="number" min="0" inputMode="numeric" value={prize} onChange={event=>savePrize(index,event.target.value)}/></label>)}</div></>}
     {(error||teamError)&&<p className="alert alert--error">{error??teamError}</p>}
     <section className="podium-stage" aria-label="Podium ranked by GP"><img className="podium-art" src="/ui/visual-guide-slide-10.png" alt="Celebration podium with the guardians and Gardimon"/><h1 className="sr-only">Podium</h1>
       {[0,1,2].map(slot=>{
@@ -39,6 +39,7 @@ export function PodiumView({admin=false}:{admin?:boolean}) {
           <span className="podium-name" title={name}><span>{name}</span></span>
           <strong className="podium-gp" title={`${gp} GP`}>{gp}</strong>
           <span className="podium-prize" title={prize}>{prize}</span>
+          <span className={`podium-cp podium-cp--${teamColour(team?.name ?? '') ?? 'neutral'}`} aria-label={team ? `${team.name}: ${team.points} CP` : 'Empty CP'}>{team?.points ?? '—'} CP</span>
           {team&&ranks[slot]!==slot+1&&<span className="podium-tied-rank">{ranks[slot]}</span>}
         </article>
       })}

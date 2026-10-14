@@ -212,7 +212,7 @@ export function ChallengePointAdminView() {
             <p className="alert alert--info">
               Bonus cards already drawn for this challenge. <strong>{drawnCards.length}</strong> card(s) added to pool.
               <br />
-              Go to <strong>Card Reveal (Adm)</strong> to assign them to teams.
+              Available rewards are assigned automatically. Open <strong>Claim Rewards</strong>, then <strong>Tactical Phase</strong> to choose cards.
             </p>
           )}
 

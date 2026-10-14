@@ -91,6 +91,18 @@ export default defineConfig(({ mode }) => {
   build: {
     target: 'esnext',
     chunkSizeWarningLimit: 2048,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const path = id.replace(/\\/g, '/')
+          // Keep CommonJS browser shims beside their vendor imports so they
+          // initialize together, without a vendor/application import cycle.
+          if (path.includes('/node_modules/') || path.includes('/src/shims/')) {
+            return 'vendor'
+          }
+        },
+      },
+    },
     commonjsOptions: {
       requireReturnsDefault: 'preferred',
     },

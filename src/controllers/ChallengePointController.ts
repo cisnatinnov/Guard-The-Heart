@@ -12,7 +12,9 @@ import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 export interface ChallengePointInput {
   challenge: string
   team: string
-  challenge_point: number
+  score?: number
+  /** Compatibility input: treated as raw score. */
+  challenge_point?: number
 }
 
 export type ChallengePointEntry = ChallengePointModel & {
@@ -22,9 +24,9 @@ export type ChallengePointEntry = ChallengePointModel & {
 
 function parseChallengePoint(raw: number): number {
   const cp = Math.trunc(Number(raw))
-  if (!Number.isFinite(cp)) throw new Error('Challenge point must be a number')
-  if (cp < -999) throw new Error('Challenge point cannot be less than -999')
-  if (cp > 999) throw new Error('Challenge point cannot exceed 999')
+  if (!Number.isFinite(cp)) throw new Error('Score must be a number')
+  if (cp < -999) throw new Error('Score cannot be less than -999')
+  if (cp > 999) throw new Error('Score cannot exceed 999')
   return cp
 }
 
@@ -38,7 +40,7 @@ export class ChallengePointController {
       ],
       order: [
         ['rank', 'ASC'],
-        ['challenge_point', 'DESC'],
+        ['score', 'DESC'],
       ],
     })
   }
@@ -52,7 +54,7 @@ export class ChallengePointController {
       order: [
         ['challenge', 'ASC'],
         ['rank', 'ASC'],
-        ['challenge_point', 'DESC'],
+        ['score', 'DESC'],
       ],
     })
   }
@@ -68,7 +70,7 @@ export class ChallengePointController {
     const team = await Team.findByPk(input.team)
     if (!team) throw new Error('Related team was not found')
 
-    const challenge_point = parseChallengePoint(input.challenge_point)
+    const score = parseChallengePoint(input.score ?? input.challenge_point ?? 0)
 
     const [existing] = await ChallengePoint.findAll({
       where: { challenge: input.challenge, team: input.team },
@@ -87,7 +89,8 @@ export class ChallengePointController {
       challenge: input.challenge,
       team: input.team,
       rank: 0,
-      challenge_point,
+      score,
+      challenge_point: 0,
       guard_power: 0,
       card: 0,
     })
@@ -101,13 +104,13 @@ export class ChallengePointController {
 
   static async update(
     id: string,
-    input: { challenge_point?: number; team?: string }
+    input: { score?: number; challenge_point?: number; team?: string }
   ): Promise<ChallengePoint | null> {
     const entry = await ChallengePoint.findByPk(id)
     if (!entry) return null
 
-    if (input.challenge_point !== undefined) {
-      await entry.update({ challenge_point: parseChallengePoint(input.challenge_point) })
+    if (input.score !== undefined || input.challenge_point !== undefined) {
+      await entry.update({ score: parseChallengePoint(input.score ?? input.challenge_point!) })
     }
 
     if (input.team !== undefined) {

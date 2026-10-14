@@ -9,7 +9,7 @@ and question content; application behavior is defined by the source code.
 - React 19, TypeScript 5.9 and Vite 7.
 - Sequelize 6 models/controllers over SQLite in sql.js/WASM; no remote database.
 - IndexedDB stores exported SQLite bytes. localStorage stores shared game and
-  tactical presentation state. Both stores are required to retain a full event.
+  tactical state. Both stores are required to retain a full event.
 - `vite-plugin-pwa`/Workbox caches production assets for offline use.
 - Vite separates application code from a vendor chunk. CommonJS browser shims
   stay with vendor dependencies to avoid an application/vendor import cycle.
@@ -28,7 +28,7 @@ in `src/models/index.ts`; startup seeds/migrations are in `src/db/database.ts`.
 | --- | --- | --- |
 | `challenge` | `id`, `name`, nullable `cards_drawn_at` | Unique name; durable once-only draw timestamp |
 | `team` | `id`, `name`, `status`, `total_gp` | Unique name; active/inactive status; initial GP 5 |
-| `challenge_point` | `id`, `challenge`, `team`, `rank`, `challenge_point`, `guard_power` | Unique challenge/team; controllers limit a challenge to five teams |
+| `challenge_point` | `id`, `challenge`, `team`, `rank`, `score`, `challenge_point`, `guard_power` | Unique challenge/team; controllers limit a challenge to five teams |
 | `scoreboard` | `id`, `team`, `rank`, `total_cp`, `total_card` | Unique team; rebuilt CP totals and available-card count |
 | `card` | `id`, `name`, `type`, `effect`, `effect_action`, `icon`, nullable `challenge`, `team`, `challenge_point` | Physical inventory copy; null ownership before drawing/assignment |
 | `team_card` | `id`, `name`, `type`, `effect`, `effect_action`, `icon`, nullable `team`, `challenge_point` | Assigned copy and retained reveal archive |
@@ -71,6 +71,11 @@ team, ordered newest first, with timestamps in Asia/Jakarta (WIB).
 The GP ledger is added with normal schema synchronization. Adding it does not
 classify an otherwise current database as a legacy schema requiring reset.
 Current-schema startup retains existing teams, scores, rewards and card links.
+For databases without `ChallengePoint.score`, startup adds the integer column
+and copies the old raw `challenge_point` values into it before reranking.
+Reward CP/GP and standings are rebuilt; combat transactions remain preserved.
+Controllers accept `score` as input; legacy `challenge_point` input is treated
+as a raw score for compatibility. New UI controls use Score/Edit Score.
 
 SQLite mutations schedule a debounced IndexedDB export. Display transitions and
 draw/attack operations flush before sending updates. sql.js export resets
@@ -83,7 +88,7 @@ reloading a connection enables foreign keys.
 | `guard-the-heart-tactical:<challengeId>` | Tactical choices, targets, visibility and resolution |
 | `guard-the-heart-gigarisk-completed:<challengeId>` | Permanent completed-attack snapshot |
 | `guard-the-heart-cards-drawn:<challengeId>` | Additional permanent draw marker |
-| Other localStorage keys | Turn order, synchronized game runs, presentation/timer state and podium prizes |
+| Other localStorage keys | Turn order, synchronized game runs, standalone timer/run state and podium prizes |
 
 Do not clear one store while expecting the other to reconstruct the entire
 event. Synchronization is same-origin and same-profile, not cross-device.
@@ -109,23 +114,28 @@ Flipping UI flow.
 
 ## Scores, rankings and rewards
 
-`rerankChallenge` orders entries by CP and assigns dense ranks. Equal CP shares
-rank; the next distinct CP increments by one (`1,2,2,3,4`). Editing/removing an
-entry reranks its challenge, rebuilds totals and adjusts reward GP.
+`rerankChallenge` orders entries by raw `score` and assigns dense ranks. Equal
+scores share rank; the next distinct score increments by one (`1,2,2,3,4`).
+`challenge_point` stores the CP reward, not the raw score. Editing/removing an
+entry reranks its challenge, rebuilds earned CP totals and adjusts reward GP.
 
-| Rank | GP reward | Card quota |
-| --- | --- | --- |
-| 1 | 3 | 3 |
-| 2 | 2 | 2 |
-| 3 | 2 | 2 |
-| 4 | 1 | 1 |
-| 5 | 1 | 0 |
+| Rank | CP reward | GP reward | Card quota |
+| --- | --- | --- | --- |
+| 1 | 10 | 3 | 3 |
+| 2 | 8 | 2 | 2 |
+| 3 | 6 | 2 | 2 |
+| 4 | 4 | 1 | 1 |
+| 5 | 2 | 1 | 0 |
 
 `recalculateTotalScoreboard` sums CP and counts available TeamCards, capped at
-eight. Its stored `Scoreboard.rank` remains based on total CP for compatibility.
-The displayed leaderboard computes ranks independently from live
-`Team.total_gp` descending, then team name; podium uses the same GP basis and
-shows the first three sorted teams, including tie labels.
+eight. Stored `Scoreboard.rank`, both leaderboard views and podium use the
+shared `rankGuardPointStandings`: current GP descending, then total earned CP
+descending. Only identical GP/CP values share a dense rank; team names stabilize
+exact ties. Podium shows the first three teams and labels unresolved ties.
+
+Leaderboard mount/event refresh reads stored standings rather than starting a
+second rebuild. Recalculations run through a shared in-tab queue and update
+existing team rows, preserving ids and avoiding duplicate-team validation errors.
 
 ### GP synchronization and audit rules
 
@@ -249,13 +259,14 @@ the KDO clue and answer Lapor.
 
 ### Flipping Card
 
-The routed game is matching-only: twenty cards, ten pairs, no Q&A or score
-changes. Solo supports restart. Team matching uses a 20-second turn deadline.
-The admin clicks a participating team name above the board to select its turn;
-`manualTeamSelection` prevents automatic rotation on a match/mismatch/timeout.
-Mismatches close after a short delay. A selected team's matched pairs are
-identified on the shared board. All ten pairs complete the activity on admin
-and public screens; it does not auto-save CP or open reward screens.
+The routed game is matching-only: twenty cards, ten pairs, no Q&A, score changes
+or turn timer. Solo supports restart. In team mode, the admin clicks a
+participating team name above the board to select whose turn it is;
+`manualTeamSelection` prevents automatic rotation. Mismatches close after a
+short delay. A selected team's matched pairs are identified on the shared
+board. All ten pairs complete the activity on admin and public screens; it does
+not auto-save CP or open reward screens. Legacy saved matching runs ignore old
+turn deadlines so the removed timer cannot block an active game.
 
 Urutan Main is a separate stored order. Its click/shuffle controls work on admin
 and public routes and do not determine Flipping's manually chosen team.
@@ -271,7 +282,7 @@ public pages refresh saved database state before following it.
 | Screen | Visual reference |
 | --- | --- |
 | Urutan Main | Visual Guide slide 1 |
-| Scoreboard | Visual Guide slide 4 |
+| Scoreboard | Visual Guide slide 4 layout and `Page_Score_Board.jpeg` GP footer |
 | Serangan GigaRisk | Visual Guide slide 8 |
 | Leaderboard | Visual Guide slide 9 |
 | Podium | Visual Guide slide 10 |
@@ -280,26 +291,47 @@ public pages refresh saved database state before following it.
 
 The Visual Guide is `public/ui/Visual_Guide_App-Game_5.pptx`; extracted slide
 assets are used as backgrounds with dynamic HTML values. Leaderboard and
-scoreboard have public display buttons. Podium supports three prize amounts
+scoreboard have public display buttons.
+Rewards and Tactical Phase admin toolbars also open their selected challenge
+in a public tab and publish its display transition, preserving tactical choices
+and reveal state. Podium supports three prize amounts
 stored locally and mirrored publicly. GP ledger is admin-only.
+Scoreboard uses `Page_Score_Board.jpeg` and overlays a five-column GP strip below
+the ranking box. Names, team colours and live GP come from active Team records;
+participating teams appear first. Admin/public scoreboard share this component.
+
+Podium value overlays scale typography by name/GP/prize length and remain within
+the reference plaques. Long names have ellipsis/tooltips. Tie badges mask the
+original printed rank to prevent overlapping digits.
+Name and GP overlays are transparent; text sits directly on the original plaque
+surfaces without adding rectangular backgrounds over the frames.
 
 Card Reveal uses aligned grid rows for header, caption, proportional card art,
 status, effects and GP. Effect text wraps; excessive content scrolls within the
-effects area. Slide ratios scale to viewport width; admin toolbars stay outside
+effects area.
+Card Reveal reserves more vertical space for effect descriptions while keeping
+the card images proportional. Tactical and ranking card backs use contain fit.
+Long team pills truncate with an ellipsis, and admin headings/toolbars wrap.
+Flipping team labels also truncate within their buttons. Leaderboard effect
+lists scroll within a bounded container so long descriptions do not enlarge rows.
+Challenge artwork scales to viewport width; admin toolbars stay outside
 artwork. Shared layout supports narrow and wide screens. Colours follow the
 team's identity, not its rank. `index.css`/`layout.css` supply the app theme;
 reference, tactical, flipping, rewards and podium styles handle each screen.
 
-### Main presentation and timer
+### Standalone event timer
 
-The visible sequence is deck source slides 1,2,3,5,timer,6,7. The removed reward
-slide is not shown. `publicPresentation.ts` stores synchronized slide index and
-timer duration/remaining/deadline. The default duration is 900 seconds; configured
-duration is 1–5999 seconds. Admin starts, pauses and resets it. The timer slide
-does not display a challenge label; legacy saved timer state is migrated.
+`/admin/timer` owns timer configuration and controls; `/timer` is its public
+read-only display. `eventTimer.ts` stores duration, remaining seconds and an
+absolute deadline in localStorage. A running countdown therefore survives
+navigation and reloads. The default is 900 seconds and configured duration is
+1–5999 seconds. The old timer storage keys are read for compatibility. No slide
+index, slideshow navigation, or public slide feature remains. `/` routes to the
+public scoreboard, and `/admin/presentation` redirects to `/admin/timer` for
+older links.
 
-The Public navigation link opens the presentation at its first slide and opens
-the admin controller. Previous/Next update the preview and public display.
+`publicDisplay.ts` synchronizes the timer alongside the scoreboard, leaderboard,
+podium, rewards, tactical, card-reveal, turn-order and GigaRisk public displays.
 
 ## Validation record
 
@@ -318,16 +350,15 @@ using a custom browser installation, set `PLAYWRIGHT_BROWSERS_PATH` accordingly.
 
 Verification on 2026-10-14:
 
-- 118 unit/database tests across 11 files passed.
-- 20 Playwright scenarios passed, including GP ledger persistence, score
-  correction, default-team protections, game completion/timeouts, reward draw
-  limits, synchronized Tactical/Card Reveal, presentation/timer, offline reload
-  and 1280/390-pixel layouts (including GP transactions, podium and order pages).
-- TypeScript, ESLint and production build passed.
-- After vendor/application separation, production JavaScript chunks are about
-  1,948 kB (vendor) and 180 kB (application), with no chunk-size warning. The
-  configured warning limit remains 2048 kB. This improves cache separation;
-  both chunks are still needed at startup and total download size is similar.
-
-Automated coverage validates the implemented scenarios; it does not establish
-exhaustive coverage of all combinations, devices or simultaneous admin edits.
+- 121 unit/database tests across 13 files passed, including score migration, the
+  exact five-rank reward table and GP/CP tie-break rules.
+- 22 Playwright scenarios passed, covering GP ledger persistence, score correction,
+  default-team protections, game completion/timeouts, reward draw limits,
+  manual Flipping Card team selection without a turn timer, synchronized
+  Tactical/Card Reveal, standalone timer, slideshow removal, offline reload and
+  responsive layouts at 1280 and 390 pixels.
+- TypeScript, ESLint and the production build passed. The vendor/application
+  JavaScript chunks are 1,947.94 kB and 180.82 kB, both below the 2,048 kB
+  chunk warning threshold.
+- Automated coverage validates the implemented scenarios; it does not establish
+  exhaustive coverage of all combinations, devices or simultaneous admin edits.

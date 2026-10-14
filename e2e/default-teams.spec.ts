@@ -31,9 +31,9 @@ test('default teams are locked and reward colours follow teams when ranks change
   }
   await projector.screenshot({ path: 'test-results/rewards-team-colours.png' })
   await page.goto('/admin/scoreboard/9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10')
-  await page.locator('.board__row', { hasText: 'Kuning' }).getByRole('button', { name: 'Edit CP' }).click()
+  await page.locator('.board__row', { hasText: 'Kuning' }).getByRole('button', { name: 'Edit Score' }).click()
   await page.locator('.grid-form input[type="number"]').fill('100')
-  await page.getByRole('button', { name: 'Update challenge point', exact: true }).click()
+  await page.getByRole('button', { name: 'Update score', exact: true }).click()
   await page.getByRole('button', { name: 'Claim Rewards', exact: true }).click()
   await expect(page.getByRole('listitem', { name: 'Kuning', exact: true }).locator('.reward-stage__earned')).toHaveCSS('background-color', colours.Kuning)
   await expect(page.locator('.reward-stage__row').first()).toHaveAttribute('aria-label', 'Kuning')

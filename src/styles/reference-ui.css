@@ -9,6 +9,7 @@
 .reference-feature-admin .admin-toolbar p { margin:0; }
 .team-pill { display:flex; align-items:center; justify-content:center; min-width:0; width:100%; height:100%; border-radius:.6cqw; overflow:hidden; background:#eee0bc; color:#17120c; font-weight:700; text-align:center; white-space:nowrap; text-overflow:ellipsis; }
 .team-pill--merah { background:#ff272c; }
+.team-pill > span { display:block; min-width:0; max-width:100%; padding-inline:.35cqw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .team-pill--kuning { background:#ffd638; }
 .team-pill--biru { background:#42b3f7; }
 .team-pill--pink { background:#ff0984; }
@@ -27,6 +28,11 @@
 .ranking-score-item .team-pill { height:56%; font-size:2.2cqw; }
 .ranking-score-item strong { text-align:center; font-size:3.3cqw; }
 .ranking-point-label { font-size:1.8cqw; color:#d28b20; font-weight:700; }
+.ranking-gp-strip { position:absolute; left:5%; top:89.6%; width:90.8%; height:6.3%; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.45cqw; margin:0; padding:0; list-style:none; }
+.ranking-gp-item { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 12% 18%; align-items:center; gap:.4cqw; padding:.45cqw .85cqw; border:.25cqw solid #ed8a22; border-radius:1.1cqw; background:linear-gradient(#40260f,#321b08); color:#fff4d9; }
+.ranking-gp-item .team-pill { height:100%; border-radius:.3cqw; font-size:1.4cqw; }
+.ranking-gp-item .gp-mark { width:1.6cqw; height:2cqw; font-size:.85cqw; justify-self:center; }
+.ranking-gp-item strong { font:700 2.1cqw/1 Arial,sans-serif; text-align:center; font-variant-numeric:tabular-nums; }
 .ranking-leader-panel { position:absolute; left:3%; top:25.5%; width:94.3%; height:65.6%; background:#fff8df; }
 .ranking-table { width:100%; height:100%; table-layout:fixed; border-collapse:separate; border-spacing:0 .5cqw; font-family:Arial,sans-serif; color:#91332e; }
 .ranking-table thead tr { height:6%; }
@@ -50,8 +56,9 @@
 .ranking-table .ranking-damage { font-size:3cqw; font-weight:700; color:#ff292a; }
 .ranking-table .ranking-effects { text-align:left; font-size:1.35cqw; line-height:1.14; white-space:normal; overflow-wrap:anywhere; }
 .ranking-effects .positive { color:#008991; }
+.ranking-effect-list { max-height:5.6cqw; overflow:auto; scrollbar-width:thin; scrollbar-color:#c99b53 transparent; }
 .ranking-effects .negative { color:#ba3429; }
-.ranking-card { width:1.7cqw; height:2.5cqw; object-fit:cover; margin-right:.5cqw; vertical-align:middle; }
+.ranking-card { width:1.7cqw; height:2.5cqw; object-fit:contain; margin-right:.5cqw; vertical-align:middle; }
 .out-label { display:inline-block; font-size:.9cqw; border-radius:1cqw; background:#66514c; color:white; padding:.05cqw .45cqw; }
 .ranking-table tr.is-out { opacity:.55; }
 .reference-status { position:absolute; bottom:1%; left:20%; width:60%; margin:0; padding:.2cqw; border-radius:.5cqw; color:#63331e; background:#fff5dd; font:700 1.2cqw/1.2 Arial,sans-serif; text-align:center; }

@@ -2,7 +2,7 @@ import { Op } from 'sequelize'
 import { Card, Challenge, ChallengePoint, Team, TeamCard, type CardEffect, type CardType } from '../models'
 import { CARD_POOL as CARD_CATALOG, cardDesignKey } from '../data/card-pool'
 import { flushDatabase } from '../db/sequelize-provider'
-import { MAX_TOTAL_CARD } from './rankRules'
+import { MAX_TOTAL_CARD, rewardsForRank } from './rankRules'
 import { usedTacticalCardIds } from './tacticalPhase'
 
 async function findChallengePointForCard(card: Card, teamId: string): Promise<ChallengePoint | null> {
@@ -135,8 +135,8 @@ export async function seedCardPool(): Promise<void> {
   const definitions = new Map(CARD_POOL.map((card) => [card.name, card]))
   for (const owned of await TeamCard.findAll()) {
     const definition = definitions.get(owned.name)
-    if (definition && owned.effect_action !== definition.effect_action) {
-      await owned.update({ effect_action: definition.effect_action })
+    if (definition && (owned.effect_action !== definition.effect_action || owned.effect !== definition.effect || owned.icon !== definition.icon || owned.type !== definition.type)) {
+      await owned.update({ effect_action: definition.effect_action, effect:definition.effect, icon:definition.icon, type:definition.type })
     }
   }
 }
@@ -226,13 +226,12 @@ export async function getEligibleTeamsForChallenge(challengeId: string): Promise
     order: [['rank', 'ASC']],
   })
 
-  const cardRewardsByRank: Record<number, number> = { 1: 3, 2: 2, 3: 2, 4: 1, 5: 0 }
 
   return entries.map((entry) => ({
     teamId: entry.team,
     teamName: (entry as any).teamRef?.name,
     rank: entry.rank,
-    cardCount: cardRewardsByRank[entry.rank] ?? 0,
+    cardCount: entry.rank>=1&&entry.rank<=5 ? rewardsForRank(entry.rank).cards : 0,
     guardPower: entry.guard_power,
   }))
 }
@@ -304,8 +303,7 @@ async function drawChallengeCardsOnce(challengeId: string): Promise<Card[]> {
   for (const entry of entries) {
     // Card count based on rank (blueprint):
     // Rank 1: 3 cards, Rank 2: 2 cards, Rank 3: 2 cards, Rank 4: 1 card, Rank 5: 0 cards
-    const cardRewardsByRank: Record<number, number> = { 1: 3, 2: 2, 3: 2, 4: 1, 5: 0 }
-    const cardCount = cardRewardsByRank[entry.rank] ?? 0
+    const cardCount = entry.rank>=1&&entry.rank<=5 ? rewardsForRank(entry.rank).cards : 0
     const ownedDesigns = new Set((await getTeamCards(entry.team)).map(cardDesignKey))
     for (const cardData of drawCardsFromPool(drawnPoolKeys, cardCount, ownedDesigns)) {
       const poolCard = await Card.findOne({

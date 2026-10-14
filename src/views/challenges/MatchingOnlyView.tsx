@@ -4,7 +4,6 @@ import { useTeams } from '../../hooks/useTeams'
 import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard } from '../../services/games'
 import { isRunComplete, selectMatchingTeam, teamForQuestion, type ChallengeRun } from '../../services/games/teamRun'
 import { FlippingPresentation } from './FlippingPresentation'
-import { useRunCountdown } from './useRunCountdown'
 
 function SoloMatching() {
   const [board, setBoard] = useState(() => createWordAssemblyState())
@@ -35,14 +34,13 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
   const [chosen, setChosen] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const remaining = useRunCountdown(run?.turnDeadline)
   const complete = !!run && isRunComplete(run)
   const team = run ? teamForQuestion(run) : undefined
   const teamName = (id: string) => teams.find((entry) => entry.id === id)?.name ?? 'Team'
   useEffect(() => {
     if (!canControl || !run || !onUpdate || busy || complete) return
     const mismatch = run.matchingBoard?.revealed.length === 2
-    if (!mismatch && remaining !== 0) return
+    if (!mismatch) return
     const timeout = window.setTimeout(() => {
       setBusy(true)
       void ChallengeRunController.finishMatchingTurn(run, !mismatch).then(onUpdate)
@@ -50,7 +48,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
         .finally(() => setBusy(false))
     }, mismatch ? 900 : 0)
     return () => window.clearTimeout(timeout)
-  }, [canControl, run, onUpdate, busy, complete, remaining])
+  }, [canControl, run, onUpdate, busy, complete])
 
   async function start() {
     if (busy) return
@@ -63,7 +61,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     finally { setBusy(false) }
   }
   async function flip(id: string) {
-    if (!run || busy || remaining === 0) return
+    if (!run || busy) return
     setBusy(true)
     setError(null)
     try { await onUpdate?.(await ChallengeRunController.flipMatchingOnly(run, id)) }
@@ -79,7 +77,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     finally { setBusy(false) }
   }
   const presentation = <FlippingPresentation board={run?.matchingBoard} run={run} teamName={teamName}
-    seconds={remaining} complete={complete} disabled={busy || complete || remaining === 0}
+    complete={complete} disabled={busy || complete}
     onFlip={canControl ? (id) => void flip(id) : undefined}
     onChooseTeam={canControl ? (id) => void chooseTeam(id) : undefined} teamSelectionDisabled={busy} />
   if (!canControl) return presentation
@@ -88,7 +86,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     <p>Match identical pictures to complete all ten pairs. Click a team name above the board to choose whose turn it is.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>
-      <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''} · {remaining}s</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>
+      <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''}</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>
       {presentation}
     </> : <>
       <div className="run-panel__teams" aria-label="Teams following this challenge">

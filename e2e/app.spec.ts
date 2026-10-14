@@ -19,10 +19,10 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
     await expect(page.locator('.board__row', { hasText: name })).toBeVisible()
   }
   await expect(page.locator('.board__row').first()).toContainText('Wardens')
-  await page.locator('.board__row', { hasText: 'Sentinels' }).getByRole('button', { name: 'Edit CP' }).click()
+  await page.locator('.board__row', { hasText: 'Sentinels' }).getByRole('button', { name: 'Edit Score' }).click()
   await expect(page.locator('.grid-form select')).toBeDisabled()
   await page.locator('.grid-form input[type="number"]').fill('150')
-  await page.getByRole('button', { name: 'Update challenge point' }).click()
+  await page.getByRole('button', { name: 'Update score' }).click()
   await expect(page.locator('.board__row')).toHaveCount(2)
   await expect(page.locator('.board__row').first()).toContainText('Sentinels')
   await page.goto('/admin/leaderboard')
@@ -37,22 +37,10 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
   await expect(page.getByRole('button', { name: 'Recalculate', exact: true })).toHaveCount(0)
   await expect(page.getByRole('columnheader', { name: 'Total score', exact: true })).toHaveCount(0)
 
-  await page.goto('/admin')
-  const publicTabPromise = page.context().waitForEvent('page')
-  await page.getByRole('link', { name: 'Public', exact: true }).click()
-  const publicTab = await publicTabPromise
-  await expect(page.getByRole('heading', { name: 'Public presentation' })).toBeVisible()
-  await expect(publicTab.locator('.main-presentation__slide img')).toHaveAttribute('src', '/ui/main-presentation/slide-01.png')
-  for (let slide = 2; slide <= 7; slide += 1) {
-    await page.getByRole('button', { name: 'Next →' }).click()
-    await expect(page.locator('.presentation-admin__controls span')).toHaveText(`Slide ${slide} of 7`)
-    if (slide === 5) await expect(publicTab.getByRole('timer')).toBeVisible()
-    if (slide === 6 || slide === 7) {
-      await expect(publicTab.locator('.main-presentation__slide img')).toHaveAttribute('src', `/ui/main-presentation/slide-0${slide}.png`)
-      await expect.poll(() => publicTab.locator('.main-presentation__slide img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
-    }
-  }
-  await expect(page.getByRole('button', { name: 'Next →' })).toBeDisabled()
+  await page.goto('/admin/timer')
+  await expect(page.getByRole('heading', { name: 'Timer', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Public', exact: true })).toHaveCount(0)
+
 })
 
 

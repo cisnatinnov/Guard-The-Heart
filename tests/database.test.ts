@@ -41,11 +41,11 @@ beforeAll(async () => {
 
 describe('rank rules', () => {
   it('maps each rank to its blueprint rewards', () => {
-    expect(rewardsForRank(1)).toEqual({ guard_power: 3 })
-    expect(rewardsForRank(2)).toEqual({ guard_power: 2 })
-    expect(rewardsForRank(3)).toEqual({ guard_power: 2 })
-    expect(rewardsForRank(4)).toEqual({ guard_power: 1 })
-    expect(rewardsForRank(5)).toEqual({ guard_power: 1 })
+    expect(rewardsForRank(1)).toEqual({ challenge_point: 10, guard_power: 3, cards: 3 })
+    expect(rewardsForRank(2)).toEqual({ challenge_point: 8, guard_power: 2, cards: 2 })
+    expect(rewardsForRank(3)).toEqual({ challenge_point: 6, guard_power: 2, cards: 2 })
+    expect(rewardsForRank(4)).toEqual({ challenge_point: 4, guard_power: 1, cards: 1 })
+    expect(rewardsForRank(5)).toEqual({ challenge_point: 2, guard_power: 1, cards: 0 })
   })
 
   it('starts every team at 5 guard power', () => {
@@ -282,7 +282,7 @@ describe('built-in challenges', () => {
 
     const leaderboard = await ChallengePointController.listByChallenge(emoji!.id)
     expect(leaderboard).toHaveLength(5)
-    expect(leaderboard[0].challenge_point).toBe(50)
+    expect(leaderboard[0].score).toBe(50)
     expect(leaderboard[0].rank).toBe(1)
     expect(leaderboard[0].guard_power).toBe(3)
 
@@ -390,7 +390,7 @@ describe('ChallengePointController', () => {
     expect(await isChallengeCardsDrawn(challenge.id)).toBe(false)
   })
 
-  it('derives rank and rewards from the challenge point', async () => {
+  it('derives rank and rewards from the raw score', async () => {
     const challenge = await ChallengeController.create('Arena Gamma')
     const team = await TeamController.create('Alpha Squad')
 
@@ -400,12 +400,12 @@ describe('ChallengePointController', () => {
       challenge_point: 120,
     })
 
-    expect(entry.challenge_point).toBe(120)
+    expect(entry.score).toBe(120)
     expect(entry.rank).toBe(1)
     expect(entry.guard_power).toBe(3)
   })
 
-  it('ranks entries by challenge point and reshuffles on update', async () => {
+  it('ranks entries by score and reshuffles on update', async () => {
     const challenge = await ChallengeController.create('Arena Reshuffle')
     const first = await TeamController.create('Team Low')
     const second = await TeamController.create('Team High')
@@ -431,7 +431,7 @@ describe('ChallengePointController', () => {
     expect((await ChallengePointController.getById(highEntry.id))?.rank).toBe(2)
   })
 
-  it('gives tied challenge points the same rank and skips the next rank', async () => {
+  it('gives tied scores the same dense rank', async () => {
     const challenge = await ChallengeController.create('Arena Tie')
     const a = await TeamController.create('Tie A')
     const b = await TeamController.create('Tie B')
@@ -444,7 +444,7 @@ describe('ChallengePointController', () => {
     expect(first.rank).toBe(1)
     expect((await ChallengePointController.getById(second.id))?.rank).toBe(1)
     expect((await ChallengePointController.getById(third.id))?.rank).toBe(2)
-    expect((await ChallengePointController.getById(third.id))?.challenge_point).toBe(10)
+    expect((await ChallengePointController.getById(third.id))?.challenge_point).toBe(8)
   })
 
   it('refuses entries for unknown challenges and teams', async () => {
@@ -497,7 +497,7 @@ describe('ChallengePointController', () => {
       team: team.id,
       challenge_point: -1,
     })
-    expect(negative.challenge_point).toBe(-1)
+    expect(negative.score).toBe(-1)
     const lowerBoundTeam = await TeamController.create('Range Lower Bound Team')
     await expect(
       ChallengePointController.create({ challenge: challenge.id, team: lowerBoundTeam.id, challenge_point: -1000 })
@@ -555,9 +555,9 @@ describe('ChallengePointController', () => {
 
     // Correcting the challenge point in place, which is what the view calls.
     const corrected = await ChallengePointController.update(follower.id, { challenge_point: 95 })
-    expect(corrected?.challenge_point).toBe(95)
+    expect(corrected?.score).toBe(95)
     expect(corrected?.rank).toBe(1)
-    expect(corrected?.challenge_point).toBe(95)
+    expect(corrected?.score).toBe(95)
     expect(corrected?.guard_power).toBe(3)
     expect((await ChallengePointController.getById(leader.id))?.rank).toBe(2)
 
@@ -566,8 +566,8 @@ describe('ChallengePointController', () => {
     const totals = await ScoreboardController.recalculate()
     const followerTotal = totals.find((row) => row.team === team.id)
     const rivalTotal = totals.find((row) => row.team === rival.id)
-    expect(followerTotal?.total_cp).toBe(95)
-    expect(rivalTotal?.total_cp).toBe(90)
+    expect(followerTotal?.total_cp).toBe(10)
+    expect(rivalTotal?.total_cp).toBe(8)
     expect(followerTotal!.rank).toBeLessThan(rivalTotal!.rank)
 
     // Updating is idempotent with respect to entries: still two rows.
@@ -588,11 +588,11 @@ describe('ScoreboardController', () => {
     const leaderRow = rows.find((row) => row.team === leader.id)
     const runnerUpRow = rows.find((row) => row.team === runnerUp.id)
 
-    expect(leaderRow?.total_cp).toBe(100)
-    expect(leaderRow?.total_cp).toBe(100)
+    expect(leaderRow?.total_cp).toBe(10)
+    expect(leaderRow?.total_cp).toBe(10)
     expect(leaderRow?.total_card).toBe(0)
 
-    expect(runnerUpRow?.total_cp).toBe(40)
+    expect(runnerUpRow?.total_cp).toBe(8)
     // Ranks are global across every team, so only the ordering is asserted.
     expect(leaderRow!.rank).toBeLessThan(runnerUpRow!.rank)
   })
@@ -613,12 +613,12 @@ describe('ScoreboardController', () => {
       'Arena Detail One',
       'Arena Detail Two',
     ])
-    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail One')?.challenge_point).toBe(70)
-    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail Two')?.challenge_point).toBe(30)
+    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail One')?.score).toBe(70)
+    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail Two')?.score).toBe(30)
 
     const otherRow = rows.find((entry) => entry.team === other.id)
     expect(otherRow?.challengeScores).toHaveLength(1)
-    expect(otherRow?.challengeScores?.[0]?.challenge_point).toBe(50)
+    expect(otherRow?.challengeScores?.[0]?.score).toBe(50)
   })
 
   it('sums totals across multiple challenges for the same team', async () => {
@@ -630,8 +630,8 @@ describe('ScoreboardController', () => {
     await ChallengePointController.create({ challenge: second.id, team: team.id, challenge_point: 30 })
 
     const row = await ScoreboardController.getByTeam(team.id)
-    expect(row?.total_cp).toBe(100)
-    expect(row?.total_cp).toBe(100)
+    expect(row?.total_cp).toBe(20)
+    expect(row?.total_cp).toBe(20)
     expect(row?.total_card).toBe(0)
   })
 
@@ -681,7 +681,7 @@ describe('ScoreboardController', () => {
     // total_card on scoreboard is now 0; card limits enforced at TeamCard level
     expect(row?.total_card).toBe(0)
     // The other totals are not capped, so they keep accumulating.
-    expect(row?.total_cp).toBe(400)
+    expect(row?.total_cp).toBe(40)
   })
 
   it('rejects a total_card above the cap', async () => {
@@ -706,7 +706,7 @@ describe('ScoreboardController', () => {
     })
 
     const before = await ScoreboardController.getByTeam(team.id)
-    expect(before?.total_cp).toBe(30)
+    expect(before?.total_cp).toBe(10)
 
     await ChallengePointController.remove(entry.id)
     // With no entries left the team drops out of the aggregate entirely.
@@ -753,7 +753,7 @@ describe('ScoreboardController', () => {
     const challenge = await ChallengeController.create('Arena Doomed')
     const team = await TeamController.create('Doomed Team')
     await ChallengePointController.create({ challenge: challenge.id, team: team.id, challenge_point: 45 })
-    expect((await ScoreboardController.getByTeam(team.id))?.total_cp).toBe(45)
+    expect((await ScoreboardController.getByTeam(team.id))?.total_cp).toBe(10)
     expect((await TeamController.getById(team.id))?.total_gp).toBe(BASE_TEAM_GUARD_POWER + 3)
 
     await ChallengeController.remove(challenge.id)

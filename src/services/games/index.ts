@@ -35,7 +35,7 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
       'Flip two cards at a time and match identical pictures. There are no questions.',
-      'Roulette draws the team order before matching. Each matching turn lasts twenty seconds; a mismatch or timeout passes the turn.',
+      'Choose the active team by clicking its name. Urutan Main does not set the Flipping Card turn, and there is no turn timer.',
       'A matched pair moves the turn to the next team. This matching activity does not award or deduct points.',
       'Match all ten pairs to complete the challenge.',
     ],

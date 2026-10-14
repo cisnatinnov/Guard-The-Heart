@@ -37,11 +37,11 @@ async function assertSaved(run: ChallengeRun) {
   await ChallengeRunController.syncAll(run)
   const entries = await ChallengePointController.listByChallenge(run.challenge)
   for (const team of run.runs) {
-    expect(entries.find((entry) => entry.team === team.team)?.challenge_point).toBe(team.score)
-    expect((await ScoreboardController.getByTeam(team.team))?.total_cp).toBe(team.score)
+    expect(entries.find((entry) => entry.team === team.team)?.score).toBe(team.score)
+    expect((await ScoreboardController.getByTeam(team.team))?.total_cp).toBe(entries.find(entry=>entry.team===team.team)?.challenge_point)
   }
   const best = Math.max(...run.runs.map((team) => team.score))
-  for (const entry of entries) expect(entry.rank).toBe(entry.challenge_point === best ? 1 : 2)
+  for (const entry of entries) expect(entry.rank).toBe(entry.score === best ? 1 : 2)
 }
 
 describe('challenge scoring persistence', () => {

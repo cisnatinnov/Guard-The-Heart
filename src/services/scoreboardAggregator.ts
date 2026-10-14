@@ -1,32 +1,32 @@
 import { syncRewardGP } from './gpTransactions'
 import { col, fn, Op } from 'sequelize'
 import { usedTacticalCardIds } from './tacticalPhase'
-import { ChallengePoint, Scoreboard, TeamCard } from '../models'
-import { competitionRanks, rewardsForRank, MAX_TOTAL_CARD } from './rankRules'
+import { ChallengePoint, Scoreboard, TeamCard, Team } from '../models'
+import { competitionRanks, rankGuardPointStandings, rewardsForRank, MAX_TOTAL_CARD } from './rankRules'
 
 interface RankedRow {
   id: string
-  challenge_point: number
+  score: number
 }
 
 /**
  * Recomputes ranks and rank rewards for every entry of a challenge. Ranks are
- * derived from challenge_point alone, so editing one entry reshuffles the whole board.
+ * derived from raw score, with challenge_point and guard_power awarded by rank.
  */
 export async function rerankChallenge(challengeId: string): Promise<void> {
   const entries = await ChallengePoint.findAll({
     where: { challenge: challengeId },
-    attributes: ['id', 'challenge_point'],
-    order: [['challenge_point', 'DESC']],
+    attributes: ['id', 'score'],
+    order: [['score', 'DESC']],
   })
 
-  const ranks = competitionRanks(entries.map((entry) => entry.challenge_point))
+  const ranks = competitionRanks(entries.map((entry) => entry.score))
 
   for (const [index, entry] of (entries as RankedRow[]).entries()) {
     const rank = ranks[index]
     // Ties can push a team past 5th place, where the blueprint awards nothing.
-    const rewards = rank <= 5 ? rewardsForRank(rank) : { guard_power: 0 }
-    await ChallengePoint.update({ rank, guard_power: rewards.guard_power }, { where: { id: entry.id } })
+    const rewards = rank <= 5 ? rewardsForRank(rank) : { guard_power: 0, challenge_point: 0 }
+    await ChallengePoint.update({ rank, guard_power: rewards.guard_power, challenge_point: rewards.challenge_point }, { where: { id: entry.id } })
   }
 }
 
@@ -38,10 +38,17 @@ interface TeamTotals {
 
 /**
  * Rebuilds the `scoreboard` table as one aggregated row per team, then assigns
- * overall ranks by total_cp (competition style, highest cp is rank 1).
+ * overall ranks by current GP, using total earned CP to break GP ties.
  * Cards are now managed separately via TeamCard, not summed from ChallengePoint.
  */
-export async function recalculateTotalScoreboard(challengeId?: string): Promise<Scoreboard[]> {
+let recalculationQueue: Promise<void> = Promise.resolve()
+export function recalculateTotalScoreboard(challengeId?: string): Promise<Scoreboard[]> {
+  const pending = recalculationQueue.then(() => rebuildTotalScoreboard(challengeId))
+  recalculationQueue = pending.then(() => undefined, () => undefined)
+  return pending
+}
+
+async function rebuildTotalScoreboard(challengeId?: string): Promise<Scoreboard[]> {
   const totals = (await ChallengePoint.findAll({
     attributes: [
       'team',
@@ -62,22 +69,23 @@ export async function recalculateTotalScoreboard(challengeId?: string): Promise<
 
   const cardCountByTeam = new Map(teamCardCounts.map((row) => [row.team, Number(row.total_card ?? 0)]))
 
-  await Scoreboard.destroy({ where: {} })
-
   const rows = totals.map((row) => ({
     team: row.team,
     total_cp: Number(row.total_cp ?? 0),
     total_card: Math.min(cardCountByTeam.get(row.team) ?? 0, MAX_TOTAL_CARD),
   }))
 
-  const ranks = competitionRanks(rows.map((row) => row.total_cp))
+  await syncTeamGuardPower(challengeId)
+  const teams = new Map((await Team.findAll()).map(team=>[team.id,team]))
+  const ranked = rankGuardPointStandings(rows.map(row=>({ ...row, teamId:row.team, team:teams.get(row.team)?.name??row.team, points:row.total_cp, guardPower:teams.get(row.team)?.total_gp??0 })))
 
   const created: Scoreboard[] = []
-  for (const [index, row] of rows.entries()) {
-    created.push(await Scoreboard.create({ ...row, rank: ranks[index] }))
+  for (const row of ranked) {
+    const values = { team:row.teamId, total_cp:row.total_cp, total_card:row.total_card, rank:row.rank }
+    const existing = await Scoreboard.findOne({ where:{team:row.teamId} })
+    created.push(existing ? await existing.update(values) : await Scoreboard.create(values))
   }
-
-  await syncTeamGuardPower(challengeId)
+  await Scoreboard.destroy({where:{team:{[Op.notIn]:rows.map(row=>row.team)}}})
 
   return created
 }

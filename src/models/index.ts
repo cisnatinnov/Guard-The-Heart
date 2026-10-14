@@ -29,6 +29,7 @@ export class ChallengePoint extends Model {
   declare team: string
   declare rank: number
   declare challenge_point: number
+  declare score: number
   declare guard_power: number
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -180,6 +181,7 @@ export function defineModels(sequelize: Sequelize): void {
       },
       rank: { type: DataTypes.INTEGER({ length: 2 }), allowNull: false },
       challenge_point: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
+        score: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
       guard_power: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
     },
     {

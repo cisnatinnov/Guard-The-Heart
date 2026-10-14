@@ -1,5 +1,4 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { publishPresentationSlide } from '../services/publicPresentation'
 import { useDatabase } from '../hooks/useDatabase'
 
 const ADMIN_NAV = [
@@ -13,6 +12,7 @@ const ADMIN_NAV = [
   { path: '/admin/rewards', label: 'Rewards' },
   { path: '/admin/tactical', label: 'Tactical Phase' },
   { path: '/admin/gigarisk', label: 'Serangan GigaRisk' },
+  { path: '/admin/timer', label: 'Timer' },
 ] as const
 
 export function AdminLayout() {
@@ -84,17 +84,7 @@ export function AdminLayout() {
               {item.label}
             </Link>
           ))}
-          <Link
-            to="/admin/presentation"
-            className="tab tab--public-link"
-            title="Open the public presentation"
-            onClick={() => {
-              publishPresentationSlide(1)
-              window.open('/', '_blank')
-            }}
-          >
-            Public
-          </Link>
+
         </nav>
       </header>
 

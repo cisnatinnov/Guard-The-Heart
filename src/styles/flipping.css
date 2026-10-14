@@ -13,6 +13,7 @@
 .flipping-presentation .matching-cards--reference .tile:focus-visible { outline: .25cqw solid #168477; outline-offset: .1cqw; }
 .flipping-presentation .matching-cards--reference .tile--revealed { background-color: #fff7de; }
 .flipping-presentation__complete { position: absolute; bottom: 3.5%; left: 30%; width: 40%; margin: 0; color: #582b05; font: 700 1.5cqw/1 Arial, sans-serif; text-align: center; }
+.flipping-presentation__team-name { display:block; max-width:100%; min-width:0; padding-inline:.35cqw; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 
 .flipping-presentation .matching-cards--reference .tile:not(.tile--revealed) { background-image: none; }
 .flipping-presentation .flipping-presentation__team-button { display:grid; place-items:center; width:100%; height:100%; min-height:0; margin:0; padding:0; border:0; border-radius:.7cqw; color:inherit; background:transparent; font:inherit; box-shadow:none; cursor:pointer; } .flipping-presentation .flipping-presentation__team-button:focus-visible { outline:.22cqw solid #61e6e6; outline-offset:.12cqw; } .flipping-presentation .flipping-presentation__team-button:disabled { opacity:1; cursor:default; }

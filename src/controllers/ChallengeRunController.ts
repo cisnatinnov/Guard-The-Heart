@@ -95,7 +95,7 @@ export class ChallengeRunController {
   }
 
   static startMatchingOnly(challengeId: string, teamIds: string[]): ChallengeRun {
-    return { ...enableRunMatching(startChallengeRun({ challenge: challengeId, teams: teamIds, questionCount: 10, pointsPerQuestion: 0 })), matchingOnly: true, manualTeamSelection: true }
+    return { ...enableRunMatching(startChallengeRun({ challenge: challengeId, teams: teamIds, questionCount: 10, pointsPerQuestion: 0 })), matchingOnly: true, manualTeamSelection: true, turnDeadline: undefined }
   }
 
   static async flipMatchingOnly(run: ChallengeRun, cardId: string): Promise<ChallengeRun> {
@@ -200,7 +200,7 @@ export class ChallengeRunController {
   }
 
   /**
-   * Creates the entry on the first challenge point and corrects it afterwards, so a team
+     * Stores the raw game score and corrects it afterwards, so a team
    * that follows the challenge always has a row on the scoreboard.
    */
   static async recordScore(challengeId: string, teamId: string, challengePoint: number): Promise<number> {
@@ -212,13 +212,13 @@ export class ChallengeRunController {
       const created = await ChallengePointController.create({
         challenge: challengeId,
         team: teamId,
-        challenge_point: clamped,
+        score: clamped,
       })
-      return created.challenge_point
+      return created.score
     }
-    if (entry.challenge_point === clamped) return entry.challenge_point
-    const updated = await ChallengePointController.update(entry.id, { challenge_point: clamped })
-    return updated?.challenge_point ?? entry.challenge_point
+    if (entry.score === clamped) return entry.score
+    const updated = await ChallengePointController.update(entry.id, { score: clamped })
+    return updated?.score ?? entry.score
   }
 
   /** Puts the run on the scoreboard for every team, including those still on zero. */

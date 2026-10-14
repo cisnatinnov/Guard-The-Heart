@@ -1,4 +1,4 @@
-import { competitionRanks } from '../services/rankRules'
+import { rankGuardPointStandings } from '../services/rankRules'
 import { useCallback, useEffect, useState } from 'react'
 import { ScoreboardController, type ScoreboardEntry } from '../controllers/ScoreboardController'
 import { useTeams } from '../hooks/useTeams'
@@ -35,19 +35,19 @@ export function ScoreboardTotalPublicView() {
   }, [])
 
   useEffect(() => {
-    void load(() => ScoreboardController.recalculate())
+    void load(() => ScoreboardController.list())
   }, [load])
 
   // Real-time updates
   useDbEventRefresh([DB_EVENTS.SCOREBOARD_CHANGED, DB_EVENTS.TEAMS_CHANGED], () => {
-    void load(() => ScoreboardController.recalculate())
+    void load(() => ScoreboardController.list())
   })
 
   const teamNameById = new Map(teams.map((team) => [team.id, team.name]))
   const resolution = latestTacticalResolution(challenges.map((challenge) => challenge.id))
   const results = new Map((resolution?.teams ?? []).map((result) => [result.teamId, result]))
   const entryByTeam = new Map(entries.map((entry) => [entry.team, entry]))
-  const rows = teams.map((team) => {
+  const rows = rankGuardPointStandings(teams.map((team) => {
     const entry = entryByTeam.get(team.id)
     const result = results.get(team.id)
     return {
@@ -61,15 +61,15 @@ export function ScoreboardTotalPublicView() {
       effects: result?.effects ?? [],
       remainingCards: entry?.total_card ?? 0,
     }
-  }).sort((a, b) => b.guardPower - a.guardPower || a.team.localeCompare(b.team))
+  }))
 
-  const ranks = competitionRanks(rows.map((row) => row.guardPower))
+
 
   return (
     <section className="view view--public-ranking">
       <PublicRankingBoard
         variant="leaderboard"
-        rows={rows.map((row, index) => ({ ...row, rank: ranks[index] }))}
+        rows={rows}
         message={error ?? (loading ? 'Loading leaderboard…' : entries.length === 0 ? 'No scores recorded yet.' : undefined)}
       />
     </section>

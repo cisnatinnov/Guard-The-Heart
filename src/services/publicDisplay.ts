@@ -1,11 +1,11 @@
 import { flushDatabase } from '../db/sequelize-provider'
 
-export type DisplayStage = 'scoreboard' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk'
+export type DisplayStage = 'scoreboard' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk' | 'timer'
 export interface PublicDisplay { stage: DisplayStage; challengeId: string; id: string }
 const KEY = 'guard-the-heart-public-display'
 
 export function displayPath(display: Pick<PublicDisplay, 'stage' | 'challengeId'>, admin = false): string {
-  if (['leaderboard', 'podium', 'turn-order'].includes(display.stage)) return `${admin ? '/admin' : ''}/${display.stage}`
+  if (['leaderboard', 'podium', 'turn-order', 'timer'].includes(display.stage)) return `${admin ? '/admin' : ''}/${display.stage}`
   return `${admin ? '/admin' : ''}/${display.stage}/${encodeURIComponent(display.challengeId)}`
 }
 
@@ -21,7 +21,7 @@ export function listenForPublicDisplay(accept: (display: PublicDisplay) => void)
     if (event.key !== KEY || !event.newValue) return
     try {
       const display = JSON.parse(event.newValue) as PublicDisplay
-      if (['scoreboard', 'leaderboard', 'podium', 'rewards', 'tactical', 'card-reveal', 'turn-order', 'gigarisk'].includes(display.stage) && typeof display.challengeId === 'string') accept(display)
+      if (['scoreboard', 'leaderboard', 'podium', 'rewards', 'tactical', 'card-reveal', 'turn-order', 'gigarisk', 'timer'].includes(display.stage) && typeof display.challengeId === 'string') accept(display)
     } catch { /* Ignore unrelated or malformed storage updates. */ }
   }
   window.addEventListener('storage', receive)

@@ -5,6 +5,7 @@ export interface ChallengeScoreDetail {
   challengeId: string
   challengeName: string
   challenge_point: number
+  score: number
   rank: number
 }
 
@@ -37,6 +38,7 @@ export class ScoreboardController {
         challengeId: point.challenge,
         challengeName: point.challengeRef?.name ?? 'Unknown',
         challenge_point: point.challenge_point,
+        score: point.score,
         rank: point.rank,
       })
       scoresByTeam.set(point.team, scores)

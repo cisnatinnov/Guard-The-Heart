@@ -15,7 +15,8 @@ npm run dev
 ```
 
 Open Vite's local URL. Open `/admin` to manage the game; `/` opens the public
-presentation. Production hosting must serve `index.html` for application routes.
+scoreboard. Configure and run the standalone event timer at `/admin/timer`; its
+public display is `/timer`. Production hosting must serve `index.html` for application routes.
 
 | Command | Purpose |
 | --- | --- |
@@ -42,7 +43,7 @@ presentation. Production hosting must serve `index.html` for application routes.
    current challenge list exposes Flipping Card, a matching-only activity.
    Image Decode and Jaw of Risk remain available through direct game routes
    and retain team scoring.
-4. Review or enter CP on **Scoreboard**. **Edit CP** corrects an existing score
+4. Review or enter game scores on **Scoreboard**. **Edit Score** corrects an existing score
    and recalculates ranks and GP rewards. Each challenge supports at most five
    team entries, with one entry per team.
 5. **Claim Rewards** opens the reward board on admin and existing public pages.
@@ -82,10 +83,16 @@ Display buttons open a new tab and publish the chosen public screen.
 | Tactical Phase | `/admin/tactical/:challengeId?` | `/tactical/:challengeId?` |
 | Card Reveal | Controlled from Tactical Phase/GigaRisk | `/card-reveal/:challengeId?` |
 | Serangan GigaRisk | `/admin/gigarisk/:challengeId?` | `/gigarisk/:challengeId?` |
-| Presentation | `/admin/presentation` | `/` |
+| Event timer | `/admin/timer` | `/timer` |
 
-The scoreboard and leaderboard each have a **Show … (Public)** button. Public
-game, reward, tactical, reveal and ranking pages display live state. Urutan Main
+The scoreboard and leaderboard each have a **Show … (Public)** button. The Timer
+admin page has **Show Timer (Public)**. The former `/admin/presentation` URL
+redirects to `/admin/timer`; the slideshow and its public controls have been removed.
+Rewards and Tactical Phase also have **Show Rewards (Public)** and
+**Show Tactical Phase (Public)** buttons in their admin toolbars. Each opens
+the selected challenge in a new tab and synchronizes existing public displays.
+These display buttons preserve tactical selections and reveal state.
+Public game, reward, tactical, reveal and ranking pages display live state. Urutan Main
 is interactive on its public page. The retired `/cards` and `/admin/cards`
 routes are not current features; unknown routes redirect to `/scoreboard`.
 
@@ -119,8 +126,8 @@ cancels early. Solo scores require manual entry because no team is selected.
 ### Flipping Card
 
 Select participating teams and start the run. Click a team name above the board
-to choose the active team manually. Matching has a 20-second turn timer, closes
-mismatches, and preserves the manual team selection after a match or timeout.
+to choose the active team manually. Matching has no turn timer. Mismatched cards
+close automatically, and matching or waiting does not change the selected team.
 Matched pairs retain their team's identity. Completing ten pairs ends matching
 on both displays; it does not create scores or automatically open rewards.
 Solo mode supports matching and restart. Urutan Main does not change this run.
@@ -130,18 +137,22 @@ reference decks; the current routed screen uses matching-only play.
 
 ## Ranking, GP and cards
 
-Challenge rankings use CP descending. Ties use dense ranks: `1, 2, 2, 3, 4`.
-Leaderboard and podium use current `Team.total_gp` descending; equal GP uses the
-same dense rank, with team name ordering for display. The podium contains the
-first three sorted teams and labels ties.
+Challenge rankings use raw game score descending. Scores are stored separately
+from earned challenge points (CP). Equal scores use dense ranks: `1, 2, 2, 3, 4`.
+Leaderboard and podium rank current `Team.total_gp` descending, then total earned
+CP descending to break GP ties. Teams share a rank only when both GP and CP are
+equal; name ordering makes exact ties stable. The podium shows the first three teams.
 
-| Challenge rank | GP reward | Card reward |
-| --- | --- | --- |
-| 1 | +3 | 3 |
-| 2 | +2 | 2 |
-| 3 | +2 | 2 |
-| 4 | +1 | 1 |
-| 5 | +1 | 0 |
+Leaderboard refresh reads the saved standings. Recalculation is serialized and
+updates existing rows to avoid duplicate-team validation conflicts.
+
+| Challenge rank | CP reward | GP reward | Card reward |
+| --- | --- | --- | --- |
+| 1 | 10 | +3 | 3 |
+| 2 | 8 | +2 | 2 |
+| 3 | 6 | +2 | 2 |
+| 4 | 4 | +1 | 1 |
+| 5 | 2 | +1 | 0 |
 
 Current GP includes the initial 5, challenge rewards, and recorded combat
 changes. Score correction adjusts reward GP while preserving recorded attacks
@@ -178,35 +189,56 @@ Defense/healing resolve first, transfers next, Second Chance last. Transfers
 cannot take more than an opponent's remaining GP. No valid tactical decisions
 means no GP changes, no consumption and no completed-attack marker.
 
-## Presentation and visual references
+## Timer and visual references
 
-The main presentation sequence is source slides 1, 2, 3, 5, a timer, 6 and 7.
-The old reward slide is omitted. Admin **Previous/Next** synchronize the preview
-and public display. Configure minutes/seconds and start, pause or reset the
-timer; the public timer has no challenge label.
+The event timer is a standalone admin/public screen, independent of challenge
+slides. Admins configure 1–5999 seconds and can start, pause or reset the timer.
+Its deadline is saved locally, so the countdown continues across page changes and
+reloads. `/timer` is a read-only display with no challenge label. The old
+`/admin/presentation` path redirects to the timer for saved links; `/` now opens
+the scoreboard. There is no slide navigation or public slideshow feature.
 
-`public/ui/Visual_Guide_App-Game_5.pptx` supplies reference artwork:
+`public/ui/Visual_Guide_App-Game_5.pptx` and the supplied scoreboard JPEG provide reference artwork:
 
-| Slide | Feature | Extracted asset |
+| Slide | Feature | Reference asset |
 | --- | --- | --- |
 | 1 | Urutan Main | `visual-guide-slide-01.png` |
-| 4 | Scoreboard | `visual-guide-slide-04.png` |
+| 4 | Scoreboard | `Page_Score_Board.jpeg` (including the GP footer) |
 | 8 | Serangan GigaRisk | `visual-guide-slide-08.png` |
 | 9 | Leaderboard | `visual-guide-slide-09.png` |
 | 10 | Podium | `visual-guide-slide-10.png` |
 
+Scoreboard displays five team GP panels below its main ranking box, following
+`Page_Score_Board.jpeg`. They show current live Team GP on admin/public views,
+with participating teams first and remaining active teams filling empty slots.
+
+Podium overlays keep names, GP and prizes inside the illustrated plaques.
+Names and GP use transparent overlays so the original plaque artwork stays visible.
+Text scales to fit longer values; very long names use an ellipsis with the
+full name available as a tooltip. Tied ranks cover the original badge numbers.
+
 Tactical Phase and Card Reveal use `tactical-slide-05-reference.png` and
 `tactical-slide-06-reference.png`. Live overlays render teams, cards and values.
 Card Reveal preserves card proportions and aligns team/status/effect/GP rows;
-long effects wrap and scroll inside their team panel. Public layouts fit both
-wide and 390-pixel viewports. Admin controls sit outside the slide artwork.
+the effects area has extra space for two selected-card descriptions. Longer
+effects wrap and scroll inside their team panel. Card backs preserve their
+proportions in Tactical Phase and rankings, and long team names use ellipses
+inside their pills and Flipping team buttons. Long leaderboard effect lists
+scroll within their row rather than expanding the reference table. Public layouts fit both
+wide and 390-pixel viewports. Admin controls sit outside challenge artwork.
+Admin toolbars wrap inside their panels; long headings and labels stay within
+the viewport. UI checks cover all current routes at desktop/mobile widths,
+including the standalone timer, direct Image Decode and Jaw of Risk pages and GP transactions.
 
 ## Data and offline operation
 
 SQLite runs in WASM and is stored as bytes in IndexedDB (`guard-the-heart`,
 store `sqlite`, key `database`). ORM models are defined in `src/models/index.ts`.
+Existing raw CP values migrate into the new `ChallengePoint.score` column,
+then CP/GP rewards are recalculated from ranks. Recorded combat remains intact.
+
 Tactical selections, completed-attack archives, draw markers, turn order,
-presentation/run state and podium prizes also use localStorage.
+standalone timer/run state and podium prizes also use localStorage.
 
 Keep IndexedDB and localStorage together when preserving an event. Clearing
 browser site data removes local scores and history. Data does not synchronize
@@ -234,12 +266,12 @@ without materially reducing the total startup download.
 | --- | --- |
 | `src/models/`, `src/controllers/` | ORM schema and UI operations |
 | `src/db/` | WASM driver, persistence, initialization and migrations |
-| `src/services/scoreboardAggregator.ts` | CP rankings, available-card totals, GP synchronization |
+| `src/services/scoreboardAggregator.ts` | Score rankings, earned-CP totals, available-card totals, GP synchronization |
 | `src/services/gpTransactions.ts` | GP ledger and durable combat balance changes |
 | `src/services/tacticalPhase.ts` | Selection, effect resolution, consumption and once-only attack |
 | `src/services/cardDraw.ts` | Card pool, draw, ownership and capacity |
 | `src/services/games/` | Game rules and synchronized runs |
-| `src/services/publicDisplay.ts`, `publicPresentation.ts`, `turnOrder.ts` | Projector navigation, presentation and order |
+| `src/services/publicDisplay.ts`, `eventTimer.ts`, `turnOrder.ts` | Public display navigation, timer and order |
 | `src/views/`, `src/styles/` | Feature screens and responsive styles |
 | `src/data/`, `public/` | Question bank, card definitions, reference art and decks |
 | `tests/`, `e2e/` | Unit/database and browser regressions |
@@ -257,7 +289,7 @@ Run typecheck, lint, unit tests and the full browser suite after changes. Covera
 includes team CRUD/default-team protections, question scoring/timeouts, manual
 Flipping selection, score correction, reward draws, card definitions and
 consumption, Tactical/Card Reveal, GigaRisk transactions/reload, synchronized
-public pages, presentation timers, offline loading and responsive layouts.
+public pages, standalone timer, slide removal, offline loading and responsive layouts.
 Podium and Urutan Main have route/layout coverage; unit rules cover GP ranking
 and order independence. Automated checks do not guarantee every device or all
 possible event sequences.

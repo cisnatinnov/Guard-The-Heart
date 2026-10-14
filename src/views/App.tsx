@@ -11,8 +11,7 @@ import { RewardClaimPublicView } from './RewardClaimPublicView'
 import { GameView } from './challenges/GameView'
 import { PublicLayout } from './PublicLayout'
 import { AdminLayout } from './AdminLayout'
-import { PresentationPublicView } from './PresentationPublicView'
-import { PresentationAdminView } from './PresentationAdminView'
+import { EventTimerView } from './EventTimerView'
 import { TacticalPhaseView } from './TacticalPhaseView'
 import { TurnOrderView, GigaRiskView } from './ReferenceFeatures'
 import { PodiumView } from './PodiumView'
@@ -51,7 +50,8 @@ export function App() {
         <Routes>
           {/* Public routes */}
           <Route element={<PublicLayout />}>
-            <Route path="/" element={<PresentationPublicView />} />
+            <Route path="/" element={<Navigate to="/scoreboard" replace />} />
+            <Route path="/timer" element={<EventTimerView />} />
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
             <Route path="/podium" element={<PodiumView />} />
@@ -66,7 +66,8 @@ export function App() {
           {/* Admin routes */}
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<TeamView />} />
-            <Route path="/admin/presentation" element={<PresentationAdminView />} />
+            <Route path="/admin/timer" element={<EventTimerView admin />} />
+            <Route path="/admin/presentation" element={<Navigate to="/admin/timer" replace />} />
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />

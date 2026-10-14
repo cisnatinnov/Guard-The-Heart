@@ -285,12 +285,12 @@ export function questionWasClean(run: ChallengeRun): boolean {
 export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
   if (!run.matchingBoard || run.questionResolved || isRunComplete(run) ||
       (run.matchingPhase !== undefined && run.matchingPhase !== 'matching') || isMatchingQuestionUnlocked(run) ||
-      (run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run
+      (!run.matchingOnly && run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run
   const board = revealWordAssemblyCard(run.matchingBoard, cardId)
   if (board === run.matchingBoard) return run
   const matched = board.matchedQuestionIds.length > run.matchingBoard.matchedQuestionIds.length
   if (run.matchingOnly) {
-    if (!matched) return { ...run, matchingBoard: board }
+    if (!matched) return { ...run, matchingBoard: board, turnDeadline: undefined }
     const team = teamForQuestion(run)
     return {
       ...run, matchingBoard: { ...board, revealed: [] }, questionIndex: board.matchedQuestionIds.length,
@@ -298,7 +298,7 @@ export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
         ? { ...entry, answered: entry.answered + 1, correct: entry.correct + 1 } : entry),
       nextTeamIndex: run.manualTeamSelection ? run.nextTeamIndex : (run.nextTeamIndex + 1) % run.runs.length,
       matchingTurn: (run.matchingTurn ?? 0) + 1,
-      turnDeadline: Date.now() + WORD_ASSEMBLY_SECONDS_PER_MATCH * 1000,
+      turnDeadline: undefined,
     }
   }
   return {
@@ -345,7 +345,7 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
     matchingBoard: closeUnmatchedWordAssemblyCards(run.matchingBoard),
     nextTeamIndex: run.manualTeamSelection ? run.nextTeamIndex : (run.runs.findIndex((entry) => entry.team === team.team) + 1) % run.runs.length,
     matchingTurn: (run.matchingTurn ?? 0) + 1,
-    turnDeadline: Date.now() + WORD_ASSEMBLY_SECONDS_PER_MATCH * 1000,
+    turnDeadline: run.matchingOnly ? undefined : Date.now() + WORD_ASSEMBLY_SECONDS_PER_MATCH * 1000,
   }
 }
 
@@ -357,7 +357,7 @@ export function selectMatchingTeam(run: ChallengeRun, teamId: string): Challenge
   return { ...run, manualTeamSelection:true, nextTeamIndex:index,
     matchingBoard:closeUnmatchedWordAssemblyCards(run.matchingBoard),
     matchingTurn:(run.matchingTurn ?? 0)+1,
-    turnDeadline:Date.now()+WORD_ASSEMBLY_SECONDS_PER_MATCH*1000 }
+    turnDeadline:undefined }
 }
 
 /** The team that found the pair commits to answering or gives it to a recipient. */

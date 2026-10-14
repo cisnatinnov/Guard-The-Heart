@@ -1,6 +1,7 @@
 import { initDatabase, getSequelize } from './sequelize-provider'
 import { DataTypes } from 'sequelize'
-import { defineModels } from '../models'
+import { Challenge, ChallengePoint, defineModels } from '../models'
+import { rerankChallenge, recalculateTotalScoreboard } from '../services/scoreboardAggregator'
 import { seedCardPool, synchronizeAllChallengeBonusCards, repairDuplicateTeamCards } from '../services/cardDraw'
 import { seedLockedChallenges } from '../services/challengeSeeds'
 import { seedGameQuestions } from '../services/gameQuestionSeeds'
@@ -44,6 +45,12 @@ export function initializeAppDatabase(): Promise<void> {
       // migrated. Current databases keep their data and are synced in place.
       await sequelize.sync({ force: await isLegacySchema(sequelize) })
       await migrateChallengePointRemoveCardColumn(sequelize)
+      const pointColumns = await sequelize.getQueryInterface().describeTable('challenge_point')
+      if (!('score' in pointColumns)) {
+        await sequelize.getQueryInterface().addColumn('challenge_point', 'score', { type: DataTypes.INTEGER, allowNull:false, defaultValue:0 })
+        // Previous builds stored the raw game score in challenge_point.
+        for (const entry of await ChallengePoint.findAll()) await entry.update({ score:entry.challenge_point })
+      }
       await ensureCardActionColumns(sequelize)
       await ensureChallengeDrawColumn(sequelize)
       await ensureCardChallengePointColumn(sequelize)
@@ -53,6 +60,8 @@ export function initializeAppDatabase(): Promise<void> {
       await seedLockedChallenges()
       await seedDefaultTeams()
       await initializeGPTransactions()
+      for (const challenge of await Challenge.findAll()) await rerankChallenge(challenge.id)
+      await recalculateTotalScoreboard()
       await seedGameQuestions()
       await seedCardPool()
       await repairDuplicateTeamCards()

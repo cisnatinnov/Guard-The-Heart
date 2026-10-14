@@ -1,37 +1,34 @@
 import { test, expect } from '@playwright/test'
 
 test('legacy timers preserve duration without displaying a label', async ({ page }) => {
-  await page.goto('/admin/presentation')
+  await page.goto('/admin/timer')
   await page.evaluate(() => {
     localStorage.setItem('guard-the-heart-presentation-timer', JSON.stringify({ duration: 120, remaining: 90, deadline: null, label: 'Challenge 1 - Flipping Card' }))
   })
   await page.reload()
-  for (let slide = 2; slide <= 5; slide++) await page.getByRole('button', { name: 'Next →' }).click()
   await expect(page.getByRole('textbox', { name: 'Timer label' })).toHaveCount(0)
-  await expect(page.locator('.presentation-timer__label')).toHaveCount(0)
+  await expect(page.locator('.event-timer__label')).toHaveCount(0)
   await expect(page.getByRole('timer')).toHaveText('01:30')
   await page.reload()
 })
 
-test('timer slide configuration, pause, reset and expiry synchronize with public', async ({ page, context }) => {
-  await page.goto('/admin/presentation')
+test('standalone timer configuration, pause, reset and expiry synchronize with public', async ({ page, context }) => {
+  await page.goto('/admin/timer')
   const time = new Date()
   await page.clock.install({ time })
   await page.clock.pauseAt(new Date(time.getTime() + 1000))
   const projector = await context.newPage()
   await projector.clock.install({ time })
   await projector.clock.pauseAt(new Date(time.getTime() + 1000))
-  await projector.goto('/')
-  for (let slide = 2; slide <= 5; slide++) await page.getByRole('button', { name: 'Next →' }).click()
-  await expect(page.locator('.presentation-admin__controls span')).toHaveText('Slide 5 of 7')
+  await projector.goto('/timer')
   await expect(page.getByRole('textbox', { name: 'Timer label' })).toHaveCount(0)
-  await expect(projector.locator('.presentation-timer__label')).toHaveCount(0)
+  await expect(projector.locator('.event-timer__label')).toHaveCount(0)
   await expect(projector.getByRole('timer')).toHaveText('15:00')
   await page.getByRole('spinbutton', { name: 'Minutes' }).fill('0')
   await page.getByRole('spinbutton', { name: 'Seconds' }).fill('15')
   await page.getByRole('button', { name: 'Set timer', exact: true }).click()
   await expect(projector.getByRole('timer')).toHaveText('00:15')
-  await projector.screenshot({ path: 'test-results/presentation-timer.png' })
+  await projector.screenshot({ path: 'test-results/event-timer.png' })
   await page.getByRole('button', { name: 'Start timer', exact: true }).click()
   await page.clock.runFor(5000)
   await expect(page.getByRole('timer')).toHaveText('00:10')
@@ -47,7 +44,25 @@ test('timer slide configuration, pause, reset and expiry synchronize with public
   await page.getByRole('button', { name: 'Start timer', exact: true }).click()
   await page.clock.runFor(20000)
   await expect(page.getByRole('timer')).toHaveText('00:00')
-  await page.getByRole('button', { name: 'Next →', exact: true }).click()
-  await expect(projector.locator('.main-presentation__slide img')).toHaveAttribute('src', '/ui/main-presentation/slide-06.png')
-  await expect(page.getByRole('button', { name: 'Set timer', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Start timer', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: 'Start timer', exact: true }).click()
+  await expect(projector.getByRole('timer')).toHaveText('00:15')
+
+})
+
+test('public timer opens as a standalone display and slide navigation is removed', async ({ page }) => {
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/scoreboard$/)
+  await expect(page.locator('.public-ranking')).toBeVisible()
+  await expect(page.getByRole('button', { name: /next slide/i })).toHaveCount(0)
+
+  await page.goto('/admin/presentation')
+  await expect(page).toHaveURL(/\/admin\/timer$/)
+  await expect(page.getByRole('heading', { name: 'Timer', exact: true })).toBeVisible()
+  const popupPromise = page.waitForEvent('popup')
+  await page.getByRole('button', { name: 'Show Timer (Public)' }).click()
+  const projector = await popupPromise
+  await expect(projector).toHaveURL(/\/timer$/)
+  await expect(projector.getByRole('timer')).toBeVisible()
+  await expect(projector.getByRole('button')).toHaveCount(0)
 })

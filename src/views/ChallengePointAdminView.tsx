@@ -10,7 +10,7 @@ import type { ChallengePointEntry } from '../controllers/ChallengePointControlle
 import type { Card } from '../models'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
 
-const EMPTY_FORM = { team: '', challenge_point: '' }
+const EMPTY_FORM = { team: '', score: '' }
 const EMPTY_ENTRIES: ChallengePointEntry[] = []
 
 export function ChallengePointAdminView() {
@@ -76,13 +76,13 @@ export function ChallengePointAdminView() {
     await run(async () => {
       if (editingId) {
         await ChallengePointController.update(editingId, {
-          challenge_point: Number(form.challenge_point) || 0,
+          score: Number(form.score) || 0,
         })
       } else {
         await ChallengePointController.create({
           challenge: activeId,
           team: form.team,
-          challenge_point: Number(form.challenge_point) || 0,
+          score: Number(form.score) || 0,
         })
       }
       setForm(EMPTY_FORM)
@@ -98,7 +98,7 @@ export function ChallengePointAdminView() {
 
   function startEdit(entry: ChallengePointEntry) {
     setEditingId(entry.id)
-    setForm({ team: entry.team, challenge_point: String(entry.challenge_point) })
+    setForm({ team: entry.team, score: String(entry.score) })
     setError(null)
   }
 
@@ -154,7 +154,7 @@ export function ChallengePointAdminView() {
       <div>
         <h2>Scoreboard per challenge (Adm)</h2>
         <p className="view__hint">
-          Rank and points are derived from challenge points. Up to {MAX_ENTRIES_PER_CHALLENGE} teams per challenge.
+          Rank is determined by score. Challenge points and GP are awarded by rank. Up to {MAX_ENTRIES_PER_CHALLENGE} teams per challenge.
         </p>
       </div>
     </header>
@@ -241,19 +241,19 @@ export function ChallengePointAdminView() {
               </select>
             </label>
             <label className="field">
-              <span>Challenge Point</span>
+              <span>Score</span>
               <input
                 type="number"
                 inputMode="numeric"
-                min={0}
+                min={-999}
                 max={999}
-                value={form.challenge_point}
-                onChange={updateField('challenge_point')}
+                value={form.score}
+                onChange={updateField('score')}
                 disabled={busy}
               />
             </label>
             <button type="submit" className="grid-form__submit" disabled={busy || !form.team}>
-              {editingId ? 'Update challenge point' : 'Add entry'}
+              {editingId ? 'Update score' : 'Add entry'}
             </button>
             {editingId && (
               <button type="button" className="ghost" onClick={cancelEdit} disabled={busy}>
@@ -268,14 +268,15 @@ export function ChallengePointAdminView() {
 
       <PublicRankingBoard
         variant="scoreboard"
+        guardPoints={teams.map(team=>({id:team.id,team:team.name,guardPower:team.total_gp}))}
         challenge={activeChallenge?.name}
-        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.challenge_point }))}
+        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.score }))}
         message={entries.length === 0 ? 'No entries for this challenge yet.' : undefined}
       />
       {entries.length > 0 && <div className="scoreboard-admin-actions" aria-label="Edit challenge results">
         {entries.map((entry) => <div className="board__row" key={entry.id}>
-          <span>{entry.teamRef?.name ?? '—'} · {entry.challenge_point} CP</span>
-          <button type="button" className="ghost" disabled={busy} onClick={() => startEdit(entry)}>Edit CP</button>
+          <span>{entry.teamRef?.name ?? '—'} · {entry.score} score · {entry.challenge_point} CP · {entry.guard_power} GP</span>
+          <button type="button" className="ghost" disabled={busy} onClick={() => startEdit(entry)}>Edit Score</button>
           <button type="button" className="danger" disabled={busy} onClick={() => handleDelete(entry.id)}>Delete</button>
         </div>)}
       </div>}

@@ -64,10 +64,19 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       setActionError(null)
     } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
   }
+  async function showPublicTactical() {
+    if (!id) return
+    window.open(`/tactical/${encodeURIComponent(id)}`, '_blank', 'noopener')
+    try {
+      await publishPublicDisplay('tactical', id)
+      setActionError(null)
+    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+  }
   if (admin) return <section className="view tactical-admin">
     <header className="view__header"><h2>Tactical Phase</h2><p className="view__hint">Select up to two earned cards per team. Click a card or drag it into that team’s selection, or skip.</p></header>
     <div className="admin-toolbar">
       <label className="field"><span>Challenge</span><select value={id} onChange={(event) => void selectChallenge(event.target.value)}>{challenges.map((challenge) => <option key={challenge.id} value={challenge.id}>{challenge.name}</option>)}</select></label>
+      <button disabled={!id} onClick={() => void showPublicTactical()}>Show Tactical Phase (Public)</button>
       <button className="ghost" onClick={() => void display(false)}>{phase.revealed ? 'Return to Tactical Phase' : 'Show Tactical Phase'}</button><button disabled={!id || !teams.length} onClick={() => void display(true)}>{phase.revealed || resolution ? 'Show Card Reveal' : 'Card Reveal'}</button>
     </div>
     {(actionError || error) && <p className="alert alert--error" role="alert">{actionError || error}</p>}

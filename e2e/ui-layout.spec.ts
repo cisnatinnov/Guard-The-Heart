@@ -6,7 +6,7 @@ for (const width of [1280, 390]) {
     await page.goto('/admin/gp-transactions')
     await expect(page.getByRole('table', { name: 'Transaksi GP' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
-    for (const route of ['/admin', '/admin/challenges', '/admin/podium', '/admin/turn-order', '/admin/gigarisk', '/podium', '/turn-order', '/gigarisk', '/admin/scoreboard', '/admin/leaderboard', '/admin/rewards', '/admin/tactical', '/admin/presentation', '/admin/play/word-assembly', '/', '/scoreboard', '/leaderboard', '/rewards', '/tactical', '/card-reveal', '/play/emoji-decode', '/play/word-assembly']) {
+    for (const route of ['/admin', '/admin/gp-transactions', '/admin/challenges', '/admin/podium', '/admin/turn-order', '/admin/gigarisk', '/podium', '/turn-order', '/gigarisk', '/admin/scoreboard', '/admin/leaderboard', '/admin/rewards', '/admin/tactical', '/admin/timer', '/timer', '/admin/play/word-assembly', '/admin/play/emoji-decode', '/admin/play/jaws-of-risk', '/', '/scoreboard', '/leaderboard', '/rewards', '/tactical', '/card-reveal', '/play/emoji-decode', '/play/jaws-of-risk', '/play/word-assembly']) {
       await page.goto(route)
       await expect(page.locator('.app__main')).toBeVisible()
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
@@ -16,7 +16,7 @@ for (const width of [1280, 390]) {
         expect(toolbar && artwork && toolbar.y + toolbar.height <= artwork.y).toBeTruthy()
       }
       if (!route.startsWith('/admin')) {
-        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .main-presentation__slide').first()
+        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage').first()
         await expect(stage).toBeVisible()
         const bounds = await stage.boundingBox()
         expect(bounds?.width).toBeGreaterThan(width * .85)

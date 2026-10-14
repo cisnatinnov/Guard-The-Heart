@@ -68,6 +68,17 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
     }
   }
 
+  async function showPublicRewards() {
+    if (!activeId) return
+    window.open(`/rewards/${encodeURIComponent(activeId)}`, '_blank', 'noopener')
+    try {
+      await publishPublicDisplay('rewards', activeId)
+      setNavigationError(null)
+    } catch (cause) {
+      setNavigationError(cause instanceof Error ? cause.message : String(cause))
+    }
+  }
+
   const challengeControl = <label className={admin ? 'field' : 'reward-stage__challenge'}>
     <span className={admin ? undefined : 'sr-only'}>Challenge</span>
     <select aria-label="Challenge" value={activeId ?? ''} onChange={(event) => void selectChallenge(event.target.value)}>
@@ -78,7 +89,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
   return <div className={admin ? 'view reward-admin' : 'reward-public'}>
     {admin && <>
       <header className="view__header"><h2>Reward Claim</h2><p className="view__hint">Cards and Guard Points earned in the selected challenge.</p></header>
-      <div className="admin-toolbar">{challengeControl}<button disabled={!activeId} onClick={() => { if (activeId) void publishPublicDisplay('tactical', activeId).then(() => navigate(`/admin/tactical/${activeId}`)).catch((cause: unknown) => setNavigationError(cause instanceof Error ? cause.message : String(cause))) }}>Tactical Phase</button></div>
+      <div className="admin-toolbar">{challengeControl}<button disabled={!activeId} onClick={() => void showPublicRewards()}>Show Rewards (Public)</button><button disabled={!activeId} onClick={() => { if (activeId) void publishPublicDisplay('tactical', activeId).then(() => navigate(`/admin/tactical/${activeId}`)).catch((cause: unknown) => setNavigationError(cause instanceof Error ? cause.message : String(cause))) }}>Tactical Phase</button></div>
     </>}
     <section className="reward-stage reward-stage--earned" aria-label="Reward Claim">
     <img className="reward-stage__art" src="/ui/rewards/slide-02-reference.png" alt="" />

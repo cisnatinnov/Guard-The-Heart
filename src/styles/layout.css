@@ -1,4 +1,4 @@
-/* Shared spacing and proportions; presenter artwork remains a single canvas. */
+/* Shared spacing and proportions for the application and public artwork. */
 .app--admin {
   --bg: #fff9f2;
   --surface: #fff;
@@ -111,56 +111,6 @@
 .app--admin .app__footer { padding-top: 16px; border-top: 1px solid var(--border); line-height: 1.5; }
 .app__footer a { color: #027479; }
 
-/* Main presentation: a synchronized public display with an admin preview. */
-.app--public:has(.main-presentation) {
-  width: 100%; max-width: none; min-height: 100dvh; padding: 0;
-  color: #fff; background: #100d16;
-}
-.app--public:has(.main-presentation) .app__main {
-  min-height: 100dvh; display: grid; place-items: center; padding: 0;
-}
-.main-presentation { width: 100%; container-type: inline-size; }
-.main-presentation--public {
-  min-height: 100dvh; display: grid; place-items: center;
-  background: #100d16;
-}
-.main-presentation__slide {
-  position: relative; width: min(100%, 177.778dvh); aspect-ratio: 16 / 9;
-  overflow: hidden; background: #171321; color: #fff; container-type: inline-size;
-}
-.main-presentation__slide > img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.presentation-admin { width: 100%; }
-.presentation-admin__controls {
-  display: flex; justify-content: center; align-items: center; gap: 20px;
-  padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff;
-}
-.presentation-admin__controls span { min-width: 110px; text-align: center; font-weight: 700; }
-.presentation-admin .main-presentation__slide { width: min(100%, 1100px); margin-inline: auto; border-radius: 12px; box-shadow: 0 12px 36px rgb(34 22 46 / 18%); }
-.main-presentation__slide--four { padding: 5.2% 4.5%; color: #2b1c47; background: #fff; }
-.main-presentation__slide--four h1 { margin: 0 0 2.3%; font-size: 3.05cqw; line-height: 1.1; font-weight: 800; }
-.main-presentation__rewards { width: 100%; height: 56%; border-collapse: collapse; table-layout: fixed; font-size: 1.65cqw; text-align: center; }
-.main-presentation__rewards th, .main-presentation__rewards td { padding: .35em .5em; }
-.main-presentation__rewards thead { color: #fff; background: #2b1c47; }
-.main-presentation__rewards thead th { font-weight: 700; }
-.main-presentation__rewards tbody tr:nth-child(odd) { background: #eeeaf2; }
-.main-presentation__rewards tbody tr:nth-child(even) { background: #fff; }
-.main-presentation__rewards tbody th { font-weight: 700; }
-.main-presentation__cap { display: flex; align-items: center; gap: 1.3%; margin: 1.8% 0 0; font-size: 1.5cqw; }
-.main-presentation__cap strong { padding: .35em .9em; border-radius: 999px; color: white; background: #2b1c47; }
-.main-presentation__note, .main-presentation__winner { margin: 1.2% 0 0; font-size: 1.38cqw; line-height: 1.25; }
-.main-presentation__winner { margin-top: 1.5%; font-weight: 700; }
-.main-presentation__page-number { position: absolute; right: 2.5%; bottom: 2%; font-size: 1.2cqw; }
-.main-presentation__slide--five h1 {
-  position: absolute; left: 4.6%; top: 79.5%; width: 56%; margin: 0;
-  color: #fff; font-size: 4cqw; line-height: 1.1; font-weight: 900;
-  text-shadow: 0 .08em .18em #1b0f2c, 0 0 .25em #1b0f2c;
-}
-@media (max-width: 680px) {
-  .presentation-admin__controls { gap: 8px; padding: 10px; }
-  .presentation-admin__controls span { min-width: 88px; font-size: 13px; }
-  .presentation-admin__controls button { min-height: 40px; padding: 8px 10px; }
-}
-
 /* Cards retain their natural proportions at every viewport width. */
 .card-reveal__teams { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important; gap: 20px; }
 .card-reveal__team { padding: 0 14px 14px; gap: 14px; }
@@ -173,7 +123,7 @@
 .card-art--reward { width: 74px; }
 .card-art img { width: 100%; height: auto; object-fit: contain; }
 .reveal-card__name { white-space: normal; overflow-wrap: anywhere; line-height: 1.3; }
-.app--public:not(:has(.main-presentation, .public-ranking, .qa-stage, .reward-stage, .flipping-presentation, .tactical-stage, .reference-stage, .podium-stage)) { width: min(100%, 1440px); max-width: 1440px; padding: clamp(16px, 3vw, 32px); }
+.app--public:not(:has(.event-timer-stage, .public-ranking, .qa-stage, .reward-stage, .flipping-presentation, .tactical-stage, .reference-stage, .podium-stage)) { width: min(100%, 1440px); max-width: 1440px; padding: clamp(16px, 3vw, 32px); }
 .app--public .card-reveal { color: #263639; }
 
 /* Public question typography stays inside the illustrated frame. */
@@ -183,6 +133,7 @@
 .qa-stage__question h2 { font-size: 2.6cqw; line-height: 1.35; overflow-wrap: anywhere; text-wrap: pretty; }
 .qa-stage__answer { scrollbar-width: thin; scrollbar-color: #db8d38 transparent; }
 .qa-stage__options { align-items: start; font-size: 1.4cqw; line-height: 1.25; }
+
 .qa-stage--emoji-decode .qa-stage__logo { display: none; }
 .qa-stage--emoji-decode .qa-stage__heading {
   left: 0; top: -14%; width: 44%; height: 141%; padding: 0 0 0 7.5%;
@@ -295,7 +246,7 @@
   .qa-stage__options { grid-template-columns: 1fr; gap: 12px; font-size: 16px; line-height: 1.45; }
 }
 
-/* Reset slide coordinates when the presentation becomes a portrait stack. */
+/* Reset challenge artwork coordinates for portrait screens. */
 @media (max-width: 680px) and (orientation: portrait) {
   .qa-stage__logo, .qa-stage__heading, .qa-stage__timer { position: static; }
   .qa-stage--emoji-decode .qa-stage__header {
@@ -351,21 +302,6 @@
   .qa-stage--slide-reference .qa-stage__question img { max-height: 100%; max-width: 100%; }
 }
 
-/* Configurable presentation timer follows Visual Guide slide 1. */
-.presentation-timer__digits {
-  position: absolute; left: 38%; top: 29%; width: 36%; height: 28%;
-  display: grid; place-items: center; color: #fff;
-  font: 700 13.5cqw/1 Arial, sans-serif; font-variant-numeric: tabular-nums;
-  background: url('/ui/presentation-timer-background.png') -38cqw -16.3125cqw / 100cqw 56.25cqw no-repeat;
-}
-.presentation-timer__scenery {
-  position: absolute; left: 0; top: 61%; width: 100%; height: 39%;
-  background: url('/ui/presentation-timer-no-banner.png') 0 -34.3125cqw / 100cqw 56.25cqw no-repeat;
-}
-.presentation-timer-controls { display: grid; gap: 1rem; margin-top: 1rem; }
-.presentation-timer-controls__form, .presentation-timer-controls__actions { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; }
-.presentation-timer-controls__form label { display: grid; gap: .4rem; }
-.presentation-timer-controls__form input[type=number] { width: 6rem; }
 .matching-only .qa-stage { width: 100%; }
 .matching-only__header { display: flex; justify-content: space-between; align-items: center; }
 .matching-only__solo { display: grid; gap: 1rem; margin-top: 1rem; }
@@ -381,9 +317,9 @@
 .app--admin .admin-toolbar button { min-height: 44px; }
 .app--admin .reward-stage { width: 100%; border-radius: 12px; overflow: hidden; }
 .app--admin .row-form > button { min-height: 44px; }
-.app--admin .presentation-timer-controls { margin: 0; padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
-.app--admin .presentation-timer-controls__form label { font-size: 13px; font-weight: 600; color: var(--muted); }
-.app--admin .presentation-timer-controls__actions { gap: 10px; }
+.app--admin .event-timer-controls { margin: 0; padding: 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.app--admin .event-timer-controls__form label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.app--admin .event-timer-controls__actions { gap: 10px; }
 .app--admin .matching-only__header { gap: 12px; flex-wrap: wrap; }
 .app--admin .matching-only__header h2 { margin: 0; font-size: clamp(22px, 2.5vw, 28px); }
 .app--admin .matching-only > .view__hint { margin-block: 12px 20px; }
@@ -412,11 +348,11 @@
   .app--admin .tactical-admin__team { padding: 16px; }
   .app--admin .tactical-admin__body { grid-template-columns: 1fr; gap: 20px; }
   .app--admin .tactical-admin__cards { min-height: 0; }
-  .app--admin .presentation-timer-controls { padding: 16px; }
-  .app--admin .presentation-timer-controls__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .app--admin .presentation-timer-controls__form input[type=number] { width: 100%; }
-  .app--admin .presentation-timer-controls__form button { grid-column: 1 / -1; }
-  .app--admin .presentation-timer-controls__actions button { flex: 1 1 100px; }
+  .app--admin .event-timer-controls { padding: 16px; }
+  .app--admin .event-timer-controls__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .app--admin .event-timer-controls__form input[type=number] { width: 100%; }
+  .app--admin .event-timer-controls__form button { grid-column: 1 / -1; }
+  .app--admin .event-timer-controls__actions button { flex: 1 1 100px; }
 }
 .gp-ledger-wrap { max-width:100%; overflow:auto; border:1px solid #e0cda9; border-radius:12px; background:#fffcf3; }
 .gp-ledger { width:100%; min-width:850px; border-collapse:collapse; color:#492c20; }
@@ -425,3 +361,9 @@
 .gp-ledger td:nth-child(5),.gp-ledger td:nth-child(6),.gp-ledger td:nth-child(7) { text-align:right; font-weight:700; }
 .gp-ledger .is-negative { color:#ad2e27; }
 .gp-ledger .is-positive { color:#07785f; }
+
+/* Keep longer admin labels and narrow toolbars inside their own panels. */
+.app--admin .admin-toolbar > *, .app--admin .row-form > * { min-width:0; max-width:100%; }
+.app--admin .view__header h2, .app--admin .view__hint { overflow-wrap:anywhere; }
+.matching-only__header { flex-wrap:wrap; gap:12px; }
+.giga-card-actions article > div { min-width:0; overflow-wrap:anywhere; }

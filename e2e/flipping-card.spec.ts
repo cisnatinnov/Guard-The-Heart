@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('matching only rotates without penalties, has no points and completes on both screens', async ({ page, context }) => {
+test('manual team selection has no timer or score changes and completes on both screens', async ({ page, context }) => {
   await page.goto('/admin')
   for (const name of ['Alpha', 'Beta']) {
     await page.getByRole('textbox', { name: 'New team name' }).fill(name)
@@ -26,9 +26,11 @@ test('matching only rotates without penalties, has no points and completes on bo
   expect(Math.abs(firstCard!.width - stage!.width * .132)).toBeLessThan(1)
   await expect(projector.locator('.tile').first()).toHaveCSS('background-image', 'none')
   await projector.screenshot({ path: 'test-results/flipping-slide-03.png' })
-  const order = await page.getByRole('list', { name: 'Roulette turn order' }).locator('li:not([aria-hidden])').evaluateAll((items) => items.map((item) => item.childNodes[0].textContent))
+  const order = await page.getByRole('list', { name: 'Select the active team' }).locator('li:not([aria-hidden])').evaluateAll((items) => items.map((item) => item.childNodes[0].textContent))
   const active = page.locator('.flipping-presentation__teams [aria-current]')
   await expect(active).toContainText(order[0]!)
+  await expect(page.getByRole('timer')).toHaveCount(0)
+  await expect(page.getByText(/Matched pairs:.*s$/)).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
   await page.clock.runFor(1000)
@@ -38,6 +40,10 @@ test('matching only rotates without penalties, has no points and completes on bo
   await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
   await page.clock.runFor(20100)
   await expect(active).toContainText(order[1]!)
+  await page.locator('.tile[data-pair="word-1"]').first().click()
+  await expect(page.locator('.tile--revealed')).toHaveCount(1)
+  await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[0]!, exact: true }).click()
+  await expect(active).toContainText(order[0]!)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[0]!, exact: true }).click()
   await expect(active).toContainText(order[0]!)
   for (let pair = 1; pair <= 10; pair++) {

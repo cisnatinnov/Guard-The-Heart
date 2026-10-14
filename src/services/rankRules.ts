@@ -34,14 +34,27 @@ export function teamGuardPower(earned: number): number {
 
 export interface RankRewards {
   guard_power: number
+  challenge_point: number
+  cards: number
 }
 
 const REWARDS_BY_RANK: Record<number, RankRewards> = {
-  1: { guard_power: 3 },
-  2: { guard_power: 2 },
-  3: { guard_power: 2 },
-  4: { guard_power: 1 },
-  5: { guard_power: 1 },
+  1: { challenge_point: 10, guard_power: 3, cards: 3 },
+  2: { challenge_point: 8, guard_power: 2, cards: 2 },
+  3: { challenge_point: 6, guard_power: 2, cards: 2 },
+  4: { challenge_point: 4, guard_power: 1, cards: 1 },
+  5: { challenge_point: 2, guard_power: 1, cards: 0 },
+}
+
+/** GP first, earned challenge points second. Equal values share a dense rank. */
+export function rankGuardPointStandings<T extends { guardPower: number; points: number; team: string }>(entries: readonly T[]): Array<T & { rank: number }> {
+  const sorted = [...entries].sort((a,b) => b.guardPower-a.guardPower || b.points-a.points || a.team.localeCompare(b.team))
+  let rank = 0
+  return sorted.map((entry,index) => {
+    const previous = sorted[index-1]
+    if (!previous || previous.guardPower !== entry.guardPower || previous.points !== entry.points) rank++
+    return { ...entry, rank }
+  })
 }
 
 export function isRankable(rank: number): boolean {
@@ -56,7 +69,7 @@ export function rewardsForRank(rank: number): RankRewards {
 }
 
 /**
- * Standard competition ranking (1, 2, 2, 3, 4): entries sharing a score share a rank
+ * Dense ranking (1, 2, 2, 3, 4): entries sharing a score share a rank
  * and the following rank increments by 1 (does not skip).
  */
 export function competitionRanks(scores: number[]): number[] {

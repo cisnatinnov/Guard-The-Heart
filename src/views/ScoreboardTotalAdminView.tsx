@@ -1,4 +1,4 @@
-import { competitionRanks } from '../services/rankRules'
+import { rankGuardPointStandings } from '../services/rankRules'
 import { useCallback, useEffect, useState } from 'react'
 import { ScoreboardController, type ScoreboardEntry } from '../controllers/ScoreboardController'
 import { flushDatabase } from '../db/sequelize-provider'
@@ -40,12 +40,12 @@ export function ScoreboardTotalAdminView() {
   }, [])
 
   useEffect(() => {
-    void load(() => ScoreboardController.recalculate())
+    void load(() => ScoreboardController.list())
   }, [load])
 
   // Real-time updates
   useDbEventRefresh([DB_EVENTS.SCOREBOARD_CHANGED, DB_EVENTS.TEAMS_CHANGED], () => {
-    void load(() => ScoreboardController.recalculate())
+    void load(() => ScoreboardController.list())
   })
 
   async function handleRecalculate() {
@@ -73,7 +73,7 @@ export function ScoreboardTotalAdminView() {
   const resolution = latestTacticalResolution(challenges.map((challenge) => challenge.id))
   const results = new Map((resolution?.teams ?? []).map((result) => [result.teamId, result]))
   const entryByTeam = new Map(entries.map((entry) => [entry.team, entry]))
-  const rows = teams.map((team) => {
+  const rows = rankGuardPointStandings(teams.map((team) => {
     const entry = entryByTeam.get(team.id)
     const result = results.get(team.id)
     return {
@@ -86,9 +86,9 @@ export function ScoreboardTotalAdminView() {
       effects: result?.effects ?? [],
       remainingCards: entry?.total_card ?? 0,
     }
-  }).sort((a, b) => b.guardPower - a.guardPower || a.team.localeCompare(b.team))
+  }))
 
-  const ranks = competitionRanks(rows.map((row) => row.guardPower))
+
 
   return (
     <section className="view">
@@ -114,7 +114,7 @@ export function ScoreboardTotalAdminView() {
       {!loading && entries.length === 0 && <p className="muted">No scores recorded yet.</p>}
 
       {!loading && <div className="scoreboard-admin-reference"><PublicRankingBoard variant="leaderboard"
-        rows={rows.map((row, index) => ({ ...row, rank: ranks[index] }))}
+        rows={rows}
         message={error ?? (rows.length === 0 ? 'No scores recorded yet.' : undefined)}
       /></div>}
     </section>

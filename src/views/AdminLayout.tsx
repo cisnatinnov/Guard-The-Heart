@@ -5,9 +5,14 @@ import { useDatabase } from '../hooks/useDatabase'
 const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
   { path: '/admin/challenges', label: 'Challenges' },
+  { path: '/admin/turn-order', label: 'Urutan Main' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },
-  { path: '/admin/cards', label: 'Card Reveal' },
+  { path: '/admin/podium', label: 'Podium' },
+  { path: '/admin/gp-transactions', label: 'Transaksi GP' },
+  { path: '/admin/rewards', label: 'Rewards' },
+  { path: '/admin/tactical', label: 'Tactical Phase' },
+  { path: '/admin/gigarisk', label: 'Serangan GigaRisk' },
 ] as const
 
 export function AdminLayout() {

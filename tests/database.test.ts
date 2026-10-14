@@ -33,6 +33,7 @@ import {
 } from '../src/services/challengeSeeds'
 import { CHALLENGE_GAMES, EMOJI_DECODE_CHALLENGE_ID } from '../src/services/games'
 import { seedGameQuestions } from '../src/services/gameQuestionSeeds'
+import { DEFAULT_TEAM_NAMES, isDefaultTeam, seedDefaultTeams, teamColour } from '../src/services/defaultTeams'
 
 beforeAll(async () => {
   await initializeAppDatabase()
@@ -134,6 +135,22 @@ describe('database bootstrap', () => {
 })
 
 describe('TeamController', () => {
+  it('seeds the five fixed teams once and protects their names, status and deletion', async () => {
+    const before = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
+    expect(before.map((team) => team.name).sort()).toEqual([...DEFAULT_TEAM_NAMES].sort())
+    await seedDefaultTeams()
+    const after = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
+    expect(after.map((team) => team.id)).toEqual(before.map((team) => team.id))
+    for (const team of after) {
+      await expect(TeamController.rename(team.id, 'Other')).rejects.toThrow('cannot be edited')
+      await expect(TeamController.toggleStatus(team.id)).rejects.toThrow('cannot be edited')
+      await expect(TeamController.remove(team.id)).rejects.toThrow('cannot be deleted')
+    }
+    await expect(TeamController.create(' tim merah ')).rejects.toThrow('reserved')
+    expect(teamColour(' Tim HIJAU ')).toBe('hijau')
+    expect(teamColour('Custom')).toBeNull()
+  })
+
   it('creates active teams with uuid keys', async () => {
     const created = await TeamController.create('Sentinels')
     expect(created.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)

@@ -32,17 +32,13 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   {
     id: 'word-assembly',
     title: 'Flipping Card',
-    tagline: 'Match a picture pair, then answer a question from the reference deck.',
+    tagline: 'Flip cards and match identical picture pairs.',
     rules: [
-      'Flip two cards at a time and match identical pictures before answering the associated question.',
-      'A matched pair unlocks a reference question; the answering team gets two attempts before the turn passes.',
+      'Flip two cards at a time and match identical pictures. There are no questions.',
       'Roulette draws the team order before matching. Each matching turn lasts twenty seconds; a mismatch or timeout passes the turn.',
-      'After a match, answer yourself or give the question to another team. Fifteen seconds and two attempts per answering team.',
-      'Twenty-one questions from slides 3–44 of the Match Card deck. The board refreshes after ten pairs.',
-      'Self answers score +10 correct or −10 wrong. A passed answer scores +5 or −5 for the recipient, and −10 or −5 for the giver.',
+      'A matched pair moves the turn to the next team. This matching activity does not award or deduct points.',
+      'Match all ten pairs to complete the challenge.',
     ],
-    deckPath: '/ui/Match-Card.pptx',
-    deckLabel: 'Flipping Card question deck (PPTX)',
     challengeId: WORD_ASSEMBLY_CHALLENGE_ID,
   },
   {

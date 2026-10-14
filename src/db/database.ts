@@ -4,6 +4,8 @@ import { defineModels } from '../models'
 import { seedCardPool, synchronizeAllChallengeBonusCards, repairDuplicateTeamCards } from '../services/cardDraw'
 import { seedLockedChallenges } from '../services/challengeSeeds'
 import { seedGameQuestions } from '../services/gameQuestionSeeds'
+import { seedDefaultTeams } from '../services/defaultTeams'
+import { initializeGPTransactions } from '../services/gpTransactions'
 
 const LEGACY_TABLES = ['challange', 'challange_scoreboard', 'challenge_scoreboard']
 const REQUIRED_TABLES = ['team', 'challenge', 'challenge_point', 'scoreboard', 'card', 'team_card']
@@ -49,6 +51,8 @@ export function initializeAppDatabase(): Promise<void> {
       // The playable challenges are challenge data, so they exist from the
       // first launch and cannot be added again, renamed or deleted.
       await seedLockedChallenges()
+      await seedDefaultTeams()
+      await initializeGPTransactions()
       await seedGameQuestions()
       await seedCardPool()
       await repairDuplicateTeamCards()

@@ -1,0 +1,25 @@
+.podium-public { width:min(100vw,177.777778dvh); }
+.podium-admin { min-width:0; }
+.podium-admin .admin-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-bottom:16px; }
+.podium-admin .field { max-width:200px; }
+.podium-stage { position:relative; width:100%; aspect-ratio:16/9; container-type:inline-size; isolation:isolate; font-family:Arial,sans-serif; }
+.podium-art { display:block; width:100%; height:100%; object-fit:cover; }
+.app--public:has(.podium-stage) { width:100%; max-width:none; min-height:100dvh; margin:0; padding:0; background:#102b42; }
+.app--public:has(.podium-stage) .app__main { display:grid; min-height:100dvh; place-items:center; }
+.podium-winner { position:absolute; inset:0; pointer-events:none; }
+.podium-name,.podium-gp,.podium-prize,.podium-tied-rank { position:absolute; display:grid; place-items:center; overflow:hidden; white-space:nowrap; }
+.podium-name { color:#5a2811; font-weight:700; font-size:2cqw; background:linear-gradient(#fff9e8,#ffe7b2); border-radius:.2cqw; text-overflow:ellipsis; }
+.podium-gp { color:#fff4cc; font-size:2.7cqw; background:#16304e; font-variant-numeric:tabular-nums; }
+.podium-prize { color:#fff4da; font-size:1.85cqw; font-weight:700; background:linear-gradient(#653006,#813c00); }
+.podium-winner--1 .podium-name { left:37.8%; top:65%; width:15.2%; height:6.3%; }
+.podium-winner--1 .podium-gp { left:58.5%; top:65.5%; width:3.7%; height:5.1%; }
+.podium-winner--1 .podium-prize { left:46.4%; top:75.4%; width:13.2%; height:5.4%; }
+.podium-winner--2 .podium-name { left:9.6%; top:71.9%; width:13.4%; height:5.1%; background:linear-gradient(#fcfcfc,#dedfe5); color:#27354b; }
+.podium-winner--2 .podium-gp { left:27.6%; top:72%; width:2.2%; height:4.3%; font-size:2cqw; }
+.podium-winner--2 .podium-prize { left:17.4%; top:80%; width:10.3%; height:4.1%; background:#434651; font-size:1.5cqw; }
+.podium-winner--3 .podium-name { left:70.3%; top:72%; width:13.8%; height:5.1%; }
+.podium-winner--3 .podium-gp { left:88.6%; top:72.3%; width:2.4%; height:4%; font-size:2cqw; }
+.podium-winner--3 .podium-prize { left:78.2%; top:80%; width:10.8%; height:4%; background:#783409; font-size:1.5cqw; }
+.podium-tied-rank { color:white; font-size:4.2cqw; font-weight:700; text-shadow:.12cqw .1cqw .05cqw #161827; }
+.podium-winner--2 .podium-tied-rank { left:18.4%; top:58.7%; width:3.5%; height:8%; background:#1f3d67; }
+.podium-winner--3 .podium-tied-rank { left:79.4%; top:60.4%; width:3.5%; height:8%; background:#8c2a15; }

@@ -5,6 +5,14 @@ export type SqlJsStatic = Awaited<ReturnType<typeof initSqlJs>>
 export type SqlJsDatabase = InstanceType<SqlJsStatic['Database']>
 export type SqlValue = number | string | Uint8Array | null
 
+// sql.js export reopens the database and resets connection pragmas.
+function exportDatabase(database: SqlJsDatabase): Uint8Array {
+  const foreignKeys = Number(database.exec('PRAGMA foreign_keys')[0]?.values[0]?.[0] ?? 0)
+  const bytes = database.export()
+  database.run(`PRAGMA foreign_keys = ${foreignKeys}`)
+  return bytes
+}
+
 let sqlJsPromise: Promise<SqlJsStatic> | null = null
 
 function isBrowserRuntime(): boolean {
@@ -122,7 +130,7 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
     }
 
     exportBytes(): Uint8Array {
-      return this.db.export()
+      return exportDatabase(this.db)
     }
 
     reload(data: Uint8Array): void {
@@ -130,6 +138,7 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
       previous.close()
       releaseActive(previous)
       this.db = new SQL.Database(data)
+      this.db.run('PRAGMA foreign_keys = ON')
       registerActive(this.db)
     }
 
@@ -220,7 +229,7 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
     driver,
     export() {
       if (!activeDb) throw new Error('No active SQLite connection to export')
-      return activeDb.export()
+      return exportDatabase(activeDb)
     },
     reload(data) {
       for (const connection of connections) connection.reload(data)

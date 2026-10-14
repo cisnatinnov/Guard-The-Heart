@@ -87,6 +87,21 @@ export class GameQuestion extends Model {
   declare readonly updatedAt: Date
 }
 
+export class GPTransaction extends Model {
+  declare id: string
+  declare team: string | null
+  declare team_name: string
+  declare challenge: string | null
+  declare challenge_name: string
+  declare source_key: string
+  declare category: 'opening' | 'reward' | 'attack' | 'card'
+  declare gp_before: number
+  declare delta: number
+  declare gp_after: number
+  declare description: string
+  declare readonly createdAt: Date
+}
+
 let modelsDefined = false
 
 export function defineModels(sequelize: Sequelize): void {
@@ -339,6 +354,20 @@ export function defineModels(sequelize: Sequelize): void {
     }
   )
 
+  GPTransaction.init({
+    id: { type: DataTypes.UUID, primaryKey: true, defaultValue: () => uuidv4() },
+    team: { type: DataTypes.UUID, allowNull:true, references:{model:Team,key:'id'}, onDelete:'SET NULL' },
+    team_name: { type: DataTypes.STRING(100), allowNull:false },
+    challenge: { type: DataTypes.UUID, allowNull:true, references:{model:Challenge,key:'id'}, onDelete:'SET NULL' },
+    challenge_name: { type: DataTypes.STRING(100), allowNull:false, defaultValue:'' },
+    source_key: { type: DataTypes.STRING(250), allowNull:false, unique:true },
+    category: { type: DataTypes.ENUM('opening','reward','attack','card'), allowNull:false },
+    gp_before: { type: DataTypes.INTEGER, allowNull:false },
+    delta: { type: DataTypes.INTEGER, allowNull:false },
+    gp_after: { type: DataTypes.INTEGER, allowNull:false },
+    description: { type: DataTypes.TEXT, allowNull:false },
+  }, {sequelize, modelName:'gp_transaction', tableName:'gp_transaction', timestamps:true})
+
   Challenge.hasMany(ChallengePoint, { foreignKey: 'challenge', as: 'scores' })
   ChallengePoint.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeRef' })
   Team.hasMany(ChallengePoint, { foreignKey: 'team', as: 'challengeScores' })
@@ -359,4 +388,4 @@ export function defineModels(sequelize: Sequelize): void {
   modelsDefined = true
 }
 
-export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard, GameQuestion }
+export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard, GameQuestion, GPTransaction }

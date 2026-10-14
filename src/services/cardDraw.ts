@@ -1,7 +1,9 @@
 import { Op } from 'sequelize'
 import { Card, Challenge, ChallengePoint, Team, TeamCard, type CardEffect, type CardType } from '../models'
 import { CARD_POOL as CARD_CATALOG, cardDesignKey } from '../data/card-pool'
+import { flushDatabase } from '../db/sequelize-provider'
 import { MAX_TOTAL_CARD } from './rankRules'
+import { usedTacticalCardIds } from './tacticalPhase'
 
 async function findChallengePointForCard(card: Card, teamId: string): Promise<ChallengePoint | null> {
   if (!card.challenge) return null
@@ -129,6 +131,14 @@ export async function seedCardPool(): Promise<void> {
     const created = await Card.create({ ...card, challenge: null, team: null })
     existingByName.set(card.name, created)
   }
+  // Owned cards keep their identity and assignment while their printed definition is refreshed.
+  const definitions = new Map(CARD_POOL.map((card) => [card.name, card]))
+  for (const owned of await TeamCard.findAll()) {
+    const definition = definitions.get(owned.name)
+    if (definition && owned.effect_action !== definition.effect_action) {
+      await owned.update({ effect_action: definition.effect_action })
+    }
+  }
 }
 
 async function returnCardsToPool(cards: Card[]): Promise<void> {
@@ -237,6 +247,7 @@ export async function getEligibleTeamsForAllChallenges(): Promise<Record<string,
 }
 
 export async function isChallengeCardsDrawn(challengeId: string): Promise<boolean> {
+  if (typeof window !== 'undefined' && localStorage.getItem(`guard-the-heart-cards-drawn:${challengeId}`)) return true
   const challenge = await Challenge.findByPk(challengeId, { attributes: ['id', 'cards_drawn_at'] })
   return Boolean(challenge?.cards_drawn_at)
 }
@@ -250,7 +261,18 @@ export async function drawBonusCardsForChallenge(challengeId: string): Promise<C
   const inFlight = challengeDrawsInFlight.get(challengeId)
   if (inFlight) return inFlight
 
-  const draw = serializePoolOperation(() => drawChallengeCardsOnce(challengeId))
+  const perform = () => serializePoolOperation(async () => {
+    const browser = typeof window !== 'undefined'
+    const key = `guard-the-heart-cards-drawn:${challengeId}`
+    if (browser && localStorage.getItem(key)) throw new Error('Cards for this challenge have already been drawn')
+    const cards = await drawChallengeCardsOnce(challengeId)
+    if (browser) localStorage.setItem(key, new Date().toISOString())
+    if (browser) await flushDatabase()
+    return cards
+  })
+  const draw = (async () => typeof navigator !== 'undefined' && navigator.locks
+    ? await navigator.locks.request(`guard-the-heart-draw:${challengeId}`, perform)
+    : await perform())()
   challengeDrawsInFlight.set(challengeId, draw)
   try {
     return await draw
@@ -471,9 +493,10 @@ export async function getChallengeBonusCards(challengeId: string): Promise<Card[
   })
 }
 
-export async function getTeamCards(teamId: string): Promise<TeamCard[]> {
+export async function getTeamCards(teamId: string, includeUsed = false): Promise<TeamCard[]> {
+  const used = includeUsed ? [] : [...usedTacticalCardIds()]
   return TeamCard.findAll({
-    where: { team: teamId },
+    where: { team: teamId, ...(used.length ? { id: { [Op.notIn]: used } } : {}) },
     order: [['createdAt', 'DESC']],
   })
 }
@@ -487,7 +510,7 @@ export async function repairDuplicateTeamCards(): Promise<void> {
   await serializePoolOperation(async () => {
     const teams = await Team.findAll({ attributes: ['id'] })
     for (const team of teams) {
-      const owned = await TeamCard.findAll({ where: { team: team.id }, order: [['createdAt', 'ASC'], ['id', 'ASC']] })
+      const owned = (await getTeamCards(team.id)).sort((a,b) => a.createdAt.getTime()-b.createdAt.getTime() || a.id.localeCompare(b.id))
       const allDesigns = new Set(owned.map(cardDesignKey))
       const seen = new Set<string>()
       for (const duplicate of owned) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { LAST_PRESENTATION_SLIDE, publishPresentationSlide, readPresentationSlide, subscribePresentationSlide } from '../services/publicPresentation'
+import { LAST_PRESENTATION_SLIDE, PRESENTATION_SLIDES, publishPresentationSlide, readPresentationSlide, subscribePresentationSlide } from '../services/publicPresentation'
 import { PresentationSlide } from './PresentationSlide'
+import { PresentationTimerControls } from './PresentationTimerControls'
 
 export function PresentationAdminView() {
   const [slide, setSlide] = useState(readPresentationSlide)
@@ -15,7 +16,7 @@ export function PresentationAdminView() {
     <section className="view presentation-admin">
       <header className="view__header">
         <h2>Public presentation</h2>
-        <p className="view__hint">Control slides 1–7. The public display follows each slide change.</p>
+        <p className="view__hint">Control slides 1–7, including the timer. The public display follows each slide change.</p>
       </header>
       <nav className="presentation-admin__controls" aria-label="Presentation controls">
         <button type="button" className="ghost" disabled={slide <= 1} onClick={() => goTo(slide - 1)}>← Previous</button>
@@ -23,6 +24,7 @@ export function PresentationAdminView() {
         <button type="button" disabled={slide >= LAST_PRESENTATION_SLIDE} onClick={() => goTo(slide + 1)}>Next →</button>
       </nav>
       <PresentationSlide slide={slide} />
+      {PRESENTATION_SLIDES[slide - 1] === 'timer' && <PresentationTimerControls />}
     </section>
   )
 }

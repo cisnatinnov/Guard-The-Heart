@@ -93,7 +93,7 @@ export class ChallengePointController {
     })
 
     await rerankChallenge(input.challenge)
-    await recalculateTotalScoreboard()
+    await recalculateTotalScoreboard(input.challenge)
     dbEvents.emit(DB_EVENTS.CHALLENGE_POINTS_CHANGED)
     dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
     return (await ChallengePoint.findByPk(entry.id)) as ChallengePoint
@@ -121,7 +121,7 @@ export class ChallengePointController {
     }
 
     await rerankChallenge(entry.challenge)
-    await recalculateTotalScoreboard()
+    await recalculateTotalScoreboard(entry.challenge)
     dbEvents.emit(DB_EVENTS.CHALLENGE_POINTS_CHANGED)
     dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
     return ChallengePoint.findByPk(id)
@@ -134,7 +134,7 @@ export class ChallengePointController {
     const deleted = await ChallengePoint.destroy({ where: { id } })
     if (deleted === 0) return false
     await rerankChallenge(challengeId)
-    await recalculateTotalScoreboard()
+    await recalculateTotalScoreboard(challengeId)
     dbEvents.emit(DB_EVENTS.CHALLENGE_POINTS_CHANGED)
     dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
     return true

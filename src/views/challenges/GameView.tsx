@@ -12,6 +12,7 @@ import { EmojiDecodeView } from './EmojiDecodeView'
 import { WordAssemblyView } from './WordAssemblyView'
 import { JawsOfRiskView } from './JawsOfRiskView'
 import { PublicQuestionView } from './PublicQuestionView'
+import { MatchingOnlyView } from './MatchingOnlyView'
 
 function GameScreen({ id, onComplete }: { id: ChallengeGameId; onComplete: () => void }) {
   if (id === 'emoji-decode') return <EmojiDecodeView onComplete={onComplete} />
@@ -43,7 +44,7 @@ export function GameView() {
   const run = useSharedChallengeRun(game?.id ?? 'emoji-decode', challengeId)
   useEffect(() => {
     let cancelled = false
-    if (!isAdmin && run && ChallengeRunController.complete(run)) {
+    if (!isAdmin && run && !run.matchingOnly && ChallengeRunController.complete(run)) {
       void refreshDatabaseFromStorage().then(() => {
         if (!cancelled) navigate(`/scoreboard/${encodeURIComponent(challengeId)}`, { replace: true })
       }).catch(console.error)
@@ -52,11 +53,13 @@ export function GameView() {
   }, [isAdmin, run, challengeId, navigate])
   if (!game || !gameId) return null
 
-  if (!isAdmin) return <PublicQuestionView key={`${game.id}:${challengeId}`} gameId={game.id} run={run} />
+  if (!isAdmin) return game.id === 'word-assembly'
+    ? <MatchingOnlyView challengeId={challengeId} sharedRun={run} canControl={false} />
+    : <PublicQuestionView key={`${game.id}:${challengeId}`} gameId={game.id} run={run} />
 
   const publishRun = async (nextRun: ChallengeRun) => {
     if (!isAdmin) return
-    if (ChallengeRunController.complete(nextRun)) {
+    if (!nextRun.matchingOnly && ChallengeRunController.complete(nextRun)) {
       await ChallengeRunController.syncAll(nextRun)
       await publishPublicDisplay('scoreboard', challengeId)
       publishSharedChallengeRun(game.id, challengeId, nextRun)
@@ -81,6 +84,9 @@ export function GameView() {
   const endSharedRun = () => {
     if (isAdmin) publishSharedChallengeRun(game.id, challengeId, null)
   }
+
+  if (game.id === 'word-assembly') return <MatchingOnlyView challengeId={challengeId} sharedRun={run}
+    canControl onStart={startSharedRun} onUpdate={publishRun} onEnd={endSharedRun} />
 
   return (
     <section className={`view view--game view--game-${game.id} ${isAdmin ? 'game-stage--admin' : 'game-stage--public'}`}>

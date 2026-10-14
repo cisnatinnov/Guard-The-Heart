@@ -77,10 +77,9 @@ describe('challenge registry', () => {
     }
   })
 
-  it('links each game to its supplied question reference deck', () => {
+  it('links question games to their supplied reference decks', () => {
     expect(CHALLENGE_GAMES.filter((game) => game.deckPath).map((game) => game.id)).toEqual([
       'emoji-decode',
-      'word-assembly',
       'jaws-of-risk',
     ])
     expect(CHALLENGE_GAMES[0].deckPath).toMatch(/Image_Decode\.pptx$/)
@@ -94,6 +93,18 @@ describe('challenge registry', () => {
 })
 
 describe('team challenge turns', () => {
+  it('completes matching-only pairs without scoring or opening questions', () => {
+    let run = { ...enableRunMatching(startChallengeRun({ challenge: 'matching', teams: ['a', 'b'], questionCount: 10, pointsPerQuestion: 10 })), matchingOnly: true }
+    for (let pair = 1; pair <= 10; pair++) {
+      const cards = run.matchingBoard!.board.filter((card) => card.questionId === `word-${pair}`)
+      run = flipRunCard(flipRunCard(run, cards[0].id), cards[1].id) as typeof run
+      expect(isMatchingQuestionUnlocked(run)).toBe(false)
+      expect(run.matchingBoard!.revealed).toEqual([])
+    }
+    expect(run.runs.map((team) => team.score)).toEqual([0, 0])
+    expect(isRunComplete(run)).toBe(true)
+  })
+
   it('locks questions until matching and keeps the first miss on the same team', () => {
     let run = enableRunMatching(startChallengeRun({ challenge: 'matching', teams: ['alpha', 'beta'], questionCount: 10, pointsPerQuestion: 10 }))
     expect(() => applyAnswer(run, 'alpha', { points: 10, correct: true })).toThrow('Match a pair first')

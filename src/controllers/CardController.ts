@@ -20,6 +20,7 @@ import {
 } from '../services/cardDraw'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 import { MAX_TOTAL_CARD } from '../services/rankRules'
+import { flushDatabase } from '../db/sequelize-provider'
 import { cardDesignKey } from '../data/card-pool'
 import { allocateUniqueCards } from '../services/cardAllocation'
 
@@ -39,6 +40,7 @@ export class CardController {
   static async drawBonusCards(challengeId: string): Promise<Card[]> {
     const cards = await drawBonusCardsForChallenge(challengeId)
     await CardController.assignAvailableCardsRandomly(challengeId)
+    if (typeof window !== 'undefined') await flushDatabase()
     dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
     return cards
   }
@@ -51,8 +53,8 @@ export class CardController {
     return getChallengeBonusCards(challengeId)
   }
 
-  static async listTeamCardsPermanent(teamId: string): Promise<TeamCard[]> {
-    return getTeamCards(teamId)
+  static async listTeamCardsPermanent(teamId: string, includeUsed = false): Promise<TeamCard[]> {
+    return getTeamCards(teamId, includeUsed)
   }
 
   static async getPoolStatus(): Promise<CardPoolStatus> {

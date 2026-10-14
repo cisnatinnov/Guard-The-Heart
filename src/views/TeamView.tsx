@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { TeamController } from '../controllers/TeamController'
 import { useTeams } from '../hooks/useTeams'
 import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
+import { isDefaultTeam } from '../services/defaultTeams'
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 25, 50, 100] as const
 type TeamStatusFilter = 'active' | 'inactive' | 'all'
@@ -75,7 +76,7 @@ export function TeamView() {
       <header className="view__header">
         <h2>Teams</h2>
         <p className="view__hint">
-          Create the teams that compete across every challenge. Each team starts with{' '}
+          Merah, Hijau, Biru, Kuning, and Pink are fixed default teams. Each team starts with{' '}
           {BASE_TEAM_GUARD_POWER} GP and earns more from its challenge ranks.
         </p>
       </header>
@@ -191,7 +192,7 @@ export function TeamView() {
                     </span>
                     <button
                       type="button"
-                      disabled={busy}
+                      disabled={busy || isDefaultTeam(team.name)}
                       onClick={() => run(() => TeamController.toggleStatus(team.id))}
                     >
                       {team.status === 'active' ? 'Deactivate' : 'Activate'}
@@ -199,6 +200,7 @@ export function TeamView() {
                     <button
                       type="button"
                       className="ghost"
+                      disabled={busy || isDefaultTeam(team.name)}
                       onClick={() => {
                         setEditingId(team.id)
                         setEditingName(team.name)
@@ -209,7 +211,7 @@ export function TeamView() {
                     <button
                       type="button"
                       className="danger"
-                      disabled={busy}
+                      disabled={busy || isDefaultTeam(team.name)}
                       onClick={() => run(() => TeamController.remove(team.id))}
                     >
                       Delete

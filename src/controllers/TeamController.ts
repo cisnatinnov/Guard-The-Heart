@@ -1,6 +1,8 @@
 import { Team, TEAM_STATUSES, type TeamStatus } from '../models'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 import { ChallengePoint } from '../models'
+import { isDefaultTeam } from '../services/defaultTeams'
+import { openGPAccount } from '../services/gpTransactions'
 
 export interface TeamInput {
   name: string
@@ -42,6 +44,7 @@ export class TeamController {
     const raw = typeof input === 'string' ? { name: input } : input
     const name = raw.name.trim()
     if (!name) throw new Error('Team name is required')
+    if (isDefaultTeam(name)) throw new Error('Default team names are reserved')
     const status = raw.status ?? 'active'
     if (!TEAM_STATUSES.includes(status)) throw new Error('Team status is invalid')
 
@@ -49,6 +52,7 @@ export class TeamController {
     if (duplicate) throw new Error(`Team "${name}" already exists`)
 
     const team = await Team.create({ name, status })
+    await openGPAccount(team)
     dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
     return team
   }
@@ -57,6 +61,8 @@ export class TeamController {
     const team = await Team.findByPk(id)
     if (!team) return null
     const trimmed = name.trim()
+    if (isDefaultTeam(team.name)) throw new Error('Default teams cannot be edited')
+    if (isDefaultTeam(trimmed)) throw new Error('Default team names are reserved')
     if (!trimmed) throw new Error('Team name is required')
     const duplicate = await Team.findOne({ where: { name: trimmed } })
     if (duplicate && duplicate.id !== id) throw new Error(`Team "${trimmed}" already exists`)
@@ -69,6 +75,7 @@ export class TeamController {
     if (!TEAM_STATUSES.includes(status)) throw new Error('Team status is invalid')
     const team = await Team.findByPk(id)
     if (!team) return null
+    if (isDefaultTeam(team.name)) throw new Error('Default teams cannot be edited')
     await team.update({ status })
     dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
     return team
@@ -82,6 +89,8 @@ export class TeamController {
   }
 
   static async remove(id: string): Promise<boolean> {
+    const team = await Team.findByPk(id)
+    if (team && isDefaultTeam(team.name)) throw new Error('Default teams cannot be deleted')
     const deleted = await Team.destroy({ where: { id } })
     if (deleted > 0) {
       dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)

@@ -1,131 +1,74 @@
 import { test, expect } from '@playwright/test'
-import reference from '../src/data/reference-question-bank.json' with { type: 'json' }
 
-test('roulette matching turns, timer, given questions and two attempts synchronize with the projector', async ({ page, context }) => {
+test('matching only rotates without penalties, has no points and completes on both screens', async ({ page, context }) => {
   await page.goto('/admin')
-  for (const name of ['Alpha', 'Beta', 'Gamma']) {
+  for (const name of ['Alpha', 'Beta']) {
     await page.getByRole('textbox', { name: 'New team name' }).fill(name)
     await page.getByRole('button', { name: 'Add team', exact: true }).click()
     await expect(page.getByText(name, { exact: true })).toBeVisible()
   }
   await page.goto('/admin/challenges')
-  await page.locator('.card--locked', { hasText: 'Flipping Card' }).getByRole('button', { name: 'Play', exact: true }).click()
+  await expect(page.locator('.card--locked')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
   const time = new Date()
   await page.clock.install({ time })
-  await page.clock.pauseAt(time)
-  for (const checkbox of await page.locator('.run-panel__teams').getByRole('checkbox').all()) await checkbox.check()
-  const popupPromise = context.waitForEvent('page')
-  await page.getByRole('button', { name: 'Start team run (3)' }).click()
-  const projector = await popupPromise
-  await projector.clock.install({ time })
-  await projector.clock.pauseAt(time)
-  const order = await page.getByRole('list', { name: 'Roulette turn order' }).locator('li').allTextContents()
-  expect([...order].sort()).toEqual(['Alpha', 'Beta', 'Gamma'])
-  const active = page.getByRole('list', { name: 'Roulette turn order' }).locator('[aria-current]')
-  await expect(active).toHaveText(order[0])
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
-  await expect(projector.getByRole('timer')).toContainText('20s')
-  await expect(projector.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
-  await projector.screenshot({ path: 'test-results/flipping-card-matching.png' })
-
-  // A mismatch flips back and hands the matching board to the next roulette team.
+  await page.clock.pauseAt(new Date(time.getTime() + 1000))
+  for (const name of ['Alpha', 'Beta']) await page.locator('.run-panel__teams').getByRole('checkbox', { name, exact: true }).check()
+  const popup = context.waitForEvent('page')
+  await page.getByRole('button', { name: 'Start team run (2)' }).click()
+  const projector = await popup
+  await expect(projector.locator('.flipping-presentation__art')).toHaveAttribute('src', '/ui/flipping-slide-03-reference.png')
+  const stage = await projector.locator('.flipping-presentation').boundingBox()
+  const firstCard = await projector.locator('.tile').first().boundingBox()
+  expect(stage).not.toBeNull()
+  expect(firstCard).not.toBeNull()
+  expect(Math.abs(firstCard!.x - stage!.x - stage!.width * .126)).toBeLessThan(1)
+  expect(Math.abs(firstCard!.width - stage!.width * .132)).toBeLessThan(1)
+  await expect(projector.locator('.tile').first()).toHaveCSS('background-image', 'none')
+  await projector.screenshot({ path: 'test-results/flipping-slide-03.png' })
+  const order = await page.getByRole('list', { name: 'Roulette turn order' }).locator('li:not([aria-hidden])').evaluateAll((items) => items.map((item) => item.childNodes[0].textContent))
+  const active = page.locator('.flipping-presentation__teams [aria-current]')
+  await expect(active).toContainText(order[0]!)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
   await page.clock.runFor(1000)
-  await expect(active).toHaveText(order[1])
-  await expect(projector.getByRole('list', { name: 'Roulette turn order' }).locator('[aria-current]')).toHaveText(order[1])
-  await expect(page.locator('.tile--revealed')).toHaveCount(0)
-  await expect(page.locator('.run-panel__title')).toContainText('question 1 of 21')
-
-  // Twenty seconds expires the matching turn, without revealing or skipping a question.
-  await page.locator('.tile[data-pair="word-3"]').first().click()
-  await page.clock.runFor(20000)
-  await expect(active).toHaveText(order[2])
-  await expect(page.locator('.tile--revealed')).toHaveCount(0)
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
-
-  await page.locator('.tile[data-pair="word-1"]').nth(0).click()
-  await page.locator('.tile[data-pair="word-1"]').nth(1).click()
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('5s')
-  await page.clock.runFor(5000)
-  await expect(page.getByRole('button', { name: 'Answer myself', exact: true })).toBeVisible()
-  await expect(page.getByRole('combobox', { name: `${order[2]} answer` })).toHaveCount(0)
-  await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
-  const boxes = await projector.getByRole('list', { name: 'Answer choices' }).locator('li').evaluateAll((items) =>
-    items.map((item) => { const rect = item.getBoundingClientRect(); return { x: rect.x, y: rect.y } }))
-  expect(boxes[0].x).toBe(boxes[1].x)
-  expect(boxes[2].x).toBe(boxes[3].x)
-  expect(boxes[2].x).toBeGreaterThan(boxes[0].x)
-  expect(boxes[1].y).toBeGreaterThan(boxes[0].y)
-  await projector.screenshot({ path: 'test-results/flipping-card-question.png' })
-
-  // Giving is committed before the recipient answers, and survives a projector reload.
-  await page.getByRole('combobox', { name: 'Opponent team' }).selectOption({ label: order[0] })
-  await page.getByRole('button', { name: 'Give question', exact: true }).click()
-  const answer = page.getByRole('combobox', { name: `${order[0]} answer` })
-  await expect(answer).toBeEnabled()
-  await projector.reload()
-  await expect(projector.locator('.qa-stage__heading')).toContainText(order[0])
-  await answer.selectOption(reference.matchCard[0].options.find((option) => option !== reference.matchCard[0].answer)!)
-  await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
-  await expect(page.getByText('Answer attempts: 1/2', { exact: true })).toBeVisible()
-  await expect(answer).toBeEnabled()
-  await answer.selectOption(reference.matchCard[0].answer)
-  await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
-  await expect(page.locator('.run-panel__title')).toContainText('question 2 of 21')
-  await expect(active).toHaveText(order[0])
-  await expect(projector.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
-  await page.getByRole('button', { name: 'End run', exact: true }).click()
-  await expect(projector.getByText('Menunggu tantangan dimulai…')).toBeVisible()
+  await expect(active).toContainText(order[0]!)
+  await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
+  await expect(active).toContainText(order[1]!)
+  await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
+  await page.clock.runFor(20100)
+  await expect(active).toContainText(order[1]!)
+  await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[0]!, exact: true }).click()
+  await expect(active).toContainText(order[0]!)
+  for (let pair = 1; pair <= 10; pair++) {
+    await page.locator(`.tile[data-pair="word-${pair}"]`).nth(0).click()
+    await page.locator(`.tile[data-pair="word-${pair}"]`).nth(1).click()
+    if (pair < 10) {
+      await expect(projector.locator('.tile--matched')).toHaveCount(pair * 2)
+      await expect(page.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
+      await expect(page.getByRole('button', { name: 'Answer myself', exact: true })).toHaveCount(0)
+      if (pair === 1) {
+        await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
+        await projector.screenshot({ path: 'test-results/matching-only.png' })
+        await projector.reload()
+        await expect(projector.locator('.tile--matched')).toHaveCount(2)
+      }
+    }
+  }
+  await expect(page.getByText('All pairs matched!', { exact: true })).toBeVisible()
+  await expect(projector.getByText('All pairs matched!', { exact: true })).toBeVisible()
+  await expect(page).toHaveURL(/\/admin\/play\/word-assembly\//)
+  await expect(projector).toHaveURL(/\/play\/word-assembly\//)
+  await page.goto('/admin/scoreboard/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
+  await expect(page.locator('.board__row')).toHaveCount(0)
 })
 
-
-test('five teams answer the same unlocked question, including the giver, before returning to matching', async ({ page, context }) => {
-  test.setTimeout(120000)
-  await page.goto('/admin')
-  for (const name of ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon']) {
-    await page.getByRole('textbox', { name: 'New team name' }).fill(name)
-    await page.getByRole('button', { name: 'Add team', exact: true }).click()
-    await expect(page.getByText(name, { exact: true })).toBeVisible()
-  }
+test('solo flipping has only matching cards', async ({ page }) => {
   await page.goto('/admin/challenges')
-  await page.locator('.card--locked', { hasText: 'Flipping Card' }).getByRole('button', { name: 'Play', exact: true }).click()
-  const time = new Date()
-  await page.clock.install({ time })
-  await page.clock.pauseAt(time)
-  for (const checkbox of await page.locator('.run-panel__teams').getByRole('checkbox').all()) await checkbox.check()
-  const popupPromise = context.waitForEvent('page')
-  await page.getByRole('button', { name: 'Start team run (5)' }).click()
-  const projector = await popupPromise
-  await projector.clock.install({ time })
-  await projector.clock.pauseAt(time)
-  const order = await page.getByRole('list', { name: 'Roulette turn order' }).locator('li').allTextContents()
+  await page.getByRole('button', { name: 'Play', exact: true }).click()
+  await page.getByText('Play solo instead', { exact: true }).click()
   await page.locator('.tile[data-pair="word-1"]').nth(0).click()
   await page.locator('.tile[data-pair="word-1"]').nth(1).click()
-  await page.clock.runFor(5000)
-  await page.getByRole('button', { name: 'Answer myself', exact: true }).click()
-  const wrong = reference.matchCard[0].options.find((option) => option !== reference.matchCard[0].answer)!
-  for (let index = 0; index < 5; index += 1) {
-    const name = await page.locator('.roulette-order li[aria-current]').innerText()
-    await expect(page.locator('.run-panel__title')).toContainText('question 1 of 21')
-    await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
-    const answer = page.getByRole('combobox', { name: `${name} answer` })
-    await expect(answer).toBeEnabled()
-    for (let attempt = 0; attempt < 2; attempt++) {
-      await answer.selectOption(wrong)
-      await page.getByRole('button', { name: /^(Grade this question|Next team answer)$/ }).click()
-    }
-    if (index < 4) await page.clock.runFor(5000)
-  }
-  await expect(page.locator('.run-panel__title')).toContainText('question 2 of 21')
-  await expect(projector.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
-  await page.locator('.tile[data-pair="word-2"]').nth(0).click()
-  await page.locator('.tile[data-pair="word-2"]').nth(1).click()
-  await page.clock.runFor(5000)
-  await page.getByRole('button', { name: 'Answer myself', exact: true }).click()
-  await page.getByRole('combobox', { name: `${order[1]} answer` }).selectOption(reference.matchCard[1].answer)
-  await page.getByRole('button', { name: /^(Grade this question|Next team answer)$/ }).click()
-  await expect(page.locator('.run-panel__title')).toContainText('question 3 of 21')
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
-  await expect(projector.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
+  await expect(page.getByText('Matched pairs: 1/10', { exact: true })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
 })

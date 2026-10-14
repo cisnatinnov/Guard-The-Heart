@@ -11,12 +11,13 @@ function matchingCardFace(questionId: string, position: number, revealed: boolea
     : `/match-card/reference/hidden-${String(position + 1).padStart(2, '0')}.webp`
 }
 
-export function MatchingCards({ board, disabled = false, onFlip }: {
+export function MatchingCards({ board, disabled = false, onFlip, reference = false }: {
   board: WordAssemblyState
   disabled?: boolean
   onFlip?: (cardId: string) => void
+  reference?: boolean
 }) {
-  return <div className="tile-grid matching-cards" role="group" aria-label="Picture matching cards">
+  return <div className={`tile-grid matching-cards${reference ? ' matching-cards--reference' : ''}`} role="group" aria-label="Picture matching cards">
     {board.board.map((card, position) => {
       const matched = board.matchedCardIds.includes(card.id)
       const revealed = matched || board.revealed.includes(card.id)
@@ -25,7 +26,8 @@ export function MatchingCards({ board, disabled = false, onFlip }: {
         className: `tile${revealed ? ' tile--revealed' : ''}${matched ? ' tile--matched' : ''}`,
         'aria-label': revealed ? `Picture card: ${label}` : `Face-down picture card ${position + 1}`,
         'data-pair': card.questionId,
-        style: { backgroundImage: `url("${matchingCardFace(card.questionId, position, revealed)}")` },
+        style: { backgroundImage: reference && !revealed ? undefined : `url("${matchingCardFace(card.questionId, position, revealed)}")`,
+          ...(reference ? { left: `${12.6 + position % 5 * 15.4}%`, top: `${22 + Math.floor(position / 5) * 17.6}%` } : {}) },
       }
       return onFlip ? <button key={card.id} type="button" {...props} aria-pressed={revealed}
         disabled={disabled || matched || board.revealed.length === 2 || revealed}

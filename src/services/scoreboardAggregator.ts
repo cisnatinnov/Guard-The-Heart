@@ -1,6 +1,8 @@
-import { col, fn } from 'sequelize'
-import { ChallengePoint, Scoreboard, Team, TeamCard } from '../models'
-import { competitionRanks, rewardsForRank, teamGuardPower, MAX_TOTAL_CARD } from './rankRules'
+import { syncRewardGP } from './gpTransactions'
+import { col, fn, Op } from 'sequelize'
+import { usedTacticalCardIds } from './tacticalPhase'
+import { ChallengePoint, Scoreboard, TeamCard } from '../models'
+import { competitionRanks, rewardsForRank, MAX_TOTAL_CARD } from './rankRules'
 
 interface RankedRow {
   id: string
@@ -39,7 +41,7 @@ interface TeamTotals {
  * overall ranks by total_cp (competition style, highest cp is rank 1).
  * Cards are now managed separately via TeamCard, not summed from ChallengePoint.
  */
-export async function recalculateTotalScoreboard(): Promise<Scoreboard[]> {
+export async function recalculateTotalScoreboard(challengeId?: string): Promise<Scoreboard[]> {
   const totals = (await ChallengePoint.findAll({
     attributes: [
       'team',
@@ -52,6 +54,7 @@ export async function recalculateTotalScoreboard(): Promise<Scoreboard[]> {
 
   // Count TeamCards per team
   const teamCardCounts = (await TeamCard.findAll({
+    where: { id: { [Op.notIn]: [...usedTacticalCardIds()] } },
     attributes: ['team', [fn('COUNT', col('id')), 'total_card']],
     group: ['team'],
     raw: true,
@@ -74,7 +77,7 @@ export async function recalculateTotalScoreboard(): Promise<Scoreboard[]> {
     created.push(await Scoreboard.create({ ...row, rank: ranks[index] }))
   }
 
-  await syncTeamGuardPower()
+  await syncTeamGuardPower(challengeId)
 
   return created
 }
@@ -82,9 +85,10 @@ export async function recalculateTotalScoreboard(): Promise<Scoreboard[]> {
 /**
  * Guard power lives on the team, not on the scoreboard row: every team starts
  * from `BASE_TEAM_GUARD_POWER` and adds up the `guard_power` earned across all
- * of its challenge entries. Teams with no entries fall back to the base value.
+   * of its challenge entries, plus recorded GigaRisk and card-effect changes.
+   * Recalculation preserves those combat transactions.
  */
-export async function syncTeamGuardPower(): Promise<void> {
+export async function syncTeamGuardPower(challengeId?: string): Promise<void> {
   const earned = (await ChallengePoint.findAll({
     attributes: ['team', [fn('SUM', col('guard_power')), 'total_gp']],
     group: ['team'],
@@ -93,8 +97,5 @@ export async function syncTeamGuardPower(): Promise<void> {
 
   const earnedByTeam = new Map(earned.map((row) => [row.team, Number(row.total_gp ?? 0)]))
 
-  for (const team of await Team.findAll({ attributes: ['id', 'total_gp'] })) {
-    const next = teamGuardPower(earnedByTeam.get(team.id) ?? 0)
-    if (team.total_gp !== next) await team.update({ total_gp: next })
-  }
+  await syncRewardGP(earnedByTeam,challengeId)
 }

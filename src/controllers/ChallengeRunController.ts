@@ -6,6 +6,7 @@ import type { ChallengeGameId } from '../services/games'
 import { challengeQuestionsFor, gradeQuestion, type ChallengeQuestion } from '../services/games/challengeQuestions'
 import {
   enableRunMatching,
+  flipRunCard,
   advanceMatchingTurn,
   advanceMatchingTransition,
   chooseMatchingAnswerTeam,
@@ -91,6 +92,14 @@ export class ChallengeRunController {
     const updated = advanceMatchingTurn(run, timedOut)
     await ChallengeRunController.recordChangedScores(run, updated)
     return updated
+  }
+
+  static startMatchingOnly(challengeId: string, teamIds: string[]): ChallengeRun {
+    return { ...enableRunMatching(startChallengeRun({ challenge: challengeId, teams: teamIds, questionCount: 10, pointsPerQuestion: 0 })), matchingOnly: true, manualTeamSelection: true }
+  }
+
+  static async flipMatchingOnly(run: ChallengeRun, cardId: string): Promise<ChallengeRun> {
+    return flipRunCard(run, cardId)
   }
 
   static finishMatchingTransition(run: ChallengeRun): ChallengeRun {
@@ -214,6 +223,7 @@ export class ChallengeRunController {
 
   /** Puts the run on the scoreboard for every team, including those still on zero. */
   static async syncAll(run: ChallengeRun): Promise<void> {
+    if (run.matchingOnly) return
     const challenge = await ChallengeController.getById(run.challenge)
     if (!challenge) throw new Error('Related challenge was not found')
     if (run.runs.length > MAX_ENTRIES_PER_CHALLENGE) {

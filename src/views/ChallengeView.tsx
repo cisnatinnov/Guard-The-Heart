@@ -10,6 +10,7 @@ export function ChallengeView() {
 
   const scoreboardBase = isAdmin ? '/admin/scoreboard' : '/scoreboard'
   const playBase = isAdmin ? '/admin/play' : '/play'
+  const visibleChallenges = challenges.filter((challenge) => !['emoji-decode', 'jaws-of-risk'].includes(gameIdForChallengeName(challenge.name) ?? ''))
 
   return (
     <section className="view">
@@ -25,13 +26,13 @@ export function ChallengeView() {
 
       {loading && <p className="muted">Loading challenges…</p>}
 
-      {!loading && challenges.length === 0 && (
+      {!loading && visibleChallenges.length === 0 && (
         <p className="muted">No challenges available.</p>
       )}
 
-      {challenges.length > 0 && (
+      {visibleChallenges.length > 0 && (
         <ul className="card-list">
-          {challenges.map((challenge) => {
+          {visibleChallenges.map((challenge) => {
             const gameId = gameIdForChallengeName(challenge.name)
             const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
             return (

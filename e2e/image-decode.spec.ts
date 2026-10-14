@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+const CHALLENGE_GAMES = [{ id: 'emoji-decode', challengeId: '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10' }, { id: 'word-assembly', challengeId: '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463' }, { id: 'jaws-of-risk', challengeId: 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8' }]
 
 test('Image Decode advances after a wrong answer and after time runs out', async ({ page }) => {
   await page.goto('/admin')
@@ -6,7 +7,7 @@ test('Image Decode advances after a wrong answer and after time runs out', async
 
   await page.clock.install()
   await page.getByRole('navigation', { name: 'Admin views' }).getByRole('link', { name: 'Challenges', exact: true }).click()
-  await page.locator('.card--locked', { hasText: 'Image Decode' }).getByRole('button', { name: 'Play' }).click()
+  await page.goto(`/admin/play/emoji-decode/${CHALLENGE_GAMES[0].challengeId}`)
 
   await page.getByText('Play solo instead', { exact: true }).click()
   const score = page.locator('.stat', { has: page.locator('.stat__label', { hasText: /^Score$/ }) }).locator('.stat__value')
@@ -59,11 +60,11 @@ test('a passed Image Decode timeout applies the wrong-answer penalty to both tea
     await expect(page.getByText(name, { exact: true })).toBeVisible()
   }
   await page.goto('/admin/challenges')
-  await page.locator('.card--locked', { hasText: 'Image Decode' }).getByRole('button', { name: 'Play', exact: true }).click()
+  await page.goto(`/admin/play/emoji-decode/${CHALLENGE_GAMES[0].challengeId}`)
   const time = new Date()
   await page.clock.install({ time })
-  await page.clock.pauseAt(time)
-  for (const checkbox of await page.locator('.run-panel__teams').getByRole('checkbox').all()) await checkbox.check()
+  await page.clock.pauseAt(new Date(time.getTime() + 1000))
+  for (const name of ['Timeout Alpha', 'Timeout Beta']) await page.locator('.run-panel__teams').getByRole('checkbox', { name, exact: true }).check()
   const popup = context.waitForEvent('page')
   await page.getByRole('button', { name: 'Start team run (2)' }).click()
   await popup

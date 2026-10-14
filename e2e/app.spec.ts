@@ -9,7 +9,7 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
     await expect(page.getByText(name, { exact: true })).toBeVisible()
   }
   await page.goto('/admin/challenges')
-  await expect(page.locator('.card--locked')).toHaveCount(3)
+  await expect(page.locator('.card--locked')).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Add challenge' })).toHaveCount(0)
   await page.locator('.card--locked').first().getByRole('button', { name: 'Scoreboard', exact: true }).click()
   for (const [name, score] of [['Sentinels', '40'], ['Wardens', '120']]) {
@@ -31,9 +31,9 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
   await page.getByRole('button', { name: 'Save offline copy' }).click()
   await expect(page.locator('.alert--info')).toContainText('Offline copy saved')
   await page.reload()
-  await expect(page.locator('.leaderboard__card').first()).toContainText('Sentinels')
+  await expect(page.locator('.ranking-table tbody tr').first()).toContainText('Sentinels')
   await page.goto('/leaderboard')
-  await expect(page.getByRole('table', { name: 'Team leaderboard' })).toContainText('Sentinels')
+  await expect(page.getByRole('table', { name: 'Team leaderboard' }).first()).toContainText('Sentinels')
   await expect(page.getByRole('button', { name: 'Recalculate', exact: true })).toHaveCount(0)
   await expect(page.getByRole('columnheader', { name: 'Total score', exact: true })).toHaveCount(0)
 
@@ -46,6 +46,7 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
   for (let slide = 2; slide <= 7; slide += 1) {
     await page.getByRole('button', { name: 'Next →' }).click()
     await expect(page.locator('.presentation-admin__controls span')).toHaveText(`Slide ${slide} of 7`)
+    if (slide === 5) await expect(publicTab.getByRole('timer')).toBeVisible()
     if (slide === 6 || slide === 7) {
       await expect(publicTab.locator('.main-presentation__slide img')).toHaveAttribute('src', `/ui/main-presentation/slide-0${slide}.png`)
       await expect.poll(() => publicTab.locator('.main-presentation__slide img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)

@@ -19,6 +19,8 @@ export interface TeamRun {
 }
 
 export interface ChallengeRun {
+  manualTeamSelection?: boolean
+  matchingOnly?: boolean
   matchingBoard?: WordAssemblyState
   matchingPhase?: 'matching' | 'matched-delay' | 'choice' | 'answer' | 'handoff-delay'
   matchingTurn?: number
@@ -287,6 +289,18 @@ export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
   const board = revealWordAssemblyCard(run.matchingBoard, cardId)
   if (board === run.matchingBoard) return run
   const matched = board.matchedQuestionIds.length > run.matchingBoard.matchedQuestionIds.length
+  if (run.matchingOnly) {
+    if (!matched) return { ...run, matchingBoard: board }
+    const team = teamForQuestion(run)
+    return {
+      ...run, matchingBoard: { ...board, revealed: [] }, questionIndex: board.matchedQuestionIds.length,
+      runs: run.runs.map((entry) => entry.team === team?.team
+        ? { ...entry, answered: entry.answered + 1, correct: entry.correct + 1 } : entry),
+      nextTeamIndex: run.manualTeamSelection ? run.nextTeamIndex : (run.nextTeamIndex + 1) % run.runs.length,
+      matchingTurn: (run.matchingTurn ?? 0) + 1,
+      turnDeadline: Date.now() + WORD_ASSEMBLY_SECONDS_PER_MATCH * 1000,
+    }
+  }
   return {
     ...run, matchingBoard: board,
     ...(matched ? { matchingPhase: 'matched-delay' as const, matchedByTeam: teamForQuestion(run)?.team, matchingTeamIndex: run.nextTeamIndex, turnDeadline: Date.now() + 5000 } : {}),
@@ -314,6 +328,7 @@ export function enableRunMatching(run: ChallengeRun): ChallengeRun {
 }
 
 export function isMatchingQuestionUnlocked(run: ChallengeRun): boolean {
+  if (run.matchingOnly) return false
   return run.matchingPhase !== undefined ? ['choice', 'answer', 'handoff-delay'].includes(run.matchingPhase)
     : (run.matchingBoard?.matchedQuestionIds.length ?? 0) > run.questionIndex
 }
@@ -328,10 +343,21 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
   return {
     ...run,
     matchingBoard: closeUnmatchedWordAssemblyCards(run.matchingBoard),
-    nextTeamIndex: (run.runs.findIndex((entry) => entry.team === team.team) + 1) % run.runs.length,
+    nextTeamIndex: run.manualTeamSelection ? run.nextTeamIndex : (run.runs.findIndex((entry) => entry.team === team.team) + 1) % run.runs.length,
     matchingTurn: (run.matchingTurn ?? 0) + 1,
     turnDeadline: Date.now() + WORD_ASSEMBLY_SECONDS_PER_MATCH * 1000,
   }
+}
+
+/** Pick the next matching team directly, independently of the Urutan Main page. */
+export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
+  if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Card run')
+  const index = run.runs.findIndex((entry) => entry.team === teamId)
+  if (index < 0) throw new Error('Choose a team participating in this run')
+  return { ...run, manualTeamSelection:true, nextTeamIndex:index,
+    matchingBoard:closeUnmatchedWordAssemblyCards(run.matchingBoard),
+    matchingTurn:(run.matchingTurn ?? 0)+1,
+    turnDeadline:Date.now()+WORD_ASSEMBLY_SECONDS_PER_MATCH*1000 }
 }
 
 /** The team that found the pair commits to answering or gives it to a recipient. */

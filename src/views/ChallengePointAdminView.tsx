@@ -189,9 +189,9 @@ export function ChallengePointAdminView() {
               </select>
             </label>
             {activeId && <>
+              <button type="button" disabled={busy} onClick={() => void run(async () => { window.open(`/scoreboard/${activeId}`, '_blank', 'noopener'); await publishPublicDisplay('scoreboard', activeId) })}>Show Scoreboard (Public)</button>
               <button type="button" disabled={busy || checkingDraw || !entries.length} onClick={claimRewards}>Claim Rewards</button>
               <Link className="deck-link" to={`/rewards/${activeId}`} target="_blank" rel="noopener">Reward Claim (Public)</Link>
-              <Link className="deck-link" to={`/cards/${activeId}`} target="_blank" rel="noopener">Reveal Cards (Public)</Link>
             </>}
           </div>
 

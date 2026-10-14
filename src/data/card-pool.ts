@@ -25,7 +25,7 @@ const CARD_DESIGNS: CardDesign[] = [
     title: 'Heal Card',
     effect: 'Heal',
     icon: '💚',
-    effect_action: 'Menambah 1-2 Guard Point (GP).',
+    effect_action: 'Menambah +2 Guard Point (GP).',
     copies: 16,
   },
   {
@@ -33,7 +33,7 @@ const CARD_DESIGNS: CardDesign[] = [
     title: 'Shield Card',
     effect: 'Defense',
     icon: '🛡️',
-    effect_action: 'Mengurangi 1-2 damage Gigarisk.',
+    effect_action: 'Melindungi 1 Guard Point (GP) dari serangan Gigarisk.',
     copies: 16,
   },
   {
@@ -98,7 +98,7 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Support',
     icon: '🤝',
     effect_action:
-      'Semua tim terlindungi dari serangan Gigarisk dan masing-masing mendapat +1 Guard Point (GP).',
+      'Semua team terlindungi dari serangan Gigarisk dan masing-masing +1 Guard Point (GP).',
     copies: 1,
   },
   {
@@ -107,7 +107,7 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Heal',
     icon: '✨',
     effect_action:
-      '(Passive Skill) Otomatis bangkit dengan tambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
+      '(Passive Skill) Otomatis bangkit dengan penambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
     copies: 1,
   },
 ]

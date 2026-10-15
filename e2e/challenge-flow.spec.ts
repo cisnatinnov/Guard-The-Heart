@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 const CHALLENGE_GAMES = [{ id: 'emoji-decode', challengeId: '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10' }, { id: 'word-assembly', challengeId: '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463' }, { id: 'jaws-of-risk', challengeId: 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8' }]
 
-for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Jaw of Risk', 'jaws-of-risk', 20]] as const) {
+for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as const) {
   test(`${title} final answer opens both scoreboards and rewards stay synchronized`, async ({ page, context }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
@@ -29,10 +29,6 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11], ['Jaw 
     }
     for (let number = 1; number <= count; number++) {
       await expect(page.locator('.run-panel__title')).toContainText(`question ${number} of ${count}`)
-      if (game === 'jaws-of-risk' && number === 1) {
-        await expect(projector.getByRole('list', { name: 'Answer choices' })).toBeVisible()
-        await projector.screenshot({ path: 'test-results/jaw-of-risk-question.png' })
-      }
       if (game === 'emoji-decode' && number === count) {
         await page.clock.runFor(16_000)
       } else {

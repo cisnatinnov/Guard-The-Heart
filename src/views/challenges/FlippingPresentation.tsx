@@ -18,6 +18,7 @@ export function FlippingPresentation({ board, run, teamName, teamGP, complete, d
   const [waitingBoard] = useState(createWordAssemblyState)
   return <section className="flipping-presentation" aria-label="Flipping Card matching board">
     <img className="flipping-presentation__art" src="/ui/flipping-slide-03-reference.png" alt="" />
+    <div className="flipping-presentation__challenge">Challenge 2 - Flipping Card</div>
     <ol className="flipping-presentation__teams" aria-label="Select the active team">
       {Array.from({ length: 5 }, (_, slot) => {
         const entry = run?.runs[slot]

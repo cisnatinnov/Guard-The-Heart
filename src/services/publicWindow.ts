@@ -3,6 +3,19 @@ export const TIMER_WINDOW_NAME = 'guard-the-heart-timer'
 const windows: Partial<Record<'projector' | 'timer', Window>> = {}
 const PRESENCE_PREFIX = 'guard-the-heart-projector:'
 const TIMER_PRESENCE_PREFIX = 'guard-the-heart-timer-window:'
+const NAVIGATION_KEY = 'guard-the-heart-public-window-navigation'
+
+export function listenForPublicWindowNavigation(accept: (path: string) => void): () => void {
+  const receive = (event: StorageEvent) => {
+    if (event.key !== NAVIGATION_KEY || !event.newValue) return
+    try {
+      const { path } = JSON.parse(event.newValue) as { path?: unknown }
+      if (typeof path === 'string' && path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/admin')) accept(path)
+    } catch { /* Ignore malformed navigation requests. */ }
+  }
+  window.addEventListener('storage', receive)
+  return () => window.removeEventListener('storage', receive)
+}
 
 /** Chrome can activate a popup after the opener's immediate focus call. */
 export function restoreAdminFocusAfterPublicLoad(): () => void {
@@ -60,7 +73,10 @@ export function openPublicDisplay(path: string, navigateExisting = false): void 
     if (navigateExisting) projector.location.replace(path)
     return
   }
-  if (!projector && !navigateExisting && publicWindowExists(timer)) return
+  if (publicWindowExists(timer)) {
+    if (navigateExisting) localStorage.setItem(NAVIGATION_KEY, JSON.stringify({ path, id: crypto.randomUUID() }))
+    return
+  }
   const opened = window.open(path, timer ? TIMER_WINDOW_NAME : PUBLIC_WINDOW_NAME, 'popup,width=1280,height=720')
   if (!opened) throw new Error('Allow pop-ups to open the public display, then click the feature again.')
   projector = windows[kind] = opened

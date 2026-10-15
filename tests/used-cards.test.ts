@@ -8,3 +8,10 @@ it('deducts only played cards from completed attacks and keeps reveal history',(
  expect([...usedTacticalCardIds()]).toEqual(['played'])
  expect(records.get('guard-the-heart-gigarisk-completed:c')).toContain('played')
 })
+
+it('archives an automatically triggered passive and preserves an unused passive',()=>{
+ const phase={choices:{a:{cards:[],skipped:true},b:{cards:['unused-passive'],skipped:false}},resolution:{resolvedAt:1,teams:[{teamId:'a',usedCardIds:['triggered-passive']},{teamId:'b',usedCardIds:[]}]},revealed:true}
+ const records=new Map([['guard-the-heart-gigarisk-completed:c',JSON.stringify(phase)]])
+ vi.stubGlobal('localStorage',{length:records.size,key:(index:number)=>[...records.keys()][index],getItem:(key:string)=>records.get(key)??null})
+ expect([...usedTacticalCardIds()]).toEqual(['triggered-passive'])
+})

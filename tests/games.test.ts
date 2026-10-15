@@ -55,21 +55,24 @@ function seededRandom(seed: number): () => number {
 describe('challenge registry', () => {
   it('lists the three playable challenges in order', () => {
     expect(CHALLENGE_GAMES.map((game) => game.title)).toEqual([
-      'Image Decode',
-      'Flipping Card',
-      'Jaw of Risk',
+      'Challenge 1 - Image Decode',
+      'Challenge 2 - Flipping Card',
+      'Challenge 3 - Jaw of Risk',
     ])
-    expect(challengeGameInfo('emoji-decode').title).toBe('Image Decode')
-    expect(challengeGameInfo('word-assembly').title).toBe('Flipping Card')
+    expect(challengeGameInfo('emoji-decode').title).toBe('Challenge 1 - Image Decode')
+    expect(challengeGameInfo('word-assembly').title).toBe('Challenge 2 - Flipping Card')
   })
 
   it('maps former titles and retires removed challenges', () => {
     expect(RENAMED_CHALLENGE_TITLES).toEqual({
-      'Emoji Decode': 'Image Decode',
-      'Word Assembly': 'Flipping Card',
-      'Match Card': 'Flipping Card',
-      'Flipping Connect': 'Flipping Card',
-      'Jaws of Risk': 'Jaw of Risk',
+      'Emoji Decode': 'Challenge 1 - Image Decode',
+      'Image Decode': 'Challenge 1 - Image Decode',
+      'Word Assembly': 'Challenge 2 - Flipping Card',
+      'Match Card': 'Challenge 2 - Flipping Card',
+      'Flipping Connect': 'Challenge 2 - Flipping Card',
+      'Flipping Card': 'Challenge 2 - Flipping Card',
+      'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
+      'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
     })
     expect(REMOVED_CHALLENGE_TITLES).toEqual(['Gardimon Protocol', 'Incident Trail', 'Save the Core'])
     for (const title of REMOVED_CHALLENGE_TITLES) {
@@ -80,7 +83,6 @@ describe('challenge registry', () => {
   it('links question games to their supplied reference decks', () => {
     expect(CHALLENGE_GAMES.filter((game) => game.deckPath).map((game) => game.id)).toEqual([
       'emoji-decode',
-      'jaws-of-risk',
     ])
     expect(CHALLENGE_GAMES[0].deckPath).toMatch(/Image_Decode\.pptx$/)
   })

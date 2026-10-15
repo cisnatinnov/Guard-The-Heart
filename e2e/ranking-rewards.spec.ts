@@ -20,6 +20,9 @@ test('score rewards and GP/CP tie-break agree between leaderboard and podium',as
  await page.goto('/leaderboard')
  const rows=page.getByRole('table',{name:'Team leaderboard'}).locator('tbody tr')
  await expect(rows).toHaveCount(5)
+ await expect(page.getByRole('columnheader',{name:'CP',exact:true})).toBeVisible()
+ await expect(page.locator('.ranking-cp')).toHaveText(['10','8','6','4','2'])
+ await page.screenshot({path:'test-results/leaderboard-cp.png'})
  for(const [index,name] of ['Merah','Biru','Kuning','Pink','Hijau'].entries()){
   await expect(rows.nth(index)).toContainText(`Tim ${name}`)
   await expect(rows.nth(index).getByAltText(`Rank ${index+1}`)).toBeVisible()

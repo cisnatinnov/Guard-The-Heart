@@ -1,5 +1,5 @@
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
-export interface TacticalChoice { cards: string[]; skipped: boolean; targets?: Record<string, string> }
+export interface TacticalChoice { cards: string[]; skipped: boolean; targets?: Record<string, string | string[]> }
 export interface TacticalTeamResult {
   teamId: string
   initialGP: number
@@ -7,6 +7,7 @@ export interface TacticalTeamResult {
   finalGP: number
   effects: string[]
   usedCards: number
+  usedCardIds?: string[]
 }
 export interface TacticalResolution { resolvedAt: number; teams: TacticalTeamResult[] }
 export interface TacticalPhase { choices: Record<string, TacticalChoice>; revealed: boolean; resolution?: TacticalResolution; strike?: TacticalResolution }
@@ -24,8 +25,13 @@ export function usedTacticalCardIds(): Set<string> {
     try {
       const phase = JSON.parse(localStorage.getItem(key) ?? 'null') as TacticalPhase | null
       if (!phase?.resolution && !phase?.strike) continue
-      for (const choice of Object.values(phase.choices)) {
-        if (!choice.skipped) choice.cards.forEach((id) => used.add(id))
+      for (const [teamId, choice] of Object.entries(phase.choices)) {
+        const result = (phase.resolution ?? phase.strike)?.teams.find((team) => team.teamId === teamId)
+        if (result?.usedCardIds) result.usedCardIds.forEach((id) => used.add(id))
+        else if (!choice.skipped) choice.cards.forEach((id) => used.add(id))
+      }
+      for (const result of (phase.resolution ?? phase.strike)?.teams ?? []) {
+        result.usedCardIds?.forEach((id) => used.add(id))
       }
     } catch { /* Ignore unrelated or invalid records. */ }
   }
@@ -117,7 +123,35 @@ export function hasTacticalDecisions(phase: TacticalPhase): boolean {
 }
 
 export function needsCardTarget(card: TacticalTeamInput['cards'][number]): boolean {
-  return card.effect === 'Thief' || /ambil.*(?:satu|1|2).*?(?:dari|tim).*lawan/i.test(card.effect_action) && !/setiap|semua/i.test(card.effect_action)
+  return isProtectCard(card) || card.effect === 'Thief' || /ambil.*(?:satu|1|2).*?(?:dari|tim).*lawan/i.test(card.effect_action) && !/setiap|semua/i.test(card.effect_action)
+}
+
+export function isPassiveCard(card: Pick<TacticalTeamInput['cards'][number], 'name'>): boolean {
+  return /Second Chance/i.test(card.name)
+}
+
+export function isProtectCard(card: Pick<TacticalTeamInput['cards'][number], 'name'>): boolean {
+  return /Protect/i.test(card.name)
+}
+
+export function cardTargetCount(card: TacticalTeamInput['cards'][number]): number {
+  if (!needsCardTarget(card)) return 0
+  const twoOpponents = card.type === 'Epic' && (card.effect === 'Thief' || /Thief/i.test(card.name)) || /dua\s+tim/i.test(card.effect_action)
+  return twoOpponents ? 2 : 1
+}
+
+export function selectedCardTargets(choice: TacticalChoice | undefined, cardId: string): string[] {
+  const value = choice?.targets?.[cardId]
+  return Array.isArray(value) ? value : typeof value === 'string' && value ? [value] : []
+}
+
+function requireCardTargets(teams: readonly TacticalTeamInput[], teamId: string, card: TacticalTeamInput['cards'][number], choice: TacticalChoice | undefined): string[] {
+  const ids = selectedCardTargets(choice, card.id)
+  const count = cardTargetCount(card)
+  if (ids.length !== count || new Set(ids).size !== count || ids.some((id) => !teams.some((team) => team.id === id && (isProtectCard(card) || id !== teamId)))) {
+    throw new Error(`Pilih tim${isProtectCard(card) ? ' target' : ' lawan'} untuk ${card.name}${count === 2 ? ' (dua tim yang berbeda)' : ''}.`)
+  }
+  return ids
 }
 
 export function validateTacticalAttack(teams: readonly TacticalTeamInput[], phase: TacticalPhase): void {
@@ -130,9 +164,7 @@ export function validateTacticalAttack(teams: readonly TacticalTeamInput[], phas
       const card = team?.cards.find((entry) => entry.id === cardId)
       if (!card) throw new Error(TACTICAL_REQUIRED_MESSAGE)
       count++
-      if (needsCardTarget(card) && !teams.some((entry) => entry.id !== teamId && entry.id === choice.targets?.[cardId])) {
-        throw new Error(`Pilih tim lawan untuk ${card.name} milik ${team?.name}.`)
-      }
+      if (needsCardTarget(card)) requireCardTargets(teams, teamId, card, choice)
     }
   }
   if (!count) throw new Error(TACTICAL_REQUIRED_MESSAGE)
@@ -154,9 +186,20 @@ export function resolveTacticalEffects(
     gp: Math.max(0, Math.trunc(team.gp)),
     attack: -2,
     effects: [] as string[],
-    cards: choices[team.id]?.skipped ? [] : team.cards.filter((card) => choices[team.id]?.cards.includes(card.id)),
+    cards: choices[team.id]?.skipped ? [] : team.cards.filter((card) => !isPassiveCard(card) && choices[team.id]?.cards.includes(card.id)),
+    passive: team.cards.find(isPassiveCard),
+    passiveUsed: false,
   }))
   const unity = state.some(({ cards }) => cards.some((card) => card.type === 'Legendary' && /Gardian Unity/i.test(card.name)))
+  const protectedTeams = new Set(state.flatMap(({ cards, team }) => cards.filter(isProtectCard)
+    .flatMap((card) => requireCardTargets(teams, team.id, card, choices[team.id]))))
+  const revive = (current: typeof state[number]) => {
+    if (current.gp === 0 && current.passive && !current.passiveUsed) {
+      current.gp = 1
+      current.passiveUsed = true
+      current.effects.push('+1 Second Chance')
+    }
+  }
 
   for (const current of state) {
     const { cards } = current
@@ -166,20 +209,21 @@ export function resolveTacticalEffects(
       current.effects.push('+1 Gardian Unity')
     }
     const reflect = cards.some((card) => /Reflect/i.test(card.name))
-    const protect = cards.some((card) => /Protect|Shield/i.test(card.name))
+    const protect = protectedTeams.has(current.team.id) || cards.some((card) => /Shield/i.test(card.name))
     if (current.attack < 0 && (unity || protect || reflect)) {
-      if (reflect && !unity) {
-        current.effects.push(`+${Math.abs(current.attack)} Reflect`)
-        current.attack = Math.abs(current.attack)
+      if (reflect && !unity && !protectedTeams.has(current.team.id)) {
+        current.attack = Math.abs(current.attack) * 2
+        current.effects.push(`+${current.attack} Reflect (2 × 2 GP)`)
       } else if (!unity) {
-        const blocked = /Protect/i.test(cards.find((card) => /Protect/i.test(card.name))?.name ?? '')
+        const blocked = protectedTeams.has(current.team.id)
           ? Math.abs(current.attack)
           : Math.min(Math.abs(current.attack), cards.filter((card) => /Shield/i.test(card.name)).reduce((total, card) => total + Number(card.effect_action.match(/melindungi\s*(\d+)/i)?.[1] ?? 1), 0))
         current.attack += blocked
-        if (blocked) current.effects.push(`+${blocked} Shield`)
+        if (blocked) current.effects.push(`+${blocked} ${protectedTeams.has(current.team.id) ? 'Protect' : 'Shield'}`)
       }
     }
     current.gp = Math.max(0, current.gp + current.attack)
+    revive(current)
     for (const card of cards) {
       if (card.effect !== 'Heal' || /Second Chance/i.test(card.name)) continue
       const described = card.effect_action.match(/(?:menambah|tambah|add)\s*\+?(\d+)(?!\d)/i)
@@ -204,15 +248,14 @@ export function resolveTacticalEffects(
           current.effects.push(`+${transfer} Reverse dari ${opponent.team.name}`)
           opponent.effects.push(`-${transfer} Reverse oleh ${team.name}`)
         }
+        revive(opponent)
       }
     }
-    for (const thief of cards.filter(needsCardTarget)) {
-      const targetId = choices[team.id]?.targets?.[thief.id]
-      const target = state.find((opponent) => opponent !== current && opponent.team.id === targetId)
-      if (!target) throw new Error(`Pilih tim lawan untuk ${thief.name} milik ${team.name}.`)
-      if (target) {
+    for (const thief of cards.filter((card) => needsCardTarget(card) && !isProtectCard(card))) {
+      for (const targetId of requireCardTargets(teams, team.id, thief, choices[team.id])) {
+        const target = state.find((opponent) => opponent.team.id === targetId)!
         const described = thief.effect_action.match(/(?:ambil|take)\s*\+?(\d+)/i)
-        const stolen = described ? Number(described[1]) : /Rare/i.test(thief.type) ? 2 : 1
+        const stolen = described ? Number(described[1]) : /Rare|Epic/i.test(thief.type) ? 2 : 1
         const transfer = Math.min(stolen, target.gp)
         target.gp -= transfer
         current.gp += transfer
@@ -220,27 +263,21 @@ export function resolveTacticalEffects(
           current.effects.push(`+${transfer} Dicuri dari ${target.team.name}`)
           target.effects.push(`-${transfer} Dicuri oleh ${team.name}`)
         }
+        revive(target)
       }
-    }
-  }
-
-  for (const current of state) {
-    current.gp = Math.max(0, current.gp)
-    if (current.gp === 0 && current.cards.some((card) => /Second Chance/i.test(card.name))) {
-      current.gp = 1
-      current.effects.push('+1 Second Chance')
     }
   }
 
   return {
     resolvedAt,
-    teams: state.map(({ team, gp, attack, effects, cards }) => ({
+    teams: state.map(({ team, gp, attack, effects, cards, passive, passiveUsed }) => ({
       teamId: team.id,
       initialGP: Math.max(0, Math.trunc(team.gp)),
       gigaRisk: attack,
       finalGP: gp,
       effects,
-      usedCards: cards.length,
+      usedCards: cards.length + Number(passiveUsed),
+      usedCardIds: [...cards.map((card) => card.id), ...(passiveUsed && passive ? [passive.id] : [])],
     })),
   }
 }

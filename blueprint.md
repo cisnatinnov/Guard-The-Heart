@@ -166,8 +166,8 @@ There is no admin feature for arbitrary direct GP edits.
 | Rarity | Designs and copies | Total |
 | --- | --- | --- |
 | Normal | Heal, Shield, Thief: 16 each | 48 |
-| Rare | Heal, Protect, Reverse, Thief: 6 each | 24 |
-| Epic | Reflect, Reverse: 3 each | 6 |
+| Rare | Heal, Protect, Thief: 6 each | 18 |
+| Epic | Reverse: 6; Reflect, Thief: 3 each | 12 |
 | Legendary | Gardian Unity, Second Chance: 1 each | 2 |
 
 Drawing requires five challenge entries. `cards_drawn_at`, a local draw marker,
@@ -184,10 +184,21 @@ capped at eight. Consumed cards stay physically stored for reveal history;
 queries, totals and available capacity. `includeUsed=true` loads reveal archives.
 Consumed records are not returned to the pool when an attack completes.
 
+The 2026-10-15 card migration promotes the six Rare Reverse copies to Epic
+Reverse, retaining their one-GP-from-each-opponent action. It renames the three
+old Epic Reverse copies to Epic Thief with a two-selected-opponent action.
+`seedCardPool` uses the old two-GP-from-every-opponent action to distinguish the
+old Epic Reverse from the promoted one, making repeated startup idempotent even
+when both designs share a numbered suffix. Inventory and TeamCard ids, ownership
+and challenge links stay intact. Reflect descriptions refresh in place; completed
+attack snapshots and GP transactions are not recomputed. All three Epic PNGs
+match the new definitions; the Rare Reverse PNG is retired.
+
 ## Tactical Phase and Serangan GigaRisk
 
 `TacticalChoice` stores card ids, `skipped`, and optional per-card opponent
-targets. `useTacticalTeams` restricts selection to a team's cards earned in the
+targets (one id for Normal/Rare Thief; two ids for Epic Thief).
+`useTacticalTeams` restricts selection to a team's cards earned in the
 selected challenge. Clicking toggles selection; drag/drop enforces ownership;
 each team may select at most two cards. Previewed selections are hidden publicly
 until admin reveals them. Returning from a preview permits edits; completing an
@@ -200,7 +211,8 @@ supported:
 2. Validate owned selected cards and explicit SKIP decisions. With no decisions,
    show `Selesaikan challenge terlebih dahulu atau isi Tactical Phase dengan
    kartu yang dipilih.` and change nothing.
-3. Require an explicit other-team target for each Thief action.
+3. Require one other-team target for Normal/Rare Thief and two distinct other-team
+   targets for Epic Thief. Missing, self and duplicate targets reject the attack.
 4. Resolve the strike and effects, persist GP transactions, publish the immutable
    completed snapshot and emit card/scoreboard updates.
 
@@ -220,17 +232,17 @@ and effect. Arbitrary freeform descriptions do not create a general rules engine
 | Normal Shield | Block 1 GP; multiple shields can block the full strike |
 | Normal Thief | Take up to 1 GP from the selected opponent |
 | Rare Heal | +3 GP after the strike |
-| Rare Protect | Block the full strike for the owner |
-| Rare Reverse | Take up to 1 GP from each opponent |
+| Rare Protect | Block the full strike for a selected team (including its owner) |
+| Epic Reverse (promoted from Rare) | Take up to 1 GP from each opponent |
 | Rare Thief | Take up to 2 GP from the selected opponent |
-| Epic Reflect | Convert −2 strike into +2 GP |
-| Epic Reverse | Take up to 2 GP from each opponent |
+| Epic Reflect | Convert 2 incoming GP damage into +4 GP (2 × 2); Unity prevents conversion |
+| Epic Thief (formerly Epic Reverse) | Take up to 2 GP from each of two selected opponents; up to +4 GP total |
 | Legendary Gardian Unity | All teams avoid the strike and gain 1 GP |
-| Legendary Second Chance | Owner ending at zero returns to 1 GP |
+| Legendary Second Chance | Passively restore 1 GP immediately at zero; consume only on activation |
 
 Defense and healing resolve first. Reverse/Thief transfers resolve next in team
 and card iteration order and cannot exceed the opponent's remaining balance.
-Second Chance resolves last. The saved result includes initial GP, effective
+Second Chance triggers immediately at zero after the strike or a transfer, once per card, including when skipping. It does not occupy an active selection slot and remains available until triggered. The saved result includes consumed card ids, initial GP, effective
 strike, final GP, effect descriptions, used-card count and resolution timestamp.
 Opening Card Reveal alone does not execute the attack or consume cards; the
 GigaRisk action makes the completed result visible there.
@@ -334,6 +346,12 @@ older links.
 podium, rewards, tactical, card-reveal, turn-order and GigaRisk public displays.
 
 ## Validation record
+
+Card revision verified on 2026-10-15: 128 unit/database tests passed, as did six
+affected browser scenarios, TypeScript/production build and ESLint. Migration
+tests exercise matching numbered Rare/Epic Reverse copies across three startups;
+the browser scenario verifies the promoted Reverse, renamed Thief, double Reflect,
+two-target persistence, all three card assets, public reveal and GP ledger.
 
 Run checks from the repository root:
 

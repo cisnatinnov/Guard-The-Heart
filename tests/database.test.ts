@@ -257,7 +257,7 @@ describe('built-in challenges', () => {
 
   it('does not let a custom challenge borrow a built-in name', async () => {
     const custom = await ChallengeController.create('Arena Borrow')
-    await expect(ChallengeController.rename(custom.id, 'Flipping Card')).rejects.toThrow(/built-in/)
+    await expect(ChallengeController.rename(custom.id, 'Challenge 2 - Flipping Card')).rejects.toThrow(/built-in/)
     expect((await ChallengeController.getById(custom.id))?.name).toBe('Arena Borrow')
     await ChallengeController.remove(custom.id)
   })
@@ -267,7 +267,7 @@ describe('built-in challenges', () => {
       ['Lock A', 'Lock B', 'Lock C', 'Lock D', 'Lock E'].map((team) => TeamController.create(team))
     )
     const emoji = await ChallengeController.getById(EMOJI_DECODE_CHALLENGE_ID)
-    expect(emoji?.name).toBe('Image Decode')
+    expect(emoji?.name).toBe('Challenge 1 - Image Decode')
 
     const entries = []
     for (const [index, team] of teams.entries()) {
@@ -764,7 +764,7 @@ describe('ScoreboardController', () => {
 })
 
 describe('card pool', () => {
-  it('declares 80 cards split 48 Normal, 24 Rare, 6 Epic and 2 Legendary', async () => {
+  it('declares 80 cards split 48 Normal, 18 Rare, 12 Epic and 2 Legendary', async () => {
     const pool = await getCardPoolStatus()
     const inventory = await Card.findAll()
     const names = inventory.map((card) => card.name)
@@ -777,8 +777,8 @@ describe('card pool', () => {
     expect(await queryInterface.describeTable('team_card')).toHaveProperty('effect_action')
     expect(pool.total).toBe(CARD_POOL_TOTAL)
     expect(pool.byType.Normal.total).toBe(48)
-    expect(pool.byType.Rare.total).toBe(24)
-    expect(pool.byType.Epic.total).toBe(6)
+    expect(pool.byType.Rare.total).toBe(18)
+    expect(pool.byType.Epic.total).toBe(12)
     expect(pool.byType.Legendary.total).toBe(2)
 
     for (const type of CARD_TYPES) {

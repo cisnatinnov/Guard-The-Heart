@@ -18,7 +18,7 @@ export interface ChallengeGameInfo {
 export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   {
     id: 'emoji-decode',
-    title: 'Image Decode',
+    title: 'Challenge 1 - Image Decode',
     tagline: 'Decode the banking terms revealed by the picture clues, against the clock.',
     rules: [
       'Eleven banking-term questions based on slides 3–24 of the Image Decode reference deck.',
@@ -31,7 +31,7 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   },
   {
     id: 'word-assembly',
-    title: 'Flipping Card',
+    title: 'Challenge 2 - Flipping Card',
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
       'Flip two cards at a time and match identical pictures. There are no questions.',
@@ -43,27 +43,27 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   },
   {
     id: 'jaws-of-risk',
-    title: 'Jaw of Risk',
-    tagline: 'Answer each question to protect the jaw.',
+    title: 'Challenge 3 - Jaw of Risk',
+    tagline: 'Press a tooth, take a chance. Will the crocodile bite?',
     rules: [
-      'Answer questions in sequence; there is no tooth selection or tooth board.',
-      'Twenty questions use slides 3–42 of the supplied Jaw of Risk deck.',
-      'Every question has a 15-second timer. A timeout counts as a wrong answer.',
-      'Self answers score +10 correct or −10 wrong. Passed answers score +5 or −5 for the recipient, and −10 or −5 for the giver.',
+      'Take turns pressing one of the crocodile’s teeth. One hidden tooth triggers a bite.',
+      'Safe teeth stay pressed until the crocodile bites.',
+      'After a bite, the mouth opens automatically and a different biting tooth is randomly chosen for the next round.',
     ],
-    deckPath: '/ui/Jaw-of-risk.pptx',
-    deckLabel: 'Jaws question reference (PPTX)',
     challengeId: JAWS_CHALLENGE_ID,
   },
 ]
 
 /** Former built-in challenge names, mapped to their current title. */
 export const RENAMED_CHALLENGE_TITLES: Readonly<Record<string, string>> = {
-  'Emoji Decode': 'Image Decode',
-  'Word Assembly': 'Flipping Card',
-  'Match Card': 'Flipping Card',
-  'Flipping Connect': 'Flipping Card',
-  'Jaws of Risk': 'Jaw of Risk',
+  'Emoji Decode': 'Challenge 1 - Image Decode',
+  'Image Decode': 'Challenge 1 - Image Decode',
+  'Word Assembly': 'Challenge 2 - Flipping Card',
+  'Match Card': 'Challenge 2 - Flipping Card',
+  'Flipping Connect': 'Challenge 2 - Flipping Card',
+  'Flipping Card': 'Challenge 2 - Flipping Card',
+  'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
+  'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
 }
 
 /** Built-in challenges that were retired and are removed from older databases. */

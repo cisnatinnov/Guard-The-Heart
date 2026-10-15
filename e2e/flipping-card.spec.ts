@@ -8,8 +8,8 @@ test('manual team selection has no timer or score changes and completes on both 
     await expect(page.getByText(name, { exact: true })).toBeVisible()
   }
   await page.goto('/admin/challenges')
-  await expect(page.locator('.card--locked')).toHaveCount(1)
-  await page.getByRole('button', { name: 'Play', exact: true }).click()
+  await expect(page.locator('.card--locked')).toHaveCount(2)
+  await page.locator('li').filter({ hasText: 'Challenge 2 - Flipping Card' }).getByRole('button', { name: 'Play', exact: true }).click()
   const time = new Date()
   await page.clock.install({ time })
   await page.clock.pauseAt(new Date(time.getTime() + 1000))
@@ -73,7 +73,7 @@ test('manual team selection has no timer or score changes and completes on both 
 
 test('solo flipping has only matching cards', async ({ page }) => {
   await page.goto('/admin/challenges')
-  await page.getByRole('button', { name: 'Play', exact: true }).click()
+  await page.locator('li').filter({ hasText: 'Challenge 2 - Flipping Card' }).getByRole('button', { name: 'Play', exact: true }).click()
   await page.getByText('Play solo instead', { exact: true }).click()
   await page.locator('.tile[data-pair="word-1"]').nth(0).click()
   await page.locator('.tile[data-pair="word-1"]').nth(1).click()

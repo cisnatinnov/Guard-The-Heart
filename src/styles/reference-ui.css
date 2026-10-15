@@ -37,13 +37,14 @@
 .ranking-table { width:100%; height:100%; table-layout:fixed; border-collapse:separate; border-spacing:0 .5cqw; font-family:Arial,sans-serif; color:#91332e; }
 .ranking-table thead tr { height:6%; }
 .ranking-table th { padding:.2cqw; border:.25cqw solid #fb8a23; border-radius:.65cqw; background:linear-gradient(#aa3025,#7b2924); color:white; font-size:1.4cqw; line-height:1.05; white-space:nowrap; }
-.ranking-table th:nth-child(1) { width:10%; }
-.ranking-table th:nth-child(2) { width:18%; }
-.ranking-table th:nth-child(3) { width:10%; }
-.ranking-table th:nth-child(4) { width:13%; }
-.ranking-table th:nth-child(5) { width:28%; }
-.ranking-table th:nth-child(6) { width:10%; }
-.ranking-table th:nth-child(7) { width:11%; }
+.ranking-table th:nth-child(1) { width:8%; }
+.ranking-table th:nth-child(2) { width:16%; }
+.ranking-table th:nth-child(3) { width:7%; }
+.ranking-table th:nth-child(4) { width:10%; }
+.ranking-table th:nth-child(5) { width:12%; }
+.ranking-table th:nth-child(6) { width:26%; }
+.ranking-table th:nth-child(7) { width:10%; }
+.ranking-table th:nth-child(8) { width:11%; }
 .ranking-table tbody tr { height:18%; background:#efe7ce; }
 .ranking-table tbody tr:first-child { background:#ffedb9; }
 .ranking-table td { padding:.3cqw .45cqw; border:0; background:transparent; text-align:center; vertical-align:middle; overflow:hidden; }
@@ -52,6 +53,7 @@
 .ranking-table .ranking-medal { width:7cqw; height:5.6cqw; margin:auto; }
 .ranking-table .team-pill { width:90%; height:3cqw; margin:auto; font-size:1.7cqw; }
 .ranking-table td strong { font-size:3.1cqw; font-variant-numeric:tabular-nums; vertical-align:middle; }
+.ranking-table .ranking-cp strong { font-size:3.1cqw; color:#69460c; }
 .ranking-table .gp-mark { width:2.2cqw; height:2.8cqw; margin-right:.25cqw; vertical-align:middle; }
 .ranking-table .ranking-damage { font-size:3cqw; font-weight:700; color:#ff292a; }
 .ranking-table .ranking-effects { text-align:left; font-size:1.35cqw; line-height:1.14; white-space:normal; overflow-wrap:anywhere; }
@@ -91,7 +93,7 @@
 .giga-row.is-out { opacity:.6; }
 /* Keep the reference canvas independent of admin button and generic table styles. */
 .reference-ranking .ranking-table th { text-align:center; text-transform:none; letter-spacing:0; font:700 1.25cqw/1.1 Arial,sans-serif; white-space:normal; }
-.reference-ranking .ranking-table th:nth-child(4) { font-size:1.05cqw; white-space:nowrap; }
+.reference-ranking .ranking-table th:nth-child(5) { font-size:1.05cqw; white-space:normal; }
 .reference-stage .turn-order-item button { height:4.8cqw; min-height:0; padding:0; border:0; background:transparent; font:inherit; box-shadow:none; }
 .reference-stage .turn-order-shuffle { font:700 2.8cqw/1 Arial,sans-serif; padding:0; color:#471f0b; }
 .turn-order-panel::before, .turn-order-panel::after { content:''; position:absolute; left:2.5%; width:95%; height:.06cqw; background:#dda852; }

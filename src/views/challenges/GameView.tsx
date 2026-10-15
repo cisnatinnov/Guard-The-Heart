@@ -18,7 +18,7 @@ import { MatchingOnlyView } from './MatchingOnlyView'
 function GameScreen({ id, onComplete }: { id: ChallengeGameId; onComplete: () => void }) {
   if (id === 'emoji-decode') return <EmojiDecodeView onComplete={onComplete} />
   if (id === 'word-assembly') return <WordAssemblyView onComplete={onComplete} />
-  return <JawsOfRiskView onComplete={onComplete} />
+  return null
 }
 
 /**
@@ -45,14 +45,16 @@ export function GameView() {
   const run = useSharedChallengeRun(game?.id ?? 'emoji-decode', challengeId)
   useEffect(() => {
     let cancelled = false
-    if (!isAdmin && run && !run.matchingOnly && ChallengeRunController.complete(run)) {
+    if (!isAdmin && game?.id !== 'jaws-of-risk' && run && !run.matchingOnly && ChallengeRunController.complete(run)) {
       void refreshDatabaseFromStorage().then(() => {
         if (!cancelled) navigate(`/scoreboard/${encodeURIComponent(challengeId)}`, { replace: true })
       }).catch(console.error)
     }
     return () => { cancelled = true }
-  }, [isAdmin, run, challengeId, navigate])
+  }, [isAdmin, run, challengeId, navigate, game?.id])
   if (!game || !gameId) return null
+
+  if (game.id === 'jaws-of-risk') return <JawsOfRiskView key={challengeId} challengeId={challengeId} />
 
   if (!isAdmin) return game.id === 'word-assembly'
     ? <MatchingOnlyView challengeId={challengeId} sharedRun={run} canControl={false} />

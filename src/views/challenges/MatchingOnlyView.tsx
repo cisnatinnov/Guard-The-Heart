@@ -83,7 +83,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     onChooseTeam={canControl ? (id) => void chooseTeam(id) : undefined} teamSelectionDisabled={busy} />
   if (!canControl) return presentation
   return <section className="view matching-only">
-    <h2>Flipping Card</h2>
+    <h2>Challenge 2 - Flipping Card</h2>
     <p>Match identical pictures to complete all ten pairs. Click a team name above the board to choose whose turn it is.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>

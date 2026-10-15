@@ -1,16 +1,19 @@
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useChallenges } from '../hooks/useChallenges'
 import { CHALLENGE_GAMES } from '../services/games'
 import { gameIdForChallengeName } from '../services/challengeSeeds'
+import { openPublicDisplay } from '../services/publicWindow'
 
 export function ChallengeView() {
   const { challenges, loading, error } = useChallenges()
   const navigate = useNavigate()
+  const [playError, setPlayError] = useState<string | null>(null)
   const isAdmin = window.location.pathname.startsWith('/admin')
 
   const scoreboardBase = isAdmin ? '/admin/scoreboard' : '/scoreboard'
   const playBase = isAdmin ? '/admin/play' : '/play'
-  const visibleChallenges = challenges.filter((challenge) => !['emoji-decode', 'jaws-of-risk'].includes(gameIdForChallengeName(challenge.name) ?? ''))
+  const visibleChallenges = challenges.filter((challenge) => gameIdForChallengeName(challenge.name) !== 'emoji-decode')
 
   return (
     <section className="view">
@@ -23,6 +26,7 @@ export function ChallengeView() {
       </header>
 
       {error && <p className="alert alert--error">{error}</p>}
+      {playError && <p className="alert alert--error" role="alert">{playError}</p>}
 
       {loading && <p className="muted">Loading challenges…</p>}
 
@@ -50,7 +54,13 @@ export function ChallengeView() {
                     </button>
                     {gameId && (
                       <>
-                        <button type="button" onClick={() => navigate(`${playBase}/${gameId}/${challenge.id}`)}>
+                        <button type="button" onClick={() => {
+                          setPlayError(null)
+                          try {
+                            if (isAdmin && gameId === 'jaws-of-risk') openPublicDisplay(`/play/${gameId}/${encodeURIComponent(challenge.id)}`, true)
+                            navigate(`${playBase}/${gameId}/${challenge.id}`)
+                          } catch (cause) { setPlayError(cause instanceof Error ? cause.message : String(cause)) }
+                        }}>
                           Play
                         </button>
                         {game?.deckPath && (

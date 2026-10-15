@@ -4,7 +4,6 @@ import { rankGuardPointStandings } from '../services/rankRules'
 import { ScoreboardController } from '../controllers/ScoreboardController'
 import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
-import { teamColour } from '../services/defaultTeams'
 import '../styles/podium.css'
 const PRIZES_KEY='guard-the-heart-podium-prizes'
 function readPrizes(): string[] { try { const values=JSON.parse(localStorage.getItem(PRIZES_KEY)??'[]');return Array.from({length:3},(_,i)=>String(values[i]??'')) } catch {return ['','','']} }
@@ -39,7 +38,6 @@ export function PodiumView({admin=false}:{admin?:boolean}) {
           <span className="podium-name" title={name}><span>{name}</span></span>
           <strong className="podium-gp" title={`${gp} GP`}>{gp}</strong>
           <span className="podium-prize" title={prize}>{prize}</span>
-          <span className={`podium-cp podium-cp--${teamColour(team?.name ?? '') ?? 'neutral'}`} aria-label={team ? `${team.name}: ${team.points} CP` : 'Empty CP'}>{team?.points ?? '—'} CP</span>
           {team&&ranks[slot]!==slot+1&&<span className="podium-tied-rank">{ranks[slot]}</span>}
         </article>
       })}

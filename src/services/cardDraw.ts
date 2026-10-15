@@ -80,7 +80,18 @@ async function loadDrawnPoolKeys(): Promise<Set<string>> {
   return new Set(drawnCards.map((card) => poolEntryKey(card)))
 }
 
-/** Seeds each finite-pool card as a permanent, unassigned database row. */
+/** Distinguish the two former Reverse designs by their saved action. */
+function upgradedCardName(card: Pick<CardPoolEntry, 'name' | 'effect_action'>): string {
+  if (/^Rare Reverse Card(?= #\d+$|$)/.test(card.name)) return card.name.replace(/^Rare Reverse Card/, 'Epic Reverse Card')
+  // The former Epic Reverse took 2 from every opponent. The promoted Reverse
+  // takes 1, so it must not be renamed to Thief on the next startup.
+  if (/^Epic Reverse Card(?= #\d+$|$)/.test(card.name) && /(?:ambil|take)\s+2\b/i.test(card.effect_action) && /setiap|semua|each|every/i.test(card.effect_action)) {
+    return card.name.replace(/^Epic Reverse Card/, 'Epic Thief Card')
+  }
+  return card.name
+}
+
+/** Seeds each finite-pool card, migrating existing physical copies in place. */
 export async function seedCardPool(): Promise<void> {
   const inventory = await Card.findAll({
     attributes: ['id', 'name', 'type', 'effect', 'effect_action', 'icon', 'challenge', 'team'],
@@ -90,6 +101,9 @@ export async function seedCardPool(): Promise<void> {
   const existingByName = new Map<string, Card>()
   const legacyCards: Card[] = []
   for (const card of inventory) {
+    const name = upgradedCardName(card)
+    const definition = CARD_POOL.find((entry) => entry.name === name)
+    if (definition && name !== card.name) await card.update({ ...definition })
     if (catalogNames.has(card.name) && !existingByName.has(card.name)) {
       existingByName.set(card.name, card)
     } else {
@@ -134,9 +148,9 @@ export async function seedCardPool(): Promise<void> {
   // Owned cards keep their identity and assignment while their printed definition is refreshed.
   const definitions = new Map(CARD_POOL.map((card) => [card.name, card]))
   for (const owned of await TeamCard.findAll()) {
-    const definition = definitions.get(owned.name)
-    if (definition && (owned.effect_action !== definition.effect_action || owned.effect !== definition.effect || owned.icon !== definition.icon || owned.type !== definition.type)) {
-      await owned.update({ effect_action: definition.effect_action, effect:definition.effect, icon:definition.icon, type:definition.type })
+    const definition = definitions.get(upgradedCardName(owned))
+    if (definition && (owned.name !== definition.name || owned.effect_action !== definition.effect_action || owned.effect !== definition.effect || owned.icon !== definition.icon || owned.type !== definition.type)) {
+      await owned.update({ name:definition.name, effect_action: definition.effect_action, effect:definition.effect, icon:definition.icon, type:definition.type })
     }
   }
 }

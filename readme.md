@@ -39,10 +39,10 @@ public display is `/timer`. Production hosting must serve `index.html` for appli
 2. Use **Urutan Main** to click team names in the desired order or use **Acak
    Giliran**. The public order page also supports these controls. This order is
    independent of the games' team selection.
-3. Choose **Play** on **Challenge**, then start a team run or play solo. The
-   current challenge list exposes Flipping Card, a matching-only activity.
-   Image Decode and Jaw of Risk remain available through direct game routes
-   and retain team scoring.
+3. Choose **Play** on **Challenge** for **Challenge 2 - Flipping Card** or
+   **Challenge 3 - Jaw of Risk**. Flipping Card is a matching-only activity;
+   Jaw of Risk is a crocodile bite toy. Image Decode remains available through
+   its direct game route and retains team scoring.
 4. Review or enter game scores on **Scoreboard**. **Edit Score** corrects an existing score
    and recalculates ranks and GP rewards. Each challenge supports at most five
    team entries, with one entry per team.
@@ -50,14 +50,20 @@ public display is `/timer`. Production hosting must serve `index.html` for appli
    With five entries, it draws and randomly assigns bonus cards once. Revisiting
    the page does not draw again. **Draw Bonus Cards** offers the same draw from
    the scoreboard.
-6. From **Rewards**, open **Tactical Phase**. Select up to two cards earned by
-   each team in that challenge, by clicking or dragging, or choose **Skip**.
+6. From **Rewards**, open **Tactical Phase**. Owned cards are grouped by the
+   challenge that awarded them, including used cards marked as history. Select
+   up to two available cards from any challenge, by clicking or dragging, or choose **Skip**.
+   The public Tactical Phase shows one owned-card list per team, including used
+   cards marked Used. Owned and selected cards are shown face-up.
    **Card Reveal** displays those selections without applying an attack.
 7. In **Tactical Phase**, choose an opponent for each
-   Thief card, then click **Serang semua tim −2 GP**. The attack and selected
+   Normal/Rare Thief card, or two distinct opponents for Epic Thief, then click
+   **Serang semua tim −2 GP**. The attack and selected
    effects apply once. An empty tactical phase blocks the attack with a message;
    explicit SKIP is a valid decision. Used cards leave available inventory.
    **Serangan GigaRisk** only displays the saved attack result.
+   Applying the attack opens Card Reveal with animated played cards and resolved
+   effects. Reduced-motion settings disable the animation.
 8. Show the **Leaderboard** or **Podium** to display standings based on current
    GP. Configure the three podium prizes in the admin podium page.
 9. Review **Transaksi GP** for opening balances, challenge rewards, GigaRisk and
@@ -104,14 +110,19 @@ The three seeded challenges cannot be added, renamed or deleted through the UI
 or controller. Older titles migrate to current names. Internal game ids remain
 stable for saved-data compatibility.
 
-The challenge list currently hides Image Decode and Jaw of Risk; their data,
-scoreboard choices, direct game routes and reference content remain present.
+The challenge list hides Image Decode; its direct game route remains available.
 
 | Challenge | Game id | Current play |
 | --- | --- | --- |
-| Image Decode | `emoji-decode` | 11 banking clues, 15-second solo/team question timers |
-| Flipping Card | `word-assembly` | 20 picture cards, 10 pairs, matching only, no questions or CP |
-| Jaw of Risk | `jaws-of-risk` | 20 multiple-choice questions, 15-second solo/team question timers |
+| Challenge 1 - Image Decode | `emoji-decode` | 11 banking clues, 15-second solo/team question timers |
+| Challenge 2 - Flipping Card | `word-assembly` | 20 picture cards, 10 pairs, matching only, no questions or CP |
+| Challenge 3 - Jaw of Risk | `jaws-of-risk` | 12 teeth, one hidden biting tooth; automatically reopens and chooses a different biting tooth after each bite |
+
+Jaw of Risk contains only the toy, with no questions, timer or automatic scoring.
+Safe teeth stay pressed until a bite. The admin and public toy views synchronize
+through local storage, including after reload. Clicking **Play** automatically
+shows it in the public window, reusing an open public view. Tactical Phase and Card Reveal also show the current challenge
+in a badge at the top right.
 
 ### Question games
 
@@ -161,8 +172,10 @@ changes. Score correction adjusts reward GP while preserving recorded attacks
 and card effects. GP cannot become negative. The GP ledger persists attack
 results so reload or leaderboard recalculation does not undo them.
 
-The inventory contains 80 physical copies of 11 designs: 48 Normal, 24 Rare,
-6 Epic and 2 Legendary. A team can hold eight available cards. Assignment
+The inventory contains 80 physical copies of 11 designs: 48 Normal, 18 Rare,
+12 Epic and 2 Legendary. Epic Reverse has six copies (promoted from Rare Reverse);
+Epic Thief has three copies (renamed from the old Epic Reverse). Epic Reflect
+has three copies. A team can hold eight available cards. Assignment
 prevents duplicate design-and-rarity cards in its available collection. At
 capacity, rewards may remain unassigned; service operations support assignment
 and replacement. There is no separate collection-management route.
@@ -178,18 +191,43 @@ cards once and receive one attack; later score edits do not reset these limits.
 | Normal Shield | Block 1 GP of the strike |
 | Normal Thief | Take up to 1 GP from a selected opponent |
 | Rare Heal | Add 3 GP |
-| Rare Protect | Block the strike for its owner |
-| Rare Reverse | Take up to 1 GP from each opponent |
+| Rare Protect | Block the strike for a selected team (including its owner) |
+| Epic Reverse (formerly Rare Reverse) | Take up to 1 GP from each opponent |
 | Rare Thief | Take up to 2 GP from a selected opponent |
-| Epic Reflect | Convert the strike into +2 GP |
-| Epic Reverse | Take up to 2 GP from each opponent |
+| Epic Reflect | Convert the incoming 2 GP strike into a doubled +4 GP gain |
+| Epic Thief (formerly Epic Reverse) | Take up to 2 GP from each of two selected opponents, up to +4 GP total |
 | Legendary Gardian Unity | Protect all teams and add 1 GP to each |
-| Legendary Second Chance | If its owner finishes at 0 GP, restore 1 GP |
+| Legendary Second Chance | Passively restore 1 GP when its owner reaches zero; consume only on activation |
 
 Effects follow the definitions in `src/data/card-pool.ts` and `public/cards/`.
-Defense/healing resolve first, transfers next, Second Chance last. Transfers
+Defense/healing resolve first, transfers next. Second Chance triggers immediately when the strike or a transfer reduces its owner to zero, once per card, including when skipping; it does not occupy an active selection slot. Transfers
 cannot take more than an opponent's remaining GP. No valid tactical decisions
 means no GP changes, no consumption and no completed-attack marker.
+
+Epic Thief requires two different opponents; the target selectors exclude the
+other selection, and attack validation rejects missing, duplicate and self
+targets. Normal/Rare Thief keep one target. Epic Reverse targets all opponents
+automatically and retains its original one-GP effect. Reflect gains nothing
+from damage that Gardian Unity or targeted Protect prevents entirely. Rare Protect requires one valid target, which can be its owner or another team.
+
+Startup migrates `Rare Reverse Card #NN` to `Epic Reverse Card #NN`, and the old
+`Epic Reverse Card #NN` with the two-GP-from-every-opponent description to
+`Epic Thief Card #NN`. The description distinguishes old and new Epic Reverse
+cards so repeated startups do not rename promoted cards again. Physical-copy
+ids, ownership, challenge links, draw state and consumed-card ids are preserved.
+Completed attack results and GP transactions are historical and are not replayed.
+
+The updated PNG assets are `public/cards/Epic_Reflect Card.png`,
+`public/cards/Epic_Reverse Card.png` and `public/cards/Epic_Thief Card.png`.
+`Rare_Reverse Card.png` is retired. Artwork was edited with built-in imagegen.
+The prompt set preserves the portrait Epic purple/silver frame and layout:
+
+- Reflect: retain the explosion art and REFLECT title; print exactly
+  “Damage Gigarisk yang diterima dikonversi double menjadi Guard Point (GP).”
+- Reverse: retain the reverse-arrow art and REVERSE title; print exactly
+  “Ambil 1 Guard Point (GP) dari setiap tim lawan.”
+- Thief: use the Epic heading, THIEF title and a masked thief with two GP gems;
+  print exactly “Ambil 2 Guard Point (GP) dari dua tim lawan.”
 
 ## Timer and visual references
 
@@ -297,3 +335,8 @@ and order independence. Automated checks do not guarantee every device or all
 possible event sequences.
 
 See the validation record in [blueprint.md](./blueprint.md#validation-record).
+
+Card revision verified on 2026-10-15: 128 unit/database tests and six affected
+browser scenarios passed, along with the production build and ESLint. Coverage
+includes both Reverse migrations, repeated startup, double Reflect, distinct
+Thief targets, card-image loading, public reveal, GP transactions and reward draws.

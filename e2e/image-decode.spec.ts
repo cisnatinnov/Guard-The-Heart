@@ -7,7 +7,10 @@ test('Image Decode advances after a wrong answer and after time runs out', async
 
   await page.clock.install()
   await page.getByRole('navigation', { name: 'Admin views' }).getByRole('link', { name: 'Challenges', exact: true }).click()
-  await page.goto(`/admin/play/emoji-decode/${CHALLENGE_GAMES[0].challengeId}`)
+  const challenge = page.locator('.card--locked').filter({hasText:'Challenge 1 - Image Decode'})
+  await expect(challenge.getByRole('link', {name:'Image Decode deck (PPTX)'})).toBeVisible()
+  await challenge.getByRole('button', {name:'Play',exact:true}).click()
+  await expect(page).toHaveURL(`/admin/play/emoji-decode/${CHALLENGE_GAMES[0].challengeId}`)
 
   await page.getByText('Play solo instead', { exact: true }).click()
   const score = page.locator('.stat', { has: page.locator('.stat__label', { hasText: /^Score$/ }) }).locator('.stat__value')

@@ -16,8 +16,6 @@ export async function seedDefaultTeams(): Promise<void> {
   const teams = await Team.findAll()
   for (const name of DEFAULT_TEAM_NAMES) {
     const existing = teams.find((team) => teamColour(team.name) === name.toLowerCase())
-    if (existing) {
-      if (existing.status !== 'active') await existing.update({ status: 'active' })
-    } else await Team.create({ name, status: 'active' })
+    if (!existing) await Team.create({ name, status: 'active' })
   }
 }

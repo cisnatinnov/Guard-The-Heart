@@ -1,7 +1,7 @@
 import { cardDesignKey } from '../data/card-pool'
 import type { CardType } from '../models'
 
-interface AllocatableCard { id: string; name: string; type: CardType }
+interface AllocatableCard { id: string; name: string; type: CardType; rewardTeamId?: string }
 interface AllocationTeam { id: string; quota: number; ownedDesigns: ReadonlySet<string> }
 interface Edge { to: string; capacity: number; reverse: Edge }
 
@@ -24,7 +24,7 @@ export function allocateUniqueCards<T extends AllocatableCard>(cards: T[], teams
     const design = cardDesignKey(card)
     add('source', node, 1)
     for (const team of teams) {
-      if (team.quota <= 0 || team.ownedDesigns.has(design)) continue
+      if (team.quota <= 0 || team.ownedDesigns.has(design) || card.rewardTeamId && card.rewardTeamId !== team.id) continue
       const designNode = `design:${team.id}:${design}`
       if (!designNodes.has(designNode)) {
         add(designNode, `team:${team.id}`, 1)

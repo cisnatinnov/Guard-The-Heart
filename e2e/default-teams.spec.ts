@@ -5,7 +5,8 @@ test('default teams are locked and reward colours follow teams when ranks change
   for (const name of ['Merah', 'Hijau', 'Biru', 'Kuning', 'Pink']) {
     const team = page.locator('.card', { has: page.locator('.card__title', { hasText: new RegExp(`^${name}$`) }) })
     await expect(team).toBeVisible()
-    for (const action of ['Rename', 'Delete', 'Deactivate']) await expect(team.getByRole('button', { name: action, exact: true })).toBeDisabled()
+    await expect(team.getByRole('button', { name: 'Deactivate', exact: true })).toBeEnabled()
+    for (const action of ['Rename', 'Delete']) await expect(team.getByRole('button', { name: action, exact: true })).toBeDisabled()
   }
   await page.reload()
   await expect(page.locator('.card')).toHaveCount(5)

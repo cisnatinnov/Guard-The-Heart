@@ -31,11 +31,11 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   },
   {
     id: 'word-assembly',
-    title: 'Challenge 2 - Flipping Card',
+    title: 'Challenge 2 - Flipping Connect',
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
       'Flip two cards at a time and match identical pictures. There are no questions.',
-      'Choose the active team by clicking its name. Urutan Main does not set the Flipping Card turn, and there is no turn timer.',
+      'Choose the active team by clicking its name. Urutan Main does not set the Flipping Connect turn, and there is no turn timer.',
       'A matched pair moves the turn to the next team. This matching activity does not award or deduct points.',
       'Match all ten pairs to complete the challenge.',
     ],
@@ -58,10 +58,11 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
 export const RENAMED_CHALLENGE_TITLES: Readonly<Record<string, string>> = {
   'Emoji Decode': 'Challenge 1 - Image Decode',
   'Image Decode': 'Challenge 1 - Image Decode',
-  'Word Assembly': 'Challenge 2 - Flipping Card',
-  'Match Card': 'Challenge 2 - Flipping Card',
-  'Flipping Connect': 'Challenge 2 - Flipping Card',
-  'Flipping Card': 'Challenge 2 - Flipping Card',
+  'Word Assembly': 'Challenge 2 - Flipping Connect',
+  'Match Card': 'Challenge 2 - Flipping Connect',
+  'Flipping Connect': 'Challenge 2 - Flipping Connect',
+  'Flipping Card': 'Challenge 2 - Flipping Connect',
+  'Challenge 2 - Flipping Card': 'Challenge 2 - Flipping Connect',
   'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
   'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
 }

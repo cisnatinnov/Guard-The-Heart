@@ -1,4 +1,4 @@
-import { Card, TeamCard } from '../models'
+import { Card, ChallengePoint, TeamCard } from '../models'
 import {
   isChallengeComplete,
   isChallengeCardsDrawn,
@@ -15,6 +15,7 @@ import {
   getTeamCardById,
   getEligibleTeamsForChallenge,
   getEligibleTeamsForAllChallenges,
+  getAssignedChallengeRewardCount,
   type CardPoolStatus,
   type TeamCardReward,
 } from '../services/cardDraw'
@@ -96,9 +97,7 @@ export class CardController {
     }
 
     // Check how many cards this team has already received from this challenge
-    const assignedFromChallenge = await Card.count({
-      where: { challenge: card.challenge, team: teamId },
-    })
+    const assignedFromChallenge = await getAssignedChallengeRewardCount(card.challenge, teamId)
     if (assignedFromChallenge >= eligible.cardCount) {
       throw new Error(`Team has already received all ${eligible.cardCount} cards for this challenge`)
     }
@@ -115,7 +114,7 @@ export class CardController {
     const eligible = await getEligibleTeamsForChallenge(challengeId)
     const allocationTeams = []
     for (const team of eligible) {
-      const alreadyAssigned = await Card.count({ where: { challenge: challengeId, team: team.teamId } })
+      const alreadyAssigned = await getAssignedChallengeRewardCount(challengeId, team.teamId)
       const owned = await getTeamCards(team.teamId)
       allocationTeams.push({ id: team.teamId, quota: Math.max(0, Math.min(team.cardCount - alreadyAssigned, MAX_TOTAL_CARD - owned.length)), ownedDesigns: new Set(owned.map(cardDesignKey)) })
     }
@@ -131,7 +130,9 @@ export class CardController {
       const j = Math.floor(Math.random() * (i + 1))
       ;[allocationTeams[i], allocationTeams[j]] = [allocationTeams[j], allocationTeams[i]]
     }
-    const assignments = allocateUniqueCards(cards, allocationTeams)
+    const entries = await ChallengePoint.findAll({ where: { challenge: challengeId } })
+    const reserved = cards.map((card) => ({ id: card.id, name: card.name, type: card.type, rewardTeamId: entries.find((entry) => entry.id === card.challenge_point)?.team }))
+    const assignments = allocateUniqueCards(reserved, allocationTeams)
     for (const { card, teamId } of assignments) await assignCardToTeamFn(card.id, teamId)
     const assigned = assignments.length
 

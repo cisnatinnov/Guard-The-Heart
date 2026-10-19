@@ -106,3 +106,23 @@
 .turn-order-stage .team-pill--hijau { background:#8de3a0; }
 .reference-ranking .ranking-table .ranking-effects--dense { font-size:1.05cqw; line-height:1.05; }
 .giga-card-actions { display:grid; gap:12px; margin-bottom:16px; } .giga-card-actions article { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:16px; border:1px solid #d5b887; border-radius:12px; background:#fff7e8; } .giga-card-actions p { margin:6px 0 0; } .giga-card-actions .field { min-width:220px; }
+
+/* Show the complete saved card outcome without crowding GP and damage. */
+.giga-challenge { position:absolute; left:7%; top:23%; width:26%; height:6%; display:flex; align-items:center; color:#fff4df; font:700 1.5cqw/1.2 Arial,sans-serif; white-space:nowrap; overflow:hidden; }
+.giga-row { grid-template-columns:15% 18% 21% 8% minmax(0,1fr); gap:1.5%; padding:.5% 1.5%; }
+.giga-effects { min-width:0; min-height:0; align-self:stretch; display:flex; flex-direction:column; justify-content:center; gap:.2cqw; color:#543557; font:400 1.05cqw/1.25 Arial,sans-serif; }
+.giga-effects > strong { color:#54205e; font-size:1.1cqw; }
+.giga-effects ul { margin:0; padding:0 .2cqw 0 0; list-style:none; max-height:3.8cqw; overflow:auto; scrollbar-width:thin; scrollbar-color:#b895c0 transparent; overflow-wrap:anywhere; }
+.giga-effects li + li { margin-top:.15cqw; }
+.giga-effects .is-positive { color:#08705b; }
+.giga-effects .is-negative { color:#aa2434; }
+.giga-effects ul:focus-visible { outline:.15cqw solid #80509c; outline-offset:.1cqw; }
+
+.giga-effects .giga-effect-detail { padding:.2cqw .35cqw; border-left:.2cqw solid #158269; border-radius:.2cqw; background:#edf6ef; color:#204e40; }
+.giga-effect-detail strong { display:inline; margin-right:.35cqw; color:#165c48; font-size:1.1cqw; line-height:1.15; }
+.giga-effect-detail span { display:inline; font-size:1cqw; line-height:1.25; }
+.giga-effects ul { max-height:5cqw; }
+
+.giga-effects .card-effect-outcome { margin:0; padding:0; border:0; background:transparent; font:400 1.25cqw/1.25 Arial,sans-serif; }
+.card-effect-outcome.is-positive { color:#008b9c; }
+.card-effect-outcome.is-negative { color:#cf2633; }

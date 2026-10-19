@@ -68,7 +68,7 @@
 .tactical-stage__effects span { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 /* Card Reveal: one bounded grid per team, preserving card proportions. */
 .tactical-stage--reveal .tactical-stage__panel { top:22.9%; height:51.8%; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65cqw; padding:.15cqw; background:#fff7e7; }
-.tactical-stage--reveal .tactical-stage__team { position:relative; left:auto; top:auto; width:auto; height:100%; min-height:0; min-width:0; display:grid; grid-template-rows:12% 6% 36% 10% 20% 10%; gap:.3cqw; padding:.65cqw; overflow:hidden; }
+.tactical-stage--reveal .tactical-stage__team { position:relative; left:auto; top:auto; width:auto; height:100%; min-height:0; min-width:0; display:grid; grid-template-rows:12% 6% 30% 8% 28% 10%; gap:.3cqw; padding:.65cqw; overflow:hidden; }
 .tactical-stage--reveal .tactical-stage__team h2 { position:static; width:100%; height:100%; padding:.2cqw; font-size:1.9cqw; grid-row:1; }
 .tactical-stage--reveal .tactical-stage__caption { position:static; width:100%; height:100%; align-content:center; grid-row:2; font-size:1.1cqw; font-weight:400; }
 .tactical-stage--reveal .tactical-stage__selected { position:static; width:100%; height:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.4cqw; grid-row:3; }
@@ -83,7 +83,7 @@
 .tactical-stage--reveal .tactical-stage__gp svg { width:2.3cqw; height:2.9cqw; flex:none; }
 .tactical-stage--reveal .tactical-stage__log { left:4.6%; top:76.9%; width:91.7%; height:10.5%; padding:.6cqw 1.2cqw; gap:1.1cqw; overflow:hidden; }
 .tactical-stage--reveal .tactical-stage__log strong { max-width:22%; font-size:2.3cqw; }
-.tactical-stage--reveal .tactical-stage__log > span:last-child { font-size:1.8cqw; }
+.tactical-stage--reveal .tactical-stage__log > span:last-child { min-width:0; font-size:1.3cqw; line-height:1.25; white-space:normal; overflow-wrap:anywhere; max-height:100%; overflow:auto; scrollbar-width:thin; }
 .tactical-admin__card-group { padding:12px 0; border-bottom:1px solid #eadcc7; }
 .tactical-admin__card-group h5 { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0; font-size:14px; }
 .tactical-admin__owned-card { display:flex; flex-direction:column; align-items:center; gap:4px; }
@@ -96,3 +96,31 @@
 @keyframes tactical-card-use { 0% { opacity:0; transform:perspective(600px) rotateY(90deg) scale(.8); } 45% { opacity:1; transform:perspective(600px) rotateY(0) scale(1.08); filter:drop-shadow(0 0 12px #ffbf24); } 100% { opacity:1; transform:scale(1); filter:none; } }
 @keyframes tactical-effect-appear { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 @media (prefers-reduced-motion:reduce) { .tactical-stage--resolved .tactical-stage__selected .card-art,.tactical-stage--resolved .tactical-stage__effects { animation:none; } }
+
+.tactical-stage--reveal .reveal-effect-detail { flex:none; padding:.3cqw .4cqw; border:.08cqw solid #b4dac7; border-radius:.4cqw; background:#edf7ef; color:#214d3b; text-align:left; }
+.reveal-effect-detail strong { display:block; color:#126449; font:700 1.05cqw/1.15 Arial,sans-serif; }
+.reveal-effect-detail p { margin:.18cqw 0 0; font:400 .98cqw/1.25 Arial,sans-serif; overflow-wrap:anywhere; }
+
+.tactical-stage--reveal .card-effect-outcome { flex:none; margin:0; padding:.12cqw .2cqw; background:transparent; border:0; font:400 1.3cqw/1.2 Arial,sans-serif; text-align:left; overflow-wrap:anywhere; }
+.tactical-stage--reveal .card-effect-outcome.is-positive { color:#008b9c; }
+.tactical-stage--reveal .card-effect-outcome.is-negative { color:#cf2633; }
+.fortune-choices { min-width:0; margin:0; padding:12px; border:1px solid #c6995a; border-radius:12px; }
+.fortune-choices legend { padding:0 6px; font-weight:600; }
+.fortune-choices > div { display:flex; flex-wrap:wrap; gap:12px; }
+.fortune-choices button { display:grid; justify-items:center; gap:8px; width:min(160px,100%); padding:10px; background:#fff9ed; color:#40260f; border:2px solid #dac6a5; border-radius:10px; }
+.fortune-choices button[aria-pressed="true"] { border-color:#087c68; background:#def7ec; box-shadow:0 0 0 2px #087c68; }
+.fortune-choices .card-art { width:100%; }
+.tactical-targets { min-width:0; margin:8px 0; padding:10px; border:1px solid #c6995a; border-radius:10px; }
+.tactical-targets > div { display:flex; flex-wrap:wrap; gap:8px; }
+.tactical-targets button[aria-pressed="true"] { background:#087c68; color:white; border-color:#087c68; }
+.tactical-admin__selection button .card-art { pointer-events:none; }
+.app--admin .fortune-choices button > span { color:#40260f; font-weight:600; }
+
+.tactical-stage__played-card { min-width:0; min-height:0; display:flex; flex-direction:column; gap:.25cqw; }
+.tactical-stage__played-card > .tactical-stage__slot { flex:1; }
+.tactical-stage__card-target { flex:none; margin:0; color:#492b40; font:700 .85cqw/1.15 Arial,sans-serif; text-align:center; overflow-wrap:anywhere; }
+
+/* Reserve the same caption space for every played card. */
+.tactical-stage--reveal .tactical-stage__team { grid-template-rows:12% 6% 36% 8% 22% 10%; }
+.tactical-stage--reveal .tactical-stage__played-card { display:grid; grid-template-rows:minmax(0,1fr) 2cqw; gap:.2cqw; }
+.tactical-stage--reveal .tactical-stage__card-target { font-size:.95cqw; }

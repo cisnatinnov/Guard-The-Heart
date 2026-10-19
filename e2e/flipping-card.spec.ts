@@ -8,15 +8,18 @@ test('manual team selection has no timer or score changes and completes on both 
     await expect(page.getByText(name, { exact: true })).toBeVisible()
   }
   await page.goto('/admin/challenges')
-  await expect(page.locator('.card--locked')).toHaveCount(2)
-  await page.locator('li').filter({ hasText: 'Challenge 2 - Flipping Card' }).getByRole('button', { name: 'Play', exact: true }).click()
+  await expect(page.locator('.card--locked')).toHaveCount(3)
+  const popup = context.waitForEvent('page')
+  await page.locator('li').filter({ hasText: 'Challenge 2 - Flipping Connect' }).getByRole('button', { name: 'Play', exact: true }).click()
+  const projector = await popup
+  await expect(projector.locator('.flipping-presentation')).toBeVisible()
+  const pagesBefore = context.pages().length
   const time = new Date()
   await page.clock.install({ time })
   await page.clock.pauseAt(new Date(time.getTime() + 1000))
   for (const name of ['Alpha', 'Beta']) await page.locator('.run-panel__teams').getByRole('checkbox', { name, exact: true }).check()
-  const popup = context.waitForEvent('page')
   await page.getByRole('button', { name: 'Start team run (2)' }).click()
-  const projector = await popup
+  expect(context.pages()).toHaveLength(pagesBefore)
   await expect(projector.locator('.flipping-presentation__art')).toHaveAttribute('src', '/ui/flipping-slide-03-reference.png')
   const stage = await projector.locator('.flipping-presentation').boundingBox()
   const firstCard = await projector.locator('.tile').first().boundingBox()
@@ -71,12 +74,98 @@ test('manual team selection has no timer or score changes and completes on both 
   await expect(page.locator('.board__row')).toHaveCount(0)
 })
 
-test('solo flipping has only matching cards', async ({ page }) => {
+test('Play opens the public board immediately and Flipping Connect only offers team runs', async ({ page, context }) => {
   await page.goto('/admin/challenges')
-  await page.locator('li').filter({ hasText: 'Challenge 2 - Flipping Card' }).getByRole('button', { name: 'Play', exact: true }).click()
-  await page.getByText('Play solo instead', { exact: true }).click()
-  await page.locator('.tile[data-pair="word-1"]').nth(0).click()
-  await page.locator('.tile[data-pair="word-1"]').nth(1).click()
-  await expect(page.getByText('Matched pairs: 1/10', { exact: true })).toBeVisible()
-  await expect(page.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
+  const popup = context.waitForEvent('page')
+  await page.locator('li').filter({ hasText:'Challenge 2 - Flipping Connect' }).getByRole('button', { name:'Play', exact:true }).click()
+  const projector = await popup
+  await expect(projector).toHaveURL('/play/word-assembly/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
+  await expect(projector.locator('.flipping-presentation')).toBeVisible()
+  await expect(projector.locator('.tile')).toHaveCount(20)
+  await expect(page.getByText('Play solo instead', { exact:true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name:'Restart matching' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name:'Start team run (0)' })).toBeDisabled()
+})
+
+test('public waiting board shows real team GP before a run starts', async ({ page }) => {
+  await page.goto('/play/word-assembly/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
+  await expect(page.locator('.flipping-presentation__team-gp')).toHaveText(Array(5).fill('5 GP'))
+  await expect(page.locator('.flipping-presentation__team-name')).toHaveText(['Biru', 'Hijau', 'Kuning', 'Merah', 'Pink'])
+  await page.screenshot({ path:'test-results/flipping-waiting-gp.png' })
+})
+
+test('team-run GP stays visible, updates live on both screens, and survives deactivation', async ({ page, context }) => {
+  const id = '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463'
+  await page.goto(`/admin/play/word-assembly/${id}`)
+  await page.getByRole('checkbox', { name:'Biru', exact:true }).check()
+  const popup = context.waitForEvent('page')
+  await page.getByRole('button', { name:'Start team run (1)' }).click()
+  const projector = await popup
+  await expect(projector.locator('.flipping-presentation__team-gp')).toHaveText('5 GP')
+  const manager = await context.newPage()
+  await manager.goto('/admin/scoreboard/9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10')
+  await manager.locator('.grid-form select').selectOption({ label:'Biru' })
+  await manager.locator('.grid-form input[type="number"]').fill('10')
+  await manager.getByRole('button', { name:'Add entry', exact:true }).click()
+  for (const screen of [page, projector]) {
+    const gp = screen.locator('.flipping-presentation__team-gp')
+    await expect(gp).toHaveText('8 GP')
+    await expect(gp).toBeVisible()
+    await gp.scrollIntoViewIfNeeded()
+    const readable = await gp.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      const team = element.closest('li')!.getBoundingClientRect()
+      return box.width > 0 && box.height > 0 && box.top >= team.top && box.bottom <= team.bottom
+        && element.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2))
+    })
+    expect(readable).toBe(true)
+  }
+  await projector.screenshot({ path:'test-results/flipping-live-gp.png' })
+  await manager.goto('/admin')
+  const team = manager.locator('.card').filter({ has:manager.locator('.card__title', { hasText:/^Biru$/ }) })
+  await team.getByRole('button', { name:'Deactivate', exact:true }).click()
+  await expect(team).toHaveCount(0)
+  await expect(page.locator('.flipping-presentation__team-name').first()).toHaveText('Biru')
+  await expect(page.locator('.flipping-presentation__team-gp')).toHaveText('8 GP')
+  await projector.reload()
+  await expect(projector.locator('.flipping-presentation__team-gp')).toHaveText('8 GP')
+})
+
+test('team start reuses the public window after another feature was displayed', async ({ page, context }) => {
+  await page.goto('/admin/leaderboard')
+  const popup = context.waitForEvent('page')
+  await page.getByRole('link', { name:'Leaderboard', exact:true }).click()
+  const projector = await popup
+  await expect(projector).toHaveURL('/leaderboard')
+  const pagesBefore = context.pages().length
+  await page.goto('/admin/challenges')
+  await page.locator('li').filter({ hasText:'Challenge 2 - Flipping Connect' }).getByRole('button', { name:'Play', exact:true }).click()
+  await expect(projector.locator('.flipping-presentation')).toBeVisible()
+  await page.getByRole('checkbox', { name:'Biru', exact:true }).check()
+  await projector.goto('/leaderboard')
+  await page.getByRole('button', { name:'Start team run (1)' }).click()
+  await expect(projector).toHaveURL('/play/word-assembly/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
+  await expect(projector.locator('.flipping-presentation__team-gp')).toHaveText('5 GP')
+  await page.locator('.tile[data-pair="word-1"]').first().click()
+  await expect(projector.locator('.tile--revealed')).toHaveCount(1)
+  expect(context.pages()).toHaveLength(pagesBefore)
+  await projector.reload()
+  await expect(projector.locator('.flipping-presentation')).toBeVisible()
+  await expect(projector.locator('.tile--revealed')).toHaveCount(1)
+  await page.getByRole('button', { name:'End run', exact:true }).click()
+  await expect(projector.locator('.flipping-presentation__team-gp')).toHaveCount(5)
+  await expect(projector.locator('.tile--revealed')).toHaveCount(0)
+})
+
+test('a blocked public popup leaves Play available with a clear error', async ({ page }) => {
+  await page.goto('/admin/challenges')
+  await page.evaluate(() => { Object.assign(window, { originalOpen:window.open }); window.open = () => null })
+  await page.locator('li').filter({ hasText:'Challenge 2 - Flipping Connect' }).getByRole('button', { name:'Play', exact:true }).click()
+  await expect(page.getByRole('alert')).toContainText('Allow pop-ups')
+  await expect(page).toHaveURL('/admin/challenges')
+  await page.evaluate(() => { window.open = (window as unknown as { originalOpen: typeof window.open }).originalOpen })
+  const popup = page.waitForEvent('popup')
+  await page.locator('li').filter({ hasText:'Challenge 2 - Flipping Connect' }).getByRole('button', { name:'Play', exact:true }).click()
+  await expect((await popup).locator('.flipping-presentation')).toBeVisible()
+  await expect(page).toHaveURL(/\/admin\/play\/word-assembly\//)
 })

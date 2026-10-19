@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useChallenges } from '../hooks/useChallenges'
 import { CHALLENGE_GAMES } from '../services/games'
 import { gameIdForChallengeName } from '../services/challengeSeeds'
-import { openPublicDisplay } from '../services/publicWindow'
+import { publishPublicDisplay } from '../services/publicDisplay'
 
 export function ChallengeView() {
   const { challenges, loading, error } = useChallenges()
@@ -13,7 +13,6 @@ export function ChallengeView() {
 
   const scoreboardBase = isAdmin ? '/admin/scoreboard' : '/scoreboard'
   const playBase = isAdmin ? '/admin/play' : '/play'
-  const visibleChallenges = challenges.filter((challenge) => gameIdForChallengeName(challenge.name) !== 'emoji-decode')
 
   return (
     <section className="view">
@@ -30,13 +29,13 @@ export function ChallengeView() {
 
       {loading && <p className="muted">Loading challenges…</p>}
 
-      {!loading && visibleChallenges.length === 0 && (
+      {!loading && challenges.length === 0 && (
         <p className="muted">No challenges available.</p>
       )}
 
-      {visibleChallenges.length > 0 && (
+      {challenges.length > 0 && (
         <ul className="card-list">
-          {visibleChallenges.map((challenge) => {
+          {challenges.map((challenge) => {
             const gameId = gameIdForChallengeName(challenge.name)
             const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
             return (
@@ -54,10 +53,12 @@ export function ChallengeView() {
                     </button>
                     {gameId && (
                       <>
-                        <button type="button" onClick={() => {
+                        <button type="button" onClick={async () => {
                           setPlayError(null)
                           try {
-                            if (isAdmin && gameId === 'jaws-of-risk') openPublicDisplay(`/play/${gameId}/${encodeURIComponent(challenge.id)}`, true)
+                            if (isAdmin && (gameId === 'word-assembly' || gameId === 'jaws-of-risk')) {
+                              await publishPublicDisplay(gameId === 'word-assembly' ? 'flipping-connect' : 'jaws-of-risk', challenge.id)
+                            }
                             navigate(`${playBase}/${gameId}/${challenge.id}`)
                           } catch (cause) { setPlayError(cause instanceof Error ? cause.message : String(cause)) }
                         }}>

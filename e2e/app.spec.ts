@@ -9,7 +9,7 @@ test('team CRUD, score correction, leaderboard and offline reload still work', a
     await expect(page.getByText(name, { exact: true })).toBeVisible()
   }
   await page.goto('/admin/challenges')
-  await expect(page.locator('.card--locked')).toHaveCount(1)
+  await expect(page.locator('.card--locked')).toHaveCount(3)
   await expect(page.getByRole('button', { name: 'Add challenge' })).toHaveCount(0)
   await page.locator('.card--locked').first().getByRole('button', { name: 'Scoreboard', exact: true }).click()
   for (const [name, score] of [['Sentinels', '40'], ['Wardens', '120']]) {

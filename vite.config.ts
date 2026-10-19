@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
         workbox: isDev
           ? { globPatterns: [], cleanupOutdatedCaches: true }
           : {
-              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,pptx,ico,woff,woff2,ttf,wasm}'],
+              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,pptx,ico,woff,woff2,ttf,wasm,mp3}'],
               // These supplied design/Q&A reference decks are large source files,
               // not playable app assets; leave them out of the offline precache.
               globIgnores: ['**/ui/*.pptx'],
@@ -28,6 +28,13 @@ export default defineConfig(({ mode }) => {
               clientsClaim: true,
               skipWaiting: true,
               navigateFallback: 'index.html',
+              // The supplied 63 MB animation is cached when first preloaded,
+              // rather than delaying installation of the whole app.
+              runtimeCaching: [{
+                urlPattern: /\/ui\/jaw-of-risk\/GIF-Gigarisk(?:%20| )Gigit\.gif$/,
+                handler: 'CacheFirst',
+                options: { cacheName: 'jaw-of-risk-animation', cacheableResponse: { statuses: [200] } },
+              }],
               maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
             },
       manifest: {

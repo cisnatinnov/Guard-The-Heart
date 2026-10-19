@@ -77,7 +77,7 @@ export function TeamView() {
         <h2>Teams</h2>
         <p className="view__hint">
           Merah, Hijau, Biru, Kuning, and Pink are fixed default teams. Each team starts with{' '}
-          {BASE_TEAM_GUARD_POWER} GP and earns more from its challenge ranks.
+          {BASE_TEAM_GUARD_POWER} GP and earns more from its challenge ranks. Teams deactivate at 0 GP after card effects resolve. You can also deactivate any team manually.
         </p>
       </header>
 
@@ -192,7 +192,8 @@ export function TeamView() {
                     </span>
                     <button
                       type="button"
-                      disabled={busy || isDefaultTeam(team.name)}
+                      disabled={busy || (team.status === 'inactive' && team.total_gp <= 0)}
+                      title={team.status === 'inactive' && team.total_gp <= 0 ? 'GP must be above 0 to activate this team' : undefined}
                       onClick={() => run(() => TeamController.toggleStatus(team.id))}
                     >
                       {team.status === 'active' ? 'Deactivate' : 'Activate'}

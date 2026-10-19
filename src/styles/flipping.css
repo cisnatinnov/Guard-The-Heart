@@ -21,6 +21,8 @@
 .flipping-presentation__teams::after { content:none; }
 .flipping-presentation__teams li { font-size:1.65cqw; }
 .flipping-presentation .flipping-presentation__team-button,.flipping-presentation__team-info { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:.3cqw; min-width:0; width:100%; }
-.flipping-presentation__team-gp { padding:.18cqw .65cqw; border-radius:1cqw; background:#ffffff24; font:700 1.2cqw/1.1 Arial,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.flipping-presentation__team-gp { padding:.18cqw .65cqw; border-radius:1cqw; background:#fff0cf; color:#4b240c; font:700 1.35cqw/1.1 Arial,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .flipping-presentation__teams li[aria-current] .flipping-presentation__team-gp { background:#ffffff80; }
 .flipping-presentation__turn { top:102%; font-size:1.1cqw; }
+
+.flipping-presentation__challenge { position:absolute; top:1%; left:23%; width:70%; color:#542d20; text-align:center; font:700 1.5cqw/1.2 Arial,sans-serif; }

@@ -10,14 +10,12 @@ import type { ChallengeRun } from '../../services/games/teamRun'
 import { publishSharedChallengeRun, useSharedChallengeRun } from '../../services/games/runSync'
 import { TeamRunPanel } from './TeamRunPanel'
 import { EmojiDecodeView } from './EmojiDecodeView'
-import { WordAssemblyView } from './WordAssemblyView'
 import { JawsOfRiskView } from './JawsOfRiskView'
 import { PublicQuestionView } from './PublicQuestionView'
 import { MatchingOnlyView } from './MatchingOnlyView'
 
 function GameScreen({ id, onComplete }: { id: ChallengeGameId; onComplete: () => void }) {
   if (id === 'emoji-decode') return <EmojiDecodeView onComplete={onComplete} />
-  if (id === 'word-assembly') return <WordAssemblyView onComplete={onComplete} />
   return null
 }
 
@@ -72,6 +70,11 @@ export function GameView() {
 
   const startSharedRun = (nextRun: ChallengeRun) => {
     if (!isAdmin) return
+    if (game.id === 'word-assembly') {
+      return publishPublicDisplay('flipping-connect', challengeId).then(() => {
+        publishSharedChallengeRun(game.id, challengeId, nextRun)
+      })
+    }
     publishSharedChallengeRun(game.id, challengeId, nextRun)
     const publicPath = `/play/${game.id}/${challengeId}`
     // Omit popup sizing features so the browser opens a regular tab.

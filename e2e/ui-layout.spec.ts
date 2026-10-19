@@ -16,7 +16,7 @@ for (const width of [1280, 390]) {
         expect(toolbar && artwork && toolbar.y + toolbar.height <= artwork.y).toBeTruthy()
       }
       if (!route.startsWith('/admin')) {
-        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage').first()
+        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage').first()
         await expect(stage).toBeVisible()
         const bounds = await stage.boundingBox()
         expect(bounds?.width).toBeGreaterThan(width * .85)

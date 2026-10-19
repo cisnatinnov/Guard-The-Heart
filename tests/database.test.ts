@@ -135,7 +135,7 @@ describe('database bootstrap', () => {
 })
 
 describe('TeamController', () => {
-  it('seeds the five fixed teams once and protects their names, status and deletion', async () => {
+  it('seeds the five fixed teams once and protects names and deletion while allowing status changes', async () => {
     const before = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
     expect(before.map((team) => team.name).sort()).toEqual([...DEFAULT_TEAM_NAMES].sort())
     await seedDefaultTeams()
@@ -143,7 +143,10 @@ describe('TeamController', () => {
     expect(after.map((team) => team.id)).toEqual(before.map((team) => team.id))
     for (const team of after) {
       await expect(TeamController.rename(team.id, 'Other')).rejects.toThrow('cannot be edited')
-      await expect(TeamController.toggleStatus(team.id)).rejects.toThrow('cannot be edited')
+      expect((await TeamController.toggleStatus(team.id))?.status).toBe('inactive')
+      await seedDefaultTeams()
+      expect((await TeamController.getById(team.id))?.status).toBe('inactive')
+      expect((await TeamController.toggleStatus(team.id))?.status).toBe('active')
       await expect(TeamController.remove(team.id)).rejects.toThrow('cannot be deleted')
     }
     await expect(TeamController.create(' tim merah ')).rejects.toThrow('reserved')
@@ -225,6 +228,15 @@ describe('built-in challenges', () => {
     }
   })
 
+  it('renames the saved Flipping Card challenge without changing its id', async () => {
+    const game = CHALLENGE_GAMES.find((entry) => entry.id === 'word-assembly')!
+    const row = await Challenge.findByPk(game.challengeId)
+    await row!.update({ name: 'Challenge 2 - Flipping Card' })
+    await seedLockedChallenges()
+    expect((await Challenge.findByPk(game.challengeId))?.name).toBe('Challenge 2 - Flipping Connect')
+    expect(await Challenge.count({ where: { name: 'Challenge 2 - Flipping Connect' } })).toBe(1)
+  })
+
   it('cannot be added a second time', async () => {
     for (const game of CHALLENGE_GAMES) {
       await expect(ChallengeController.create(game.title)).rejects.toThrow(/built in/)
@@ -257,7 +269,7 @@ describe('built-in challenges', () => {
 
   it('does not let a custom challenge borrow a built-in name', async () => {
     const custom = await ChallengeController.create('Arena Borrow')
-    await expect(ChallengeController.rename(custom.id, 'Challenge 2 - Flipping Card')).rejects.toThrow(/built-in/)
+    await expect(ChallengeController.rename(custom.id, 'Challenge 2 - Flipping Connect')).rejects.toThrow(/built-in/)
     expect((await ChallengeController.getById(custom.id))?.name).toBe('Arena Borrow')
     await ChallengeController.remove(custom.id)
   })
@@ -365,7 +377,8 @@ describe('ChallengePointController', () => {
     const availableCards = await Card.findAll({ where: { challenge: challenge.id, team: null } })
     expect(availableCards.length).toBeGreaterThan(0)
 
-    const firstCard = availableCards[0]
+    const recipient = await ChallengePoint.findOne({ where: { challenge: challenge.id, team: teams[0].id } })
+    const firstCard = availableCards.find((card) => card.challenge_point === recipient!.id)!
     await CardController.assignCardToTeam(firstCard.id, teams[0].id)
 
     // Card should now be assigned to team
@@ -764,20 +777,20 @@ describe('ScoreboardController', () => {
 })
 
 describe('card pool', () => {
-  it('declares 80 cards split 48 Normal, 18 Rare, 12 Epic and 2 Legendary', async () => {
+  it('declares 86 cards split 48 Normal, 24 Rare, 12 Epic and 2 Legendary', async () => {
     const pool = await getCardPoolStatus()
     const inventory = await Card.findAll()
     const names = inventory.map((card) => card.name)
     const queryInterface = getSequelize().getQueryInterface()
-    expect(CARD_POOL_TOTAL).toBe(80)
-    expect(inventory).toHaveLength(80)
-    expect(new Set(names).size).toBe(80)
+    expect(CARD_POOL_TOTAL).toBe(86)
+    expect(inventory).toHaveLength(86)
+    expect(new Set(names).size).toBe(86)
     expect(inventory.every((card) => card.effect_action.trim().length > 0)).toBe(true)
     expect(await queryInterface.describeTable('card')).toHaveProperty('effect_action')
     expect(await queryInterface.describeTable('team_card')).toHaveProperty('effect_action')
     expect(pool.total).toBe(CARD_POOL_TOTAL)
     expect(pool.byType.Normal.total).toBe(48)
-    expect(pool.byType.Rare.total).toBe(18)
+    expect(pool.byType.Rare.total).toBe(24)
     expect(pool.byType.Epic.total).toBe(12)
     expect(pool.byType.Legendary.total).toBe(2)
 
@@ -788,7 +801,7 @@ describe('card pool', () => {
     expect(pool.drawn + pool.remaining).toBe(pool.total)
 
     await seedCardPool()
-    expect(await Card.count()).toBe(80)
+    expect(await Card.count()).toBe(86)
   })
 
   it('consumes pool cards on draw and returns them only when the challenge is deleted', async () => {
@@ -887,7 +900,7 @@ describe('card pool', () => {
     await drawBonusCardsForChallenge(challenge.id)
     expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
     expect(await ChallengeController.remove(challenge.id)).toBe(true)
-    expect(await Card.count()).toBe(80)
+    expect(await Card.count()).toBe(86)
     expect(await getCardPoolStatus()).toEqual(baseline)
   })
 })

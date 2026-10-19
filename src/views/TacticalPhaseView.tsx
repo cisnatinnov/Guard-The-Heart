@@ -1,9 +1,12 @@
+import { resolvedCardEffects } from '../services/cardEffectSummary'
+import { prepareFortuneOptions } from '../services/fortuneDraw'
+import { isFortuneCard } from '../services/tacticalPhase'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useChallenges } from '../hooks/useChallenges'
 import { useTacticalTeams } from '../hooks/useTacticalTeams'
-import { attackTacticalPhaseOnce, chooseTacticalCard, isPassiveCard, isProtectCard, cardTargetCount, selectedCardTargets, validateTacticalAttack, publishTacticalPhase, readTacticalPhase, setTacticalVisibility, subscribeTacticalPhase, usedTacticalCardIds } from '../services/tacticalPhase'
-import { recordGigaRiskGP } from '../services/gpTransactions'
+import { assignTacticalCard, attackTacticalPhaseOnce, type TacticalPhase, chooseTacticalCard, isPassiveCard, isProtectCard, cardTargetCount, selectedCardTargets, validateTacticalAttack, publishTacticalPhase, readTacticalPhase, setTacticalVisibility, subscribeTacticalPhase, usedTacticalCardIds } from '../services/tacticalPhase'
+import { commitTacticalAssignment, recordGigaRiskGP } from '../services/gpTransactions'
 import { useTeams } from '../hooks/useTeams'
 import { openPublicDisplay } from '../services/publicWindow'
 import { publishPublicDisplay } from '../services/publicDisplay'
@@ -22,8 +25,11 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
   const { challenges } = useChallenges()
   const id = challengeId ?? challenges[0]?.id ?? ''
   const navigate = useNavigate()
-  const { teams, error, loading } = useTacticalTeams(id)
-  const { teams: allTeams, error: teamError, loading: teamsLoading } = useTeams()
+  const phase = readTacticalPhase(id)
+  const resolution = phase.resolution ?? phase.strike
+  const { teams, error, loading } = useTacticalTeams(id, { includeInactive: !!resolution || !!phase.assignment })
+  const { teams: teamRecords, error: teamError, loading: teamsLoading } = useTeams({ includeInactive:true })
+  const allTeams = teamRecords.filter((team) => team.status === 'active' || (resolution ?? phase.assignment)?.teams.some((entry) => entry.teamId === team.id))
   const [busy, setBusy] = useState(false)
   const [, refresh] = useState(0)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -34,18 +40,37 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     const interval = window.setInterval(() => setLogIndex((value) => value + 1), 5000)
     return () => window.clearInterval(interval)
   }, [reveal, id])
-  const phase = readTacticalPhase(id)
-  const usedCards = usedTacticalCardIds()
-  const resolution = phase.resolution ?? phase.strike
+  const usedCards = usedTacticalCardIds(id)
   const locked = busy || phase.revealed || !!resolution
   const inputs = allTeams.map((team) => ({ id: team.id, name: team.name, gp: team.total_gp,
     cards: (teams.find((entry) => entry.id === team.id)?.cards ?? []).filter((card) => !usedCards.has(card.id)) }))
-  const playedIds = (teamId: string) => resolution?.teams.find((entry) => entry.teamId === teamId)?.usedCardIds ?? (phase.choices[teamId]?.skipped ? [] : phase.choices[teamId]?.cards ?? [])
+  function availablePhase(): TacticalPhase {
+    const current = readTacticalPhase(id)
+    if (current.resolution || current.strike) return current
+    return { ...current, choices: Object.fromEntries(Object.entries(current.choices)
+      .filter(([teamId]) => inputs.some((team) => team.id === teamId))
+      .map(([teamId, choice]) => [teamId, { ...choice, cards: choice.cards.filter((cardId) => inputs.find((team) => team.id === teamId)?.cards.some((card) => card.id === cardId)) }])) }
+  }
+  const playedIds = (teamId: string) => {
+    const ids = resolution?.teams.find((entry) => entry.teamId === teamId)?.usedCardIds ?? (phase.choices[teamId]?.skipped ? [] : phase.choices[teamId]?.cards ?? [])
+    return resolution ? ids : ids.filter((cardId) => !usedCards.has(cardId))
+  }
+  const selectedCardsFor = (teamId: string) => teams.find((team) => team.id === teamId)?.cards.filter((card) => playedIds(teamId).includes(card.id)) ?? []
   const revealedCards = teams.flatMap((team) => team.cards.filter((card) => playedIds(team.id).includes(card.id)).map((card) => ({ team, card })))
+  const availableTeams = teams.map((team) => ({ ...team, cards: team.cards.filter((card) => !usedCards.has(card.id)) }))
   const currentLog = revealedCards[logIndex % revealedCards.length]
+  const currentLogEffects = currentLog ? resolvedCardEffects(resolution?.teams.find((entry) => entry.teamId === currentLog.team.id), selectedCardsFor(currentLog.team.id), currentLog.card.id) : []
+  async function saveChoices(next: TacticalPhase) {
+    setBusy(true)
+    try {
+      await commitTacticalAssignment(id, inputs, next)
+      setActionError(null)
+    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    finally { setBusy(false) }
+  }
   function targetCard(teamId: string, cardId: string, targetId: string, slot: number) {
     const current = readTacticalPhase(id)
-    if (busy || current.resolution || current.strike) return
+    if (busy || current.revealed || current.resolution || current.strike) return
     const choice = current.choices[teamId]
     if (!choice?.cards.includes(cardId)) return
     const card = inputs.find((team) => team.id === teamId)?.cards.find((entry) => entry.id === cardId)
@@ -53,16 +78,37 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     const count = cardTargetCount(card)
     const targets = Array.from({ length:count }, (_, index) => selectedCardTargets(choice, cardId)[index] ?? '')
     targets[slot] = targetId
-    publishTacticalPhase(id, { ...current, choices: { ...current.choices,
+    void saveChoices({ ...current, choices: { ...current.choices,
       [teamId]: { ...choice, targets: { ...choice.targets, [cardId]: count === 1 ? targetId : targets } } } })
     setActionError(null)
+  }
+  function assign(teamId: string, cardId: string, targetId: string, slot?: number) {
+    if (locked) return
+    try {
+      void saveChoices(assignTacticalCard(availablePhase(), inputs, teamId, cardId, targetId, slot))
+      setActionError(null)
+    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+  }
+  function dropCard(event: React.DragEvent, targetId: string) {
+    event.preventDefault()
+    if (locked) return
+    try {
+      const value = JSON.parse(event.dataTransfer.getData('application/x-guard-card')) as { teamId: string; cardId: string }
+      const card = inputs.find((team) => team.id === value.teamId)?.cards.find((entry) => entry.id === value.cardId)
+      if (card && cardTargetCount(card)) assign(value.teamId, value.cardId, targetId)
+      else {
+        if (value.teamId !== targetId) throw new Error('Choose a card earned by this team')
+        if (!readTacticalPhase(id).choices[targetId]?.cards.includes(value.cardId)) void select(targetId, value.cardId)
+      }
+    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
   }
   async function attack() {
     if (!id || busy || loading || teamsLoading) return
     try {
       if (error || teamError) throw new Error(error || teamError || '')
-      const current = readTacticalPhase(id)
+      const current = availablePhase()
       if (current.resolution || current.strike) return
+      publishTacticalPhase(id, current)
       validateTacticalAttack(inputs, current)
       openPublicDisplay(`/card-reveal/${encodeURIComponent(id)}`)
       setBusy(true)
@@ -79,21 +125,30 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       setActionError(null)
     } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
   }
-  function select(teamId: string, cardId: string) {
+  async function select(teamId: string, cardId: string) {
     try {
+      if (busy) return
       const team = teams.find((entry) => entry.id === teamId)
-      if (team?.cards.some((card) => card.id === cardId && isPassiveCard(card))) return
-      publishTacticalPhase(id, chooseTacticalCard(readTacticalPhase(id), teamId, cardId, team?.cards.filter((card) => !usedCards.has(card.id)).map((card) => card.id) ?? []))
-      setActionError(null)
+      let next = chooseTacticalCard(availablePhase(), teamId, cardId, team?.cards.filter((card) => !usedCards.has(card.id)).map((card) => card.id) ?? [])
+      const card = team?.cards.find((entry) => entry.id === cardId)
+      if (card && isFortuneCard(card) && next.choices[teamId].cards.includes(cardId) && !next.choices[teamId].fortune?.[cardId]) {
+        setBusy(true)
+        const options = await prepareFortuneOptions(teamId)
+        // Recheck the phase after loading; never overwrite another screen's completed attack.
+        next = chooseTacticalCard(availablePhase(), teamId, cardId, team?.cards.filter((entry) => !usedCards.has(entry.id)).map((entry) => entry.id) ?? [])
+        next.choices[teamId].fortune = { ...next.choices[teamId].fortune, [cardId]: { options } }
+      }
+      await saveChoices(next)
     } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    finally { setBusy(false) }
   }
   async function display(showReveal: boolean) {
     try {
-      const current = readTacticalPhase(id)
-      const choices = current.resolution || current.strike ? current.choices : Object.fromEntries(teams.map((team) => {
+      const current = availablePhase()
+      const choices = current.resolution || current.strike ? current.choices : Object.fromEntries(availableTeams.map((team) => {
         const choice = current.choices[team.id]
         const cards = (choice?.cards ?? []).filter((cardId) => team.cards.some((card) => card.id === cardId)).slice(0, 2)
-        return [team.id, { cards, targets: choice?.targets, skipped: choice?.skipped || (showReveal && !cards.length) || false }]
+        return [team.id, { ...choice, cards, targets: choice?.targets, skipped: choice?.skipped || (showReveal && !cards.length) || false }]
       }))
       publishTacticalPhase(id, setTacticalVisibility({ ...current, choices }, showReveal))
       await publishPublicDisplay(showReveal ? 'card-reveal' : 'tactical', id)
@@ -101,32 +156,60 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
   }
   if (admin) return <section className="view tactical-admin">
-    <header className="view__header"><h2>Tactical Phase</h2><p className="view__hint">Select up to two earned cards per team. Click a card or drag it into that team’s selection, or skip. Second Chance activates automatically at 0 GP and is consumed only when triggered.</p></header>
+    <header className="view__header"><h2>Tactical Phase</h2><p className="view__hint">Select up to two earned cards per team. Heal, Reverse, and Thief apply immediately; Shield, Protect, and Swallow apply when GigaRisk attacks. Click a card or drag it into that team’s selection, or skip. Protect: click a card, then its owner or another team below; or drag it onto that team’s selection. Thief: click a card, then an opponent below; or drag it onto an opponent’s selection. Epic Thief needs two different opponents. Select Second Chance to use it for this phase. Once selected, it activates automatically at 0 GP and is consumed only when triggered.</p></header>
     <div className="admin-toolbar">
       <label className="field"><span>Challenge</span><select value={id} onChange={(event) => void selectChallenge(event.target.value)}>{challenges.map((challenge) => <option key={challenge.id} value={challenge.id}>{challenge.name}</option>)}</select></label>
-      <button className="ghost" onClick={() => void display(false)}>{phase.revealed ? 'Return to Tactical Phase' : 'Show Tactical Phase'}</button><button disabled={!id || !teams.length} onClick={() => void display(true)}>{phase.revealed || resolution ? 'Show Card Reveal' : 'Card Reveal'}</button>
+      <button className="ghost" disabled={busy} onClick={() => void display(false)}>{phase.revealed ? 'Return to Tactical Phase' : 'Show Tactical Phase'}</button><button disabled={!id || !teams.length || busy} onClick={() => void display(true)}>{phase.revealed || resolution ? 'Show Card Reveal' : 'Card Reveal'}</button>
       <button disabled={!id || !allTeams.length || loading || teamsLoading || busy || !!resolution} onClick={() => void attack()}>{resolution ? 'Serangan selesai' : busy ? 'Memproses serangan…' : 'Serang semua tim −2 GP'}</button>
     </div>
     {(actionError || error || teamError) && <p className="alert alert--error" role="alert">{actionError || error || teamError}</p>}
-    {revealedCards.length > 0 && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.map(({ team, card }) => <article key={card.id}>
+    {!resolution && revealedCards.length > 0 && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.map(({ team, card }) => { const action = card; return <article key={card.id}>
       <div><strong>Tim {team.name.replace(/^tim\s+/i, '')} · {card.name}</strong><p>{card.effect_action}</p></div>
-      {Array.from({ length:cardTargetCount(card) }, (_, slot) => <label className="field" key={slot}><span>Tim {isProtectCard(card) ? 'target' : 'lawan'}{cardTargetCount(card) === 2 ? ` ${slot + 1}` : ''} untuk {card.name}</span><select aria-label={`Target ${card.name} milik ${team.name}${cardTargetCount(card) === 2 ? ` · ${slot + 1}` : ''}`} value={selectedCardTargets(phase.choices[team.id], card.id)[slot] ?? ''} disabled={busy || !!resolution} onChange={(event) => targetCard(team.id, card.id, event.target.value, slot)}><option value="">Pilih tim {isProtectCard(card) ? 'target' : 'lawan'}</option>{allTeams.filter((opponent) => isProtectCard(card) || opponent.id !== team.id).map((opponent) => <option key={opponent.id} value={opponent.id} disabled={selectedCardTargets(phase.choices[team.id], card.id).some((target, index) => index !== slot && target === opponent.id)}>{opponent.name} · {opponent.total_gp} GP</option>)}</select></label>)}
-    </article>)}</div>}
-    {teams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team.name) ?? 'neutral'}`}>
-      <header className="tactical-admin__team-header"><h3>Tim {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{phase.choices[team.id]?.skipped ? 'SKIP' : `${phase.choices[team.id]?.cards.length ?? 0}/2 selected`}</span></header>
+      {isFortuneCard(card) && <fieldset className="fortune-choices" disabled={locked}>
+        <legend>Pilih 1 dari 3 kartu Rare · tersedia untuk challenge berikutnya</legend>
+        <div>{phase.choices[team.id]?.fortune?.[card.id]?.options.map((option, index) => <button type="button" key={option.id}
+          aria-label={`Pilih Fortune Draw ${team.name} opsi ${index + 1}`} aria-pressed={phase.choices[team.id]?.fortune?.[card.id]?.selected === option.id}
+          onClick={() => {
+            const current = readTacticalPhase(id)
+            if (busy || current.revealed || current.resolution || current.strike) return
+            const choice = current.choices[team.id]
+            const offer = choice?.fortune?.[card.id]
+            if (!offer || !choice.cards.includes(card.id)) return
+            publishTacticalPhase(id, { ...current, choices: { ...current.choices, [team.id]: { ...choice,
+              fortune: { ...choice.fortune, [card.id]: { ...offer, selected: option.id } } } } })
+            setActionError(null)
+          }}><CardTile {...option} /><span>{cardTitleFor(option.name, option.type)}</span></button>)}</div>
+      </fieldset>}
+      {Array.from({ length: cardTargetCount(action) }, (_, slot) => <fieldset className="tactical-targets" key={`direct-${slot}`} disabled={locked}>
+        <legend>{isProtectCard(action) ? 'Protect team' : 'Steal from team'}{cardTargetCount(action) === 2 ? ` ${slot + 1}` : ''}</legend>
+        <div>{allTeams.filter((target) => isProtectCard(action) || target.id !== team.id).map((target) => <button type="button" key={target.id}
+          aria-label={`Assign ${card.name} owned by ${team.name} to ${target.name}${cardTargetCount(action) === 2 ? ` · ${slot + 1}` : ''}`}
+          aria-pressed={selectedCardTargets(phase.choices[team.id], card.id)[slot] === target.id}
+          disabled={selectedCardTargets(phase.choices[team.id], card.id).some((value, index) => index !== slot && value === target.id)}
+          onClick={() => assign(team.id, card.id, target.id, slot)}>{target.name}{target.id === team.id ? ' (owner)' : ''}</button>)}</div>
+      </fieldset>)}
+      {Array.from({ length:cardTargetCount(action) }, (_, slot) => <label className="field" key={slot}><span>Tim {isProtectCard(action) ? 'target' : 'lawan'}{cardTargetCount(action) === 2 ? ` ${slot + 1}` : ''} untuk {card.name}</span><select aria-label={`Target ${card.name} milik ${team.name}${cardTargetCount(action) === 2 ? ` · ${slot + 1}` : ''}`} value={selectedCardTargets(phase.choices[team.id], card.id)[slot] ?? ''} disabled={locked} onChange={(event) => targetCard(team.id, card.id, event.target.value, slot)}><option value="">Pilih tim {isProtectCard(action) ? 'target' : 'lawan'}</option>{allTeams.filter((opponent) => isProtectCard(action) || opponent.id !== team.id).map((opponent) => <option key={opponent.id} value={opponent.id} disabled={selectedCardTargets(phase.choices[team.id], card.id).some((target, index) => index !== slot && target === opponent.id)}>{opponent.name} · {opponent.total_gp} GP</option>)}</select></label>)}
+    </article>})}</div>}
+    {availableTeams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team.name) ?? 'neutral'}`}>
+      <header className="tactical-admin__team-header"><h3>Tim {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{resolution ? 'Serangan selesai' : phase.choices[team.id]?.skipped ? 'SKIP' : `${playedIds(team.id).length}/2 selected`}</span></header>
       <div className="tactical-admin__body"><div><h4>Owned cards · {team.cards.length}</h4>
       <div className="tactical-admin__history">{Array.from(new Set(team.cards.map((card) => card.challenge_point))).map((entryId) => <section key={entryId} className="tactical-admin__card-group">
         <h5>{team.cardChallenges[entryId ?? '']?.name ?? 'Other earned cards'}{team.cardChallenges[entryId ?? '']?.id === id && <span className="badge">Current challenge</span>}</h5>
-        <div className="tactical-admin__cards" aria-label={`Earned cards for ${team.name}`}>{team.cards.filter((card) => card.challenge_point === entryId).map((card) => <div className={`tactical-admin__owned-card${usedCards.has(card.id) ? ' is-used' : ''}`} key={card.id}>
-          <button disabled={locked || usedCards.has(card.id) || isPassiveCard(card)} draggable={!locked && !usedCards.has(card.id) && !isPassiveCard(card)} aria-label={`Select ${card.name} for ${team.name}`} aria-pressed={phase.choices[team.id]?.cards.includes(card.id) ?? false} onClick={() => select(team.id, card.id)} onDragStart={(event) => { event.dataTransfer.setData('application/x-guard-card', JSON.stringify({ teamId: team.id, cardId: card.id })) }}><TacticalCard card={card} /></button>
-          <span className="tactical-admin__card-state">{usedCards.has(card.id) ? 'Used' : isPassiveCard(card) ? 'Passive · automatic at 0 GP' : 'Available'}</span>
+        <div className="tactical-admin__cards" aria-label={`Earned cards for ${team.name}`}>{team.cards.filter((card) => card.challenge_point === entryId).map((card) => <div className="tactical-admin__owned-card" key={card.id}>
+          <button disabled={locked || usedCards.has(card.id)} draggable={!locked && !usedCards.has(card.id)} aria-label={`Select ${card.name} for ${team.name}`} aria-pressed={phase.choices[team.id]?.cards.includes(card.id) ?? false} onClick={() => select(team.id, card.id)} onDragStart={(event) => { event.dataTransfer.setData('application/x-guard-card', JSON.stringify({ teamId: team.id, cardId: card.id })) }}><TacticalCard card={card} /></button>
+          <span className="tactical-admin__card-state">{isPassiveCard(card) ? 'Select to arm · automatic at 0 GP' : 'Available'}</span>
         </div>)}</div>
-      </section>)}{!team.cards.length && <p>No earned cards</p>}</div>
-      </div><div><h4>Selected cards</h4><div className="tactical-admin__selection" aria-label={`Selected cards for ${team.name}`} onDragOver={(event) => { if (!locked) event.preventDefault() }} onDrop={(event) => { event.preventDefault(); if (locked) return; try { const value = JSON.parse(event.dataTransfer.getData('application/x-guard-card')) as { teamId: string; cardId: string }; if (value.teamId !== team.id) throw new Error('Choose a card earned by this team'); if (!phase.choices[team.id]?.cards.includes(value.cardId)) select(team.id, value.cardId) } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) } }}>
-        {team.cards.filter((card) => !phase.choices[team.id]?.skipped && phase.choices[team.id]?.cards.includes(card.id)).map((card) => <button key={card.id} disabled={locked} aria-label={`Remove ${card.name} from ${team.name}`} onClick={() => select(team.id, card.id)}><TacticalCard card={card} /></button>)}
-        {!phase.choices[team.id]?.cards.length && <span>{phase.choices[team.id]?.skipped ? 'This team will skip.' : 'Drop up to two cards here.'}</span>}
+      </section>)}{!team.cards.length && <p>No available cards</p>}</div>
+      </div><div><h4>Selected cards</h4><div className="tactical-admin__selection" aria-label={`Selected cards for ${team.name}`} onDragOver={(event) => { if (!locked) event.preventDefault() }} onDrop={(event) => dropCard(event, team.id)}>
+        {selectedCardsFor(team.id).map((card) => <button key={card.id} disabled={locked} draggable={!locked && cardTargetCount(card) > 0}
+          onDragStart={(event) => event.dataTransfer.setData('application/x-guard-card', JSON.stringify({ teamId: team.id, cardId: card.id }))} aria-label={`Remove ${card.name} from ${team.name}`} onClick={() => select(team.id, card.id)}><TacticalCard card={card} /></button>)}
+        {!selectedCardsFor(team.id).length && <span>{phase.choices[team.id]?.skipped ? 'This team will skip.' : 'Drop owned cards here, or drop Protect / Thief here to target this team.'}</span>}
       </div>
-      <button className="ghost" disabled={locked} onClick={() => publishTacticalPhase(id, { ...phase, choices: { ...phase.choices, [team.id]: { cards: [], skipped: true } } })}>Skip {team.name}</button></div></div>
+      <div className="tactical-admin__assignments" aria-label={`Assigned effects for ${team.name}`}>
+        {revealedCards.filter(({ team: owner, card }) => cardTargetCount(card) > 0 && selectedCardTargets(phase.choices[owner.id], card.id).includes(team.id)).map(({ team: owner, card }) =>
+          <p key={card.id}>{isProtectCard(card) ? 'Protected by' : 'Thief target of'} {card.name} · Owner: {owner.name}</p>)}
+      </div>
+      <button className="ghost" disabled={locked} onClick={() => void saveChoices({ ...phase, choices: { ...phase.choices, [team.id]: { ...phase.choices[team.id], cards: [], skipped: true } } })}>Skip {team.name}</button></div></div>
     </article>)}
   </section>
   return <section key={`${id}-${resolution?.resolvedAt ?? 'pending'}`} className={`tactical-stage ${reveal ? 'tactical-stage--reveal' : ''}${reveal && resolution ? ' tactical-stage--resolved' : ''}`} aria-label={reveal ? 'Card Reveal' : 'Tactical Phase'}>
@@ -136,32 +219,35 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     <div className="tactical-stage__panel">{Array.from({ length: 5 }, (_, index) => {
       const team = teams[index]
       const choice = team ? phase.choices[team.id] : undefined
-      const cards = team?.cards.filter((card) => playedIds(team.id).includes(card.id)) ?? []
+      const cards = team ? selectedCardsFor(team.id) : []
+      const availableCards = team?.cards.filter((card) => !usedCards.has(card.id)) ?? []
       const visible = reveal && (phase.revealed || !!resolution)
       const result = team ? resolution?.teams.find((entry) => entry.teamId === team.id) : undefined
       return <article key={team?.id ?? index} className={`tactical-stage__team tactical-colour--${teamColour(team?.name ?? '') ?? 'neutral'}`} style={{ '--slot': index } as CSSProperties} aria-label={team?.name ?? 'Empty team'}>
         <h2>Tim {team?.name.replace(/^tim\s+/i, '') ?? '—'}</h2><span className="tactical-stage__gp"><svg viewBox="0 0 64 80" aria-hidden="true"><path d="M32 3 61 17 57 54 32 77 7 54 3 17Z" fill="#67dbff" stroke="#0c9edc" strokeWidth="2" /><path d="M32 10 54 21 50 50 32 67 14 50 10 21Z" fill="#0759da" stroke="#b9f5ff" strokeWidth="3" /><text x="32" y="46" textAnchor="middle" fill="white" fontFamily="Arial" fontWeight="bold" fontSize="25">GP</text></svg>{visible ? result?.finalGP ?? team?.gp ?? 0 : team?.gp ?? 0} GP</span>
         {reveal && <p className="tactical-stage__caption">Kartu yang dipakai</p>}
-        {!reveal && <div className="tactical-stage__collection" aria-label={`Owned cards for ${team?.name ?? 'empty team'}`}>{Array.from({ length: Math.max(8, team?.cards.length ?? 0) }, (_, slot) => {
-          const card = team?.cards[slot]
-          const used = !!card && usedCards.has(card.id)
-          return <div className={`tactical-stage__slot${used ? ' tactical-stage__owned-used' : ''}`} key={card?.id ?? slot} aria-label={card ? `${card.name} · ${used ? 'Used' : 'Available'}` : undefined}>
+        {!reveal && <div className="tactical-stage__collection" aria-label={`Owned cards for ${team?.name ?? 'empty team'}`}>{Array.from({ length: Math.max(8, availableCards.length) }, (_, slot) => {
+          const card = availableCards[slot]
+          return <div className="tactical-stage__slot" key={card?.id ?? slot} aria-label={card ? `${card.name} · Available` : undefined}>
             {card && <TacticalCard card={card} />}
-            {used && <span className="tactical-stage__used-label">Used</span>}
           </div>
         })}</div>}
-        <div className="tactical-stage__selected" style={{ gridTemplateColumns: `repeat(${Math.max(2, cards.length)}, minmax(0, 1fr))` }}>{Array.from({ length: Math.max(2, cards.length) }, (_, slot) => <div className="tactical-stage__slot" key={slot}>{cards[slot] && (visible || !reveal) && <TacticalCard card={cards[slot]} />}</div>)}</div>
-        <p className={`tactical-stage__status ${choice?.skipped ? 'is-skipped' : cards.length ? 'is-ready' : ''}`}>{reveal ? visible ? cards.length ? `Pakai ${cards.length} Kartu` : 'SKIP' : 'Menunggu Card Reveal' : choice?.skipped ? 'SKIP' : cards.length ? `✓ ${cards.length} Kartu siap` : 'Memilih...'}</p>
-        {visible && <div className="tactical-stage__effects" aria-label="Resolved card effects">
-          {result && <span className={result.gigaRisk > 0 ? 'is-positive' : ''} title="Serangan GigaRisk">GigaRisk {result.gigaRisk > 0 ? '+' : ''}{result.gigaRisk}</span>}
-          {(result?.effects ?? cards.map((card) => card.effect_action)).map((effect, effectIndex) => <span key={`${effect}-${effectIndex}`} title={effect}>{effect}</span>)}
+        <div className="tactical-stage__selected" style={{ gridTemplateColumns: `repeat(${Math.max(2, cards.length)}, minmax(0, 1fr))` }}>{Array.from({ length: Math.max(2, cards.length) }, (_, slot) => {
+          const card = cards[slot]
+          const targets = card && visible && cardTargetCount(card) > 0 ? selectedCardTargets(choice, card.id).map((targetId) => allTeams.find((target) => target.id === targetId)?.name).filter((name): name is string => !!name) : []
+          return <div className="tactical-stage__played-card" key={slot}>
+            <div className="tactical-stage__slot">{card && (visible || !reveal) && <TacticalCard card={card} />}</div>
+            {targets.length > 0 && <p className="tactical-stage__card-target" data-card-id={card.id}>{isProtectCard(card) ? 'Protect' : 'Thief'}: {targets.join(', ')}</p>}
+          </div>
+        })}</div>
+        <p className={`tactical-stage__status ${choice?.skipped ? 'is-skipped' : cards.length ? 'is-ready' : ''}`}>{reveal ? visible ? cards.length ? `Pakai ${cards.length} Kartu` : 'SKIP' : 'Menunggu Card Reveal' : resolution ? 'Serangan selesai' : choice?.skipped ? 'SKIP' : cards.length ? `✓ ${cards.length} Kartu siap` : 'Memilih...'}</p>
+        {visible && resolution && <div className="tactical-stage__effects" aria-label="Resolved card effects">
+          {cards.map((card) => <p className="card-effect-outcome is-positive" key={card.id} data-card-id={card.id}>{cardTitleFor(card.name, card.type).replace(/ Card$/i, '')}</p>)}
         </div>}
       </article>
     })}</div>
     <div className="tactical-stage__footer">{reveal ? phase.revealed || resolution ? 'Card Reveal selesai' : 'Menunggu admin membuka kartu' : 'Maksimal 2 kartu per Tactical Phase'}</div>
-    {reveal && <div className="tactical-stage__log">{(phase.revealed || resolution) ? currentLog ? <><span className="tactical-stage__log-count">{logIndex % revealedCards.length + 1}/{revealedCards.length}</span><strong>{cardTitleFor(currentLog.card.name, currentLog.card.type).replace(/ Card$/i, '')}</strong><span>Tim {currentLog.team.name.replace(/^tim\s+/i, '')} memilih {cardTitleFor(currentLog.card.name, currentLog.card.type)}</span></> : 'Semua tim memilih SKIP' : 'Kartu belum dibuka'}</div>}
+    {reveal && <div className="tactical-stage__log" data-card-id={currentLog?.card.id}>{(phase.revealed || resolution) ? currentLog ? <><span className="tactical-stage__log-count">{logIndex % revealedCards.length + 1}/{revealedCards.length}</span><strong>{resolution ? 'Efek Kartu' : cardTitleFor(currentLog.card.name, currentLog.card.type).replace(/ Card$/i, '')}</strong><span>{resolution ? `Tim ${currentLog.team.name.replace(/^tim\s+/i, '')}: ${currentLogEffects.join(' · ')}` : `Tim ${currentLog.team.name.replace(/^tim\s+/i, '')} memilih ${cardTitleFor(currentLog.card.name, currentLog.card.type)}`}</span></> : 'Semua tim memilih SKIP' : 'Kartu belum dibuka'}</div>}
     {error && <p className="tactical-stage__error" role="alert">{error}</p>}
   </section>
 }
-
-

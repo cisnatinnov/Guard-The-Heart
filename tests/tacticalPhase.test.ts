@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { chooseTacticalCard, hasTacticalDecisions, resolveTacticalEffects, setTacticalVisibility, validateTacticalAttack, TACTICAL_REQUIRED_MESSAGE, type TacticalPhase } from '../src/services/tacticalPhase'
+import { assignTacticalCard, chooseTacticalCard, hasTacticalDecisions, resolveTacticalEffects, setTacticalVisibility, validateTacticalAttack, TACTICAL_REQUIRED_MESSAGE, type TacticalPhase } from '../src/services/tacticalPhase'
 const empty: TacticalPhase = { choices: {}, revealed: false }
 it('preserves the GigaRisk result when returning to Tactical Phase and reopening Card Reveal', () => {
   const choices = {a:{cards:[],skipped:true}}
@@ -32,7 +32,7 @@ it('resolves a mixed phase per team and ignores cards on a skipped choice', () =
   expect(results[0].usedCards).toBe(0)
   expect(results[1].effects).toContain('+3 Heal')
 })
-it('executes both selected thief cards after the strike', () => {
+it('executes both selected thief cards in the active challenge attack', () => {
   const cards = ['Normal','Rare'].map((type, index) => ({id:String(index),name:`${type} Thief Card`,type,effect:'Thief',effect_action:'Take GP'}))
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards},{id:'b',name:'B',gp:8,cards:[]}], {a:{cards:['0','1'],skipped:false,targets:{'0':'b','1':'b'}}},()=>0).teams
   expect(result.map((team) => team.finalGP)).toEqual([6,3])
@@ -41,12 +41,12 @@ it('subtracts exactly two GP from every unprotected team and clamps at zero', ()
   const results = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[]},{id:'b',name:'B',gp:1,cards:[]}], {}).teams
   expect(results.map((row) => [row.gigaRisk,row.finalGP])).toEqual([[-2,3],[-2,0]])
 })
-it('converts the fixed strike to a doubled four GP gain with Reflect', () => {
-  const card = {id:'reflect',name:'Epic Reflect Card',type:'Epic',effect:'Defense',effect_action:'Convert damage to GP'}
-  const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[card]}], {a:{cards:['reflect'],skipped:false}}).teams[0]
+it('converts the fixed strike to a doubled four GP gain with Swallow', () => {
+  const card = {id:'swallow',name:'Epic Swallow Card',type:'Epic',effect:'Defense',effect_action:'Convert damage to GP'}
+  const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[card]}], {a:{cards:['swallow'],skipped:false}}).teams[0]
   expect([result.gigaRisk,result.finalGP,result.usedCards]).toEqual([4,9,1])
 })
-it('applies the strike before a selected heal card', () => {
+it('applies the selected heal before strike damage', () => {
   const card = {id:'heal',name:'Rare Heal Card',type:'Rare',effect:'Heal',effect_action:'+3 GP'}
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[card]}], {a:{cards:['heal'],skipped:false}}).teams[0]
   expect(result.finalGP).toBe(6)
@@ -81,4 +81,72 @@ it('requires an explicit opponent and follows the selected target and action amo
   expect(() => validateTacticalAttack(teams,valid)).not.toThrow()
   expect(resolveTacticalEffects(teams,valid.choices).teams.map((team)=>team.finalGP)).toEqual([8,6,4])
   expect(() => validateTacticalAttack(teams,{...valid,choices:{a:{...valid.choices.a,targets:{steal:'a'}}}})).toThrow('Pilih tim lawan')
+})
+
+const directCards = [
+  {id:'protect',name:'Rare Protect Card',type:'Rare',effect:'Defense',effect_action:'Protect target'},
+  {id:'thief',name:'Normal Thief Card',type:'Normal',effect:'Thief',effect_action:'Ambil 1 GP'},
+  {id:'epic',name:'Epic Thief Card',type:'Epic',effect:'Thief',effect_action:'Ambil 2 GP'},
+]
+const directTeams = ['a','b','c'].map((id) => ({id,name:id,gp:5,cards:id === 'a' ? directCards : []}))
+it('directly assigns Protect to its owner or another team without moving ownership', () => {
+  const self = assignTacticalCard(empty,directTeams,'a','protect','a')
+  const other = assignTacticalCard(self,directTeams,'a','protect','b')
+  expect(self.choices.a.targets).toEqual({protect:'a'})
+  expect(other.choices.a).toEqual({cards:['protect'],skipped:false,targets:{protect:'b'}})
+  expect(other.choices.b).toBeUndefined()
+  expect(resolveTacticalEffects(directTeams,other.choices).teams.map((team)=>team.finalGP)).toEqual([3,5,3])
+})
+it('directly assigns Thief only to opponents and preserves the two-card limit', () => {
+  expect(() => assignTacticalCard(empty,directTeams,'a','thief','a')).toThrow('opposing')
+  const first = assignTacticalCard(empty,directTeams,'a','thief','b')
+  const second = assignTacticalCard(first,directTeams,'a','protect','a')
+  expect(() => assignTacticalCard(second,directTeams,'a','epic','c')).toThrow('at most 2')
+  expect(assignTacticalCard(first,directTeams,'a','thief','c').choices.a.targets).toEqual({thief:'c'})
+})
+it('fills two Epic Thief opponents using repeated drops and rejects duplicate slot assignments', () => {
+  const first = assignTacticalCard(empty,directTeams,'a','epic','b')
+  expect(() => validateTacticalAttack(directTeams,first)).toThrow('dua tim')
+  const both = assignTacticalCard(first,directTeams,'a','epic','c')
+  expect(both.choices.a.targets).toEqual({epic:['b','c']})
+  expect(() => validateTacticalAttack(directTeams,both)).not.toThrow()
+  expect(assignTacticalCard(both,directTeams,'a','epic','b')).toBe(both)
+  expect(() => assignTacticalCard(both,directTeams,'a','epic','b',1)).toThrow('different')
+})
+it('rejects direct assignment after reveal or resolution, and rejects unknown targets and ownership', () => {
+  const selected = assignTacticalCard(empty,directTeams,'a','protect','a')
+  expect(() => assignTacticalCard({...selected,revealed:true},directTeams,'a','protect','b')).toThrow('unlocked')
+  expect(() => assignTacticalCard({...selected,resolution:{resolvedAt:1,teams:[]}},directTeams,'a','protect','b')).toThrow('unlocked')
+  expect(() => assignTacticalCard(empty,directTeams,'a','protect','missing')).toThrow('Choose a team')
+  expect(() => assignTacticalCard(empty,directTeams,'b','protect','b')).toThrow('earned')
+})
+
+it('takes assigned Thief GP before the active challenge strike and never defers it to another challenge', () => {
+  const thief = directCards[1]
+  const teams = [{id:'a',name:'A',gp:1,cards:[thief]},{id:'b',name:'B',gp:2,cards:[]}]
+  const phase = assignTacticalCard(empty,teams,'a',thief.id,'b')
+  // Theft raises A to 2 and lowers B to 1; this attack then deals 2 to both.
+  const result = resolveTacticalEffects(teams,phase.choices).teams
+  expect(result.map((team)=>team.finalGP)).toEqual([0,0])
+  expect(result[0].cardEffects?.[thief.id]).toEqual(['+1 Dicuri dari B'])
+  expect(resolveTacticalEffects([{...teams[0],gp:0,cards:[]},{...teams[1],gp:0}],{}).teams.map((team)=>team.finalGP)).toEqual([0,0])
+})
+
+it('Reverse uses opponent GP before damage, including low-GP opponents', () => {
+  const reverse = {id:'reverse',name:'Epic Reverse Card',type:'Epic',effect:'Utility',effect_action:'Ambil 1 GP dari setiap tim lawan.'}
+  const teams = [{id:'a',name:'A',gp:1,cards:[reverse]},{id:'b',name:'B',gp:1,cards:[]},{id:'c',name:'C',gp:2,cards:[]}]
+  const result = resolveTacticalEffects(teams,{a:{cards:[reverse.id],skipped:false}}).teams
+  expect(result.map((team)=>team.finalGP)).toEqual([1,0,0])
+  expect(result[0].cardEffects?.reverse).toEqual(['+1 Reverse dari B','+1 Reverse dari C'])
+})
+it.each([
+  ['Normal Heal Card','Heal','Menambah +2 GP.',1,-2,1],
+  ['Normal Shield Card','Defense','Melindungi 1 GP.',1,-1,0],
+  ['Rare Protect Card','Defense','Protect target',1,0,1],
+  ['Epic Swallow Card','Defense','Convert damage',1,4,5],
+] as const)('%s applies the specified strike outcome at low GP', (name,effect,effect_action,gp,strike,finalGP) => {
+  const card = {id:'action',name,type:name.split(' ')[0],effect,effect_action}
+  const phase = {a:{cards:[card.id],skipped:false,targets:{action:'a'}}}
+  const result = resolveTacticalEffects([{id:'a',name:'A',gp,cards:[card]}],phase).teams[0]
+  expect([result.gigaRisk,result.finalGP]).toEqual([strike,finalGP])
 })

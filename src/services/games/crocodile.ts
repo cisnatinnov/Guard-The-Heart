@@ -1,12 +1,13 @@
 import type { RandomSource } from './random'
 
-export const CROCODILE_TEETH = 12
-export const CROCODILE_BITE_MS = 1400
+export const CROCODILE_TEETH = 14
+export const CROCODILE_BITE_MS = 4440
 
 export interface CrocodileRound {
   bitingTooth: number
   pressed: number[]
   reopenAt: number | null
+  lastPressedAt?: number
 }
 
 export function createCrocodileRound(previousTooth?: number, random: RandomSource = Math.random): CrocodileRound {
@@ -16,5 +17,5 @@ export function createCrocodileRound(previousTooth?: number, random: RandomSourc
 
 export function pressCrocodileTooth(round: CrocodileRound, tooth: number, now = Date.now()): CrocodileRound {
   if (round.reopenAt !== null || !Number.isInteger(tooth) || tooth < 0 || tooth >= CROCODILE_TEETH || round.pressed.includes(tooth)) return round
-  return { ...round, pressed: [...round.pressed, tooth], reopenAt: tooth === round.bitingTooth ? now + CROCODILE_BITE_MS : null }
+  return { ...round, pressed: [...round.pressed, tooth], lastPressedAt: now, reopenAt: tooth === round.bitingTooth ? now + CROCODILE_BITE_MS : null }
 }

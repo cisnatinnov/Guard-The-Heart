@@ -1,9 +1,10 @@
 import { expect, it } from 'vitest'
 import { CARD_POOL } from '../src/data/card-pool'
-import { cardTargetCount, resolveTacticalEffects, validateTacticalAttack } from '../src/services/tacticalPhase'
+import { cardTargetCount, teamUsedCardEffects, resolveTacticalEffects, validateTacticalAttack } from '../src/services/tacticalPhase'
 function card(prefix: string) { const found=CARD_POOL.find((card)=>card.name.startsWith(prefix))!; return {...found,id:prefix} }
-it('matches all eleven effect_action descriptions printed on the supplied card images',()=>{
+it('matches all twelve effect_action descriptions printed on the supplied card images',()=>{
  const actions:Record<string,string>={
+  'Rare Fortune Draw Card':'Ambil 1 dari 3 kartu.',
   'Normal Heal Card':'Menambah +2 Guard Point (GP).',
   'Normal Shield Card':'Melindungi 1 Guard Point (GP) dari serangan Gigarisk.',
   'Normal Thief Card':'Ambil 1 Guard Point (GP) dari satu tim lawan.',
@@ -11,7 +12,7 @@ it('matches all eleven effect_action descriptions printed on the supplied card i
   'Rare Protect Card':'Target tim tidak kehilangan Guard Point (GP) dari satu kali serangan Gigarisk.',
   'Epic Reverse Card':'Ambil 1 Guard Point (GP) dari setiap tim lawan.',
   'Rare Thief Card':'Ambil 2 Guard Point (GP) dari satu tim lawan.',
-  'Epic Reflect Card':'Damage Gigarisk yang diterima dikonversi double menjadi Guard Point (GP).',
+  'Epic Swallow Card':'Menelan efek serangan GigaRisk dan mengubahnya menjadi +4 Guard Point (GP).',
   'Epic Thief Card':'Ambil 2 Guard Point (GP) dari dua tim lawan.',
   'Legendary Gardian Unity':'Semua team terlindungi dari serangan Gigarisk dan masing-masing +1 Guard Point (GP).',
   'Legendary Second Chance Card':'(Passive Skill) Otomatis bangkit dengan penambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
@@ -37,7 +38,7 @@ const actionCases = [
   ['Rare Protect Card', [3, 5, 3, 3], -2],
   ['Rare Thief Card', [5, 1, 3, 3], -2],
   ['Epic Reverse Card', [6, 2, 2, 2], -2],
-  ['Epic Reflect Card', [9, 3, 3, 3], 4],
+  ['Epic Swallow Card', [9, 3, 3, 3], 4],
   ['Epic Thief Card', [7, 1, 1, 3], -2],
   ['Legendary Gardian Unity', [6, 6, 6, 6], 0],
 ] as const
@@ -69,27 +70,27 @@ it('Protect can target its owner or another team and requires a valid target', (
     expect(() => resolveTacticalEffects(teams,choices)).toThrow('Pilih tim target')
   }
 })
-it('Second Chance is passive even when skipping, and is consumed only when triggered', () => {
+it('selected Second Chance activates at zero and is consumed only when triggered', () => {
   const passive = card('Legendary Second Chance Card')
   for (const gp of [0,1,2,5]) {
-    const result = resolveTacticalEffects([{id:'a',name:'A',gp,cards:[passive]}],{a:{cards:[],skipped:true}}).teams[0]
-    expect(result.finalGP).toBe(gp <= 2 ? 1 : 3)
+    const result = resolveTacticalEffects([{id:'a',name:'A',gp,cards:[passive]}],{a:{cards:[passive.id],skipped:false}}).teams[0]
+    expect(result.finalGP).toBe(gp === 0 ? 0 : gp <= 2 ? 1 : 3)
     expect(result.usedCardIds).toEqual(gp <= 2 ? [passive.id] : [])
     expect(result.usedCards).toBe(gp <= 2 ? 1 : 0)
   }
 })
-it('Second Chance triggers immediately when the strike reaches zero before healing', () => {
+it('heals at assignment before damage, preserving Second Chance when GP never reaches zero', () => {
   const passive = card('Legendary Second Chance Card'), heal = card('Normal Heal Card')
-  const result = resolveTacticalEffects([{id:'a',name:'A',gp:1,cards:[passive,heal]}],{a:{cards:[heal.id],skipped:false}}).teams[0]
-  expect(result.finalGP).toBe(3)
-  expect(result.effects).toEqual(['+1 Second Chance','+2 Heal'])
-  expect(result.usedCardIds).toEqual([heal.id,passive.id])
+  const result = resolveTacticalEffects([{id:'a',name:'A',gp:1,cards:[passive,heal]}],{a:{cards:[heal.id,passive.id],skipped:false}}).teams[0]
+  expect(result.finalGP).toBe(1)
+  expect(result.effects).toEqual(['+2 Heal'])
+  expect(result.usedCardIds).toEqual([heal.id])
 })
 it('Second Chance revives a theft victim only once during an attack', () => {
   const passive = card('Legendary Second Chance Card'), thief = card('Rare Thief Card')
   const teams = [{id:'a',name:'A',gp:5,cards:[thief]},{id:'b',name:'B',gp:3,cards:[passive]},{id:'c',name:'C',gp:5,cards:[{...thief,id:'second'}]}]
-  const result = resolveTacticalEffects(teams,{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:'b'}},c:{cards:['second'],skipped:false,targets:{second:'b'}}}).teams
-  expect(result.map((team) => team.finalGP)).toEqual([4,0,4])
+  const result = resolveTacticalEffects(teams,{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:'b'}},b:{cards:[passive.id],skipped:false},c:{cards:['second'],skipped:false,targets:{second:'b'}}}).teams
+  expect(result.map((team) => team.finalGP)).toEqual([5,0,4])
   expect(result[1].effects.filter((effect) => effect.includes('Second Chance'))).toHaveLength(1)
   expect(result[1].usedCardIds).toEqual([passive.id])
 })
@@ -100,11 +101,50 @@ it('defenses block GigaRisk but do not block theft', () => {
   }).teams
   expect(result.map((team) => team.finalGP)).toEqual([3,5])
 })
-it('does not reflect damage blocked by a targeted Protect', () => {
-  const protect = card('Rare Protect Card'), reflect = card('Epic Reflect Card')
-  const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[protect]},{id:'b',name:'B',gp:5,cards:[reflect]}],{
-    a:{cards:[protect.id],skipped:false,targets:{[protect.id]:'b'}},b:{cards:[reflect.id],skipped:false},
+it('does not swallow damage blocked by a targeted Protect', () => {
+  const protect = card('Rare Protect Card'), swallow = card('Epic Swallow Card')
+  const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[protect]},{id:'b',name:'B',gp:5,cards:[swallow]}],{
+    a:{cards:[protect.id],skipped:false,targets:{[protect.id]:'b'}},b:{cards:[swallow.id],skipped:false},
   }).teams
   expect(result.map((team) => team.finalGP)).toEqual([3,5])
   expect(result[1].gigaRisk).toBe(0)
+})
+
+it('attributes targeted protection and theft to their caster without changing GP activity', () => {
+ const protect=card('Rare Protect Card'), thief=card('Rare Thief Card')
+ const teams=[{id:'a',name:'A',gp:5,cards:[protect]},{id:'b',name:'B',gp:5,cards:[thief]},{id:'c',name:'C',gp:5,cards:[]}]
+ const results=resolveTacticalEffects(teams,{a:{cards:[protect.id],skipped:false,targets:{[protect.id]:'c'}},b:{cards:[thief.id],skipped:false,targets:{[thief.id]:'c'}},c:{cards:[],skipped:true}}).teams
+ expect(results.map((result)=>result.finalGP)).toEqual([3,5,3])
+ expect(results[0].usedCardEffects).toEqual(['Protect untuk C: terlindungi dari serangan GigaRisk'])
+ expect(results[1].usedCardEffects).toEqual(['+2 Dicuri dari C'])
+ expect(results[2].usedCardEffects).toEqual([])
+ expect(results[2].effects).toEqual(['-2 Dicuri oleh B','+2 Protect'])
+})
+it('shows Unity only for the team that played it', () => {
+ const unity=card('Legendary Gardian Unity')
+ const results=resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[unity]},{id:'b',name:'B',gp:5,cards:[]}],{a:{cards:[unity.id],skipped:false},b:{cards:[],skipped:true}}).teams
+ expect(results[0].usedCardEffects).toEqual(['Gardian Unity: masing-masing tim +1 GP','Gardian Unity: semua tim terlindungi dari serangan GigaRisk'])
+ expect(results[1].usedCardEffects).toEqual([])
+ expect(results[1].effects).toEqual(['+1 Gardian Unity','+2 Gardian Unity protection'])
+ expect(results.map((result)=>result.finalGP)).toEqual([6,6])
+})
+it('shows revival as the passive owner action without incoming theft', () => {
+ const passive=card('Legendary Second Chance Card'), thief=card('Rare Thief Card')
+ const results=resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[thief]},{id:'b',name:'B',gp:3,cards:[passive]}],{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:'b'}},b:{cards:[passive.id],skipped:false}}).teams
+ expect(results[1].usedCardEffects).toEqual(['+1 Second Chance'])
+ expect(results[1].effects).toContain('-2 Dicuri oleh A')
+})
+it('filters older archives by actual played cards without replaying their effects', () => {
+ const swallow=card('Epic Swallow Card'), protect=card('Rare Protect Card')
+ const result={teamId:'a',initialGP:5,finalGP:8,gigaRisk:4,usedCards:1,effects:['+4 Swallow','-1 Reverse oleh B','+1 Gardian Unity','+2 Protect']}
+ expect(teamUsedCardEffects(result,[swallow])).toEqual(['+4 Swallow'])
+ expect(teamUsedCardEffects(result,[])).toEqual([])
+ expect(teamUsedCardEffects(result,[protect])).toEqual([protect.effect_action])
+ expect(result.finalGP).toBe(8)
+})
+it('records a zero transfer as the action of the played thief card', () => {
+ const thief=card('Normal Thief Card')
+ const result=resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[thief]},{id:'b',name:'B',gp:0,cards:[]}],{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:'b'}}}).teams
+ expect(result[0].usedCardEffects).toEqual(['+0 Dicuri dari B'])
+ expect(result.map((team)=>team.finalGP)).toEqual([3,0])
 })

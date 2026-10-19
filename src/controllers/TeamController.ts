@@ -2,6 +2,7 @@ import { Team, TEAM_STATUSES, type TeamStatus } from '../models'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 import { ChallengePoint } from '../models'
 import { isDefaultTeam } from '../services/defaultTeams'
+import { flushDatabase } from '../db/sequelize-provider'
 import { openGPAccount } from '../services/gpTransactions'
 
 export interface TeamInput {
@@ -75,8 +76,9 @@ export class TeamController {
     if (!TEAM_STATUSES.includes(status)) throw new Error('Team status is invalid')
     const team = await Team.findByPk(id)
     if (!team) return null
-    if (isDefaultTeam(team.name)) throw new Error('Default teams cannot be edited')
+    if (status === 'active' && team.total_gp <= 0) throw new Error('A team needs GP above 0 before activation.')
     await team.update({ status })
+    if (typeof window !== 'undefined') await flushDatabase()
     dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
     return team
   }

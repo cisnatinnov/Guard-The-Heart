@@ -351,7 +351,7 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
 
 /** Pick the next matching team directly, independently of the Urutan Main page. */
 export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
-  if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Card run')
+  if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Connect run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
   if (index < 0) throw new Error('Choose a team participating in this run')
   return { ...run, manualTeamSelection:true, nextTeamIndex:index,

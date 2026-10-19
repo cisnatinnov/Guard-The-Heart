@@ -1,8 +1,57 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { CROCODILE_TEETH, createCrocodileRound, pressCrocodileTooth, type CrocodileRound } from '../../services/games/crocodile'
 import '../../styles/crocodile.css'
+import { useCrocodileHover } from './useCrocodileHover'
+
+const ASSET_ROOT = '/ui/jaw-of-risk/'
+const BITE_GIF = `${ASSET_ROOT}GIF-Gigarisk Gigit.gif`
+const SOUNDS = {
+  hover: 'CH-3_Sound_Belum Click.mp3',
+  click: 'CH-3_Sound_Click.mp3',
+  safe: 'CH-3_Sound_Click-Aman.mp3',
+  bite: 'CH-3_Sound_Click-Tergigit.mp3',
+} as const
+
+function HandCursor({ tooth, x, y }: { tooth: number; x: number; y: number }) {
+  const side = tooth < CROCODILE_TEETH / 2 ? 'Kiri' : 'Kanan'
+  return <img className={`crocodile__hand crocodile__hand--${side.toLowerCase()}`} src={`${ASSET_ROOT}Tangan - Pencet Gigi ${side}.png`} alt="" aria-hidden="true" draggable={false} style={{ left: `${x / 19.2}%`, top: `${y / 10.8}%` }} />
+}
+
+function PressHand({ tooth, x, y, pressedAt }: { tooth: number; x: number; y: number; pressedAt: number }) {
+  const [visible, setVisible] = useState(() => Date.now() < pressedAt + 650)
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setVisible(false), Math.max(0, pressedAt + 650 - Date.now()))
+    return () => window.clearTimeout(timeout)
+  }, [pressedAt])
+  if (!visible) return null
+  return <HandCursor tooth={tooth} x={x} y={y} />
+}
 
 export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
+  const canControl = window.location.pathname.startsWith('/admin/')
+  const stage = useRef<HTMLElement>(null)
+  const [pointerHand, setPointerHand] = useCrocodileHover(challengeId, canControl)
+  function moveHand(event: PointerEvent<HTMLButtonElement>, tooth: number) {
+    if (!canControl || event.pointerType !== 'mouse' || !stage.current) return
+    const box = stage.current.getBoundingClientRect()
+    setPointerHand({ tooth, x: (event.clientX - box.left) / box.width * 1920, y: (event.clientY - box.top) / box.height * 1080 })
+  }
+  const sounds = useRef<Partial<Record<keyof typeof SOUNDS, HTMLAudioElement>>>({})
+  function playSound(name: keyof typeof SOUNDS) {
+    if (!canControl) return
+    const audio = sounds.current[name]
+    if (!audio) return
+    if (name === 'click') {
+      sounds.current.hover?.pause()
+      sounds.current.safe?.pause()
+      sounds.current.bite?.pause()
+    }
+    audio.currentTime = 0
+    void audio.play().catch(() => { /* Hover audio waits until the browser allows playback. */ })
+  }
+  useEffect(() => () => {
+    for (const audio of Object.values(sounds.current)) audio.pause()
+  }, [])
   const storageKey = `guard-the-heart-crocodile:${challengeId}`
   function read(): CrocodileRound | null {
     try {
@@ -36,64 +85,61 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round.reopenAt, storageKey])
 
+  function pressTooth(tooth: number, keyboard: boolean) {
+    if (!canControl) return
+    const current = read() ?? round
+    const next = pressCrocodileTooth(current, tooth)
+    if (next === current) return
+    setPointerHand(null)
+    if (keyboard) playSound('click')
+    playSound(next.reopenAt === null ? 'safe' : 'bite')
+    publish(next)
+  }
   const biting = round.reopenAt !== null
+  // Coordinates share the supplied 1920 x 1080 background's coordinate system.
   const toothRoots = [
-    [205, 355], [190, 415], [205, 475], [245, 535], [305, 558], [368, 570],
-    [432, 570], [495, 558], [555, 535], [595, 475], [610, 415], [595, 355],
+    [448.4, 746, .414], [504.1, 803.4, .414], [578.3, 841.3, .425], [661.1, 884.9, .414],
+    [741, 926.2, .425], [831.2, 943.4, .414], [926.7, 951.5, .425], [1022.7, 954.9, .425],
+    [1115.8, 951.5, .425], [1210.6, 922.8, .425], [1299.2, 884.9, .425], [1382.5, 843.6, .425],
+    [1458.4, 813.7, .425], [1525.1, 766.7, .425],
   ]
-  return <section className={`crocodile-stage${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy">
-    <header className="crocodile-stage__header"><img src="/Logo_Game-5.png" alt="Guard the Heart" /><h1>Challenge 3 - Jaw of Risk</h1>
-    </header>
-    <p className="crocodile-stage__instruction">Press a tooth. Take a chance.</p>
+  const toothCrops = [[130, 89, 340, 487], [127, 87, 342, 477], [128, 88, 355, 459], [130, 88, 368, 468], [130, 88, 355, 464], [130, 89, 357, 467], [130, 89, 362, 457], [129, 88, 360, 463], [125, 85, 365, 471], [129, 87, 372, 465], [128, 89, 366, 465], [126, 89, 340, 497], [125, 86, 327, 511], [129, 90, 348, 530]]
+  const lastTooth = round.pressed.at(-1)
+  const handRoot = lastTooth === undefined ? null : toothRoots[lastTooth]
+  return <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy">
+    <link rel="preload" as="image" href={BITE_GIF} />
+    <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kiri.png`} />
+    <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kanan.png`} />
+    {Object.entries(SOUNDS).map(([name, file]) => <audio key={name} data-sound={name} ref={(element) => { if (element) sounds.current[name as keyof typeof SOUNDS] = element }} src={`${ASSET_ROOT}Sound/${file}`} preload="auto" />)}
+    <header className="crocodile-stage__header"><img src="/Logo_Game-5.png" alt="Guard the Heart" /><h1>Challenge 3 - Jaw of Risk</h1></header>
+    <p className="crocodile-stage__instruction">{canControl ? 'Press a tooth. Take a chance.' : 'Watch closely. One tooth will bite.'}</p>
     <div className="crocodile" aria-label={biting ? 'Crocodile bites!' : 'Crocodile mouth open'}>
-      <svg className="crocodile__base-art" viewBox="0 0 800 620" aria-hidden="true">
-        <defs>
-          <linearGradient id="toy-green" x2=".3" y2="1"><stop stopColor="#87f52a" /><stop offset=".5" stopColor="#2fc515" /><stop offset="1" stopColor="#087c26" /></linearGradient>
-          <linearGradient id="toy-gum" x2="0" y2="1"><stop stopColor="#ff6755" /><stop offset=".45" stopColor="#dc201f" /><stop offset="1" stopColor="#99121b" /></linearGradient>
-          <radialGradient id="toy-mouth"><stop stopColor="#4d0c15" /><stop offset="1" stopColor="#160e14" /></radialGradient>
-        </defs>
-        <ellipse cx="400" cy="586" rx="280" ry="26" fill="#001d18" opacity=".45" />
-        <g fill="url(#toy-green)" stroke="#148b25" strokeWidth="6">
-          <path d="M167 333 Q90 306 70 377 Q69 407 142 410Z" />
-          <path d="M633 333 Q710 306 730 377 Q731 407 658 410Z" />
-          <path d="M193 445 Q109 443 98 492 Q90 520 174 518Z" />
-          <path d="M607 445 Q691 443 702 492 Q710 520 626 518Z" />
-          <path d="M181 273 Q117 309 129 443 L176 476 238 298Z" />
-          <path d="M619 273 Q683 309 671 443 L624 476 562 298Z" />
-        </g>
-        <g fill="#e9d92d"><ellipse cx="78" cy="392" rx="9" ry="15" /><ellipse cx="100" cy="399" rx="9" ry="15" /><ellipse cx="722" cy="392" rx="9" ry="15" /><ellipse cx="700" cy="399" rx="9" ry="15" /><ellipse cx="107" cy="505" rx="9" ry="13" /><ellipse cx="129" cy="512" rx="9" ry="13" /><ellipse cx="693" cy="505" rx="9" ry="13" /><ellipse cx="671" cy="512" rx="9" ry="13" /></g>
-        <path d="M165 315 C110 355 105 485 184 548 C270 620 530 620 616 548 C695 485 690 355 635 315Z" fill="url(#toy-green)" stroke="#096c23" strokeWidth="7" />
-        <path d="M180 330 C130 365 135 470 201 525 C290 595 510 595 599 525 C665 470 670 365 620 330Z" fill="url(#toy-gum)" stroke="#ff7462" strokeWidth="6" />
-        <path d="M232 333 C195 363 192 451 250 490 C325 543 475 543 550 490 C608 451 605 363 568 333Z" fill="url(#toy-mouth)" />
-        <path d="M298 471 Q400 430 502 471 Q497 508 400 516 Q303 508 298 471" fill="#a72535" opacity=".6" />
-        <path d="M400 474V505" stroke="#6d1927" strokeWidth="4" strokeLinecap="round" />
-        <path d="M211 561 Q400 628 589 561" fill="none" stroke="#62e82a" strokeWidth="8" strokeLinecap="round" />
-        <g fill="#39c91b" stroke="#0c8125" strokeWidth="5"><circle cx="155" cy="345" r="20" /><circle cx="645" cy="345" r="20" /></g>
-      </svg>
-      <div className="crocodile__head">
-        <svg viewBox="0 0 800 620" aria-hidden="true">
-          <path d="M178 281 Q164 190 219 127 Q246 78 309 99 Q400 65 491 99 Q554 78 581 127 Q636 190 622 281Z" fill="url(#toy-green)" stroke="#14912b" strokeWidth="6" />
-          <g fill="#e9ffbc" stroke="#219c2b" strokeWidth="5"><ellipse cx="320" cy="154" rx="39" ry="51" /><ellipse cx="480" cy="154" rx="39" ry="51" /></g>
-          <g fill="#1d622e"><ellipse cx="330" cy="163" rx="18" ry="29" /><ellipse cx="470" cy="163" rx="18" ry="29" /></g>
-          <g fill="#102d23"><ellipse cx="334" cy="166" rx="9" ry="22" /><ellipse cx="466" cy="166" rx="9" ry="22" /></g>
-          <g fill="white"><circle cx="325" cy="151" r="7" /><circle cx="475" cy="151" r="7" /></g>
-          <path d="M279 115 Q310 115 353 140 M521 115 Q490 115 447 140" fill="none" stroke="#2ec71b" strokeWidth="25" strokeLinecap="round" />
-          <path d="M220 245 Q400 205 580 245 L569 289 Q400 322 231 289Z" fill="#c82127" stroke="#941323" strokeWidth="5" />
-          <g fill="#fff8d9" stroke="#dbd2ad" strokeWidth="2"><path d="M250 279L268 310 283 282Z" /><path d="M304 287L320 319 336 289Z" /><path d="M360 292L376 324 391 293Z" /><path d="M416 293L431 324 447 291Z" /><path d="M472 288L488 319 504 285Z" /><path d="M527 280L542 310 558 276Z" /></g>
-          <path d="M223 192 Q400 150 577 192 L620 238 Q645 269 610 286 Q400 318 190 286 Q155 269 180 238Z" fill="url(#toy-green)" stroke="#108d24" strokeWidth="6" />
-          <path d="M240 202 Q400 170 560 202 M220 224 Q400 191 580 224" fill="none" stroke="#99fb47" strokeWidth="7" strokeLinecap="round" opacity=".7" />
-          <g fill="#123b22" stroke="#46d52a" strokeWidth="5"><ellipse cx="252" cy="262" rx="29" ry="23" transform="rotate(17 252 262)" /><ellipse cx="548" cy="262" rx="29" ry="23" transform="rotate(-17 548 262)" /></g>
-          <path d="M298 281 Q400 294 502 281" fill="none" stroke="#73f13c" strokeWidth="5" strokeLinecap="round" />
-        </svg>
-      </div>
+      <img className="crocodile__base-art" src="/ui/jaw-of-risk/CH-3_Background-Polos.png" alt="GigaRisk head" />
       <div className="crocodile__teeth" role="group" aria-label="Lower jaw teeth">
-        {toothRoots.map(([x, y], tooth) => <button key={tooth} type="button"
-          className={`crocodile__tooth${round.pressed.includes(tooth) ? ' is-pressed' : ''}`}
-          style={{ left: `${x / 8}%`, top: `${y / 6.2}%` }}
-          aria-label={`Tooth ${tooth + 1}`} aria-pressed={round.pressed.includes(tooth)}
-          disabled={biting || round.pressed.includes(tooth)}
-          onClick={() => publish(pressCrocodileTooth(read() ?? round, tooth))}><span>{tooth + 1}</span></button>)}
+        {toothRoots.map(([x, y, scale], tooth) => {
+          const pressed = round.pressed.includes(tooth)
+          const [left, top, right, bottom] = toothCrops[tooth]
+          const number = tooth === 0 ? '01' : String(tooth + 1)
+          return <button key={tooth} type="button"
+            className={`crocodile__tooth${pressed ? ' is-pressed' : ''}${pointerHand?.tooth === tooth && !biting && !pressed ? ' is-hovered' : ''}`}
+            style={{ left: `${x / 19.2}%`, top: `${y / 10.8}%`, width: `${(right - left) * scale / 19.2}%`, aspectRatio: `${right - left} / ${bottom - top}` }}
+            aria-label={`Tooth ${tooth + 1}`} aria-pressed={pressed}
+            disabled={!canControl || biting || pressed}
+            onPointerEnter={(event) => { moveHand(event, tooth); playSound('hover') }}
+            onPointerMove={(event) => moveHand(event, tooth)}
+            onPointerLeave={() => setPointerHand(null)}
+            onFocus={(event) => { if (event.currentTarget.matches(':focus-visible')) playSound('hover') }}
+            onPointerDown={() => playSound('click')}
+            onClick={(event) => pressTooth(tooth, event.detail === 0)}>
+            <svg viewBox={`${left} ${top} ${right - left} ${bottom - top}`} aria-hidden="true">
+              <image href={`/ui/jaw-of-risk/${pressed ? `Gigi-Pencet/Gigi-Pencet_${number}` : `Gigi-Utuh/Gigi-Full_${number}`}.png`} width="600" height="600" />
+            </svg>
+          </button>
+        })}
       </div>
+      {biting && <img key={round.reopenAt} className="crocodile__bite" src={`${BITE_GIF}#${round.reopenAt}`} alt="" aria-hidden="true" draggable={false} />}
+      {pointerHand && !biting && !round.pressed.includes(pointerHand.tooth) && <HandCursor {...pointerHand} />}
+      {!pointerHand && handRoot && lastTooth !== undefined && typeof round.lastPressedAt === 'number' && <PressHand key={round.lastPressedAt} tooth={lastTooth} x={handRoot[0]} y={handRoot[1] - 100} pressedAt={round.lastPressedAt} />}
     </div>
     <p className="crocodile-stage__status" role="status" aria-live="polite">{biting ? 'CHOMP! Watch your fingers!' : round.pressed.length ? 'Safe! Choose another tooth.' : 'Which tooth will bite?'}</p>
   </section>

@@ -1,45 +1,32 @@
 .podium-public { width:min(100vw,177.777778dvh); }
 .podium-admin { min-width:0; }
-.podium-admin .admin-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-bottom:16px; }
-.podium-admin .field { max-width:200px; }
-.podium-stage { position:relative; width:100%; aspect-ratio:16/9; container-type:inline-size; isolation:isolate; font-family:Arial,sans-serif; }
+.podium-admin .admin-toolbar { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; gap:16px; margin-bottom:16px; }
+.podium-admin .field { min-width:0; max-width:none; }
+.podium-admin .field input { width:100%; box-sizing:border-box; }
+.podium-stage { position:relative; width:100%; aspect-ratio:16/9; container-type:inline-size; isolation:isolate; overflow:hidden; font-family:Arial,sans-serif; }
 .podium-art { display:block; width:100%; height:100%; object-fit:cover; }
 .app--public:has(.podium-stage) { width:100%; max-width:none; min-height:100dvh; margin:0; padding:0; background:#102b42; }
 .app--public:has(.podium-stage) .app__main { display:grid; min-height:100dvh; place-items:center; }
 .podium-winner { position:absolute; inset:0; pointer-events:none; }
-.podium-name,.podium-gp,.podium-prize,.podium-tied-rank { position:absolute; display:grid; place-items:center; overflow:hidden; white-space:nowrap; }
-.podium-name { color:#5a2811; font-weight:700; font-size:2cqw; text-overflow:ellipsis; }
-.podium-gp { color:#fff4cc; font-size:2.7cqw; font-variant-numeric:tabular-nums; text-shadow:0 .08cqw .15cqw #071525; }
-.podium-prize { color:#fff4da; font-size:1.85cqw; font-weight:700; background:linear-gradient(90deg,#502301,#562800 70%,#482201); }
+.podium-rank { position:absolute; display:block; object-fit:contain; filter:drop-shadow(0 .18cqw .22cqw #45251055); }
+.podium-winner--1 .podium-rank { left:37.5%; top:36.5%; width:25%; height:27%; }
+.podium-winner--2 .podium-rank { left:8.4%; top:51.6%; width:23%; height:18.5%; }
+.podium-winner--3 .podium-rank { left:69.7%; top:51.6%; width:23%; height:18.5%; }
+.podium-name,.podium-gp,.podium-prize { position:absolute; display:grid; place-items:center; box-sizing:border-box; margin:0; overflow:hidden; white-space:nowrap; line-height:1; text-align:center; }
+.podium-name { padding:0 .4cqw; color:#5a2811; font-weight:700; font-size:var(--name-size); pointer-events:auto; }
+.podium-name > span { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; }
+.podium-gp { color:#fff4cc; font-size:var(--gp-size); font-weight:700; font-variant-numeric:tabular-nums; text-shadow:0 .08cqw .15cqw #071525; }
+.podium-prize { padding:0 .15cqw; color:#fff4da; font-size:var(--prize-size); font-weight:700; font-variant-numeric:tabular-nums; text-shadow:0 .08cqw .15cqw #321800; }
 .podium-winner--1 .podium-name { left:36.9%; top:64.2%; width:17.5%; height:7.3%; }
-.podium-winner--1 .podium-gp { left:58.5%; top:65.5%; width:3.7%; height:5.1%; }
-.podium-winner--1 .podium-prize { left:46.4%; top:75.4%; width:13.2%; height:5.4%; }
+.podium-winner--1 .podium-gp { left:57.7%; top:65.5%; width:4.8%; height:5.1%; }
+.podium-winner--1 .podium-prize { left:45.9%; top:75.2%; width:14.3%; height:6.1%; }
 .podium-winner--2 .podium-name { left:8.7%; top:71.2%; width:15.1%; height:6.1%; color:#27354b; }
-.podium-winner--2 .podium-gp { left:27.6%; top:72%; width:2.2%; height:4.3%; font-size:2cqw; }
-.podium-winner--2 .podium-prize { left:17.4%; top:80%; width:10.3%; height:4.1%; background:#434651; font-size:1.5cqw; }
+.podium-winner--2 .podium-gp { left:27%; top:72%; width:3.1%; height:4.3%; }
+.podium-winner--2 .podium-prize { left:17%; top:79.6%; width:11.3%; height:5.2%; }
 .podium-winner--3 .podium-name { left:69.7%; top:71.3%; width:15.2%; height:6.1%; }
-.podium-winner--3 .podium-gp { left:88.6%; top:72.3%; width:2.4%; height:4%; font-size:2cqw; }
-.podium-winner--3 .podium-prize { left:78.2%; top:80%; width:10.8%; height:4%; background:#642604; font-size:1.5cqw; }
-.podium-tied-rank { color:white; font-size:4.2cqw; font-weight:700; text-shadow:.12cqw .1cqw .05cqw #161827; }
-.podium-winner--2 .podium-tied-rank { left:18.4%; top:58.7%; width:3.5%; height:8%; background:#1f3d67; }
-.podium-winner--3 .podium-tied-rank { left:79.4%; top:60.4%; width:3.5%; height:8%; background:#8c2a15; }
-
-/* Fit live values inside the original illustrated plaques. */
-.podium-name { display:flex; align-items:center; justify-content:center; margin:0; padding:0 .45cqw; box-sizing:border-box; font-size:var(--name-size); line-height:1; pointer-events:auto; }
-.podium-name > span { display:block; width:100%; overflow:hidden; text-overflow:ellipsis; text-align:center; }
-.podium-gp { font-size:var(--gp-size); line-height:1; font-weight:700; letter-spacing:0; }
-.podium-winner--2 .podium-gp,.podium-winner--3 .podium-gp { font-size:var(--gp-size); }
-.podium-prize { padding-inline:.25cqw; box-sizing:border-box; font-size:var(--prize-size); line-height:1; font-variant-numeric:tabular-nums; border-radius:.2cqw; }
-.podium-winner--2 .podium-prize,.podium-winner--3 .podium-prize { font-size:var(--prize-size); }
-.podium-winner--1 .podium-gp { left:57.7%; width:4.8%; }
-.podium-winner--2 .podium-gp { left:27%; width:3.1%; }
-.podium-winner--3 .podium-gp { left:88%; width:3.4%; }
-.podium-winner--1 .podium-prize { left:45.7%; width:14.2%; }
-.podium-winner--2 .podium-prize { left:17%; width:11.1%; }
-.podium-winner--3 .podium-prize { left:77.8%; width:11.7%; }
-.podium-tied-rank { line-height:1; clip-path:polygon(0 0,100% 0,100% 85%,50% 100%,0 85%); }
-.podium-winner--2 .podium-tied-rank { left:18.2%; top:58.5%; width:4%; height:9%; background:linear-gradient(#28496f,#152b4a); }
-.podium-winner--3 .podium-tied-rank { left:79.2%; top:60.2%; width:4%; height:8.8%; background:linear-gradient(#a63f18,#66200c); }
+.podium-winner--3 .podium-gp { left:88%; top:72.3%; width:3.4%; height:4%; }
+.podium-winner--3 .podium-prize { left:77.7%; top:79.6%; width:11.7%; height:5.2%; }
+@media(max-width:600px) { .podium-admin .admin-toolbar { grid-template-columns:1fr; gap:12px; } }
 .podium-cp { position:absolute; top:89%; width:22%; height:6%; display:flex; align-items:center; justify-content:center; border:.15cqw solid #ffffffb3; border-radius:2cqw; background:#e7e9ed; color:#243447; font:700 1.8cqw/1 Arial,sans-serif; font-variant-numeric:tabular-nums; box-shadow:0 .25cqw .6cqw #102b4233; }
 .podium-winner--1 .podium-cp { left:39%; }
 .podium-winner--2 .podium-cp { left:8%; }

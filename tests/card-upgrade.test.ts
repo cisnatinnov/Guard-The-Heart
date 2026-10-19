@@ -23,21 +23,25 @@ it('moves Rare Reverse to Epic Reverse and old Epic Reverse to Epic Thief withou
   await thief.update({...legacyEpic,team:team.id,challenge:challenge.id,challenge_point:entry.id})
   const ownedRare = await TeamCard.create({...legacyRare,team:team.id,challenge_point:entry.id})
   const ownedEpic = await TeamCard.create({...legacyEpic,team:team.id,challenge_point:entry.id})
-  const reflect = (await Card.findOne({where:{name:'Epic Reflect Card #01'}}))!
-  await reflect.update({effect_action:'Damage Gigarisk yang diterima dikonversi menjadi Guard Point (GP).'})
+  const swallow = (await Card.findOne({where:{name:'Epic Swallow Card #01'}}))!
+  await swallow.update({name:'Epic Reflect Card #01',team:team.id,challenge:challenge.id,challenge_point:entry.id,effect_action:'Damage Gigarisk yang diterima dikonversi menjadi Guard Point (GP).'})
+  const ownedSwallow = await TeamCard.create({name:swallow.name,type:'Epic',effect:'Defense',effect_action:swallow.effect_action,icon:'💥',team:team.id,challenge_point:entry.id})
   for (let run=0;run<3;run++) {
     await seedCardPool()
-    for (const row of [reverse,thief,ownedRare,ownedEpic,reflect]) await row.reload()
+    for (const row of [reverse,thief,ownedRare,ownedEpic,swallow]) await row.reload()
     expect([reverse.name,reverse.type,reverse.effect_action]).toEqual(['Epic Reverse Card #01','Epic',legacyRare.effect_action])
     expect([thief.name,thief.type,thief.effect]).toEqual(['Epic Thief Card #01','Epic','Thief'])
     expect([ownedRare.name,ownedEpic.name]).toEqual(['Epic Reverse Card #01','Epic Thief Card #01'])
     for (const row of [reverse,thief,ownedRare,ownedEpic]) expect([row.team,row.challenge_point]).toEqual([team.id,entry.id])
     expect([reverse.challenge,thief.challenge]).toEqual([challenge.id,challenge.id])
-    expect(reflect.effect_action).toContain('dikonversi double')
-    expect(await Card.count()).toBe(80)
+    expect(swallow.effect_action).toContain('menjadi +4')
+    await ownedSwallow.reload()
+    expect([swallow.name,ownedSwallow.name]).toEqual(['Epic Swallow Card #01','Epic Swallow Card #01'])
+    expect([ownedSwallow.team,ownedSwallow.challenge_point]).toEqual([team.id,entry.id])
+    expect(await Card.count()).toBe(86)
     expect(await Card.count({where:{name:'Epic Reverse Card #01'}})).toBe(1)
     expect(await Card.count({where:{name:'Epic Thief Card #01'}})).toBe(1)
-    expect(await Card.count({where:{type:'Rare'}})).toBe(18)
+    expect(await Card.count({where:{type:'Rare'}})).toBe(24)
     expect(await Card.count({where:{type:'Epic'}})).toBe(12)
   }
 })
@@ -69,11 +73,11 @@ it('Epic Thief takes 2 GP from two distinct opponents and rejects invalid select
   }
 })
 
-it('caps theft by remaining balance and does not reflect an attack prevented by Unity', () => {
+it('caps theft by remaining balance and does not swallow an attack prevented by Unity', () => {
   const thief = actionCard('Epic Thief Card')
   const teams = [{id:'a',name:'A',gp:5,cards:[thief]},{id:'b',name:'B',gp:3,cards:[]},{id:'c',name:'C',gp:1,cards:[]}]
-  expect(resolveTacticalEffects(teams,{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:['b','c']}}}).teams.map((team)=>team.finalGP)).toEqual([4,0,0])
-  const cards = [actionCard('Epic Reflect Card'),actionCard('Legendary Gardian Unity')]
+  expect(resolveTacticalEffects(teams,{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:['b','c']}}}).teams.map((team)=>team.finalGP)).toEqual([6,0,0])
+  const cards = [actionCard('Epic Swallow Card'),actionCard('Legendary Gardian Unity')]
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards}],{a:{cards:cards.map((card)=>card.id),skipped:false}}).teams[0]
   expect([result.gigaRisk,result.finalGP]).toEqual([0,6])
 })

@@ -56,21 +56,22 @@ describe('challenge registry', () => {
   it('lists the three playable challenges in order', () => {
     expect(CHALLENGE_GAMES.map((game) => game.title)).toEqual([
       'Challenge 1 - Image Decode',
-      'Challenge 2 - Flipping Card',
+      'Challenge 2 - Flipping Connect',
       'Challenge 3 - Jaw of Risk',
     ])
     expect(challengeGameInfo('emoji-decode').title).toBe('Challenge 1 - Image Decode')
-    expect(challengeGameInfo('word-assembly').title).toBe('Challenge 2 - Flipping Card')
+    expect(challengeGameInfo('word-assembly').title).toBe('Challenge 2 - Flipping Connect')
   })
 
   it('maps former titles and retires removed challenges', () => {
     expect(RENAMED_CHALLENGE_TITLES).toEqual({
       'Emoji Decode': 'Challenge 1 - Image Decode',
       'Image Decode': 'Challenge 1 - Image Decode',
-      'Word Assembly': 'Challenge 2 - Flipping Card',
-      'Match Card': 'Challenge 2 - Flipping Card',
-      'Flipping Connect': 'Challenge 2 - Flipping Card',
-      'Flipping Card': 'Challenge 2 - Flipping Card',
+      'Word Assembly': 'Challenge 2 - Flipping Connect',
+      'Match Card': 'Challenge 2 - Flipping Connect',
+      'Flipping Connect': 'Challenge 2 - Flipping Connect',
+      'Flipping Card': 'Challenge 2 - Flipping Connect',
+      'Challenge 2 - Flipping Card': 'Challenge 2 - Flipping Connect',
       'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
       'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
     })
@@ -345,7 +346,7 @@ describe('Image Decode', () => {
   })
 })
 
-describe('Flipping Card', () => {
+describe('Flipping Connect', () => {
   it('deals two identical image cards for each of ten questions', () => {
     const state = createWordAssemblyState(seededRandom(7))
     expect(WORD_ASSEMBLY_QUESTIONS).toHaveLength(10)

@@ -15,6 +15,7 @@ interface CardDesign {
   icon: string
   effect_action: string
   copies: number
+  image?: string
 }
 
 export const CARD_BACK_IMAGE = '/cards/0_BACK CARD.png'
@@ -78,10 +79,10 @@ const CARD_DESIGNS: CardDesign[] = [
   },
   {
     type: 'Epic',
-    title: 'Reflect Card',
+    title: 'Swallow Card',
     effect: 'Defense',
     icon: '💥',
-    effect_action: 'Damage Gigarisk yang diterima dikonversi double menjadi Guard Point (GP).',
+    effect_action: 'Menelan efek serangan GigaRisk dan mengubahnya menjadi +4 Guard Point (GP).',
     copies: 3,
   },
   {
@@ -110,9 +111,19 @@ const CARD_DESIGNS: CardDesign[] = [
       '(Passive Skill) Otomatis bangkit dengan penambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
     copies: 1,
   },
+  {
+    type: 'Rare',
+    title: 'Fortune Draw Card',
+    effect: 'Utility',
+    icon: '🎴',
+    effect_action: 'Ambil 1 dari 3 kartu.',
+    copies: 6,
+    image: '/cards/Rare_Fortune_Draw Card.png',
+  },
 ]
 
 function designImage(design: CardDesign): string {
+  if (design.image) return design.image
   const typePrefix = design.type === 'Legendary' ? 'Legend' : design.type
   return `/cards/${typePrefix}_${design.title}.png`
 }
@@ -139,7 +150,12 @@ export const CARD_POOL: CardPoolDefinition[] = CARD_DESIGNS.flatMap((design) =>
 )
 
 export function cardImageFor(name: string): string | null {
-  return IMAGE_BY_NAME.get(name) ?? null
+  return IMAGE_BY_NAME.get(name.replace(/^Epic Reflect Card/, 'Epic Swallow Card')) ?? null
+}
+
+/** Display the renamed action in old snapshots without changing ledger amounts. */
+export function cardEffectLabel(effect: string): string {
+  return effect.replace(/Reflect/g, 'Swallow').replace(/Swallow \(2 × 2 GP\)/g, 'Swallow')
 }
 
 /** Numbered inventory copies of the same rarity/design share one identity. */
@@ -148,6 +164,6 @@ export function cardDesignKey(card: { name: string; type: CardType }): string {
 }
 
 export function cardTitleFor(name: string, type: CardType): string {
-  const design = CARD_DESIGNS.find((candidate) => IMAGE_BY_NAME.get(name) === designImage(candidate))
+  const design = CARD_DESIGNS.find((candidate) => cardImageFor(name) === designImage(candidate))
   return design && design.type === type ? design.title : name
 }

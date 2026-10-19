@@ -1,4 +1,4 @@
-import { initDatabase, getSequelize } from './sequelize-provider'
+import { initDatabase, getSequelize, flushDatabase, withDatabaseWriteLock } from './sequelize-provider'
 import { DataTypes } from 'sequelize'
 import { Challenge, ChallengePoint, defineModels } from '../models'
 import { rerankChallenge, recalculateTotalScoreboard } from '../services/scoreboardAggregator'
@@ -37,7 +37,7 @@ async function isLegacySchema(sequelize: ReturnType<typeof getSequelize>): Promi
 
 export function initializeAppDatabase(): Promise<void> {
   if (!readyPromise) {
-    readyPromise = (async () => {
+    readyPromise = withDatabaseWriteLock(async () => {
       const sequelize = await initDatabase()
       defineModels(sequelize)
       // The blueprint changed shape (team FKs, per-team scoreboard), so a
@@ -66,7 +66,8 @@ export function initializeAppDatabase(): Promise<void> {
       await seedCardPool()
       await repairDuplicateTeamCards()
       await synchronizeAllChallengeBonusCards()
-    })()
+      await flushDatabase()
+    })
   }
 
   async function ensureChallengeDrawColumn(sequelize: ReturnType<typeof getSequelize>): Promise<void> {

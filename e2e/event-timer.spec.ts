@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test'
 
-test('legacy timers preserve duration without displaying a label', async ({ page }) => {
+test('legacy timers preserve duration and migrate the challenge title', async ({ page }) => {
   await page.goto('/admin/timer')
   await page.evaluate(() => {
     localStorage.setItem('guard-the-heart-presentation-timer', JSON.stringify({ duration: 120, remaining: 90, deadline: null, label: 'Challenge 1 - Flipping Card' }))
   })
   await page.reload()
   await expect(page.getByRole('textbox', { name: 'Timer label' })).toHaveCount(0)
-  await expect(page.locator('.event-timer__label')).toHaveCount(0)
+  await expect(page.locator('.event-timer__label')).toHaveText('Challenge 1 - Image Decode')
   await expect(page.getByRole('timer')).toHaveText('01:30')
   await page.reload()
 })
@@ -22,8 +22,13 @@ test('standalone timer configuration, pause, reset and expiry synchronize with p
   await projector.clock.pauseAt(new Date(time.getTime() + 1000))
   await projector.goto('/timer')
   await expect(page.getByRole('textbox', { name: 'Timer label' })).toHaveCount(0)
-  await expect(projector.locator('.event-timer__label')).toHaveCount(0)
+  await expect(projector.locator('.event-timer__label')).toHaveText('Challenge 1 - Image Decode')
   await expect(projector.getByRole('timer')).toHaveText('15:00')
+  await page.getByRole('combobox', { name: 'Challenge', exact: true }).selectOption('Challenge 3 - Jaw of Risk')
+  await page.getByRole('combobox', { name: 'Active team', exact: true }).selectOption({ label: 'Biru' })
+  await expect(projector.locator('.event-timer__label')).toHaveText('Challenge 3 - Jaw of Risk')
+  await expect(projector.locator('.event-timer__team[aria-current="step"]')).toContainText('Tim Biru')
+  await expect(projector.getByText('Giliran', { exact: true })).toBeVisible()
   await page.getByRole('spinbutton', { name: 'Minutes' }).fill('0')
   await page.getByRole('spinbutton', { name: 'Seconds' }).fill('15')
   await page.getByRole('button', { name: 'Set timer', exact: true }).click()
@@ -39,6 +44,8 @@ test('standalone timer configuration, pause, reset and expiry synchronize with p
   await projector.reload()
   await projector.clock.runFor(5000)
   await expect(projector.getByRole('timer')).toHaveText('00:10')
+  await expect(projector.locator('.event-timer__label')).toHaveText('Challenge 3 - Jaw of Risk')
+  await expect(projector.locator('.event-timer__team[aria-current="step"]')).toContainText('Tim Biru')
   await page.getByRole('button', { name: 'Reset timer', exact: true }).click()
   await expect(projector.getByRole('timer')).toHaveText('00:15')
   await page.getByRole('button', { name: 'Start timer', exact: true }).click()
@@ -66,4 +73,21 @@ test('public timer opens as a standalone display and slide navigation is removed
   await expect(projector).toHaveURL(/\/timer$/)
   await expect(projector.getByRole('timer')).toBeVisible()
   await expect(projector.getByRole('button')).toHaveCount(0)
+})
+
+test('timer panels stay aligned with the reference at desktop and phone sizes', async ({ page }) => {
+  await page.goto('/timer')
+  await expect(page.getByRole('listitem')).toHaveCount(5)
+  for (const size of [{ width:1280, height:720 }, { width:390, height:844 }]) {
+    await page.setViewportSize(size)
+    const stage = (await page.getByLabel('Event countdown timer').boundingBox())!
+    expect(stage.width / stage.height).toBeCloseTo(16 / 9, 2)
+    for (const selector of ['.event-timer__digits', '.event-timer__label', '.event-timer__teams']) {
+      const box = (await page.locator(selector).boundingBox())!
+      expect(box.x).toBeGreaterThan(stage.x)
+      expect(box.x + box.width).toBeLessThan(stage.x + stage.width)
+      expect(box.y + box.height).toBeLessThan(stage.y + stage.height)
+    }
+    await page.screenshot({ path:`test-results/timer-reference-${size.width}.png` })
+  }
 })

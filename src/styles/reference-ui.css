@@ -14,7 +14,7 @@
 .team-pill--biru { background:#42b3f7; }
 .team-pill--pink { background:#ff0984; }
 .team-pill--hijau { background:#42f877; }
-.gp-mark { display:inline-grid; flex:none; place-items:center; width:2.6cqw; height:3cqw; clip-path:polygon(50% 0,100% 18%,90% 70%,50% 100%,10% 70%,0 18%); background:linear-gradient(135deg,#75e9ff,#0068ed 50%,#55d1ff); color:white; font:700 1.2cqw/1 Arial,sans-serif; text-shadow:0 .08cqw .05cqw #064ca1; }
+.gp-mark { display:inline-block; flex:none; width:2.6cqw; height:3cqw; object-fit:contain; vertical-align:middle; transform:scale(1.2); }
 .ranking-challenge { position:absolute; left:32.5%; top:23.8%; width:35.5%; height:5.6%; display:grid; place-items:center; background:#a40906; border:.16cqw solid #48102a; border-radius:.65cqw; color:#fff; font:700 2.1cqw/1 Arial,sans-serif; white-space:nowrap; overflow:hidden; }
 .ranking-score-panel { position:absolute; left:7%; top:35.1%; width:86%; height:50.3%; background:linear-gradient(#fffdf8,#fff5d4); }
 .ranking-score-list { position:relative; width:100%; height:100%; margin:0; padding:0; list-style:none; }
@@ -33,36 +33,39 @@
 .ranking-gp-item .team-pill { height:100%; border-radius:.3cqw; font-size:1.4cqw; }
 .ranking-gp-item .gp-mark { width:1.6cqw; height:2cqw; font-size:.85cqw; justify-self:center; }
 .ranking-gp-item strong { font:700 2.1cqw/1 Arial,sans-serif; text-align:center; font-variant-numeric:tabular-nums; }
-.ranking-leader-panel { position:absolute; left:3%; top:25.5%; width:94.3%; height:65.6%; background:#fff8df; }
-.ranking-table { width:100%; height:100%; table-layout:fixed; border-collapse:separate; border-spacing:0 .5cqw; font-family:Arial,sans-serif; color:#91332e; }
+/* Seven columns follow the supplied leaderboard reference. */
+.reference-ranking--leaderboard { aspect-ratio:16/9; }
+.view--public-ranking:has(.reference-ranking--leaderboard) { width:min(100vw,177.777778dvh); }
+.ranking-leader-panel { position:absolute; left:3%; top:25.1%; width:94.3%; height:68.7%; background:linear-gradient(#fffdf4,#fff6d9); }
+.ranking-table { width:100%; height:100%; table-layout:fixed; border-collapse:separate; border-spacing:0 .45cqw; font-family:Arial,sans-serif; color:#91332e; }
 .ranking-table thead tr { height:6%; }
-.ranking-table th { padding:.2cqw; border:.25cqw solid #fb8a23; border-radius:.65cqw; background:linear-gradient(#aa3025,#7b2924); color:white; font-size:1.4cqw; line-height:1.05; white-space:nowrap; }
-.ranking-table th:nth-child(1) { width:8%; }
-.ranking-table th:nth-child(2) { width:16%; }
-.ranking-table th:nth-child(3) { width:7%; }
-.ranking-table th:nth-child(4) { width:10%; }
-.ranking-table th:nth-child(5) { width:12%; }
-.ranking-table th:nth-child(6) { width:26%; }
-.ranking-table th:nth-child(7) { width:10%; }
-.ranking-table th:nth-child(8) { width:11%; }
-.ranking-table tbody tr { height:18%; background:#efe7ce; }
-.ranking-table tbody tr:first-child { background:#ffedb9; }
+.reference-ranking .ranking-table th { padding:.25cqw .1cqw; border:.24cqw solid #f58c25; border-radius:.7cqw; background:linear-gradient(#b53a2b,#842923); color:#fff8eb; text-align:center; text-transform:none; letter-spacing:0; font:700 1.45cqw/1.1 Arial,sans-serif; white-space:nowrap; }
+.ranking-table th:nth-child(1) { width:9.5%; }
+.ranking-table th:nth-child(2) { width:18%; }
+.ranking-table th:nth-child(3) { width:9.5%; }
+.ranking-table th:nth-child(4) { width:13%; }
+.ranking-table th:nth-child(5) { width:29%; }
+.ranking-table th:nth-child(6) { width:9.5%; }
+.ranking-table th:nth-child(7) { width:10.5%; }
+.reference-ranking .ranking-table th:nth-child(4) { font-size:1.25cqw; }
+.ranking-table tbody tr { height:18.8%; background:#eee7d0; }
+.ranking-table tbody tr:first-child { background:#ffedb6; box-shadow:inset 0 0 0 .12cqw #ce9b48; }
 .ranking-table td { padding:.3cqw .45cqw; border:0; background:transparent; text-align:center; vertical-align:middle; overflow:hidden; }
 .ranking-table td:first-child { border-radius:.55cqw 0 0 .55cqw; }
 .ranking-table td:last-child { border-radius:0 .55cqw .55cqw 0; }
-.ranking-table .ranking-medal { width:7cqw; height:5.6cqw; margin:auto; }
-.ranking-table .team-pill { width:90%; height:3cqw; margin:auto; font-size:1.7cqw; }
-.ranking-table td strong { font-size:3.1cqw; font-variant-numeric:tabular-nums; vertical-align:middle; }
-.ranking-table .ranking-cp strong { font-size:3.1cqw; color:#69460c; }
-.ranking-table .gp-mark { width:2.2cqw; height:2.8cqw; margin-right:.25cqw; vertical-align:middle; }
-.ranking-table .ranking-damage { font-size:3cqw; font-weight:700; color:#ff292a; }
-.ranking-table .ranking-effects { text-align:left; font-size:1.35cqw; line-height:1.14; white-space:normal; overflow-wrap:anywhere; }
-.ranking-effects .positive { color:#008991; }
-.ranking-effect-list { max-height:5.6cqw; overflow:auto; scrollbar-width:thin; scrollbar-color:#c99b53 transparent; }
-.ranking-effects .negative { color:#ba3429; }
-.ranking-card { width:1.7cqw; height:2.5cqw; object-fit:contain; margin-right:.5cqw; vertical-align:middle; }
-.out-label { display:inline-block; font-size:.9cqw; border-radius:1cqw; background:#66514c; color:white; padding:.05cqw .45cqw; }
-.ranking-table tr.is-out { opacity:.55; }
+.ranking-table .ranking-medal { width:7.5cqw; height:6.2cqw; margin:auto; }
+.ranking-team-name { display:flex; align-items:center; justify-content:center; gap:.5cqw; }
+.ranking-table .team-pill { width:12cqw; height:3.1cqw; margin:0; border-radius:.4cqw; font-size:1.9cqw; }
+.ranking-table td strong { font-size:3.5cqw; font-variant-numeric:tabular-nums; vertical-align:middle; }
+.ranking-table .gp-mark { width:2.6cqw; height:3.1cqw; margin-right:.35cqw; vertical-align:middle; }
+.ranking-table .ranking-damage { font-size:3.5cqw; font-weight:700; color:#ff292a; }
+.ranking-table .ranking-effects { text-align:left; font-size:1.35cqw; line-height:1.15; white-space:normal; overflow-wrap:anywhere; }
+.ranking-effects .positive { color:#007e85; }
+.ranking-effect-list { max-height:6.5cqw; overflow:auto; scrollbar-width:thin; scrollbar-color:#c99b53 transparent; }
+.ranking-effects .negative { color:#af382a; }
+.ranking-card { width:1.8cqw; height:2.8cqw; object-fit:contain; margin-right:.65cqw; vertical-align:middle; }
+.out-label { display:inline-block; flex:none; font:700 1cqw/1 Arial,sans-serif; border-radius:1cqw; background:#66514c; color:white; padding:.3cqw .5cqw; }
+.ranking-table tr.is-out { opacity:.55; background:#d8d2c8; }
 .reference-status { position:absolute; bottom:1%; left:20%; width:60%; margin:0; padding:.2cqw; border-radius:.5cqw; color:#63331e; background:#fff5dd; font:700 1.2cqw/1.2 Arial,sans-serif; text-align:center; }
 .scoreboard-admin-reference { width:100%; min-width:0; }
 .turn-order-panel { position:absolute; left:8.5%; top:22%; width:83.8%; height:58.4%; background:linear-gradient(#fffdf8,#fff3ce); }
@@ -92,8 +95,6 @@
 .giga-defense:empty { display:none; }
 .giga-row.is-out { opacity:.6; }
 /* Keep the reference canvas independent of admin button and generic table styles. */
-.reference-ranking .ranking-table th { text-align:center; text-transform:none; letter-spacing:0; font:700 1.25cqw/1.1 Arial,sans-serif; white-space:normal; }
-.reference-ranking .ranking-table th:nth-child(5) { font-size:1.05cqw; white-space:normal; }
 .reference-stage .turn-order-item button { height:4.8cqw; min-height:0; padding:0; border:0; background:transparent; font:inherit; box-shadow:none; }
 .reference-stage .turn-order-shuffle { font:700 2.8cqw/1 Arial,sans-serif; padding:0; color:#471f0b; }
 .turn-order-panel::before, .turn-order-panel::after { content:''; position:absolute; left:2.5%; width:95%; height:.06cqw; background:#dda852; }
@@ -126,3 +127,18 @@
 .giga-effects .card-effect-outcome { margin:0; padding:0; border:0; background:transparent; font:400 1.25cqw/1.25 Arial,sans-serif; }
 .card-effect-outcome.is-positive { color:#008b9c; }
 .card-effect-outcome.is-negative { color:#cf2633; }
+
+/* Keep live text inside the original five illustrated plaques. */
+.awareness-teams { position:absolute; inset:0; margin:0; padding:0; list-style:none; }
+.awareness-team { position:absolute; top:56.65%; left:14.65%; width:11.6%; height:22.3%; min-width:0; }
+.awareness-team:nth-child(2) { left:29.75%; }
+.awareness-team:nth-child(3) { left:44.25%; }
+.awareness-team:nth-child(4) { left:58.75%; }
+.awareness-team:nth-child(5) { left:74%; }
+.awareness-name { position:absolute; inset:0 0 auto; height:17.5%; }
+.awareness-name .team-pill { border-radius:.25cqw; font:700 1.5cqw/1 Arial,sans-serif; }
+.awareness-score { position:absolute; top:36%; left:44%; width:56%; height:44%; display:grid; place-items:center; color:#351c0b; }
+.awareness-score strong { font:700 5.5cqw/1 Arial,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:-.2cqw; }
+.awareness-name--native .team-pill { background:transparent; }
+
+.awareness-gp-icon { position:absolute; top:31%; left:10%; width:35%; height:54%; }

@@ -108,6 +108,9 @@ transaction as the balance update. `syncRewardGP` also deactivates at zero,
 including when a legacy active record already has that balance. Startup repairs
 zero-GP status through `initializeGPTransactions`. Status is evaluated after
 Second Chance and other card effects, so a positive revived balance stays active.
+If this phase’s immediate transfers reduce a participating team to zero,
+`recordGigaRiskGP` reactivates it when its deferred effects settle above zero.
+Other positive GP changes preserve manual inactivity.
 Manual deactivation applies to every team; `TeamController.setStatus` rejects
 activation at zero and flushes status changes before notifying the UI. Neither
 reward increases nor default-team seeding automatically reactivate a team.
@@ -145,10 +148,15 @@ entry reranks its challenge, rebuilds earned CP totals and adjusts reward GP.
 eight. Stored `Scoreboard.rank`, both leaderboard views and podium use the
 shared `rankGuardPointStandings`: current GP descending, then total earned CP
 descending. Only identical GP/CP values share a dense rank; team names stabilize
-exact ties. Podium shows the first three teams and labels unresolved ties.
+exact ties. The leaderboard includes inactive teams; Podium ranks active teams
+and shows the first three. Equal GP/CP winners share the same badge number and
+medal colour, without a separate tie label.
 
-Leaderboard mount/event refresh reads stored standings rather than starting a
-second rebuild. Recalculations run through a shared in-tab queue and update
+Leaderboard mount/event refresh reads stored CP standings rather than starting a
+second rebuild. `ScoreboardController.availableCardCounts()` reads available
+TeamCards directly, excluding consumed/reserved ids and capping each team at
+eight. Both leaderboard views refresh these counts on card, team and scoreboard
+events, including when a team has no stored Scoreboard row. Recalculations run through a shared in-tab queue and update
 existing team rows, preserving ids and avoiding duplicate-team validation errors.
 
 ### GP synchronization and audit rules
@@ -280,23 +288,23 @@ receive the ordinary strike. Explicit all-team SKIP is valid. SKIP teams receive
 
 Assignment GP is persisted immediately in one recalculated ledger entry per team and challenge. Retargeting or deselecting recalculates from the original balance, so repeated clicks cannot stack effects. Assignments reserve their cards against reuse in another challenge. The saved assignment snapshot carries effects and triggered Second Chance cards into damage resolution without repeating them.
 
-The built-in effect descriptions match card artwork. Numeric values are read
+The built-in effect descriptions follow card artwork, with Protect updated to cover both owner and target. Numeric values are read
 from `effect_action`; supported designs and behavior are resolved by name/type
 and effect. Arbitrary freeform descriptions do not create a general rules engine.
 
 | Card | Action |
 | --- | --- |
-| Normal Heal | +2 GP at assignment |
+| Normal Heal | +2 GP after damage |
 | Normal Shield | Block 1 GP; multiple shields can block the full strike |
 | Normal Thief | Take up to 1 GP from the selected opponent |
-| Rare Heal | +3 GP at assignment |
-| Rare Protect | Block the full strike for a selected team (including its owner) |
+| Rare Heal | +3 GP after damage |
+| Rare Protect | Block the full strike for both owner and selected target |
 | Epic Reverse (promoted from Rare) | Take up to 1 GP from each opponent |
 | Rare Thief | Take up to 2 GP from the selected opponent |
-| Rare Fortune Draw | Choose 1 of 3 shuffled remaining Rare copies; award after the attack for later use |
-| Epic Swallow | Convert the incoming strike into a fixed +4 GP; Unity/targeted Protect prevent conversion |
+| Rare Fortune Draw | Choose 1 of 3 shuffled remaining Rare copies; award immediately on confirmation for another challenge |
+| Epic Swallow | Lose no GP from the strike and gain +4 GP, also alongside Unity/Protect |
 | Epic Thief (formerly Epic Reverse) | Take up to 2 GP from each of two selected opponents; up to +4 GP total |
-| Legendary Gardian Unity | Only when selected and used: every team gains 1 GP at assignment and avoids the strike; owning or skipping the card grants neither effect |
+| Legendary Gardian Unity | Only when selected: all teams avoid strike loss, then each gains +1 GP; owning/skipping grants neither effect |
 | Legendary Second Chance | When selected by its owner, automatically restore 1 GP at zero; consume only on activation |
 
 `fortuneDraw.ts` shuffles unassigned Rare copies, preferring distinct designs and
@@ -305,13 +313,19 @@ copies are offered; fewer eligible copies cause a clear shortage error. Offers
 and the chosen id are stored in the pending TacticalChoice and survive reload,
 deselection and SKIP. No reroll button is provided. Offers are previews rather than
 reservations, so settlement rechecks the selected copy's availability.
-`validateTacticalAttack` requires one offered choice. `settleFortuneDraws` runs in
-the GP transaction, checks source ownership/consumption, capacity and uniqueness,
+`validateTacticalAttack` requires one offered choice. `reconcileFortuneDraws` runs in
+the assignment transaction: it returns removed/changed unused grants and calls
+`settleFortuneDraws` to award confirmed choices immediately. Settlement checks
+source ownership/consumption, capacity and uniqueness,
 assigns the chosen Card and creates its TeamCard, then records the result in
 `effects`, `usedCardEffects`, and the source card's `cardEffects`. It uses the
 inventory space freed by consumed selections. Unchosen copies remain untouched;
-the reward's effect starts only when played later. Any failed grant rolls back
-the entire attack. Completed-attack imports never grant the reward again.
+the reward's effect starts only when played in another challenge. Pending
+`fortuneDraws` save the resulting TeamCard id as `rewardId`. The current phase
+shows that reward as unavailable until another challenge. Repeated edits and
+damage reuse the same reward id rather than granting twice. Grants already
+reserved/used elsewhere cannot be undone. Any failed grant/replacement rolls
+back the entire transaction. Completed imports never grant rewards again.
 
 Startup, card-pool operations and attacks share a browser database-write lock. Startup flushes its
 changes before releasing the lock; an attack refreshes the saved database inside
@@ -324,7 +338,15 @@ Fortune rewards are excluded from normal challenge assignment quotas, so a bonus
 grant cannot block a team's remaining ranked rewards. Rapid public-screen
 commands ignore obsolete requests, and owned popups catch up after loading.
 
-During assignment, selected Heal and Unity bonuses apply before Reverse/Thief transfers. Transfers follow team/card iteration order and cannot exceed the opponent's remaining balance. Damage-time resolution applies Shield, Protect, Swallow and selected Unity protection without repeating assignment GP.
+During assignment, only Reverse/Thief transfers change GP. Transfers follow
+team/card iteration order and cannot exceed the opponent's remaining balance.
+Fortune grants on option confirmation. At damage time Protect covers owner and
+target, Unity covers everyone and adds +1 GP per team, Swallow prevents loss and
+adds +4 GP, and Heal applies after damage is clamped to zero. Unity/Protect do
+not suppress Swallow's bonus. Second Chance can trigger at zero immediately
+after damage, before Heal. New snapshots carry `effectTimingVersion: 2`.
+`resolveTacticalDamage` adjusts pending older Heal/Unity assignment balances
+once so they are not counted twice; completed archives retain their totals.
 Second Chance triggers immediately at zero after the strike or a transfer, once per selected card. Owning or skipping the card does not activate it. It occupies one of the two selection slots and remains available if it is not triggered. The saved result includes consumed card ids, initial GP, effective
 strike, final GP, effect descriptions, used-card count and resolution timestamp.
 Opening Card Reveal alone does not execute the attack or consume cards; the
@@ -403,8 +425,9 @@ and public routes and do not determine Flipping's manually chosen team.
 ## Views, references and synchronization
 
 See the complete [route table](./readme.md#routes-and-public-displays).
-`publicDisplay.ts` supports scoreboard, leaderboard, podium, rewards, tactical,
-card-reveal, turn-order, gigarisk, timer, flipping-connect and jaws-of-risk. The
+`publicDisplay.ts` supports scoreboard, leaderboard, heart-of-awareness, podium,
+rewards, tactical, card-reveal, turn-order, gigarisk, timer, flipping-connect and
+jaws-of-risk. The
 last two stages map to `/play/word-assembly/:challengeId` and
 `/play/jaws-of-risk/:challengeId`. Global routes have no challenge suffix.
 Feature navigation opens or reuses a separate public window; existing public
@@ -419,8 +442,9 @@ a public reload instead of replaying an earlier scoreboard/leaderboard command.
 | Urutan Main | Visual Guide slide 1 |
 | Scoreboard | Visual Guide slide 4 layout and `Page_Score_Board.jpeg` GP footer |
 | Serangan GigaRisk | Visual Guide slide 8 |
-| Leaderboard | Visual Guide slide 9 |
-| Podium | `podium-clean.png`, based on Visual Guide slide 10, plus live rank icons |
+| Leaderboard | Restored Visual Guide slide 9, 16:9 seven-column live table without CP labels |
+| Heart of Awareness | `heart-of-awareness-no-gp.png`, derived from `Heart_of_Awareness.png`, full 16:9 canvas and five live GP plaques |
+| Podium | `podium-no-gp.png`, based on Visual Guide slide 10, plus live rank and GP icons |
 | Tactical Phase / Card Reveal | `tactical-slide-05-reference.png` / `tactical-slide-06-reference.png` |
 | Flipping board | `flipping-slide-03-reference.png` and matching card faces |
 
@@ -435,9 +459,20 @@ Scoreboard uses `Page_Score_Board.jpeg` and overlays a five-column GP strip belo
 the ranking box. Names, team colours and live GP come from active Team records;
 participating teams appear first. Admin/public scoreboard share this component.
 
+`HeartAwarenessView.tsx` shares `useTeams` and its team/GP transaction refresh
+events. Admin/public routes are `/admin/heart-of-awareness` and
+`/heart-of-awareness`; public display commands support the new stage. Each
+canvas contains five active teams, ordered green/red/yellow/blue/pink, followed
+by custom teams. Names and GP replace reference samples inside the original
+plaques. Shared `GPShield` (also used by `GPMark`) renders the supplied
+`gp-shield.png` across every screen with a GP shield. Rewards and Tactical/Card
+Reveal no longer draw SVG shields. Heart of Awareness and podium backgrounds
+have embedded icons removed so their shields use the same live image asset. Additional teams use subsequent canvases; empty slots use a dash.
+Artwork remains complete at 16:9 on desktop and mobile.
+
 Podium value overlays scale typography by name/GP/prize length and remain within
-the reference plaques. Long names have ellipsis/tooltips. `podium-clean.png`
-retains the black jilbab while removing fixed medals and prize placeholder text.
+the reference plaques. Long names have ellipsis/tooltips. `podium-no-gp.png`
+retains the black jilbab and removes fixed medals, GP icons and prize placeholder text.
 Every occupied slot renders its entire `Icon-Rank_<rank>.png` using the actual
 GP/CP rank; ties therefore share both the number and the medal colour. Badge
 frames sit above the name plaques, and numeric/prize typography stays within
@@ -447,8 +482,12 @@ surfaces without adding rectangular backgrounds over the frames.
 
 Card Reveal uses aligned grid rows for header, caption, proportional card art,
 status, effects and GP. Effect text wraps; excessive content scrolls within the
-effects area.
+effects area. Waiting/status labels use centered single-line type sized to stay
+inside their badge at desktop, tablet and phone widths; layout tests check both
+horizontal and vertical text containment.
 Card Reveal reserves matching caption space in every card slot, keeping targeted and non-targeted images proportional and aligned. Tactical and ranking card backs use contain fit.
+Leaderboard includes pending assignment effects before damage and uses live
+available TeamCard counts for Sisa Kartu, including teams without scored entries.
 Long team pills truncate with an ellipsis, and admin headings/toolbars wrap.
 Flipping team labels also truncate within their buttons. Leaderboard effect
 lists scroll within a bounded container so long descriptions do not enlarge rows.
@@ -456,6 +495,16 @@ Challenge artwork scales to viewport width; admin toolbars stay outside
 artwork. Shared layout supports narrow and wide screens. Team labels follow the
 team's colour identity; medal artwork follows the actual rank. `index.css`/`layout.css` supply the app theme;
 reference, tactical, flipping, rewards and podium styles handle each screen.
+`GPShield.tsx` and `gp-shield.css` own the common decorative GP mark; each
+screen supplies only its placement and dimensions.
+
+Admin team cards use a separate `.team-card__status` group. Below 680 pixels,
+badges occupy their own row and the three action buttons share equal columns.
+Tactical Phase uses a native, keyboard-accessible `details`/`summary` panel for
+card timing and targeting rules, keeping the challenge controls close to the
+page heading. Challenge team-selection labels have a minimum 44-pixel click
+area, contained text, selected-state colour and visible keyboard focus, including
+Flipping Connect. Shared spacing, borders and focus styling live in `layout.css`.
 
 ### Standalone event timer
 
@@ -469,17 +518,20 @@ public scoreboard, and `/admin/presentation` redirects to `/admin/timer` for
 older links.
 
 `publicDisplay.ts` synchronizes the timer alongside scoreboard, leaderboard,
-podium, rewards, tactical, card-reveal, turn-order, GigaRisk, Flipping Connect and
+Heart of Awareness, podium, rewards, tactical, card-reveal, turn-order, GigaRisk, Flipping Connect and
 Jaw of Risk public displays. Timer notifications stay isolated to the timer window.
 
 ## Validation record
 
-Verified on 2026-10-19 (WIB): **204 unit/database tests across 19 files and all
-44 Playwright scenarios passed**. ESLint and the production build, including
-TypeScript compilation, passed. Repository Markdown links and code fences were
+Verified on 2026-10-19 (WIB): **214 unit/database tests across 19 files passed**.
+All **48 Playwright scenarios passed** in the full regression run.
+After final status-label and selector styling, **10 focused scenarios passed**
+across Flipping Connect, Tactical Phase and the three layout widths.
+ESLint and the production build, including TypeScript compilation, passed.
+Repository Markdown links and code fences were
 also checked.
 
-The browser suite covers all current public/admin routes at 1280 and 390 pixels,
+The browser suite covers all current public/admin routes at 1280, 768 and 390 pixels,
 team CRUD and status persistence, GP/CP ranking, score correction, reward draws,
 Tactical/Card Reveal, GigaRisk, GP transactions, question deadlines and offline
 reload. Card regressions cover all twelve actions, migration identities,
@@ -501,6 +553,15 @@ Recent feature checks specifically verify:
   medal colours, the black jilbab and correctly fitted labels/prize amounts on
   desktop and phone layouts. Numbered Urutan Main slots remain fixed during
   ordering/shuffling and synchronize publicly.
+- Heart of Awareness shows five live GP plaques, opens through admin navigation,
+  survives reload, and retains the reference proportions at desktop/phone sizes.
+- Leaderboard keeps the seven reference columns without CP labels beneath names.
+  Inactive teams remain visible on both leaderboard views with an OUT badge and
+  faded row, including teams manually deactivated while GP remains above zero.
+  Zero-GP teams also show OUT. Pending effects and remaining-card counts update live.
+- Card timing checks cover immediate Reverse/Thief/Fortune grants, delayed
+  Heal/Unity, Protect for owner and target, combined Swallow bonuses, low-GP
+  recovery, pending older-rule migration, and atomic Fortune replacement rollback.
 
 The full-suite audit corrected a stale twelve-tooth expectation and reproduced
 and fixed Jaw of Risk's return to a previously published leaderboard command.

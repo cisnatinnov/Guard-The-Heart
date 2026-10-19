@@ -1,7 +1,7 @@
 import { flushDatabase } from '../db/sequelize-provider'
 import { openPublicDisplay } from './publicWindow'
 
-export type DisplayStage = 'scoreboard' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk' | 'timer' | 'flipping-connect' | 'jaws-of-risk'
+export type DisplayStage = 'scoreboard' | 'heart-of-awareness' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk' | 'timer' | 'flipping-connect' | 'jaws-of-risk'
 export interface PublicDisplay { stage: DisplayStage; challengeId: string; id: string }
 const KEY = 'guard-the-heart-public-display'
 let latestRequest = 0
@@ -11,7 +11,7 @@ export function displayPath(display: Pick<PublicDisplay, 'stage' | 'challengeId'
     const gameId = display.stage === 'flipping-connect' ? 'word-assembly' : 'jaws-of-risk'
     return `${admin ? '/admin' : ''}/play/${gameId}/${encodeURIComponent(display.challengeId)}`
   }
-  if (['leaderboard', 'podium', 'turn-order', 'timer'].includes(display.stage)) return `${admin ? '/admin' : ''}/${display.stage}`
+  if (['leaderboard', 'heart-of-awareness', 'podium', 'turn-order', 'timer'].includes(display.stage)) return `${admin ? '/admin' : ''}/${display.stage}`
   return `${admin ? '/admin' : ''}/${display.stage}${display.challengeId ? `/${encodeURIComponent(display.challengeId)}` : ''}`
 }
 
@@ -31,7 +31,7 @@ export function listenForPublicDisplay(accept: (display: PublicDisplay) => void)
     if (event.newValue !== localStorage.getItem(KEY)) return
     try {
       const display = JSON.parse(event.newValue) as PublicDisplay
-      if (['scoreboard', 'leaderboard', 'podium', 'rewards', 'tactical', 'card-reveal', 'turn-order', 'gigarisk', 'timer', 'flipping-connect', 'jaws-of-risk'].includes(display.stage) && typeof display.challengeId === 'string') accept(display)
+      if (['scoreboard', 'leaderboard', 'heart-of-awareness', 'podium', 'rewards', 'tactical', 'card-reveal', 'turn-order', 'gigarisk', 'timer', 'flipping-connect', 'jaws-of-risk'].includes(display.stage) && typeof display.challengeId === 'string') accept(display)
     } catch { /* Ignore unrelated or malformed storage updates. */ }
   }
   window.addEventListener('storage', receive)

@@ -73,11 +73,11 @@ it('Epic Thief takes 2 GP from two distinct opponents and rejects invalid select
   }
 })
 
-it('caps theft by remaining balance and does not swallow an attack prevented by Unity', () => {
+it('caps theft by remaining balance and grants both Unity and Swallow bonuses after damage', () => {
   const thief = actionCard('Epic Thief Card')
   const teams = [{id:'a',name:'A',gp:5,cards:[thief]},{id:'b',name:'B',gp:3,cards:[]},{id:'c',name:'C',gp:1,cards:[]}]
   expect(resolveTacticalEffects(teams,{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:['b','c']}}}).teams.map((team)=>team.finalGP)).toEqual([6,0,0])
   const cards = [actionCard('Epic Swallow Card'),actionCard('Legendary Gardian Unity')]
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards}],{a:{cards:cards.map((card)=>card.id),skipped:false}}).teams[0]
-  expect([result.gigaRisk,result.finalGP]).toEqual([0,6])
+  expect([result.gigaRisk,result.finalGP]).toEqual([4,10])
 })

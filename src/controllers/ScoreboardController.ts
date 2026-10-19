@@ -1,5 +1,7 @@
-import { Challenge, ChallengePoint, Scoreboard, Team } from '../models'
+import { Challenge, ChallengePoint, Scoreboard, Team, TeamCard } from '../models'
 import { recalculateTotalScoreboard } from '../services/scoreboardAggregator'
+import { capTotalCard } from '../services/rankRules'
+import { usedTacticalCardIds } from '../services/tacticalPhase'
 
 export interface ChallengeScoreDetail {
   challengeId: string
@@ -49,6 +51,16 @@ export class ScoreboardController {
       entry.challengeScores = scoresByTeam.get(row.team) ?? []
       return entry
     })
+  }
+
+  /** Live inventory also covers teams with no scored entry in this challenge. */
+  static async availableCardCounts(): Promise<Map<string, number>> {
+    const used = usedTacticalCardIds()
+    const counts = new Map<string, number>()
+    for (const card of await TeamCard.findAll({ attributes: ['id', 'team'] })) {
+      if (card.team && !used.has(card.id)) counts.set(card.team, capTotalCard((counts.get(card.team) ?? 0) + 1))
+    }
+    return counts
   }
 
   static async getByTeam(teamId: string): Promise<Scoreboard | null> {

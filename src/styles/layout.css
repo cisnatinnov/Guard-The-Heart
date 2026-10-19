@@ -367,3 +367,40 @@
 .app--admin .view__header h2, .app--admin .view__hint { overflow-wrap:anywhere; }
 .matching-only__header { flex-wrap:wrap; gap:12px; }
 .giga-card-actions article > div { min-width:0; overflow-wrap:anywhere; }
+
+.tactical-help {
+  max-width: 80ch;
+  margin-top: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.tactical-help summary { padding: 12px 16px; cursor: pointer; font-weight: 600; }
+.tactical-help summary:focus-visible { outline: 3px solid #027479; outline-offset: 3px; border-radius: 12px; }
+.tactical-help ul { margin: 0; padding: 0 20px 16px 36px; color: var(--muted); }
+.tactical-help li + li { margin-top: 8px; }
+
+.team-card__status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.app--admin .run-panel__teams > label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.app--admin .run-panel__teams > label:has(input:checked) { border-color: #027479; background: #e6f7f4; }
+.app--admin .run-panel__teams > label:focus-within { outline: 2px solid #027479; outline-offset: 2px; }
+.app--admin .run-panel__teams input { flex: none; width: 18px; height: 18px; margin: 0; accent-color: #027479; }
+@media (max-width: 680px) {
+  .app--admin .team-card__actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .team-card__status { grid-column: 1 / -1; margin-bottom: 4px; }
+  .app--admin .team-card__actions button { padding-inline: 8px; }
+}

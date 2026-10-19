@@ -1,0 +1,5 @@
+Edit target: podium-clean.png
+Remove only the three blue GP shield icons from the dark blue score compartments.
+Restore the dark blue surfaces while preserving borders, name/prize plaques,
+gifts, characters including black hijab, mascot, trophy, arena and 16:9 framing.
+Runtime renders the supplied gp-shield.png through GPShield.tsx.

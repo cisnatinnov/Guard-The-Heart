@@ -10,6 +10,7 @@ const ADMIN_NAV = [
   { path: '/admin/turn-order', label: 'Urutan Main' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },
+  { path: '/admin/heart-of-awareness', label: 'Heart of Awareness' },
   { path: '/admin/podium', label: 'Podium' },
   { path: '/admin/gp-transactions', label: 'Transaksi GP' },
   { path: '/admin/rewards', label: 'Rewards' },

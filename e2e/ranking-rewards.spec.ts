@@ -20,8 +20,8 @@ test('score rewards and GP/CP tie-break agree between leaderboard and podium',as
  await page.goto('/leaderboard')
  const rows=page.getByRole('table',{name:'Team leaderboard'}).locator('tbody tr')
  await expect(rows).toHaveCount(5)
- await expect(page.getByRole('columnheader',{name:'CP',exact:true})).toBeVisible()
- await expect(page.locator('.ranking-cp')).toHaveText(['10','8','6','4','2'])
+ await expect(page.getByRole('columnheader')).toHaveCount(7)
+ await expect(page.locator('.ranking-cp')).toHaveCount(0)
  await page.screenshot({path:'test-results/leaderboard-cp.png'})
  for(const [index,name] of ['Merah','Biru','Kuning','Pink','Hijau'].entries()){
   await expect(rows.nth(index)).toContainText(`Tim ${name}`)
@@ -50,7 +50,7 @@ test('tied podium ranks use matching medals and plaques remain proportional on a
  const projector = await context.newPage()
  await projector.goto('/podium')
  for (const surface of [page,projector]) {
-  await expect(surface.locator('.podium-art')).toHaveAttribute('src','/ui/podium-clean.png')
+  await expect(surface.locator('.podium-art')).toHaveAttribute('src','/ui/podium-no-gp.png')
   await expect(surface.locator('.podium-rank')).toHaveCount(3)
   await expect(surface.getByAltText('Rank 1', { exact:true })).toHaveCount(3)
   await expect(surface.locator('.podium-winner--1 .podium-prize')).toHaveText('Rp 999.999.999.999')

@@ -4,7 +4,7 @@ import { Challenge, GPTransaction } from '../src/models'
 import { TeamController } from '../src/controllers/TeamController'
 import { CARD_POOL } from '../src/data/card-pool'
 import { commitTacticalAssignment, recordGigaRiskGP, syncRewardGP } from '../src/services/gpTransactions'
-import { readTacticalPhase, resolveTacticalEffects, usedTacticalCardIds, type TacticalChoice, type TacticalPhase } from '../src/services/tacticalPhase'
+import { readTacticalPhase, resolveTacticalDamage, resolveTacticalEffects, usedTacticalCardIds, type TacticalChoice, type TacticalPhase } from '../src/services/tacticalPhase'
 
 beforeAll(async () => { await initializeAppDatabase() })
 beforeEach(() => {
@@ -23,15 +23,15 @@ it('persists assignment GP, reverses retargeting/deselection, and does not repea
  const save = async (choice:TacticalChoice) => commitTacticalAssignment(challenge.id,inputs,{...readTacticalPhase(challenge.id),choices:{[a.id]:choice}})
  const gps=async()=>Promise.all([a,b,c].map(async(team)=>(await team.reload()).total_gp))
  await save({cards:[heal.id,thief.id],skipped:false,targets:{[thief.id]:b.id}})
- expect(await gps()).toEqual([8,4,5])
+ expect(await gps()).toEqual([6,4,5])
  await save({cards:[heal.id,thief.id],skipped:false,targets:{[thief.id]:c.id}})
- expect(await gps()).toEqual([8,5,4])
+ expect(await gps()).toEqual([6,5,4])
  await save({cards:[heal.id],skipped:false})
- expect(await gps()).toEqual([7,5,5])
+ expect(await gps()).toEqual([5,5,5])
  await save({cards:[heal.id],skipped:false})
- expect(await gps()).toEqual([7,5,5])
+ expect(await gps()).toEqual([5,5,5])
  const phase=readTacticalPhase(challenge.id)
- const damage=resolveTacticalEffects(inputs.map((input)=>({...input,gp:input.id===a.id?7:5})),phase.choices,()=>0,10,'damage',phase.assignment)
+ const damage=resolveTacticalEffects(inputs.map((input)=>({...input,gp:5})),phase.choices,()=>0,10,'damage',phase.assignment)
  await recordGigaRiskGP(challenge.id,damage)
  expect(await gps()).toEqual([5,3,3])
  await syncRewardGP(new Map())
@@ -41,7 +41,7 @@ it('persists assignment GP, reverses retargeting/deselection, and does not repea
 })
 
 it.each([
- ['Normal Shield',5,4],['Rare Protect',5,5],['Epic Swallow',5,9],
+ ['Normal Shield',5,4],['Rare Protect',5,5],['Epic Swallow',5,9],['Normal Heal',5,5],['Rare Heal',5,6],
 ] as const)('%s waits for damage', (name,assigned,after) => {
  const action=card(name), teams=[{id:'a',name:'A',gp:5,cards:[action]}]
  const choices={a:{cards:[action.id],skipped:false,targets:{[action.id]:'a'}}}
@@ -50,12 +50,12 @@ it.each([
  expect(resolveTacticalEffects(teams,choices,()=>0,2,'damage',stage).teams[0].finalGP).toBe(after)
 })
 
-it('Reverse and Unity apply at assignment, and Unity protects every team on damage without another bonus', () => {
+it('Reverse applies at assignment; Unity waits for damage and protects every team with one bonus', () => {
  const reverse=card('Epic Reverse'), unity=card('Legendary Gardian Unity')
  const teams=['a','b','c'].map((id)=>({id,name:id,gp:5,cards:id==='a'?[reverse]:id==='b'?[unity]:[]}))
  const choices={a:{cards:[reverse.id],skipped:false},b:{cards:[unity.id],skipped:false}}
  const stage=resolveTacticalEffects(teams,choices,()=>0,1,'assignment')
- expect(stage.teams.map((entry)=>entry.finalGP)).toEqual([8,5,5])
+ expect(stage.teams.map((entry)=>entry.finalGP)).toEqual([7,4,4])
  const updated=teams.map((team,index)=>({...team,gp:stage.teams[index].finalGP}))
  const damage=resolveTacticalEffects(updated,choices,()=>0,2,'damage',stage)
  expect(damage.teams.map((entry)=>[entry.gigaRisk,entry.finalGP])).toEqual([[0,8],[0,5],[0,5]])
@@ -73,7 +73,7 @@ it.each(['unselected','skipped','other card selected'] as const)('does not grant
  expect(damage.teams.flatMap((entry)=>entry.effects).some((effect)=>/Unity/i.test(effect))).toBe(false)
 })
 
-it('removes the saved Unity bonus on deselection and grants none for owning the card or skipping', async () => {
+it('does not grant Unity GP until damage and grants none for deselection or skipping', async () => {
  const a=await TeamController.create('Unity gate A'), b=await TeamController.create('Unity gate B')
  const challenge=await Challenge.create({name:'Unity explicit use'})
  const unity=card('Legendary Gardian Unity')
@@ -83,7 +83,7 @@ it('removes the saved Unity bonus on deselection and grants none for owning the 
  await save({cards:[],skipped:false})
  expect(await gps()).toEqual([5,5])
  await save({cards:[unity.id],skipped:false})
- expect(await gps()).toEqual([6,6])
+ expect(await gps()).toEqual([5,5])
  await save({cards:[],skipped:false})
  expect(await gps()).toEqual([5,5])
  await save({cards:[],skipped:true})
@@ -131,4 +131,47 @@ it('reserves selected Second Chance while pending and keeps it available after a
  expect(resolution.teams[0].usedCards).toBe(0)
  localStorage.setItem('guard-the-heart-tactical:second',JSON.stringify({...phase,resolution}))
  expect(usedTacticalCardIds().has(passive.id)).toBe(false)
+})
+
+it.each([['Normal Heal', 2], ['Rare Heal', 3], ['Legendary Gardian Unity', 2], ['Epic Swallow', 5]] as const)('%s resolves after damage at one GP', (name, expected) => {
+ const action = card(name)
+ const teams = [{ id: 'a', name: 'A', gp: 1, cards: [action] }]
+ const choices = { a: { cards: [action.id], skipped: false } }
+ const assignment = resolveTacticalEffects(teams, choices, () => 0, 1, 'assignment')
+ expect(assignment.teams[0].finalGP).toBe(1)
+ const result = resolveTacticalEffects(teams, choices, () => 0, 2, 'damage', assignment)
+ expect(result.teams[0].finalGP).toBe(expected)
+})
+
+it('does not count a pending pre-update Heal or Unity bonus twice during damage', () => {
+ for (const [name, before, expected] of [['Normal Heal', 7, 5], ['Legendary Gardian Unity', 6, 6]] as const) {
+  const action = card(name)
+  const teams = [{ id: 'a', name: 'A', gp: before, cards: [action] }]
+  const phase: TacticalPhase = { revealed: false, choices: { a: { cards: [action.id], skipped: false } },
+   assignment: { resolvedAt: 1, teams: [{ teamId: 'a', initialGP: 5, finalGP: before, gigaRisk: 0,
+    effects: [`+${before - 5} old early bonus`], usedCards: 1, usedCardIds: [action.id] }] } }
+  const result = resolveTacticalDamage(teams, phase, () => 0, 2).teams[0]
+  expect(result.finalGP).toBe(expected)
+  expect(result.assignmentGP).toBe(before)
+  expect(result.initialGP).toBe(5)
+  expect(result.effects).not.toContain(expect.stringContaining('old early bonus'))
+ }
+})
+
+it('reactivates a team healed after immediate theft reduced it to zero', async () => {
+ const a = await TeamController.create('Post-damage thief'), b = await TeamController.create('Post-damage healed')
+ const challenge = await Challenge.create({ name: 'Post-damage recovery' })
+ const thief = card('Rare Thief'), heal = card('Normal Heal')
+ const setup = await Challenge.create({ name: 'Recovery setup' })
+ await recordGigaRiskGP(setup.id, { resolvedAt: 1, teams: [{ teamId: b.id, initialGP: 5, finalGP: 1, gigaRisk: -2, effects: ['setup'], usedCards: 0 }] })
+ const teams = [{ id: a.id, name: a.name, gp: 5, cards: [thief] }, { id: b.id, name: b.name, gp: 1, cards: [heal] }]
+ await commitTacticalAssignment(challenge.id, teams, { revealed: false, choices: {
+  [a.id]: { cards: [thief.id], skipped: false, targets: { [thief.id]: b.id } },
+  [b.id]: { cards: [heal.id], skipped: false },
+ } })
+ expect([(await b.reload()).total_gp, b.status]).toEqual([0, 'inactive'])
+ const current = readTacticalPhase(challenge.id)
+ const fresh = teams.map((team) => ({ ...team, gp: current.assignment!.teams.find((entry) => entry.teamId === team.id)!.finalGP }))
+ await recordGigaRiskGP(challenge.id, resolveTacticalDamage(fresh, current))
+ expect([(await b.reload()).total_gp, b.status]).toEqual([2, 'active'])
 })

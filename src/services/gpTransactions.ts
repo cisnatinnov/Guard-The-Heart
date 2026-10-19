@@ -4,7 +4,7 @@ import { getSequelize, flushDatabase, refreshDatabaseFromStorage, withDatabaseWr
 import { teamGuardPower } from './rankRules'
 import { readTacticalPhase, publishTacticalPhase, resolveTacticalEffects, type TacticalPhase, type TacticalTeamInput, type TacticalResolution } from './tacticalPhase'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
-import { settleFortuneDraws } from './fortuneDraw'
+import { reconcileFortuneDraws, settleFortuneDraws } from './fortuneDraw'
 let queue: Promise<void> = Promise.resolve()
 function serialize<T>(operation:()=>Promise<T>):Promise<T>{ const pending=queue.then(operation,operation);queue=pending.then(()=>undefined,()=>undefined);return pending }
 async function opening(team:Team,transaction?:Transaction){
@@ -62,7 +62,8 @@ export async function recordGigaRiskGP(challengeId:string,resolution:TacticalRes
     const shared={team:team.id,team_name:team.name,challenge:challenge.id,challenge_name:challenge.name}
     await GPTransaction.create({...shared,source_key:`attack:${challengeId}:${team.id}`,category:'attack',gp_before:before,delta:afterAttack-before,gp_after:afterAttack,description:'Serangan GigaRisk −2 GP'},{transaction})
     if(after!==afterAttack||result.effects.length){await GPTransaction.create({...shared,source_key:`card:${challengeId}:${team.id}`,category:'card',gp_before:afterAttack,delta:after-afterAttack,gp_after:after,description:result.effects.join('; ')||'Efek kartu: perlindungan dari serangan GigaRisk'},{transaction})}
-    await team.update({total_gp:after,...(after===0?{status:'inactive'}:{})},{transaction})
+    const revivedAfterAssignment = before === 0 && after > 0 && result.initialGP > 0 && result.assignmentGP === 0
+    await team.update({total_gp:after,...(after===0?{status:'inactive'}:revivedAfterAssignment?{status:'active'}:{})},{transaction})
    }
   })
  })
@@ -91,6 +92,7 @@ export async function commitTacticalAssignment(challengeId: string, inputs: read
   const baseline = balances.map(({input,team,previous}) => ({...input, gp:Math.max(0,team.total_gp - (previous?.delta ?? 0))}))
   const assignment = resolveTacticalEffects(baseline, next.choices, Math.random, Math.max(Date.now(), (current.assignment?.resolvedAt ?? 0) + 1), 'assignment')
   await getSequelize().transaction(async (transaction) => {
+   await reconcileFortuneDraws(challengeId, assignment, current.assignment, transaction)
    for (const {team,previous} of balances) {
     await opening(team,transaction)
     const result = assignment.teams.find((entry) => entry.teamId === team.id)!
@@ -108,4 +110,5 @@ export async function commitTacticalAssignment(challengeId: string, inputs: read
  }))
  dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
  dbEvents.emit(DB_EVENTS.GP_TRANSACTIONS_CHANGED)
+ dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
 }

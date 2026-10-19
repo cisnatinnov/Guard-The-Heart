@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 test('public tactical cards are face-up, used cards disappear from both inventories while reveal history stays available', async ({ page, context }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  await page.setViewportSize({ width: 1280, height: 1800 })
+  await page.setViewportSize({ width: 1280, height: 2400 })
   await page.goto('/admin')
   await page.goto('/admin/challenges')
   const id = '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10'

@@ -1,3 +1,4 @@
+import { GPShield } from './GPShield'
 import { resolvedCardEffects } from '../services/cardEffectSummary'
 import { prepareFortuneOptions } from '../services/fortuneDraw'
 import { isFortuneCard } from '../services/tacticalPhase'
@@ -42,8 +43,9 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
   }, [reveal, id])
   const usedCards = usedTacticalCardIds(id)
   const locked = busy || phase.revealed || !!resolution
+  const deferredRewards = new Set((phase.assignment?.teams ?? []).flatMap((team) => team.fortuneDraws?.flatMap((draw) => draw.rewardId ? [draw.rewardId] : []) ?? []))
   const inputs = allTeams.map((team) => ({ id: team.id, name: team.name, gp: team.total_gp,
-    cards: (teams.find((entry) => entry.id === team.id)?.cards ?? []).filter((card) => !usedCards.has(card.id)) }))
+    cards: (teams.find((entry) => entry.id === team.id)?.cards ?? []).filter((card) => !usedCards.has(card.id) && !deferredRewards.has(card.id)) }))
   function availablePhase(): TacticalPhase {
     const current = readTacticalPhase(id)
     if (current.resolution || current.strike) return current
@@ -128,6 +130,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
   async function select(teamId: string, cardId: string) {
     try {
       if (busy) return
+      if (deferredRewards.has(cardId)) throw new Error('Kartu Fortune Draw tersedia untuk challenge berikutnya.')
       const team = teams.find((entry) => entry.id === teamId)
       let next = chooseTacticalCard(availablePhase(), teamId, cardId, team?.cards.filter((card) => !usedCards.has(card.id)).map((card) => card.id) ?? [])
       const card = team?.cards.find((entry) => entry.id === cardId)
@@ -156,7 +159,21 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
   }
   if (admin) return <section className="view tactical-admin">
-    <header className="view__header"><h2>Tactical Phase</h2><p className="view__hint">Select up to two earned cards per team. Heal, Reverse, and Thief apply immediately; Shield, Protect, and Swallow apply when GigaRisk attacks. Click a card or drag it into that team’s selection, or skip. Protect: click a card, then its owner or another team below; or drag it onto that team’s selection. Thief: click a card, then an opponent below; or drag it onto an opponent’s selection. Epic Thief needs two different opponents. Select Second Chance to use it for this phase. Once selected, it activates automatically at 0 GP and is consumed only when triggered.</p></header>
+    <header className="view__header">
+      <h2>Tactical Phase</h2>
+      <p className="view__hint">Select up to two earned cards per team, or skip. Click a card or drag it into the team’s selection.</p>
+      <details className="tactical-help">
+        <summary>Card timing and targeting rules</summary>
+        <ul>
+          <li><strong>Immediate:</strong> Reverse and Thief apply when selected. Fortune Draw grants the chosen Rare immediately for another challenge.</li>
+          <li><strong>After damage:</strong> Gardian Unity protects all teams and adds +1 GP each. Swallow prevents GP loss and adds +4 GP. Heal restores GP. Protect prevents GP loss for its owner and the selected team.</li>
+          <li><strong>Shield:</strong> Blocks damage when GigaRisk attacks.</li>
+          <li><strong>Protect target:</strong> Click the card, then its owner or another team below; or drag it onto that team’s selection.</li>
+          <li><strong>Thief target:</strong> Click the card, then an opponent below; or drag it onto an opponent’s selection. Epic Thief needs two different opponents.</li>
+          <li><strong>Second Chance:</strong> Select to arm it for this phase. It activates automatically at 0 GP and is consumed only when triggered.</li>
+        </ul>
+      </details>
+    </header>
     <div className="admin-toolbar">
       <label className="field"><span>Challenge</span><select value={id} onChange={(event) => void selectChallenge(event.target.value)}>{challenges.map((challenge) => <option key={challenge.id} value={challenge.id}>{challenge.name}</option>)}</select></label>
       <button className="ghost" disabled={busy} onClick={() => void display(false)}>{phase.revealed ? 'Return to Tactical Phase' : 'Show Tactical Phase'}</button><button disabled={!id || !teams.length || busy} onClick={() => void display(true)}>{phase.revealed || resolution ? 'Show Card Reveal' : 'Card Reveal'}</button>
@@ -175,7 +192,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
             const choice = current.choices[team.id]
             const offer = choice?.fortune?.[card.id]
             if (!offer || !choice.cards.includes(card.id)) return
-            publishTacticalPhase(id, { ...current, choices: { ...current.choices, [team.id]: { ...choice,
+            void saveChoices({ ...current, choices: { ...current.choices, [team.id]: { ...choice,
               fortune: { ...choice.fortune, [card.id]: { ...offer, selected: option.id } } } } })
             setActionError(null)
           }}><CardTile {...option} /><span>{cardTitleFor(option.name, option.type)}</span></button>)}</div>
@@ -196,8 +213,8 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       <div className="tactical-admin__history">{Array.from(new Set(team.cards.map((card) => card.challenge_point))).map((entryId) => <section key={entryId} className="tactical-admin__card-group">
         <h5>{team.cardChallenges[entryId ?? '']?.name ?? 'Other earned cards'}{team.cardChallenges[entryId ?? '']?.id === id && <span className="badge">Current challenge</span>}</h5>
         <div className="tactical-admin__cards" aria-label={`Earned cards for ${team.name}`}>{team.cards.filter((card) => card.challenge_point === entryId).map((card) => <div className="tactical-admin__owned-card" key={card.id}>
-          <button disabled={locked || usedCards.has(card.id)} draggable={!locked && !usedCards.has(card.id)} aria-label={`Select ${card.name} for ${team.name}`} aria-pressed={phase.choices[team.id]?.cards.includes(card.id) ?? false} onClick={() => select(team.id, card.id)} onDragStart={(event) => { event.dataTransfer.setData('application/x-guard-card', JSON.stringify({ teamId: team.id, cardId: card.id })) }}><TacticalCard card={card} /></button>
-          <span className="tactical-admin__card-state">{isPassiveCard(card) ? 'Select to arm · automatic at 0 GP' : 'Available'}</span>
+          <button disabled={locked || usedCards.has(card.id) || deferredRewards.has(card.id)} draggable={!locked && !usedCards.has(card.id) && !deferredRewards.has(card.id)} aria-label={`Select ${card.name} for ${team.name}`} aria-pressed={phase.choices[team.id]?.cards.includes(card.id) ?? false} onClick={() => select(team.id, card.id)} onDragStart={(event) => { event.dataTransfer.setData('application/x-guard-card', JSON.stringify({ teamId: team.id, cardId: card.id })) }}><TacticalCard card={card} /></button>
+          <span className="tactical-admin__card-state">{deferredRewards.has(card.id) ? 'Available next challenge' : isPassiveCard(card) ? 'Select to arm · automatic at 0 GP' : 'Available'}</span>
         </div>)}</div>
       </section>)}{!team.cards.length && <p>No available cards</p>}</div>
       </div><div><h4>Selected cards</h4><div className="tactical-admin__selection" aria-label={`Selected cards for ${team.name}`} onDragOver={(event) => { if (!locked) event.preventDefault() }} onDrop={(event) => dropCard(event, team.id)}>
@@ -224,7 +241,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       const visible = reveal && (phase.revealed || !!resolution)
       const result = team ? resolution?.teams.find((entry) => entry.teamId === team.id) : undefined
       return <article key={team?.id ?? index} className={`tactical-stage__team tactical-colour--${teamColour(team?.name ?? '') ?? 'neutral'}`} style={{ '--slot': index } as CSSProperties} aria-label={team?.name ?? 'Empty team'}>
-        <h2>Tim {team?.name.replace(/^tim\s+/i, '') ?? '—'}</h2><span className="tactical-stage__gp"><svg viewBox="0 0 64 80" aria-hidden="true"><path d="M32 3 61 17 57 54 32 77 7 54 3 17Z" fill="#67dbff" stroke="#0c9edc" strokeWidth="2" /><path d="M32 10 54 21 50 50 32 67 14 50 10 21Z" fill="#0759da" stroke="#b9f5ff" strokeWidth="3" /><text x="32" y="46" textAnchor="middle" fill="white" fontFamily="Arial" fontWeight="bold" fontSize="25">GP</text></svg>{visible ? result?.finalGP ?? team?.gp ?? 0 : team?.gp ?? 0} GP</span>
+        <h2>Tim {team?.name.replace(/^tim\s+/i, '') ?? '—'}</h2><span className="tactical-stage__gp"><GPShield />{visible ? result?.finalGP ?? team?.gp ?? 0 : team?.gp ?? 0} GP</span>
         {reveal && <p className="tactical-stage__caption">Kartu yang dipakai</p>}
         {!reveal && <div className="tactical-stage__collection" aria-label={`Owned cards for ${team?.name ?? 'empty team'}`}>{Array.from({ length: Math.max(8, availableCards.length) }, (_, slot) => {
           const card = availableCards[slot]

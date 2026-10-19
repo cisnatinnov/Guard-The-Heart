@@ -1,3 +1,4 @@
+import { GPShield } from './GPShield'
 import { publishPublicDisplay } from '../services/publicDisplay'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -98,7 +99,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
             </div>) : <span className="reward-stage__empty">{row ? row.cardCount === 0 ? '0 Kartu' : 'Kartu belum dibagikan' : '—'}</span>}
           </div>
           <span className="reward-stage__gp" aria-label={row ? `${row.guardPower} GP earned` : undefined}>
-            <svg viewBox="0 0 64 80" className="reward-stage__gp-icon" aria-hidden="true"><path d="M32 3 61 17 57 54 32 77 7 54 3 17Z" fill="#67dbff" stroke="#0c9edc" strokeWidth="2" /><path d="M32 10 54 21 50 50 32 67 14 50 10 21Z" fill="#0759da" stroke="#b9f5ff" strokeWidth="3" /><text x="32" y="46" textAnchor="middle" fill="white" fontFamily="Arial" fontWeight="bold" fontSize="25">GP</text></svg>
+            <GPShield className="reward-stage__gp-icon" />
             {row ? `+${row.guardPower} GP` : '—'}
           </span>
         </li>

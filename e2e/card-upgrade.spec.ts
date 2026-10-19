@@ -96,7 +96,7 @@ test('corrected Reverse/Thief/Swallow migrations keep their identities and resol
   await page.getByRole('button',{name:'Serang semua tim −2 GP',exact:true}).click()
   await expect(page.getByRole('button',{name:'Serangan selesai',exact:true})).toBeDisabled()
   await expect(projector).toHaveURL(`/card-reveal/${challengeId}`)
-  for (const [name,gp] of [['Merah',12],['Biru',8],['Kuning',10],['Pink',2],['Hijau',1]]) {
+  for (const [name,gp] of [['Merah',12],['Biru',8],['Kuning',10],['Pink',4],['Hijau',1]]) {
     const team=projector.locator('.tactical-stage__team').filter({hasText:`Tim ${name}`})
     await expect(team.locator('.tactical-stage__gp')).toContainText(`${gp} GP`)
   }

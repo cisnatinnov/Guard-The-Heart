@@ -1,0 +1,35 @@
+import { test, expect } from '@playwright/test'
+
+test('Heart of Awareness mirrors live GP on five proportional plaques', async ({ page }) => {
+  await page.goto('/admin/heart-of-awareness')
+  const panels = page.getByRole('list', { name: 'Current team GP' })
+  await expect(panels.getByRole('listitem')).toHaveCount(5)
+  await expect(panels.locator('.team-pill')).toHaveText(['Tim Hijau', 'Tim Merah', 'Tim Kuning', 'Tim Biru', 'Tim Pink'])
+  await page.goto('/admin/scoreboard/9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10')
+  await page.locator('.grid-form select').selectOption({ label: 'Merah' })
+  await page.locator('.grid-form input[type="number"]').fill('100')
+  await page.getByRole('button', { name: 'Add entry', exact: true }).click()
+  await expect(page.locator('.board__row')).toHaveCount(1)
+  const popup = page.waitForEvent('popup')
+  await page.getByRole('link', { name: 'Heart of Awareness', exact: true }).click()
+  const publicPage = await popup
+  await expect(publicPage).toHaveURL(/\/heart-of-awareness$/)
+  for (const target of [page, publicPage]) {
+    await expect(target.getByRole('listitem', { name: 'Merah: 8 GP', exact: true })).toBeVisible()
+    const art = target.locator('.awareness-stage')
+    const box = await art.boundingBox()
+    expect(box!.width / box!.height).toBeCloseTo(16 / 9, 2)
+  }
+  await page.goto('/admin/scoreboard/9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10')
+  await page.locator('.grid-form select').selectOption({ label: 'Biru' })
+  await page.locator('.grid-form input[type="number"]').fill('110')
+  await page.getByRole('button', { name: 'Add entry', exact: true }).click()
+  await expect(publicPage.getByRole('listitem', { name: 'Merah: 7 GP', exact: true })).toBeVisible()
+  await expect(publicPage.getByRole('listitem', { name: 'Biru: 8 GP', exact: true })).toBeVisible()
+  await publicPage.screenshot({ path: 'test-results/heart-awareness-desktop.png' })
+  await publicPage.reload()
+  await expect(publicPage.getByRole('listitem', { name: 'Merah: 7 GP', exact: true })).toBeVisible()
+  await publicPage.setViewportSize({ width: 390, height: 844 })
+  expect(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
+  await publicPage.screenshot({ path: 'test-results/heart-awareness-mobile.png' })
+})

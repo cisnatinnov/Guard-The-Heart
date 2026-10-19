@@ -508,7 +508,7 @@ export async function getTeamDrawnCards(teamId: string): Promise<Card[]> {
 /** Fortune grants are extra cards, so they never consume normal rank reward slots. */
 export async function getAssignedChallengeRewardCount(challengeId: string, teamId: string): Promise<number> {
   const phase = readTacticalPhase(challengeId)
-  const extras = (phase.resolution ?? phase.strike)?.teams.find((team) => team.teamId === teamId)?.fortuneDraws?.map((draw) => draw.selected) ?? []
+  const extras = (phase.resolution ?? phase.strike ?? phase.assignment)?.teams.find((team) => team.teamId === teamId)?.fortuneDraws?.map((draw) => draw.selected) ?? []
   return Card.count({ where: { challenge: challengeId, team: teamId, ...(extras.length ? { id: { [Op.notIn]: extras } } : {}) } })
 }
 

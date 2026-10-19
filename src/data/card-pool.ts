@@ -58,7 +58,7 @@ const CARD_DESIGNS: CardDesign[] = [
     title: 'Protect Card',
     effect: 'Defense',
     icon: '🛡️',
-    effect_action: 'Target tim tidak kehilangan Guard Point (GP) dari satu kali serangan Gigarisk.',
+    effect_action: 'Pemilik kartu dan tim target tidak kehilangan Guard Point (GP) dari satu kali serangan Gigarisk.',
     copies: 6,
   },
   {

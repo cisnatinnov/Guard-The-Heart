@@ -2,14 +2,22 @@ import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { initializeAppDatabase } from '../src/db/database'
 import { Card, Challenge, GPTransaction, TeamCard } from '../src/models'
 import { TeamController } from '../src/controllers/TeamController'
+import { ScoreboardController } from '../src/controllers/ScoreboardController'
 import { prepareFortuneOptions } from '../src/services/fortuneDraw'
 import { getAssignedChallengeRewardCount } from '../src/services/cardDraw'
-import { recordGigaRiskGP } from '../src/services/gpTransactions'
+import { commitTacticalAssignment, recordGigaRiskGP } from '../src/services/gpTransactions'
 import { cardEffectLabel, cardImageFor, CARD_POOL } from '../src/data/card-pool'
-import { chooseTacticalCard, resolveTacticalEffects, validateTacticalAttack, type TacticalPhase } from '../src/services/tacticalPhase'
+import { chooseTacticalCard, readTacticalPhase, resolveTacticalEffects, validateTacticalAttack, type TacticalPhase } from '../src/services/tacticalPhase'
 
 beforeAll(async () => { await initializeAppDatabase() })
 afterEach(() => vi.unstubAllGlobals())
+
+function localPhaseStore() {
+  const values = new Map<string, string>()
+  vi.stubGlobal('localStorage', { get length() { return values.size }, key: (index: number) => [...values.keys()][index] ?? null,
+    getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value) })
+  vi.stubGlobal('window', { dispatchEvent: () => true })
+}
 
 async function fixture() {
   const team = await TeamController.create(`Fortune ${crypto.randomUUID()}`)
@@ -152,4 +160,48 @@ it('allows a drawn Heal to be played with its normal effect in another challenge
   expect((await team.reload()).total_gp).toBe(4)
   expect(second.teams[0].usedCardIds).toEqual([reward.id])
   expect(second.teams[0].effects).toContain('+3 Heal')
+})
+
+it('grants Fortune on confirmation, preserves it through retargeting/reload and never grants it again at damage', async () => {
+  localPhaseStore()
+  const { team, challenge, card, options, teams, phase } = await fixture()
+  const selected = options.find((option) => option.effect !== 'Heal')!
+  phase.choices[team.id].fortune![card.id].selected = selected.id
+  await commitTacticalAssignment(challenge.id, teams, phase)
+  let saved = readTacticalPhase(challenge.id)
+  const draw = saved.assignment!.teams[0].fortuneDraws![0]
+  expect(draw.rewardId).toBeTruthy()
+  expect(await TeamCard.count({ where: { team: team.id } })).toBe(2)
+  expect((await team.reload()).total_gp).toBe(5)
+  expect(await getAssignedChallengeRewardCount(challenge.id, team.id)).toBe(0)
+  expect((await ScoreboardController.availableCardCounts()).get(team.id)).toBe(1)
+  await commitTacticalAssignment(challenge.id, teams, saved)
+  saved = readTacticalPhase(challenge.id)
+  expect(saved.assignment!.teams[0].fortuneDraws![0].rewardId).toBe(draw.rewardId)
+  const damage = resolveTacticalEffects(teams, saved.choices, () => 0, 99, 'damage', saved.assignment)
+  await recordGigaRiskGP(challenge.id, damage)
+  expect(await TeamCard.count({ where: { team: team.id } })).toBe(2)
+  expect((await team.reload()).total_gp).toBe(3)
+  expect(damage.teams[0].cardEffects![card.id]).toHaveLength(1)
+})
+
+it('returns an immediate Fortune reward on deselection and rolls back a failed replacement', async () => {
+  localPhaseStore()
+  const { team, challenge, card, options, teams, phase } = await fixture()
+  const selected = options.find((option) => option.effect !== 'Heal')!
+  phase.choices[team.id].fortune![card.id].selected = selected.id
+  await commitTacticalAssignment(challenge.id, teams, phase)
+  const saved = readTacticalPhase(challenge.id)
+  const unavailable = options.find((option) => option.id !== selected.id)!
+  await (await Card.findByPk(unavailable.id))!.update({ challenge: challenge.id })
+  const changed = structuredClone(saved)
+  changed.choices[team.id].fortune![card.id].selected = unavailable.id
+  await expect(commitTacticalAssignment(challenge.id, teams, changed)).rejects.toThrow('tidak tersedia')
+  expect((await Card.findByPk(selected.id))!.team).toBe(team.id)
+  expect(await TeamCard.count({ where: { team: team.id } })).toBe(2)
+  const removed = chooseTacticalCard(saved, team.id, card.id, [card.id])
+  await commitTacticalAssignment(challenge.id, teams, removed)
+  expect(await TeamCard.count({ where: { team: team.id } })).toBe(1)
+  expect((await Card.findByPk(selected.id))!.team).toBeNull()
+  expect((await team.reload()).total_gp).toBe(5)
 })

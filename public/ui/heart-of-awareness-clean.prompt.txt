@@ -1,0 +1,6 @@
+Edit source: Heart_of_Awareness.png
+Remove only the five printed team names and large GP sample numbers.
+Preserve the original blue GP icons, coloured name bars, gold plaque frames,
+bottom gems, arena background, central crystal, game logo, title and 16:9 layout.
+Fill removed text using the existing bar colours and natural cream shading.
+Live team names and GP are rendered by HeartAwarenessView.tsx.

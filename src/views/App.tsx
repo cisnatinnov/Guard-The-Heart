@@ -16,6 +16,7 @@ import { TacticalPhaseView } from './TacticalPhaseView'
 import { TurnOrderView, GigaRiskView } from './ReferenceFeatures'
 import { PodiumView } from './PodiumView'
 import { GPTransactionsView } from './GPTransactionsView'
+import { HeartAwarenessView } from './HeartAwarenessView'
 
 function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const { status, error } = useDatabase()
@@ -54,6 +55,7 @@ export function App() {
             <Route path="/timer" element={<EventTimerView />} />
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
+            <Route path="/heart-of-awareness" element={<HeartAwarenessView />} />
             <Route path="/podium" element={<PodiumView />} />
             <Route path="/turn-order" element={<TurnOrderView />} />
             <Route path="/gigarisk/:challengeId?" element={<GigaRiskView />} />
@@ -71,6 +73,7 @@ export function App() {
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />
+            <Route path="/admin/heart-of-awareness" element={<HeartAwarenessView admin />} />
             <Route path="/admin/podium" element={<PodiumView admin />} />
             <Route path="/admin/gp-transactions" element={<GPTransactionsView />} />
             <Route path="/admin/turn-order" element={<TurnOrderView admin />} />

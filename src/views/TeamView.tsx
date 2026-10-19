@@ -163,7 +163,7 @@ export function TeamView() {
       {!loading && visibleTeams.length > 0 && (
         <ul className="card-list">
           {visibleTeams.map((team) => (
-            <li key={team.id} className="card">
+            <li key={team.id} className="card team-card">
               {editingId === team.id ? (
                 <form className="row-form" onSubmit={(event) => handleRename(event, team.id)}>
                   <input
@@ -183,13 +183,15 @@ export function TeamView() {
               ) : (
                 <div className="card__body">
                   <span className="card__title">{team.name}</span>
-                  <div className="card__actions">
-                    <span className={team.status === 'active' ? 'badge' : 'badge badge--muted'}>
-                      {team.status}
-                    </span>
-                    <span className="badge" title="Guard power: 5 base plus challenge rewards">
-                      GP {team.total_gp}
-                    </span>
+                  <div className="card__actions team-card__actions">
+                    <div className="team-card__status">
+                      <span className={team.status === 'active' ? 'badge' : 'badge badge--muted'}>
+                        {team.status}
+                      </span>
+                      <span className="badge" title="Guard power: 5 base plus challenge rewards">
+                        GP {team.total_gp}
+                      </span>
+                    </div>
                     <button
                       type="button"
                       disabled={busy || (team.status === 'inactive' && team.total_gp <= 0)}

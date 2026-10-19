@@ -46,7 +46,7 @@ it('converts the fixed strike to a doubled four GP gain with Swallow', () => {
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[card]}], {a:{cards:['swallow'],skipped:false}}).teams[0]
   expect([result.gigaRisk,result.finalGP,result.usedCards]).toEqual([4,9,1])
 })
-it('applies the selected heal before strike damage', () => {
+it('applies the selected heal after strike damage', () => {
   const card = {id:'heal',name:'Rare Heal Card',type:'Rare',effect:'Heal',effect_action:'+3 GP'}
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[card]}], {a:{cards:['heal'],skipped:false}}).teams[0]
   expect(result.finalGP).toBe(6)
@@ -95,7 +95,7 @@ it('directly assigns Protect to its owner or another team without moving ownersh
   expect(self.choices.a.targets).toEqual({protect:'a'})
   expect(other.choices.a).toEqual({cards:['protect'],skipped:false,targets:{protect:'b'}})
   expect(other.choices.b).toBeUndefined()
-  expect(resolveTacticalEffects(directTeams,other.choices).teams.map((team)=>team.finalGP)).toEqual([3,5,3])
+  expect(resolveTacticalEffects(directTeams,other.choices).teams.map((team)=>team.finalGP)).toEqual([5,5,3])
 })
 it('directly assigns Thief only to opponents and preserves the two-card limit', () => {
   expect(() => assignTacticalCard(empty,directTeams,'a','thief','a')).toThrow('opposing')
@@ -140,7 +140,7 @@ it('Reverse uses opponent GP before damage, including low-GP opponents', () => {
   expect(result[0].cardEffects?.reverse).toEqual(['+1 Reverse dari B','+1 Reverse dari C'])
 })
 it.each([
-  ['Normal Heal Card','Heal','Menambah +2 GP.',1,-2,1],
+  ['Normal Heal Card','Heal','Menambah +2 GP.',1,-2,2],
   ['Normal Shield Card','Defense','Melindungi 1 GP.',1,-1,0],
   ['Rare Protect Card','Defense','Protect target',1,0,1],
   ['Epic Swallow Card','Defense','Convert damage',1,4,5],

@@ -17,7 +17,7 @@ export interface TacticalTeamResult {
   usedCards: number
   usedCardIds?: string[]
   passiveCardIds?: string[]
-  fortuneDraws?: Array<{ cardId: string; options: string[]; selected: string }>
+  fortuneDraws?: Array<{ cardId: string; options: string[]; selected: string; rewardId?: string }>
 }
 /** Older archives retain their totals; attribute visible actions to the cards actually played. */
 export function teamUsedCardEffects(result: TacticalTeamResult | undefined, cards: TacticalTeamInput['cards']): string[] {
@@ -30,7 +30,7 @@ export function teamUsedCardEffects(result: TacticalTeamResult | undefined, card
   })
 }
 
-export interface TacticalResolution { resolvedAt: number; teams: TacticalTeamResult[] }
+export interface TacticalResolution { resolvedAt: number; teams: TacticalTeamResult[]; effectTimingVersion?: 2 }
 export interface TacticalPhase { choices: Record<string, TacticalChoice>; revealed: boolean; assignment?: TacticalResolution; resolution?: TacticalResolution; strike?: TacticalResolution }
 const PREFIX = 'guard-the-heart-tactical:'
 const ATTACK_PREFIX = 'guard-the-heart-gigarisk-completed:'
@@ -89,8 +89,8 @@ function normalizeArchivedEffects(phase: TacticalPhase): TacticalPhase {
   return phase
 }
 
-export function latestTacticalResolution(challengeIds: readonly string[]): TacticalResolution | undefined {
-  return challengeIds.map((id) => { const phase = readTacticalPhase(id); return hasTacticalDecisions(phase) ? phase.resolution ?? phase.strike : undefined })
+export function latestTacticalResolution(challengeIds: readonly string[], includePending = false): TacticalResolution | undefined {
+  return challengeIds.map((id) => { const phase = readTacticalPhase(id); return hasTacticalDecisions(phase) ? phase.resolution ?? phase.strike ?? (includePending ? phase.assignment : undefined) : undefined })
     .filter((resolution): resolution is TacticalResolution => !!resolution && Number.isFinite(resolution.resolvedAt))
     .sort((a, b) => b.resolvedAt - a.resolvedAt)[0]
 }
@@ -113,7 +113,7 @@ export async function attackTacticalPhaseOnce(id: string, teams: readonly Tactic
     validateTacticalAttack(teams, phase)
     const balances = persist ? await Team.findAll() : []
     const freshTeams = persist ? teams.map((team) => ({...team, gp:balances.find((entry) => entry.id === team.id)?.total_gp ?? team.gp})) : teams
-    const resolution = resolveTacticalEffects(freshTeams, phase.choices, Math.random, Date.now(), phase.assignment ? 'damage' : 'complete', phase.assignment)
+    const resolution = resolveTacticalDamage(freshTeams, phase)
     if(persist)await persist(resolution)
     publishTacticalPhase(id, { ...phase, revealed: true, resolution })
     dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
@@ -254,7 +254,32 @@ function amount(random: () => number, min: number, max: number): number {
   return min + Math.floor(Math.max(0, Math.min(0.999999, random())) * (max - min + 1))
 }
 
-/** Assignment updates GP immediately; damage consumes defenses without repeating those updates. */
+/** Pending older selections may already include Heal/Unity; remove that early bonus once. */
+export function resolveTacticalDamage(teams: readonly TacticalTeamInput[], phase: TacticalPhase, random = Math.random, resolvedAt = Date.now()): TacticalResolution {
+  let assignment = phase.assignment
+  let damageTeams = teams
+  const migrate = assignment && assignment.effectTimingVersion !== 2
+  if (migrate) {
+    const baseline = teams.map((team) => {
+      const previous = phase.assignment!.teams.find((entry) => entry.teamId === team.id)
+      return { ...team, gp: Math.max(0, team.gp - (previous ? previous.finalGP - previous.initialGP : 0)) }
+    })
+    assignment = resolveTacticalEffects(baseline, phase.choices, random, resolvedAt, 'assignment')
+    for (const result of assignment.teams) {
+      const previous = phase.assignment!.teams.find((entry) => entry.teamId === result.teamId)
+      for (const draw of result.fortuneDraws ?? []) {
+        const saved = previous?.fortuneDraws?.find((entry) => entry.cardId === draw.cardId)
+        if (saved?.rewardId) draw.rewardId = saved.rewardId
+      }
+    }
+    damageTeams = teams.map((team) => ({ ...team, gp: assignment!.teams.find((entry) => entry.teamId === team.id)!.finalGP }))
+  }
+  const result = resolveTacticalEffects(damageTeams, phase.choices, random, resolvedAt, assignment ? 'damage' : 'complete', assignment)
+  if (migrate) for (const entry of result.teams) entry.assignmentGP = teams.find((team) => team.id === entry.teamId)!.gp
+  return result
+}
+
+/** Reverse/Thief update GP at assignment; damage then applies defenses, Unity and Heal. */
 export function resolveTacticalEffects(
   teams: readonly TacticalTeamInput[],
   choices: Record<string, TacticalChoice>,
@@ -300,18 +325,6 @@ export function resolveTacticalEffects(
     return requireCardTargets(teams, owner.team.id, card, choices[owner.team.id])
   }
   if (timing !== 'damage') {
-    for (const current of state) for (const card of current.cards) {
-      if (card.effect !== 'Heal') continue
-      const described = card.effect_action.match(/(?:menambah|tambah|add)\s*\+?(\d+)(?!\d)/i)
-      const healed = described && !/\d\s*[-–]\s*\d/.test(card.effect_action) ? Number(described[1]) : /Rare/i.test(card.type) ? 3 : amount(random, 1, 2)
-      current.gp += healed
-      current.effects.push(`+${healed} Heal`)
-      recordCardEffect(current, card, `+${healed} Heal`)
-    }
-    for (const { owner, card } of unityOwners) {
-      for (const current of state) { current.gp += 1; current.effects.push('+1 Gardian Unity') }
-      recordCardEffect(owner, card, 'Gardian Unity: masing-masing tim +1 GP')
-    }
     for (const current of state) for (const reverse of current.cards.filter((card) => /Reverse/i.test(card.name))) {
       const stolen = Number(reverse.effect_action.match(/(?:ambil|take)\s*\+?(\d+)/i)?.[1] ?? 1)
       for (const opponent of state) {
@@ -339,7 +352,8 @@ export function resolveTacticalEffects(
   if (timing !== 'assignment') {
     const protectedTeams = new Set<string>()
     for (const owner of state) for (const card of owner.cards.filter(isProtectCard)) {
-      for (const targetId of targetsFor(owner, card)) {
+      const targets = new Set([owner.team.id, ...targetsFor(owner, card)])
+      for (const targetId of targets) {
         protectedTeams.add(targetId)
         recordCardEffect(owner, card, `Protect untuk ${state.find((entry) => entry.team.id === targetId)!.team.name}: terlindungi dari serangan GigaRisk`)
       }
@@ -351,22 +365,35 @@ export function resolveTacticalEffects(
       if (unity || protectedTeams.has(current.team.id)) {
         current.attack = 0
         current.effects.push('+2 ' + (unity ? 'Gardian Unity protection' : 'Protect'))
-      } else if (swallow) {
-        current.attack = 4
-        current.effects.push('+4 Swallow'); recordCardEffect(current, swallow, '+4 Swallow')
-      } else {
+      } else if (!swallow) {
         for (const shield of shields) {
           const blocked = Math.min(-current.attack, Number(shield.effect_action.match(/melindungi\s*(\d+)/i)?.[1] ?? 1))
           if (blocked > 0) { current.attack += blocked; current.effects.push(`+${blocked} Shield`); recordCardEffect(current, shield, `+${blocked} Shield`) }
         }
       }
-      if (swallow && current.attack <= 0) recordCardEffect(current, swallow, 'Swallow: tidak ada damage GigaRisk untuk dikonversi')
+      if (swallow) {
+        current.attack = 4
+        current.effects.push('+4 Swallow'); recordCardEffect(current, swallow, '+4 Swallow')
+      }
       for (const shield of shields) if (!current.cardEffects[shield.id]) recordCardEffect(current, shield, 'Shield: tidak ada damage GigaRisk tersisa')
       current.gp = Math.max(0, current.gp + current.attack)
       revive(current)
     }
+    // Bonuses resolve after damage; protection preserves the pre-strike balance.
+    for (const { owner, card } of unityOwners) {
+      for (const current of state) { current.gp += 1; current.effects.push('+1 Gardian Unity') }
+      recordCardEffect(owner, card, 'Gardian Unity: masing-masing tim +1 GP')
+    }
+    for (const current of state) for (const card of current.cards) {
+      if (card.effect !== 'Heal') continue
+      const described = card.effect_action.match(/(?:menambah|tambah|add)\s*\+?(\d+)(?!\d)/i)
+      const healed = described && !/\d\s*[-–]\s*\d/.test(card.effect_action) ? Number(described[1]) : /Rare/i.test(card.type) ? 3 : amount(random, 1, 2)
+      current.gp += healed
+      current.effects.push(`+${healed} Heal`)
+      recordCardEffect(current, card, `+${healed} Heal`)
+    }
   }
-  return { resolvedAt, teams: state.map(({ team, prior, gp, attack, effects, usedCardEffects, cardEffects, cards, passive, passiveUsed }) => ({
+  return { resolvedAt, effectTimingVersion: 2, teams: state.map(({ team, prior, gp, attack, effects, usedCardEffects, cardEffects, cards, passive, passiveUsed }) => ({
     teamId: team.id,
     initialGP: prior?.initialGP ?? Math.max(0, Math.trunc(team.gp)),
     ...(timing === 'damage' ? { assignmentGP: assignmentBalances.get(team.id) } : {}),
@@ -377,6 +404,7 @@ export function resolveTacticalEffects(
     fortuneDraws: cards.filter(isFortuneCard).map((card) => ({ cardId: card.id,
       options: choices[team.id]?.fortune?.[card.id]?.options.map((option) => option.id) ?? [],
       selected: choices[team.id]?.fortune?.[card.id]?.selected ?? '',
+      ...(prior?.fortuneDraws?.find((draw) => draw.cardId === card.id)?.rewardId ? { rewardId: prior.fortuneDraws.find((draw) => draw.cardId === card.id)!.rewardId } : {}),
     })),
   })) }
 }

@@ -1,8 +1,8 @@
 import { challengeQuestionsFor } from '../src/services/games/challengeQuestions'
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
 import { initializeAppDatabase } from '../src/db/database'
 import { getSequelize } from '../src/db/sequelize-provider'
-import { Card, Challenge, ChallengePoint, GameQuestion, Scoreboard, TeamCard } from '../src/models'
+import { BlindReward, Card, Challenge, ChallengePoint, GameQuestion, Scoreboard, TeamCard } from '../src/models'
 import { type HeartTowerColumn } from '../src/controllers/TeamController'
 import { ChallengeController } from '../src/controllers/ChallengeController'
 import { TeamController } from '../src/controllers/TeamController'
@@ -45,7 +45,7 @@ describe('rank rules', () => {
     expect(rewardsForRank(2)).toEqual({ challenge_point: 8, guard_power: 2, cards: 2 })
     expect(rewardsForRank(3)).toEqual({ challenge_point: 6, guard_power: 2, cards: 2 })
     expect(rewardsForRank(4)).toEqual({ challenge_point: 4, guard_power: 1, cards: 1 })
-    expect(rewardsForRank(5)).toEqual({ challenge_point: 2, guard_power: 1, cards: 0 })
+    expect(rewardsForRank(5)).toEqual({ challenge_point: 2, guard_power: 1, cards: 1 })
   })
 
   it('starts every team at 5 guard power', () => {
@@ -334,7 +334,7 @@ describe('ChallengePointController', () => {
 
     // Cards should be in challenge pool with no team assigned
     const challengeCards = await Card.findAll({ where: { challenge: challenge.id } })
-    expect(challengeCards).toHaveLength(8)
+    expect(challengeCards).toHaveLength(10)
     for (const card of challengeCards) {
       expect(card.team).toBeNull()
     }
@@ -777,22 +777,27 @@ describe('ScoreboardController', () => {
 })
 
 describe('card pool', () => {
-  it('declares 86 cards split 48 Normal, 24 Rare, 12 Epic and 2 Legendary', async () => {
+  beforeEach(async () => {
+    await BlindReward.destroy({where:{}})
+    await TeamCard.destroy({where:{}})
+    await Card.update({challenge:null,team:null,challenge_point:null},{where:{}})
+  })
+  it('declares 60 cards split 33 Normal, 16 Rare, 8 Epic and 3 Legendary', async () => {
     const pool = await getCardPoolStatus()
     const inventory = await Card.findAll()
     const names = inventory.map((card) => card.name)
     const queryInterface = getSequelize().getQueryInterface()
-    expect(CARD_POOL_TOTAL).toBe(86)
-    expect(inventory).toHaveLength(86)
-    expect(new Set(names).size).toBe(86)
+    expect(CARD_POOL_TOTAL).toBe(60)
+    expect(inventory).toHaveLength(60)
+    expect(new Set(names).size).toBe(60)
     expect(inventory.every((card) => card.effect_action.trim().length > 0)).toBe(true)
     expect(await queryInterface.describeTable('card')).toHaveProperty('effect_action')
     expect(await queryInterface.describeTable('team_card')).toHaveProperty('effect_action')
     expect(pool.total).toBe(CARD_POOL_TOTAL)
-    expect(pool.byType.Normal.total).toBe(48)
-    expect(pool.byType.Rare.total).toBe(24)
-    expect(pool.byType.Epic.total).toBe(12)
-    expect(pool.byType.Legendary.total).toBe(2)
+    expect(pool.byType.Normal.total).toBe(33)
+    expect(pool.byType.Rare.total).toBe(16)
+    expect(pool.byType.Epic.total).toBe(8)
+    expect(pool.byType.Legendary.total).toBe(3)
 
     for (const type of CARD_TYPES) {
       const bucket = pool.byType[type]
@@ -801,7 +806,7 @@ describe('card pool', () => {
     expect(pool.drawn + pool.remaining).toBe(pool.total)
 
     await seedCardPool()
-    expect(await Card.count()).toBe(86)
+    expect(await Card.count()).toBe(60)
   })
 
   it('consumes pool cards on draw and returns them only when the challenge is deleted', async () => {
@@ -822,13 +827,13 @@ describe('card pool', () => {
 
     await drawBonusCardsForChallenge(challenge.id)
     const drawn = await Card.findAll({ where: { challenge: challenge.id } })
-    expect(drawn).toHaveLength(8)
-    expect(new Set(drawn.map((card) => card.name)).size).toBe(8)
+    expect(drawn).toHaveLength(10)
+    expect(new Set(drawn.map((card) => card.name)).size).toBe(10)
     expect(drawn.every((card) => card.effect_action.trim().length > 0)).toBe(true)
 
     const afterDraw = await getCardPoolStatus()
-    expect(afterDraw.drawn - before.drawn).toBe(8)
-    expect(afterDraw.remaining).toBe(before.remaining - 8)
+    expect(afterDraw.drawn - before.drawn).toBe(10)
+    expect(afterDraw.remaining).toBe(before.remaining - 10)
     expect(afterDraw.byType.Normal.drawn - before.byType.Normal.drawn).toBe(
       drawn.filter((card) => card.type === 'Normal').length
     )
@@ -841,7 +846,7 @@ describe('card pool', () => {
 
     const firstEntry = (await ChallengePointController.listByChallenge(challenge.id))[0]
     await ChallengePointController.remove(firstEntry.id)
-    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(10)
 
     expect(await ChallengeController.remove(challenge.id)).toBe(true)
     expect(await Card.count({ where: { challenge: challenge.id } })).toBe(0)
@@ -877,8 +882,8 @@ describe('card pool', () => {
     }
 
     // 3 completed challenges x 8 cards drawn, all from distinct pool entries.
-    expect(drawnCardNames.size).toBe(24)
-    expect((await getCardPoolStatus()).drawn - baseline.drawn).toBe(24)
+    expect(drawnCardNames.size).toBe(30)
+    expect((await getCardPoolStatus()).drawn - baseline.drawn).toBe(30)
   })
 
   it('returns assigned inventory rows when their challenge is deleted', async () => {
@@ -898,9 +903,9 @@ describe('card pool', () => {
     }
 
     await drawBonusCardsForChallenge(challenge.id)
-    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(10)
     expect(await ChallengeController.remove(challenge.id)).toBe(true)
-    expect(await Card.count()).toBe(86)
+    expect(await Card.count()).toBe(60)
     expect(await getCardPoolStatus()).toEqual(baseline)
   })
 })

@@ -1,10 +1,10 @@
 import { Op, type Transaction } from 'sequelize'
-import { Challenge, GPTransaction, Team } from '../models'
+import { Challenge, GPTransaction, Team, TeamCard } from '../models'
 import { getSequelize, flushDatabase, refreshDatabaseFromStorage, withDatabaseWriteLock } from '../db/sequelize-provider'
 import { teamGuardPower } from './rankRules'
-import { readTacticalPhase, publishTacticalPhase, resolveTacticalEffects, type TacticalPhase, type TacticalTeamInput, type TacticalResolution } from './tacticalPhase'
+import { readTacticalPhase, publishTacticalPhase, resolveTacticalEffects, validateTacticalAttack, hasDistinctFortuneEffects, isFortuneCard, isPassiveCard, type TacticalPhase, type TacticalTeamInput, type TacticalResolution } from './tacticalPhase'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
-import { reconcileFortuneDraws, settleFortuneDraws } from './fortuneDraw'
+import { prepareFortuneOptions, reconcileFortuneDraws, settleFortuneDraws } from './fortuneDraw'
 let queue: Promise<void> = Promise.resolve()
 function serialize<T>(operation:()=>Promise<T>):Promise<T>{ const pending=queue.then(operation,operation);queue=pending.then(()=>undefined,()=>undefined);return pending }
 async function opening(team:Team,transaction?:Transaction){
@@ -21,8 +21,37 @@ export async function initializeGPTransactions():Promise<void>{
  for(const challenge of await Challenge.findAll()){
   const phase=readTacticalPhase(challenge.id);const resolution=phase.resolution??phase.strike
   if(resolution)await recordGigaRiskGP(challenge.id,resolution,true)
+  else if(phase.assignment && phase.assignment.effectTimingVersion !== 3 && phase.assignment.effectTimingVersion !== 4) await upgradePendingCardTiming(challenge.id, phase)
  }
  await Team.update({status:'inactive'},{where:{total_gp:{[Op.lte]:0}}})
+}
+
+/** Remove old selection-time GP changes while retaining choices and Fortune rewards. */
+async function upgradePendingCardTiming(challengeId: string, phase: TacticalPhase): Promise<void> {
+ await serialize(async () => {
+  const balances = await Promise.all((phase.assignment?.teams ?? []).map(async (snapshot) => {
+   const team = await Team.findByPk(snapshot.teamId)
+   if (!team) return null
+   const previous = await GPTransaction.findOne({ where: { source_key: `assignment:${challengeId}:${team.id}` } })
+   const gp = Math.max(0, team.total_gp - (previous?.delta ?? snapshot.finalGP - snapshot.initialGP))
+   const cards = await TeamCard.findAll({ where: { team: team.id } })
+   return { team, previous, snapshot, input: { id: team.id, name: team.name, gp, cards } }
+  }))
+  const present = balances.filter((entry) => entry !== null)
+  const assignment = resolveTacticalEffects(present.map((entry) => entry.input), phase.choices, Math.random, Date.now(), 'assignment')
+  for (const result of assignment.teams) for (const draw of result.fortuneDraws ?? []) {
+   const saved = phase.assignment?.teams.find((entry) => entry.teamId === result.teamId)?.fortuneDraws?.find((entry) => entry.cardId === draw.cardId)
+   if (saved?.rewardId) draw.rewardId = saved.rewardId
+  }
+  await getSequelize().transaction(async (transaction) => {
+   for (const { team, previous, snapshot, input } of present) {
+    if (previous) await previous.update({ gp_before: input.gp, gp_after: input.gp, delta: 0, description: 'Kartu menunggu serangan GigaRisk' }, { transaction })
+    await team.update({ total_gp: input.gp, ...(snapshot.finalGP === 0 && input.gp > 0 ? { status: 'active' as const } : input.gp === 0 ? { status: 'inactive' as const } : {}) }, { transaction })
+   }
+  })
+  if (typeof window !== 'undefined') await flushDatabase()
+  publishTacticalPhase(challengeId, { ...phase, assignment })
+ })
 }
 export async function syncRewardGP(earned:Map<string,number>,challengeId?:string):Promise<void>{
  await serialize(async()=>{
@@ -59,9 +88,12 @@ export async function recordGigaRiskGP(challengeId:string,resolution:TacticalRes
     const before=team.total_gp
     const afterAttack=Math.max(0,before-2)
     const after=Math.max(0,before+result.finalGP-(result.assignmentGP ?? result.initialGP))
+    const priorReveal = readTacticalPhase(challengeId).assignment
+    const revealEffects = priorReveal?.revealApplied && result.assignmentGP !== undefined ? priorReveal.teams.find((entry)=>entry.teamId===result.teamId)?.effects.length ?? 0 : 0
+    const damageEffects = result.effects.slice(revealEffects)
     const shared={team:team.id,team_name:team.name,challenge:challenge.id,challenge_name:challenge.name}
     await GPTransaction.create({...shared,source_key:`attack:${challengeId}:${team.id}`,category:'attack',gp_before:before,delta:afterAttack-before,gp_after:afterAttack,description:'Serangan GigaRisk −2 GP'},{transaction})
-    if(after!==afterAttack||result.effects.length){await GPTransaction.create({...shared,source_key:`card:${challengeId}:${team.id}`,category:'card',gp_before:afterAttack,delta:after-afterAttack,gp_after:after,description:result.effects.join('; ')||'Efek kartu: perlindungan dari serangan GigaRisk'},{transaction})}
+    if(after!==afterAttack||damageEffects.length){await GPTransaction.create({...shared,source_key:`card:${challengeId}:${team.id}`,category:'card',gp_before:afterAttack,delta:after-afterAttack,gp_after:after,description:damageEffects.join('; ')||'Efek kartu: perlindungan dari serangan GigaRisk'},{transaction})}
     const revivedAfterAssignment = before === 0 && after > 0 && result.initialGP > 0 && result.assignmentGP === 0
     await team.update({total_gp:after,...(after===0?{status:'inactive'}:revivedAfterAssignment?{status:'active'}:{})},{transaction})
    }
@@ -74,11 +106,24 @@ export async function recordGigaRiskGP(challengeId:string,resolution:TacticalRes
 export async function listGPTransactions(team?:string){return GPTransaction.findAll({where:team?{team}:{},order:[['createdAt','DESC'],['id','DESC']],limit:500})}
 
 /** Recalculate editable assignments from their original balance, never stack repeat clicks. */
-export async function commitTacticalAssignment(challengeId: string, inputs: readonly TacticalTeamInput[], next: TacticalPhase): Promise<void> {
+export interface FortuneSelection { teamId: string; cardId: string; selected?: string; publicClosed?: boolean }
+export async function commitTacticalAssignment(challengeId: string, inputs: readonly TacticalTeamInput[], next: TacticalPhase, fortuneSelection?: FortuneSelection, reveal = false): Promise<void> {
  await withDatabaseWriteLock(() => serialize(async () => {
   if (typeof window !== 'undefined') await refreshDatabaseFromStorage()
   const current = readTacticalPhase(challengeId)
-  if (current.resolution || current.strike || current.revealed) throw new Error('Return to an unlocked Tactical Phase before assigning cards')
+  if (current.resolution || current.strike || (current.revealed || current.cardsRevealed) && !fortuneSelection && !reveal) throw new Error('Return to an unlocked Tactical Phase before assigning cards')
+  if (reveal && current.assignment?.revealApplied) { publishTacticalPhase(challengeId,{...current,revealed:true,cardsRevealed:true});return }
+  if (fortuneSelection) {
+   const { teamId, cardId, selected, publicClosed } = fortuneSelection
+   const choice = current.choices[teamId], offer = choice?.fortune?.[cardId]
+   const card = inputs.find((team) => team.id === teamId)?.cards.find((entry) => entry.id === cardId)
+   if (!card || !isFortuneCard(card) || !choice?.cards.includes(cardId) || choice.skipped || !offer) throw new Error('Fortune Draw bukan kartu yang dipilih tim ini.')
+   if (selected && !offer.options.some((option) => option.id === selected)) throw new Error('Fortune Draw: pilih 1 kartu Rare dari tawaran.')
+   if (offer.rulesVersion === 2 && offer.selected && selected && selected !== offer.selected) throw new Error('Fortune Draw sudah dipilih; pilihan hanya dapat dikonfirmasi satu kali.')
+   // During reveal, rebuild exclusively from the locked saved choices. Other
+   // card selections, skips, targets and visibility cannot change through here.
+   next = { ...current, choices: { ...current.choices, [teamId]: { ...choice, fortune: { ...choice.fortune, [cardId]: { ...offer, selected: selected ?? offer.selected, publicClosed:publicClosed ?? offer.publicClosed } } } } }
+  }
   if (await GPTransaction.findOne({where:{challenge:challengeId,category:'attack'}})) throw new Error('Challenge ini sudah diserang GigaRisk.')
   if (current.assignment?.resolvedAt !== next.assignment?.resolvedAt) throw new Error('Tactical selections changed. Please try again.')
   const challenge = await Challenge.findByPk(challengeId)
@@ -90,7 +135,17 @@ export async function commitTacticalAssignment(challengeId: string, inputs: read
    return { input, team, previous }
   }))
   const baseline = balances.map(({input,team,previous}) => ({...input, gp:Math.max(0,team.total_gp - (previous?.delta ?? 0))}))
-  const assignment = resolveTacticalEffects(baseline, next.choices, Math.random, Math.max(Date.now(), (current.assignment?.resolvedAt ?? 0) + 1), 'assignment')
+  next = structuredClone(next)
+  for (const team of baseline) for (const card of team.cards) if (isPassiveCard(card) && next.choices[team.id]?.cards.includes(card.id)) throw new Error('Second Chance aktif otomatis; tidak dapat dipilih pada Tactical Phase.')
+  for (const team of baseline) for (const card of team.cards.filter(isFortuneCard)) {
+   const choice = next.choices[team.id], offer = choice?.fortune?.[card.id]
+   if (choice?.cards.includes(card.id) && !choice.skipped && offer && (offer.rulesVersion !== 2 || !hasDistinctFortuneEffects(offer.options))) {
+    const options = await prepareFortuneOptions(team.id, offer.selected, challengeId)
+    choice.fortune![card.id] = { options, rulesVersion:2, publicClosed:offer.publicClosed, selected: options.some((option) => option.id === offer.selected) ? offer.selected : undefined }
+   }
+  }
+  if (reveal) {validateTacticalAttack(baseline,next,false);next.revealed=true;next.cardsRevealed=true}
+  const assignment = resolveTacticalEffects(baseline, next.choices, Math.random, Math.max(Date.now(), (current.assignment?.resolvedAt ?? 0) + 1), reveal || current.assignment?.revealApplied ? 'reveal' : 'assignment')
   await getSequelize().transaction(async (transaction) => {
    await reconcileFortuneDraws(challengeId, assignment, current.assignment, transaction)
    for (const {team,previous} of balances) {

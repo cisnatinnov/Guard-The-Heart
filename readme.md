@@ -15,8 +15,42 @@ npm run dev
 ```
 
 Open Vite's local URL. Open `/admin` to manage the game; `/` opens the public
-scoreboard. Configure and run the standalone event timer at `/admin/timer`; its
+main presentation. The standalone scoreboard remains at `/scoreboard`.
+Configure and run the standalone event timer at `/admin/timer`; its
 public display is `/timer`. Production hosting must serve `index.html` for application routes.
+
+### Main Presentation
+
+Open **Main Presentation** in the admin navigation (`/admin/presentation`) to
+project the six supplied images from `public/ui/main-presentation` at `/`.
+`/presentation` redirects to `/` for saved links. Slide 7 is the live Image Decode
+Scoreboard, immediately after Image Decode — Cara Bermain. It displays current
+challenge scores and team GP, updates as scores change, and remains part of the
+presentation without navigating away from the home page.
+The Scoreboard initially shows all teams alphabetically, with a dash for scores
+not yet recorded. Once all five teams have scores (including a recorded zero),
+it switches to rank order and shows each team's rank badge. Tied scores retain
+their shared rank. Removing a score returns the board to alphabetical order.
+Use Previous/Next, the slide selector, or a thumbnail; arrow keys,
+Page Up/Page Down, Home and End also work when a control is not focused. Slide
+selection is saved and synchronizes with the shared public window. The Timer
+keeps its separate window. Fullscreen preview enlarges the admin's slide preview.
+
+In **Tactical Phase**, admin always sees the Fortune Draw option faces and names.
+**Public view: closed cards** is checked by default; uncheck it to show option
+faces publicly. This setting synchronizes and survives reload without rerolling
+the offer. The selected card stays open in either mode. Choose one option on admin
+or public **Card Reveal**; the final reward and its effect persist across reloads.
+Challenge 1–2 offers two Normal and one Rare. Challenge 3 adds one Epic for
+rank 1. Rare is limited to ranks 1–3; rank 4–5 Fortune users receive eligible
+Normal options. No repeated effect appears within an offer; shortages show fewer
+eligible cards rather than duplicate fillers. Rewards are available next challenge.
+
+Rank 5 receives a public blind draw in **Reward Claim**: two Normal cards and one
+False Hope (Zonk), shuffled and saved once. Picking Zonk awards no inventory card.
+Only the selected card opens; unchosen physical cards return to the deck. Existing
+unfinished draws receive this feature when Reward Claim opens; completed rounds
+retain their history.
 
 | Command | Purpose |
 | --- | --- |
@@ -56,14 +90,14 @@ public display is `/timer`. Production hosting must serve `index.html` for appli
    The public and admin Tactical Phase hide used cards from available inventory and action panels. The Selected cards area retains
    that challenge’s locked selections after the attack and across reloads. Available cards and selections are shown face-up.
    Completed Card Reveal pages retain the played cards as history.
-   Reverse and valid Thief assignments update GP immediately. Fortune Draw awards its confirmed Rare immediately. Heal, Gardian Unity, Protect and Swallow wait for the damage stage. Retargeting, deselecting or skipping recalculates the pending effects without stacking bonuses.
+   Selecting, retargeting, deselecting or skipping cards does not change GP. Heal, Thief, Reverse and Gardian Unity change GP once on Card Reveal. Fortune Draw awards its confirmed card for another challenge.
    **Card Reveal** displays those selections without applying an attack.
 7. In **Tactical Phase**, choose an opponent for each
-   Normal/Rare Thief card, or two distinct opponents for Epic Thief, then click
+   Normal/Rare Thief card, or one or two distinct opponents for Epic Thief, then click
    **Serang semua tim −2 GP**. The attack and selected
-   defenses apply once; assignment effects are not repeated. An empty tactical phase blocks the attack with a message;
+   defenses apply once. Heal, Thief, Reverse and Unity already applied on Card Reveal; the attack does not repeat them. An empty tactical phase blocks the attack with a message;
    explicit SKIP is a valid decision. Used cards leave available inventory.
-   Rare Protect covers its owner and the selected target; selecting the owner protects that team once. Select Second Chance to use it; it activates automatically at zero GP and is consumed only if triggered.
+   Rare Protect covers its owner and the selected target; selecting the owner protects that team once. Second Chance is passive and cannot be selected; it revives once after damage if GP is zero.
    **Serangan GigaRisk** displays the saved attack result and each team’s complete incoming/outgoing effect activity.
    Applying the attack opens Card Reveal with animated played cards and resolved
    effects. Reduced-motion settings disable the animation.
@@ -80,11 +114,33 @@ public display is `/timer`. Production hosting must serve `index.html` for appli
 `:challengeId?` is optional; choose a challenge on admin pages when omitted.
 `/gigarisk` shows the most recently completed attack; `/gigarisk/:challengeId` shows that challenge.
 
-Card Reveal shows selected cards at equal height, with reserved caption space so Thief and Protect target labels do not shrink their art. Beneath each targeted card, the label names the affected team; Epic Thief lists both opponents. The header badge identifies the current challenge. Team GP reflects assignment effects before the attack and the saved final balance after it.
+Card Reveal shows selected cards at equal height, with reserved caption space so Thief and Protect target labels do not shrink their art. Beneath each targeted card, the label names the affected team; Epic Thief lists both opponents. The header badge identifies the current challenge. Team GP stays unchanged during selection, updates once for reveal-time effects, then shows the saved final balance after the attack.
 
 After an attack, short card names appear in the effect panel. The numbered rotating banner shows one consumed card's saved result at a time, using `resolvedCardEffects` and per-card `cardEffects`. Companion-card effects stay on separate slides. Older archives use attributable saved activity or the action name when an exact outcome is unavailable. Completed selections and consumed cards remain visible in that challenge's history, while an untriggered Second Chance remains available for a later phase.
 
-Serangan GigaRisk shows the full saved `Efek Kartu` activity, including incoming effects such as `-1 Dicuri oleh Biru`. Positive effects are cyan and negative effects red. Long lists wrap and scroll. Raw GigaRisk damage is represented by the balance and strike fields rather than inserted into Card Reveal's card-effect panel. Before an attack, GigaRisk shows a waiting state. Historical results are displayed without replaying effects.
+Card Reveal labels its rotating effect log with the current effect name, such as
+**Swallow**, **Thief**, **Heal** or **Protect**. Hover or keyboard-focus a revealed
+card to pin its log entry and animate the GP of its owner and affected teams.
+Unapplied effects are previews; applied reveal and completed effects replay their saved outcomes.
+Transfers replay saved amounts rather than taking GP again. Shield and Protect
+show blocked damage. Fortune Draw does not animate GP because it awards a card.
+Moving away, leaving focus or pressing Escape restores the saved GP display.
+Hovering never saves scores, applies effects or changes team balances.
+Revealed cards animate
+according to their effect: Heal rises, Shield pulses, Protect surrounds the card,
+Swallow draws inward, Thief transfers particles, Reverse rotates, Gardian Unity
+links, Second Chance rises with a star, and Fortune Draw sparkles. Reduced-motion
+preferences replace movement with a static symbol.
+
+Serangan GigaRisk shows GP only after **Serang semua tim −2 GP** completes. Each
+row displays the saved final GP, a numeric strike outcome on an orange/red boom
+badge (−1 Shield, 0 Protect/Unity, −2 ordinary damage, +4 Swallow), and saved card
+effects in aligned columns. Icons, right-aligned GP numbers and GP labels use
+fixed tracks with tabular digits, so different digit counts cannot shift them. The badge tooltip retains the defense name. Incoming effects
+such as `-1 Dicuri oleh Biru`. It does not show a before/after comparison or a
+health bar. Positive effects are cyan and negative effects red. Long lists wrap
+and scroll. Before an attack, teams show a waiting message without GP totals.
+Historical results are displayed without replaying effects.
 
 Public screens follow host transitions in other tabs of the same browser.
 Feature navigation opens or reuses a separate public window and publishes the
@@ -115,7 +171,8 @@ click opens a replacement. Separate public-view buttons have been removed.
 Timer uses its own window, separate from the other public features. Other feature
 clicks leave the timer visible and running; clicking Timer reuses its window or
 reopens it if closed.
-The former `/admin/presentation` URL redirects to `/admin/timer`.
+Main Presentation uses `/admin/presentation` for controls and `/` for its public
+display; the former `/presentation` public URL redirects to `/`.
 Public game, reward, tactical, reveal and ranking pages display live state. Urutan Main
 is interactive on its public page. The retired `/cards` and `/admin/cards`
 routes are not current features; unknown routes redirect to `/scoreboard`.
@@ -203,7 +260,7 @@ artwork (with sample text and embedded GP icons removed in `heart-of-awareness-n
 Its admin tab opens the synchronized public screen; additional active teams
 appear on subsequent five-team canvases. Empty slots show a dash.
 
-Leaderboard shows the newest pending assignment effects immediately, then the final damage result. Remaining-card counts come from live available inventory. Leaderboard refresh reads the saved standings. Inactive teams remain visible
+Leaderboard keeps GP unchanged while selections are pending, then shows the final attack result and effects. Remaining-card counts come from live available inventory. Leaderboard refresh reads the saved standings. Inactive teams remain visible
 on both leaderboard views with an OUT badge and faded row, including teams
 manually deactivated while GP remains above zero. Zero-GP teams also show OUT. Recalculation is serialized and
 updates existing rows to avoid duplicate-team validation conflicts.
@@ -214,7 +271,7 @@ updates existing rows to avoid duplicate-team validation conflicts.
 | 2 | 8 | +2 | 2 |
 | 3 | 6 | +2 | 2 |
 | 4 | 4 | +1 | 1 |
-| 5 | 2 | +1 | 0 |
+| 5 | 2 | +1 | 1 blind draw |
 
 ### Reward draw odds
 
@@ -222,14 +279,14 @@ N = Normal, R = Rare, E = Epic, L = Legendary. Each card drawn uses its team's r
 
 | Rank | Cards | Challenge 1 | Challenge 2 | Challenge 3 |
 | --- | --- | --- | --- | --- |
-| 1 | 3 | N: 55%, R: 40%, E: 3%, L: 2% | N: 47%, R: 45%, E: 5%, L: 3% | N: 50%, R: 38%, E: 8%, L: 4% |
-| 2 | 2 | N: 60%, R: 40% | N: 55%, R: 45% | N: 50%, R: 50% |
+| 1 | 3 | N: 57%, R: 40%, L: 3% | N: 52%, R: 45%, L: 3% | N: 51%, R: 38%, E: 8%, L: 3% |
+| 2 | 2 | N: 59%, R: 40%, L: 1% | N: 54%, R: 45%, L: 1% | N: 49%, R: 50%, L: 1% |
 | 3 | 2 | N: 90%, R: 10% | N: 85%, R: 15% | N: 80%, R: 20% |
 | 4 | 1 | N: 100% | N: 100% | N: 100% |
-| 5 | 0 | — | — | — |
+| 5 | 1 blind draw | 2 Normal + 1 Zonk | 2 Normal + 1 Zonk | 2 Normal + 1 Zonk |
 
 Each reward slot rolls rarity first, then selects a remaining physical copy of
-that rarity. Only rank one can roll Legendary rewards. Within the
+that rarity. Rank 1 rolls Legendary at 3%, rank 2 at 1%. Epic random draws are limited to rank 1 in Challenge 3. Within the
 rolled rarity, available designs not already held or selected for that team are
 preferred. If only duplicate designs remain, the physical reward stays reserved
 and may wait for replacement rather than violating collection uniqueness.
@@ -249,11 +306,11 @@ changes. Score correction adjusts reward GP while preserving recorded attacks
 and card effects. GP cannot become negative. The GP ledger persists attack
 results so reload or leaderboard recalculation does not undo them.
 
-The inventory contains 86 physical copies of 12 designs: 48 Normal, 24 Rare,
-12 Epic and 2 Legendary. Epic Reverse has six copies (promoted from Rare Reverse);
-Epic Thief has three copies (renamed from the old Epic Reverse). Epic Swallow
-has three copies and replaces Epic Reflect, preserving existing card ids and ownership.
-Fortune Draw has six copies, matching the other Rare designs. A team can hold eight available cards. Assignment
+The new deck contains 60 physical cards: 33 Normal (11 each Shield, Heal,
+Thief), 16 Rare (4 each Heal, Protect, Thief, Fortune Draw), 8 Epic (3 Reverse,
+3 Thief, 2 Swallow), and 3 Legendary (2 Gardian Unity, 1 Second Chance).
+Reducing counts retires only undrawn excess copies; existing earned cards and
+completed history are preserved. A team can hold eight available cards. Assignment
 prevents duplicate design-and-rarity cards in its available collection. At
 capacity, rewards may remain unassigned; service operations support assignment
 and replacement. There is no separate collection-management route.
@@ -269,65 +326,23 @@ positive GP rewards do not automatically reactivate an inactive team. Inactive
 teams are excluded from future active rosters and attacks. Completed GigaRisk
 and Card Reveal results still include inactive participants.
 
-Pending assignments reserve their selected cards against use in another challenge. Active cards are consumed when GigaRisk completes. Selected Second Chance is consumed only when its zero-GP revival triggers, which may happen during assignment or damage; an untriggered Second Chance is released after the attack.
-Used TeamCard records remain in the reveal archive but are hidden from Tactical
-Phase and excluded from earned card counts, availability and capacity calculations. Each challenge can draw
-cards once and receive one attack; later score edits do not reset these limits.
+Pending selections reserve cards against reuse in another challenge. Selecting or
+targeting changes no GP. **Card Reveal** commits Heal (+2 Normal / +3 Rare),
+Thief (1 Normal / 2 Rare / 2 Epic per target), Reverse (+1 from each opponent),
+and Gardian Unity (+1 to every active team) exactly once and locks selections.
+Theft is capped by the target’s available balance. Epic Thief accepts one or two
+opponents. Reveal effects persist through reload and never repeat at damage.
 
-| Card | Effect |
-| --- | --- |
-| Normal Heal | Add 2 GP after damage |
-| Normal Shield | Block 1 GP of the strike |
-| Normal Thief | Take up to 1 GP from a selected opponent |
-| Rare Heal | Add 3 GP after damage |
-| Rare Protect | Block the strike for both its owner and the selected team |
-| Epic Reverse (formerly Rare Reverse) | Take up to 1 GP from each opponent |
-| Rare Thief | Take up to 2 GP from a selected opponent |
-| Rare Fortune Draw | Choose one of three shuffled Rare cards; receive it immediately for a later challenge |
-| Epic Swallow | Swallow the incoming GigaRisk strike and gain a fixed +4 GP |
-| Epic Thief (formerly Epic Reverse) | Take up to 2 GP from each of two selected opponents, up to +4 GP total |
-| Legendary Gardian Unity | After damage, preserve every team’s pre-strike GP and add 1 GP to each team |
-| Legendary Second Chance | When selected by its owner, automatically restore 1 GP at zero; consume only on activation |
+After **Serang semua tim −2 GP**, Normal Shield reduces damage to −1;
+Protect prevents damage for owner and chosen team; Gardian Unity prevents damage
+for all active teams; Swallow prevents damage and gains 4 GP. Second Chance is
+passive, cannot occupy a Tactical Phase selection, and revives its owner to 1 GP
+once after damage if GP reaches zero. It remains in inventory until triggered.
+Completed rounds are read from saved results without replaying effects.
 
-Effects follow the definitions in `src/data/card-pool.ts` and `public/cards/`.
-Reverse and Thief apply at assignment; Fortune Draw grants its reward on confirmation. Damage resolution applies protection, then Unity and Heal bonuses. Protected teams lose no GP; Swallow loses no GP and gains +4 even alongside other protection. Second Chance triggers immediately when the strike or a transfer reduces its owner to zero, once per selected card. Owning or skipping the card does not activate it; selecting it occupies one of the two selection slots. Transfers
-cannot take more than an opponent's remaining GP. No valid tactical decisions
-means no GP changes, no consumption and no completed-attack marker.
-
-Epic Thief requires two different opponents; the target selectors exclude the
-other selection, and attack validation rejects missing, duplicate and self
-targets. Normal/Rare Thief keep one target. Epic Reverse targets all opponents
-automatically and retains its original one-GP effect. Swallow’s +4 bonus also applies alongside Unity or Protect. Rare Protect requires one valid target and always protects its owner as well; selecting the owner protects that one team once.
-
-Startup migrates `Rare Reverse Card #NN` to `Epic Reverse Card #NN`, and the old
-`Epic Reverse Card #NN` with the two-GP-from-every-opponent description to
-`Epic Thief Card #NN`. The description distinguishes old and new Epic Reverse
-cards so repeated startups do not rename promoted cards again. Physical-copy
-ids, ownership, challenge links, draw state and consumed-card ids are preserved.
-Startup also renames Epic Reflect to Epic Swallow and updates its printed action.
-Completed attack results and GP transactions are historical and are not replayed;
-archived public effect labels display Swallow without changing historical balances.
-
-The card definitions follow the supplied PNGs, with Protect updated to cover both owner and target. Artwork includes `Epic_Swallow Card.png`
-(SWALLOW, +4 GP), `Epic_Reverse Card.png` (1 GP from every opponent),
-`Epic_Thief Card.png` (2 GP from two opponents), and `Rare_Fortune_Draw Card.png`
-(“Ambil 1 dari 3 kartu.”). The old Reflect and Rare Reverse images are retired.
-
-Selecting Fortune Draw in admin Tactical Phase shuffles three remaining Rare
-physical copies and shows a choice panel. Different designs are preferred;
-when fewer designs are eligible, multiple copies of a design may appear.
-Already-owned designs and Fortune Draw itself are excluded. The offer and
-selection survive reload, deselection and SKIP, so these actions do not reroll it.
-Choose exactly one before attacking. Offers do not remove cards from the deck;
-confirming an option immediately revalidates and grants that physical copy atomically with the assignment ledger. It remains visible as “Available next challenge” and cannot be selected in this phase. Changing or removing the selection returns an unused grant before applying the replacement; a grant already reserved or used elsewhere cannot be undone.
-If another draw takes that copy first, choose another saved option. If fewer
-than three eligible copies remain, selection reports the shortage without
-consuming the Fortune card. The two unchosen copies stay available.
-The attack retains the same reward without granting another copy. The reward does not execute its effect in the same attack, respects the eight-card
-limit and design uniqueness, and is shown in the reveal slide and GigaRisk effect
-ledger. Normal challenge reward counts and rarity probabilities stay unchanged.
-Startup and combat synchronize database writes across windows, preventing a
-public screen opened during an attack from overwriting a newly awarded card.
+Fortune Draw and rank 5 choices are saved before display and settle atomically
+with their single inventory grant. No reward activates in the same challenge.
+Existing card art lives in `public/cards/`, including `Zonk_False_Hope Card.png`.
 
 ## Timer and visual references
 
@@ -338,9 +353,9 @@ reloads. `/timer` is a read-only 16:9 display with the selected challenge,
 active teams and a Giliran marker. Choose the challenge and active team in the
 timer controls; those selections survive pause, reset and reload and synchronize
 with the public display. The runtime artwork is `presentation-timer-clean.png`,
-based on `presentation-timer-no-banner.png`, with live text and team panels. The old
-`/admin/presentation` path redirects to the timer for saved links; `/` now opens
-the scoreboard. There is no slide navigation or public slideshow feature.
+based on `presentation-timer-no-banner.png`, with live text and team panels.
+Main Presentation is a separate feature at `/admin/presentation`; its public
+slideshow is the home page `/`, including the live Scoreboard after the rules.
 
 `public/ui/Visual_Guide_App-Game_5.pptx` and the supplied scoreboard JPEG provide reference artwork:
 
@@ -426,8 +441,9 @@ without materially reducing the total startup download.
 | `src/models/`, `src/controllers/` | ORM schema and UI operations |
 | `src/db/` | WASM driver, persistence, initialization and migrations |
 | `src/services/scoreboardAggregator.ts` | Score rankings, earned-CP totals, available-card totals, GP synchronization |
-| `src/services/gpTransactions.ts` | GP ledger, reversible assignments, deferred recovery and durable combat balances |
-| `src/services/fortuneDraw.ts` | Immediate Rare grants, editable reward reconciliation and atomic rollback |
+| `src/services/gpTransactions.ts` | GP ledger, once-only reveal settlement, Fortune choices and durable combat balances |
+| `src/services/fortuneDraw.ts` | Distinct mixed-rarity offers, rank eligibility and one-time atomic grants |
+| `src/services/blindRewards.ts` | Rank 5 saved blind draws, Normal/False Hope outcomes and one-time settlement |
 | `src/controllers/ScoreboardController.ts` | Saved standings and live remaining-card counts |
 | `src/services/tacticalPhase.ts` | Selection, effect resolution, consumption and once-only attack |
 | `src/services/cardDraw.ts` | Card pool, atomic draws, recipient reservations, ownership and capacity |
@@ -450,38 +466,30 @@ For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
 
-Verified on 2026-10-19 (WIB): **214 unit/database tests across 19 files passed**.
-All **48 browser scenarios passed** in the full regression run, including the
-shared GP shield check on all shield-bearing public/admin screens.
-The final layout and selector adjustments also passed a focused 10-scenario
-rerun covering Flipping Connect, Tactical Phase and all three viewport sizes.
-ESLint and the TypeScript/production build passed. Playwright builds the
-production app before starting its preview server.
+Verified on **2026-10-20 (WIB)**: **260 unit/database tests across 23 files** and
+**57 browser scenarios** passed, with no skipped or flaky browser scenarios.
+ESLint, TypeScript and the production/PWA build passed. Markdown links and code
+fences were checked in the full feature audit.
 
-Run from the repository root:
+After the GigaRisk alignment update, targeted card-effects, shared-GP-icon and
+admin/public layout checks passed (5 scenarios). GP alignment was checked with
+1–3 digit values at 390, 768, 1280 and 1920 pixels. Route layout checks include
+presentation, scoreboard, leaderboard, rewards, tactical/reveal, games and timers
+at desktop, tablet and phone widths. ESLint, TypeScript and the production/PWA build also passed.
 
 ```sh
 npm run typecheck
 npm run lint
 npm test
 npm run test:e2e -- --workers=2
+npm run build
 ```
 
-Coverage includes team CRUD and activation, default-team protections, Image
-Decode scoring and timeouts, reward rarity/ownership/capacity rules, all twelve
-card actions, immediate Fortune Draw grants and rollback, deferred Heal/Unity,
-owner-and-target Protect, reversible tactical assignment, GigaRisk
-and GP ledger persistence, and once-only attacks/draws.
+Coverage includes team CRUD/status, default-team protections, dense rankings,
+score correction, reward rarities and limits, rank 5 blind draws, Fortune display
+modes and final choices, all card effects, reveal-time GP, passive Second Chance,
+GigaRisk, saved GP ledger, public-window reuse, presentation, game boards, timers,
+responsive layouts and offline reload. Tests validate these scenarios; they cannot
+guarantee every possible device or simultaneous edit sequence.
 
-Display checks cover team-only Flipping Connect with immediate Play/public
-handoff and live GP, admin-only fourteen-tooth Jaw of Risk with mirrored hover,
-supplied hand/sound/bite assets, timer challenge/team synchronization, full
-podium rank/tie badges and large prize labels, reference leaderboard columns,
-Heart of Awareness GP plaques/public navigation, public-window reuse/reopening,
-offline reload and 1280/768/390-pixel layouts. Jaw of Risk also stays on its game
-screen after a previous public feature and after public reload.
-
-Browser fixtures use deterministic rarity rolls where exact collections are
-required. Automated checks validate these implemented scenarios; they do not
-establish exhaustive coverage of every device or simultaneous admin-edit sequence.
-See [blueprint.md](./blueprint.md#validation-record) for implementation and validation details.
+See [blueprint.md](./blueprint.md#validation-record) for the implementation and audit.

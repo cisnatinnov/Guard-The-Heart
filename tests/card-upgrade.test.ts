@@ -38,16 +38,16 @@ it('moves Rare Reverse to Epic Reverse and old Epic Reverse to Epic Thief withou
     await ownedSwallow.reload()
     expect([swallow.name,ownedSwallow.name]).toEqual(['Epic Swallow Card #01','Epic Swallow Card #01'])
     expect([ownedSwallow.team,ownedSwallow.challenge_point]).toEqual([team.id,entry.id])
-    expect(await Card.count()).toBe(86)
+    expect(await Card.count()).toBe(60)
     expect(await Card.count({where:{name:'Epic Reverse Card #01'}})).toBe(1)
     expect(await Card.count({where:{name:'Epic Thief Card #01'}})).toBe(1)
-    expect(await Card.count({where:{type:'Rare'}})).toBe(24)
-    expect(await Card.count({where:{type:'Epic'}})).toBe(12)
+    expect(await Card.count({where:{type:'Rare'}})).toBe(16)
+    expect(await Card.count({where:{type:'Epic'}})).toBe(8)
   }
 })
 
-it('preserves 6 promoted Reverse copies and 3 renamed Thief copies', () => {
-  expect(CARD_POOL.filter((card)=>card.name.startsWith('Epic Reverse Card'))).toHaveLength(6)
+it('preserves 3 promoted Reverse copies and 3 renamed Thief copies', () => {
+  expect(CARD_POOL.filter((card)=>card.name.startsWith('Epic Reverse Card'))).toHaveLength(3)
   expect(CARD_POOL.filter((card)=>card.name.startsWith('Epic Thief Card'))).toHaveLength(3)
   expect(CARD_POOL.some((card)=>card.name.startsWith('Rare Reverse Card'))).toBe(false)
 })
@@ -66,7 +66,7 @@ it('Epic Thief takes 2 GP from two distinct opponents and rejects invalid select
   const phase: TacticalPhase = {revealed:false,choices:{a:{cards:[card.id],skipped:false,targets:{[card.id]:['b','c']}}}}
   expect(()=>validateTacticalAttack(teams,phase)).not.toThrow()
   expect(resolveTacticalEffects(teams,phase.choices).teams.map((team)=>team.finalGP)).toEqual([7,1,1,3])
-  for (const ids of [[],['b'],['b','b'],['a','b'],['b','missing'],['b','c','d']]) {
+  for (const ids of [[],['b','b'],['a','b'],['b','missing'],['b','c','d']]) {
     const invalid = {a:{...phase.choices.a,targets:{[card.id]:ids}}}
     expect(()=>validateTacticalAttack(teams,{...phase,choices:invalid})).toThrow('dua tim yang berbeda')
     expect(()=>resolveTacticalEffects(teams,invalid)).toThrow('dua tim yang berbeda')
@@ -80,4 +80,16 @@ it('caps theft by remaining balance and grants both Unity and Swallow bonuses af
   const cards = [actionCard('Epic Swallow Card'),actionCard('Legendary Gardian Unity')]
   const result = resolveTacticalEffects([{id:'a',name:'A',gp:5,cards}],{a:{cards:cards.map((card)=>card.id),skipped:false}}).teams[0]
   expect([result.gigaRisk,result.finalGP]).toEqual([4,10])
+})
+
+it('retires only undrawn excess copies when reducing the new deck counts', async()=>{
+ const team=await TeamController.create('Retired-copy owner')
+ const definition=CARD_POOL.find((card)=>card.name.startsWith('Normal Heal'))!
+ const retired=await Card.create({...definition,name:'Normal Heal Card #15',team:team.id,challenge:null,challenge_point:null})
+ const owned=await TeamCard.create({...definition,name:retired.name,team:team.id,challenge_point:null})
+ const free=await Card.create({...definition,name:'Normal Heal Card #16',team:null,challenge:null,challenge_point:null})
+ await seedCardPool()
+ expect((await retired.reload()).team).toBe(team.id)
+ expect((await owned.reload()).name).toBe('Normal Heal Card #15')
+ expect(await Card.findByPk(free.id)).toBeNull()
 })

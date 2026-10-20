@@ -1,9 +1,17 @@
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
-import { Team, type CardEffect } from '../models'
+import { Team, type CardEffect, type CardType } from '../models'
 import { refreshDatabaseFromStorage, withDatabaseWriteLock } from '../db/sequelize-provider'
-import { cardEffectLabel } from '../data/card-pool'
-export interface FortuneOption { id: string; name: string; type: 'Rare'; effect: CardEffect; effect_action: string; icon: string }
-export interface FortuneChoice { options: FortuneOption[]; selected?: string }
+import { cardDesignKey, cardEffectLabel } from '../data/card-pool'
+export interface FortuneOption { id: string; name: string; type: CardType; effect: CardEffect; effect_action: string; icon: string }
+export interface FortuneChoice { options: FortuneOption[]; selected?: string; rulesVersion?: 2; publicClosed?: boolean }
+export function fortuneEffectKey(card: Pick<FortuneOption, 'name' | 'type'>): string {
+  return cardDesignKey(card).replace(/^(Normal|Rare|Epic|Legendary)\|/, '').replace(/(?:Normal|Rare|Epic|Legend)_/, '')
+}
+export function hasDistinctFortuneEffects(options: readonly FortuneOption[]): boolean {
+  return options.length > 0 && options.length <= 4 && new Set(options.map((option) => option.id)).size === options.length
+    && new Set(options.map(fortuneEffectKey)).size === options.length
+    && options.every((option) => option.type !== 'Legendary' && !isFortuneCard(option))
+}
 export interface TacticalChoice { cards: string[]; skipped: boolean; targets?: Record<string, string | string[]>; fortune?: Record<string, FortuneChoice> }
 export interface TacticalTeamResult {
   teamId: string
@@ -30,8 +38,8 @@ export function teamUsedCardEffects(result: TacticalTeamResult | undefined, card
   })
 }
 
-export interface TacticalResolution { resolvedAt: number; teams: TacticalTeamResult[]; effectTimingVersion?: 2 }
-export interface TacticalPhase { choices: Record<string, TacticalChoice>; revealed: boolean; assignment?: TacticalResolution; resolution?: TacticalResolution; strike?: TacticalResolution }
+export interface TacticalResolution { resolvedAt: number; teams: TacticalTeamResult[]; effectTimingVersion?: 2 | 3 | 4; revealApplied?: boolean }
+export interface TacticalPhase { choices: Record<string, TacticalChoice>; revealed: boolean; cardsRevealed?: boolean; assignment?: TacticalResolution; resolution?: TacticalResolution; strike?: TacticalResolution }
 const PREFIX = 'guard-the-heart-tactical:'
 const ATTACK_PREFIX = 'guard-the-heart-gigarisk-completed:'
 const EVENT = 'guard-the-heart:tactical'
@@ -112,7 +120,11 @@ export async function attackTacticalPhaseOnce(id: string, teams: readonly Tactic
     if (phase.resolution || phase.strike) throw new Error('Challenge ini sudah diserang GigaRisk.')
     validateTacticalAttack(teams, phase)
     const balances = persist ? await Team.findAll() : []
-    const freshTeams = persist ? teams.map((team) => ({...team, gp:balances.find((entry) => entry.id === team.id)?.total_gp ?? team.gp})) : teams
+    const used = usedTacticalCardIds(id)
+    const freshTeams = teams.map((team) => ({...team,
+      gp:persist ? balances.find((entry) => entry.id === team.id)?.total_gp ?? team.gp : team.gp,
+      cards:team.cards.filter((card)=>!isPassiveCard(card)||!used.has(card.id)),
+    }))
     const resolution = resolveTacticalDamage(freshTeams, phase)
     if(persist)await persist(resolution)
     publishTacticalPhase(id, { ...phase, revealed: true, resolution })
@@ -136,7 +148,7 @@ export function subscribeTacticalPhase(id: string, changed: () => void): () => v
 
 export function chooseTacticalCard(phase: TacticalPhase, teamId: string, cardId: string, ownedIds: readonly string[], maxCards = 2): TacticalPhase {
   if (phase.resolution || phase.strike) throw new Error('Serangan GigaRisk selesai; pilihan kartu sudah dikunci.')
-  if (phase.revealed) throw new Error('Return to Tactical Phase before changing selections')
+  if (phase.revealed || phase.cardsRevealed) throw new Error('Card Reveal sudah diterapkan; pilihan kartu dikunci.')
   if (!ownedIds.includes(cardId)) throw new Error('Choose a card earned by this team')
   const previous = phase.choices[teamId]?.cards ?? []
   const cards = previous.includes(cardId) ? previous.filter((id) => id !== cardId) : [...previous, cardId]
@@ -220,13 +232,15 @@ export function assignTacticalCard(phase: TacticalPhase, teams: readonly Tactica
 function requireCardTargets(teams: readonly TacticalTeamInput[], teamId: string, card: TacticalTeamInput['cards'][number], choice: TacticalChoice | undefined): string[] {
   const ids = selectedCardTargets(choice, card.id)
   const count = cardTargetCount(card)
-  if (ids.length !== count || new Set(ids).size !== count || ids.some((id) => !teams.some((team) => team.id === id && (isProtectCard(card) || id !== teamId)))) {
+  const selected = ids.filter(Boolean)
+  const validCount = card.type === 'Epic' && card.effect === 'Thief' ? selected.length >= 1 && selected.length <= 2 : selected.length === count
+  if (!validCount || new Set(selected).size !== selected.length || selected.some((id) => !teams.some((team) => team.id === id && (isProtectCard(card) || id !== teamId)))) {
     throw new Error(`Pilih tim${isProtectCard(card) ? ' target' : ' lawan'} untuk ${card.name}${count === 2 ? ' (dua tim yang berbeda)' : ''}.`)
   }
-  return ids
+  return selected
 }
 
-export function validateTacticalAttack(teams: readonly TacticalTeamInput[], phase: TacticalPhase): void {
+export function validateTacticalAttack(teams: readonly TacticalTeamInput[], phase: TacticalPhase, requireFortune = true): void {
   let count = 0
   for (const [teamId, choice] of Object.entries(phase.choices)) {
     const team = teams.find((entry) => entry.id === teamId)
@@ -235,14 +249,14 @@ export function validateTacticalAttack(teams: readonly TacticalTeamInput[], phas
     for (const cardId of choice.cards) {
       const card = team?.cards.find((entry) => entry.id === cardId)
       if (!card) throw new Error(TACTICAL_REQUIRED_MESSAGE)
+      if (isPassiveCard(card)) throw new Error('Second Chance aktif otomatis; tidak dapat dipilih pada Tactical Phase.')
       count++
       const action = card
       if (needsCardTarget(action)) requireCardTargets(teams, teamId, action, choice)
-      if (isFortuneCard(card)) {
+      if (requireFortune && isFortuneCard(card)) {
         const offer = choice.fortune?.[card.id]
-        if (!offer || offer.options.length !== 3 || new Set(offer.options.map((option) => option.id)).size !== 3 ||
-          offer.options.some((option) => option.type !== 'Rare' || isFortuneCard(option)) || !offer.options.some((option) => option.id === offer.selected)) {
-          throw new Error('Fortune Draw: pilih 1 dari 3 kartu Rare sebelum serangan.')
+        if (!offer || !hasDistinctFortuneEffects(offer.options) || !offer.options.some((option) => option.id === offer.selected)) {
+          throw new Error('Fortune Draw: pilih 1 kartu dari tawaran sebelum serangan.')
         }
       }
     }
@@ -250,21 +264,17 @@ export function validateTacticalAttack(teams: readonly TacticalTeamInput[], phas
   if (!count) throw new Error(TACTICAL_REQUIRED_MESSAGE)
 }
 
-function amount(random: () => number, min: number, max: number): number {
-  return min + Math.floor(Math.max(0, Math.min(0.999999, random())) * (max - min + 1))
-}
-
-/** Pending older selections may already include Heal/Unity; remove that early bonus once. */
+/** Undo legacy pending GP changes before resolving the new attack sequence once. */
 export function resolveTacticalDamage(teams: readonly TacticalTeamInput[], phase: TacticalPhase, random = Math.random, resolvedAt = Date.now()): TacticalResolution {
   let assignment = phase.assignment
   let damageTeams = teams
-  const migrate = assignment && assignment.effectTimingVersion !== 2
+  const migrate = assignment && assignment.effectTimingVersion !== 4
   if (migrate) {
     const baseline = teams.map((team) => {
       const previous = phase.assignment!.teams.find((entry) => entry.teamId === team.id)
       return { ...team, gp: Math.max(0, team.gp - (previous ? previous.finalGP - previous.initialGP : 0)) }
     })
-    assignment = resolveTacticalEffects(baseline, phase.choices, random, resolvedAt, 'assignment')
+    assignment = resolveTacticalEffects(baseline, phase.choices, random, resolvedAt, 'reveal')
     for (const result of assignment.teams) {
       const previous = phase.assignment!.teams.find((entry) => entry.teamId === result.teamId)
       for (const draw of result.fortuneDraws ?? []) {
@@ -279,13 +289,13 @@ export function resolveTacticalDamage(teams: readonly TacticalTeamInput[], phase
   return result
 }
 
-/** Reverse/Thief update GP at assignment; damage then applies defenses, Unity and Heal. */
+/** Selection reserves cards; reveal applies bonuses/transfers once, then attack resolves defenses. */
 export function resolveTacticalEffects(
   teams: readonly TacticalTeamInput[],
   choices: Record<string, TacticalChoice>,
-  random: () => number = Math.random,
+  _random: () => number = Math.random,
   resolvedAt = Date.now(),
-  timing: 'complete' | 'assignment' | 'damage' = 'complete',
+  timing: 'complete' | 'assignment' | 'reveal' | 'damage' = 'complete',
   assignment?: TacticalResolution,
 ): TacticalResolution {
   const state = teams.map((team) => {
@@ -293,12 +303,12 @@ export function resolveTacticalEffects(
     return {
       team, prior,
       gp: Math.max(0, Math.trunc(team.gp)),
-      attack: timing === 'assignment' ? 0 : -2,
+      attack: timing === 'assignment' || timing === 'reveal' ? 0 : -2,
       effects: [...(prior?.effects ?? [])],
       usedCardEffects: [...(prior?.usedCardEffects ?? [])],
       cardEffects: Object.fromEntries(Object.entries(prior?.cardEffects ?? {}).map(([id, effects]) => [id, [...effects]])),
       cards: choices[team.id]?.skipped ? [] : team.cards.filter((card) => !isPassiveCard(card) && choices[team.id]?.cards.includes(card.id)),
-      passive: choices[team.id]?.skipped ? undefined : team.cards.find((card) => isPassiveCard(card) && choices[team.id]?.cards.includes(card.id)),
+      passive: team.cards.find(isPassiveCard),
       passiveUsed: !!team.cards.find((card) => isPassiveCard(card) && prior?.usedCardIds?.includes(card.id)),
     }
   })
@@ -314,7 +324,6 @@ export function resolveTacticalEffects(
       recordCardEffect(current, current.passive, '+1 Second Chance')
     }
   }
-  state.forEach(revive)
   const unityOwners = state.flatMap((owner) => owner.cards.filter((card) => card.type === 'Legendary' && /Gardian Unity/i.test(card.name)).map((card) => ({ owner, card })))
   const unity = unityOwners.length > 0
   const targetsFor = (owner: typeof state[number], card: TacticalTeamInput['cards'][number]) => {
@@ -324,7 +333,8 @@ export function resolveTacticalEffects(
     }
     return requireCardTargets(teams, owner.team.id, card, choices[owner.team.id])
   }
-  if (timing !== 'damage') {
+  const applyReveal = timing === 'complete' || timing === 'reveal' || timing === 'damage' && !assignment?.revealApplied
+  if (applyReveal) {
     for (const current of state) for (const reverse of current.cards.filter((card) => /Reverse/i.test(card.name))) {
       const stolen = Number(reverse.effect_action.match(/(?:ambil|take)\s*\+?(\d+)/i)?.[1] ?? 1)
       for (const opponent of state) {
@@ -333,7 +343,6 @@ export function resolveTacticalEffects(
         opponent.gp -= transfer; current.gp += transfer
         recordCardEffect(current, reverse, `+${transfer} Reverse dari ${opponent.team.name}`)
         if (transfer) { current.effects.push(`+${transfer} Reverse dari ${opponent.team.name}`); opponent.effects.push(`-${transfer} Reverse oleh ${current.team.name}`) }
-        revive(opponent)
       }
     }
     for (const current of state) for (const thief of current.cards.filter((card) => needsCardTarget(card) && !isProtectCard(card))) {
@@ -344,12 +353,23 @@ export function resolveTacticalEffects(
         target.gp -= transfer; current.gp += transfer
         recordCardEffect(current, thief, `+${transfer} Dicuri dari ${target.team.name}`)
         if (transfer) { current.effects.push(`+${transfer} Dicuri dari ${target.team.name}`); target.effects.push(`-${transfer} Dicuri oleh ${current.team.name}`) }
-        revive(target)
       }
     }
   }
-  const assignmentBalances = new Map(state.map((entry) => [entry.team.id, entry.gp]))
-  if (timing !== 'assignment') {
+  if (applyReveal) {
+    for (const { owner, card } of unityOwners) {
+      for (const current of state) { current.gp += 1; current.effects.push('+1 Gardian Unity') }
+      recordCardEffect(owner, card, 'Gardian Unity: masing-masing tim +1 GP')
+    }
+    for (const current of state) for (const card of current.cards) {
+      if (card.effect !== 'Heal') continue
+      const healed = card.type === 'Rare' ? 3 : 2
+      current.gp += healed
+      current.effects.push(`+${healed} Heal`)
+      recordCardEffect(current, card, `+${healed} Heal`)
+    }
+  }
+  if (timing === 'complete' || timing === 'damage') {
     const protectedTeams = new Set<string>()
     for (const owner of state) for (const card of owner.cards.filter(isProtectCard)) {
       const targets = new Set([owner.team.id, ...targetsFor(owner, card)])
@@ -379,24 +399,11 @@ export function resolveTacticalEffects(
       current.gp = Math.max(0, current.gp + current.attack)
       revive(current)
     }
-    // Bonuses resolve after damage; protection preserves the pre-strike balance.
-    for (const { owner, card } of unityOwners) {
-      for (const current of state) { current.gp += 1; current.effects.push('+1 Gardian Unity') }
-      recordCardEffect(owner, card, 'Gardian Unity: masing-masing tim +1 GP')
-    }
-    for (const current of state) for (const card of current.cards) {
-      if (card.effect !== 'Heal') continue
-      const described = card.effect_action.match(/(?:menambah|tambah|add)\s*\+?(\d+)(?!\d)/i)
-      const healed = described && !/\d\s*[-–]\s*\d/.test(card.effect_action) ? Number(described[1]) : /Rare/i.test(card.type) ? 3 : amount(random, 1, 2)
-      current.gp += healed
-      current.effects.push(`+${healed} Heal`)
-      recordCardEffect(current, card, `+${healed} Heal`)
-    }
   }
-  return { resolvedAt, effectTimingVersion: 2, teams: state.map(({ team, prior, gp, attack, effects, usedCardEffects, cardEffects, cards, passive, passiveUsed }) => ({
+  return { resolvedAt, effectTimingVersion: 4, revealApplied: applyReveal || !!assignment?.revealApplied, teams: state.map(({ team, prior, gp, attack, effects, usedCardEffects, cardEffects, cards, passive, passiveUsed }) => ({
     teamId: team.id,
     initialGP: prior?.initialGP ?? Math.max(0, Math.trunc(team.gp)),
-    ...(timing === 'damage' ? { assignmentGP: assignmentBalances.get(team.id) } : {}),
+    ...(timing === 'damage' ? { assignmentGP: Math.max(0, Math.trunc(team.gp)) } : {}),
     gigaRisk: attack, finalGP: gp, effects, usedCardEffects, cardEffects,
     usedCards: cards.length + Number(passiveUsed),
     usedCardIds: [...cards.map((card) => card.id), ...(passiveUsed && passive ? [passive.id] : [])],

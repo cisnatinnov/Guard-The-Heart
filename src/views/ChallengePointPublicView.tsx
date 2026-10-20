@@ -11,14 +11,15 @@ import { PublicRankingBoard } from './PublicRankingBoard'
 
 const EMPTY_ENTRIES: ChallengePointEntry[] = []
 
-export function ChallengePointPublicView() {
+export function ChallengePointPublicView({ challengeName }: { challengeName?: string } = {}) {
   const { teams } = useTeams()
   const { challenges } = useChallenges()
   const params = useParams<{ challengeId?: string }>()
   const [entriesByChallenge, setEntriesByChallenge] = useState<Record<string, ChallengePointEntry[]>>({})
   const [error, setError] = useState<string | null>(null)
 
-  const activeId = params.challengeId ?? challenges[0]?.id ?? null
+  const activeId = challengeName ? challenges.find((challenge) => challenge.name === challengeName)?.id ?? null
+    : params.challengeId ?? challenges[0]?.id ?? null
   const entries = activeId ? (entriesByChallenge[activeId] ?? EMPTY_ENTRIES) : EMPTY_ENTRIES
   const activeChallenge = challenges.find((challenge) => challenge.id === activeId)
 

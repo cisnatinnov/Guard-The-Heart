@@ -1,11 +1,13 @@
 import { teamColour } from '../services/defaultTeams'
 import { CARD_BACK_IMAGE } from '../data/card-pool'
 import { GPShield } from './GPShield'
+import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
 import '../styles/reference-ui.css'
 
 export interface PublicRankingRow {
   id: string; rank: number; team: string; points: number; guardPower?: number
   initialGP?: number; gigaRisk?: number; effects?: string[]; remainingCards?: number; status?: 'active' | 'inactive'
+  pendingScore?: boolean
 }
 const number = new Intl.NumberFormat('id-ID')
 export function GPMark() { return <GPShield className="gp-mark" /> }
@@ -17,7 +19,13 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
   guardPoints?: Array<Pick<PublicRankingRow, 'id' | 'team' | 'guardPower'>>
 }) {
   const final = variant === 'leaderboard'
-  const pages = Array.from({ length: Math.max(1, Math.ceil(rows.length / 5)) }, (_, index) => rows.slice(index * 5, index * 5 + 5))
+  const scoresComplete = rows.length === MAX_ENTRIES_PER_CHALLENGE && new Set(rows.map((row) => row.team)).size === MAX_ENTRIES_PER_CHALLENGE
+    && rows.every((row) => Number.isFinite(row.points) && row.rank > 0)
+  const byName = (a: PublicRankingRow, b: PublicRankingRow) => a.team.replace(/^tim\s+/i, '').trim().localeCompare(b.team.replace(/^tim\s+/i, '').trim(), 'id', { sensitivity: 'base', numeric: true })
+  const displayRows: PublicRankingRow[] = final ? rows : scoresComplete ? [...rows].sort((a, b) => a.rank - b.rank || byName(a, b))
+    : [...rows, ...guardPoints.filter((team) => !rows.some((row) => row.team === team.team))
+      .map((team) => ({ ...team, points: 0, rank: 0, pendingScore: true }))].sort(byName)
+  const pages = Array.from({ length: Math.max(1, Math.ceil(displayRows.length / 5)) }, (_, index) => displayRows.slice(index * 5, index * 5 + 5))
   return <div className="public-ranking-pages">{pages.map((page, index) => <section key={index} className={`public-ranking reference-ranking reference-ranking--${variant}`} aria-label={final ? 'Final leaderboard' : 'Score Board'}>
     <img className="reference-art" src={final ? '/ui/visual-guide-slide-09.png' : '/ui/Page_Score_Board.jpeg'} alt="" />
     <h1 className="sr-only">{final ? 'Leaderboard' : 'Scoreboard'}</h1>
@@ -33,10 +41,10 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
         <td><GPMark /><strong>{number.format(row.guardPower ?? 0)}</strong></td>
         <td><img className="ranking-card" src={encodeURI(CARD_BACK_IMAGE)} alt="" /><strong>{row.remainingCards ?? 0}</strong></td>
       </tr>)}</tbody>
-    </table></div> : <div className="ranking-score-panel"><ol className="ranking-score-list" aria-label="Challenge ranking">
+    </table></div> : <div className="ranking-score-panel"><ol className={`ranking-score-list${scoresComplete ? '' : ' ranking-score-list--pending'}`} aria-label="Challenge ranking">
       {page.map((row, slot) => <li key={row.id} className={`ranking-score-item ranking-score-item--${slot + 1}`}>
-        <img className="ranking-medal" src={`/ui/Icon%20rank/Icon-Rank_${Math.min(5, row.rank)}.png`} alt={`Rank ${row.rank}`} />
-        <TeamPill name={row.team} /><strong>{number.format(row.points)}</strong><span className="ranking-point-label">Poin</span>
+        {scoresComplete && <img className="ranking-medal" src={`/ui/Icon%20rank/Icon-Rank_${Math.min(5, row.rank)}.png`} alt={`Rank ${row.rank}`} />}
+        <TeamPill name={row.team} /><strong aria-label={row.pendingScore ? 'Score not entered' : undefined}>{row.pendingScore ? '—' : number.format(row.points)}</strong><span className="ranking-point-label">Poin</span>
       </li>)}
     </ol></div>}
     {!final && <ol className="ranking-gp-strip" aria-label="Current team GP">

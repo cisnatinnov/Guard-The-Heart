@@ -1,10 +1,11 @@
 import { Op } from 'sequelize'
-import { Card, Challenge, ChallengePoint, Team, TeamCard, type CardEffect, type CardType } from '../models'
+import { BlindReward, Card, Challenge, ChallengePoint, Team, TeamCard, type CardEffect, type CardType } from '../models'
 import { CARD_POOL as CARD_CATALOG, cardDesignKey } from '../data/card-pool'
 import { challengeDrawPhase, rewardRarity } from './cardDrawRules'
 import { getSequelize, flushDatabase, withDatabaseWriteLock } from '../db/sequelize-provider'
 import { MAX_TOTAL_CARD, rewardsForRank } from './rankRules'
 import { readTacticalPhase, usedTacticalCardIds } from './tacticalPhase'
+import { pendingBlindCardIds, prepareRankFiveReward } from './blindRewards'
 
 async function findChallengePointForCard(card: Card, teamId: string): Promise<ChallengePoint | null> {
   if (!card.challenge) return null
@@ -83,6 +84,7 @@ async function loadDrawnPoolKeys(): Promise<Set<string>> {
 
 /** Distinguish the two former Reverse designs by their saved action. */
 function upgradedCardName(card: Pick<CardPoolEntry, 'name' | 'effect_action'>): string {
+  if (card.name === 'Legendary Gardian Unity') return 'Legendary Gardian Unity #01'
   if (/^Epic Reflect Card(?= #\d+$|$)/.test(card.name)) return card.name.replace(/^Epic Reflect Card/, 'Epic Swallow Card')
   if (/^Rare Reverse Card(?= #\d+$|$)/.test(card.name)) return card.name.replace(/^Rare Reverse Card/, 'Epic Reverse Card')
   // The former Epic Reverse took 2 from every opponent. The promoted Reverse
@@ -114,16 +116,9 @@ export async function seedCardPool(): Promise<void> {
   }
 
   for (const legacy of legacyCards) {
-    const replacement =
-      legacy.challenge || legacy.team
-        ? CARD_POOL.find((card) => card.type === legacy.type && !existingByName.has(card.name))
-        : undefined
-    if (!replacement) {
-      await legacy.destroy()
-      continue
-    }
-    await legacy.update({ ...replacement })
-    existingByName.set(replacement.name, legacy)
+    // Reduced pool counts retire only undrawn copies. Earned/history cards stay intact.
+    if (legacy.challenge || legacy.team) continue
+    await legacy.destroy()
   }
 
   for (const card of CARD_POOL) {
@@ -314,7 +309,7 @@ async function drawChallengeCardsOnce(challengeId: string): Promise<Card[]> {
 
   const entries = await ChallengePoint.findAll({
     where: { challenge: challengeId },
-    attributes: ['id', 'team', 'rank'],
+    attributes: ['id', 'challenge', 'team', 'rank'],
     order: [['rank', 'ASC']],
   })
   const inventory = await Card.findAll({ where: { challenge: null, team: null } })
@@ -323,6 +318,7 @@ async function drawChallengeCardsOnce(challengeId: string): Promise<Card[]> {
   const phase = challengeDrawPhase(challenge.id, challenge.name)
   await getSequelize().transaction(async (transaction) => {
     for (const entry of entries) {
+      if (entry.rank === 5) { await prepareRankFiveReward(entry,remaining,transaction); continue }
       const count = entry.rank >= 1 && entry.rank <= 5 ? rewardsForRank(entry.rank).cards : 0
       const designs = new Set((await getTeamCards(entry.team)).map(cardDesignKey))
       for (let slot = 0; slot < count; slot++) {
@@ -347,6 +343,7 @@ async function drawChallengeCardsOnce(challengeId: string): Promise<Card[]> {
 
 /** Releases a challenge's drawn inventory before the challenge row is deleted. */
 export async function releaseChallengeBonusCards(challengeId: string): Promise<void> {
+  await BlindReward.destroy({where:{challenge:challengeId}})
   const existingCards = await Card.findAll({
     where: { challenge: challengeId },
     order: [['createdAt', 'ASC']],
@@ -390,12 +387,15 @@ async function ensureUniqueTeamCard(teamId: string, card: Card, excludeId?: stri
 }
 
 async function ensureRewardRecipient(card: Card, teamId: string): Promise<void> {
-  if (!card.challenge_point) return
-  const recipient = await ChallengePoint.findByPk(card.challenge_point)
+  const recipient = card.challenge_point ? await ChallengePoint.findByPk(card.challenge_point)
+    : card.challenge ? await ChallengePoint.findOne({where:{challenge:card.challenge,team:teamId}}) : null
   if (recipient && recipient.team !== teamId) throw new Error('This reward was drawn for another team.')
+  if (recipient && recipient.rank >= 4 && card.type !== 'Normal') throw new Error('Rank 4 dan 5 hanya dapat menerima kartu Normal.')
+  if (recipient?.rank === 5) throw new Error('Rank 5: pilih satu kartu tertutup di Reward Claim; hasilnya Normal atau False Hope.')
 }
 
 async function assignUniqueCardToTeam(cardId: string, teamId: string): Promise<TeamCard> {
+  if ((await pendingBlindCardIds()).has(cardId)) throw new Error('Rank 5: pilih kartu tertutup di Reward Claim terlebih dahulu.')
   const card = await Card.findByPk(cardId)
   if (!card) throw new Error('Card not found')
   if (!card.challenge) throw new Error('Card is not from a challenge pool')
@@ -405,6 +405,8 @@ async function assignUniqueCardToTeam(cardId: string, teamId: string): Promise<T
   if (!team) throw new Error('Team not found')
 
   await ensureRewardRecipient(card, teamId)
+  const recipient = await ChallengePoint.findOne({where:{challenge:card.challenge,team:teamId}})
+  if (recipient?.rank === 4 && await getAssignedChallengeRewardCount(card.challenge,teamId) >= 1) throw new Error('Rank 4 hanya dapat menerima 1 kartu Normal per challenge.')
   await ensureUniqueTeamCard(teamId, card)
 
   // Find the ChallengePoint for this team+challenge to link the card
@@ -435,6 +437,7 @@ export async function replaceTeamCard(teamId: string, oldTeamCardId: string, new
 }
 
 async function replaceUniqueTeamCard(teamId: string, oldTeamCardId: string, newCardId: string): Promise<TeamCard> {
+  if ((await pendingBlindCardIds()).has(newCardId)) throw new Error('Rank 5: pilih kartu tertutup di Reward Claim terlebih dahulu.')
   const team = await Team.findByPk(teamId)
   if (!team) throw new Error('Team not found')
 
@@ -447,6 +450,8 @@ async function replaceUniqueTeamCard(teamId: string, oldTeamCardId: string, newC
   if (newCard.team) throw new Error('New card already assigned to a team')
 
   await ensureRewardRecipient(newCard, teamId)
+  const recipient = await ChallengePoint.findOne({where:{challenge:newCard.challenge,team:teamId}})
+  if (recipient?.rank === 4 && oldTeamCard.challenge_point !== recipient.id && await getAssignedChallengeRewardCount(newCard.challenge,teamId) >= 1) throw new Error('Rank 4 hanya dapat menerima 1 kartu Normal per challenge.')
   await ensureUniqueTeamCard(teamId, newCard, oldTeamCardId)
 
   // Find the ChallengePoint for this team+challenge to link the card
@@ -476,25 +481,27 @@ async function replaceUniqueTeamCard(teamId: string, oldTeamCardId: string, newC
  * Get available drawn cards for a challenge (cards with challenge ref but no team).
  */
 export async function getAvailableDrawnCards(challengeId: string): Promise<Card[]> {
-  return Card.findAll({
+  const reserved = await pendingBlindCardIds()
+  return (await Card.findAll({
     where: { challenge: challengeId, team: null },
     include: [{ model: Challenge, as: 'challengeBonusRef' }],
     order: [['createdAt', 'ASC']],
-  })
+  })).filter((card) => !reserved.has(card.id))
 }
 
 /**
  * Get all available drawn cards across all challenges (for admin overview).
  */
 export async function getAllAvailableDrawnCards(): Promise<Card[]> {
-  return Card.findAll({
+  const reserved = await pendingBlindCardIds()
+  return (await Card.findAll({
     where: { challenge: { [Op.ne]: null }, team: null },
     include: [
       { model: Challenge, as: 'challengeBonusRef' },
       { model: Team, as: 'teamRef' },
     ],
     order: [['challenge', 'ASC'], ['createdAt', 'ASC']],
-  })
+  })).filter((card) => !reserved.has(card.id))
 }
 
 export async function getTeamDrawnCards(teamId: string): Promise<Card[]> {

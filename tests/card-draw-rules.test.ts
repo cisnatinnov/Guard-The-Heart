@@ -12,9 +12,9 @@ beforeAll(async () => { await initializeAppDatabase() })
 afterEach(() => vi.restoreAllMocks())
 
 const expected = [
- [[55,40,3,2],[60,40,0,0],[90,10,0,0],[100,0,0,0]],
- [[47,45,5,3],[55,45,0,0],[85,15,0,0],[100,0,0,0]],
- [[50,38,8,4],[50,50,0,0],[80,20,0,0],[100,0,0,0]],
+ [[57,40,0,3],[59,40,0,1],[90,10,0,0],[100,0,0,0]],
+ [[52,45,0,3],[54,45,0,1],[85,15,0,0],[100,0,0,0]],
+ [[51,38,8,3],[49,50,0,1],[80,20,0,0],[100,0,0,0]],
 ]
 it.each([1,2,3])('uses the attachment percentages for every rank in challenge %i', (phase) => {
  for (let rank=1;rank<=4;rank++) {
@@ -48,7 +48,7 @@ it('keeps rolled rarities with their ranked recipient through automatic assignme
   expect(owned.map((card)=>card.type)).toEqual(expectedTypes[index])
   expect(owned.every((card)=>!!card.challenge_point)).toBe(true)
  }
- const ids = drawn.map((card)=>card.id).sort()
+ const ids = (await Card.findAll({where:{challenge:challenge.id}})).map((card)=>card.id).sort()
  await expect(CardController.drawBonusCards(challenge.id)).rejects.toThrow(/already been drawn/)
  expect((await Card.findAll({where:{challenge:challenge.id}})).map((card)=>card.id).sort()).toEqual(ids)
 })
@@ -85,4 +85,20 @@ it('rolls back the entire draw when the rolled rarity is exhausted', async () =>
  expect(await Card.count({where:{challenge:null}})).toBe(before)
  expect(await isChallengeCardsDrawn(challenge.id)).toBe(false)
  expect(await ChallengePoint.count({where:{challenge:challenge.id}})).toBe(5)
+})
+
+it('limits rank 4 to one Normal reward and rejects higher-rarity assignment or replacement',async()=>{
+ const challenge=await Challenge.create({name:`Rank four limit ${crypto.randomUUID()}`})
+ const team=await TeamController.create(`Rank four ${crypto.randomUUID()}`)
+ const point=await ChallengePoint.create({challenge:challenge.id,team:team.id,rank:4,score:0,challenge_point:4,guard_power:1})
+ const make=async(name:string,type:'Normal'|'Rare')=>Card.create({name,type,effect:'Utility',effect_action:'Test reward',icon:'',challenge:challenge.id,challenge_point:point.id,team:null})
+ const first=await make('Normal Heal Card #98','Normal'),second=await make('Normal Shield Card #98','Normal'),rare=await make('Rare Thief Card #98','Rare')
+ await expect(assignCardToTeam(rare.id,team.id)).rejects.toThrow('hanya dapat menerima kartu Normal')
+ const reward=await assignCardToTeam(first.id,team.id)
+ await expect(assignCardToTeam(second.id,team.id)).rejects.toThrow('1 kartu Normal per challenge')
+ await expect(replaceTeamCard(team.id,reward.id,rare.id)).rejects.toThrow('hanya dapat menerima kartu Normal')
+ expect(await TeamCard.count({where:{team:team.id}})).toBe(1)
+ const older=await TeamCard.create({name:'Normal Thief Card #99',type:'Normal',effect:'Thief',effect_action:'Earlier reward',icon:'',team:team.id,challenge_point:null})
+ await expect(replaceTeamCard(team.id,older.id,second.id)).rejects.toThrow('1 kartu Normal per challenge')
+ expect(await TeamCard.count({where:{team:team.id,challenge_point:point.id}})).toBe(1)
 })

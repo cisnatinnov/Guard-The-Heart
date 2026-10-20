@@ -61,7 +61,7 @@ it('limits selection to two owned cards and lets a click remove a selection', ()
 })
 it('rejects another team’s cards and freezes choices after reveal', () => {
   expect(() => chooseTacticalCard(empty, 'red', 'other', ['a'])).toThrow('earned by this team')
-  expect(() => chooseTacticalCard({ ...empty, revealed: true }, 'red', 'a', ['a'])).toThrow('Return to Tactical Phase')
+  expect(() => chooseTacticalCard({ ...empty, revealed: true }, 'red', 'a', ['a'])).toThrow('pilihan kartu dikunci')
 })
 it('selecting a card replaces skip with a ready selection', () => {
   expect(chooseTacticalCard({ ...empty, choices: { red: { cards: [], skipped: true } } }, 'red', 'a', ['a']).choices.red).toEqual({ cards: ['a'], skipped: false })
@@ -106,7 +106,7 @@ it('directly assigns Thief only to opponents and preserves the two-card limit', 
 })
 it('fills two Epic Thief opponents using repeated drops and rejects duplicate slot assignments', () => {
   const first = assignTacticalCard(empty,directTeams,'a','epic','b')
-  expect(() => validateTacticalAttack(directTeams,first)).toThrow('dua tim')
+  expect(() => validateTacticalAttack(directTeams,first)).not.toThrow()
   const both = assignTacticalCard(first,directTeams,'a','epic','c')
   expect(both.choices.a.targets).toEqual({epic:['b','c']})
   expect(() => validateTacticalAttack(directTeams,both)).not.toThrow()
@@ -140,7 +140,7 @@ it('Reverse uses opponent GP before damage, including low-GP opponents', () => {
   expect(result[0].cardEffects?.reverse).toEqual(['+1 Reverse dari B','+1 Reverse dari C'])
 })
 it.each([
-  ['Normal Heal Card','Heal','Menambah +2 GP.',1,-2,2],
+  ['Normal Heal Card','Heal','Menambah +2 GP.',1,-2,1],
   ['Normal Shield Card','Defense','Melindungi 1 GP.',1,-1,0],
   ['Rare Protect Card','Defense','Protect target',1,0,1],
   ['Epic Swallow Card','Defense','Convert damage',1,4,5],

@@ -7,14 +7,16 @@ import { ChallengePointController } from '../controllers/ChallengePointControlle
 import { useChallenges } from '../hooks/useChallenges'
 import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
-import type { TeamCard } from '../models'
+import { BlindReward, type TeamCard } from '../models'
+import { blindRewardId, chooseRankFiveReward, ensureRankFiveRewards, FALSE_HOPE_IMAGE, type BlindOption } from '../services/blindRewards'
+import { CARD_BACK_IMAGE } from '../data/card-pool'
 import type { TeamCardReward } from '../services/cardDraw'
 import { CardTile } from './CardTile'
 import { RewardRankBadge } from './RewardRankBadge'
 import { teamColour } from '../services/defaultTeams'
 import '../styles/rewards.css'
 
-interface RewardTeam extends TeamCardReward { cards: TeamCard[] }
+interface RewardTeam extends TeamCardReward { cards: TeamCard[]; blind:BlindReward|null }
 interface RewardState { challengeId: string | null; rows: RewardTeam[]; error: string | null }
 
 export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
@@ -25,12 +27,15 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
   const activeChallenge = challenges.find((entry) => entry.id === activeId)
   const [state, setState] = useState<RewardState>({ challengeId: null, rows: [], error: null })
   const [navigationError, setNavigationError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const request = useRef(0)
 
   const load = useCallback(async () => {
     const version = ++request.current
     if (!activeId) return
     try {
+      try { await ensureRankFiveRewards(activeId) }
+      catch (cause) { setNavigationError(cause instanceof Error ? cause.message : String(cause)) }
       const [rewards, entries] = await Promise.all([
         CardController.getEligibleTeamsForChallenge(activeId),
         ChallengePointController.listByChallenge(activeId),
@@ -39,6 +44,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
       const entryIds = new Map(entries.map((entry) => [entry.team, entry.id]))
       const earnedRows = await Promise.all(rewards.map(async (reward) => ({
         ...reward,
+        blind:await BlindReward.findByPk(blindRewardId(activeId,reward.teamId)),
         // Reward ownership is per challenge, rather than the team's collection.
         cards: (await CardController.listTeamCardsPermanent(reward.teamId))
           .filter((card) => card.challenge_point === entryIds.get(reward.teamId)),
@@ -94,7 +100,23 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
           <RewardRankBadge rank={row?.rank ?? slot + 1} />
           <span className="reward-stage__team" title={row?.teamName}>{row?.teamName ?? '—'}</span>
           <div className="reward-stage__earned" aria-label={row ? `${row.cardCount} cards earned by ${row.teamName}` : undefined}>
-            {row?.cards.length ? row.cards.map((card) => <div className="reward-stage__card" key={card.id}>
+            {row?.blind ? <div className="blind-reward" aria-label={`Rank 5 blind draw ${row.teamName}`}>
+              <p>{row.blind.selected ? row.blind.selected === 'zonk' ? 'False Hope · tidak mendapat kartu' : '1 kartu Normal terpilih' : 'Pilih 1 kartu · Normal atau False Hope'}</p>
+              <div>{(JSON.parse(row.blind.options) as BlindOption[]).map((option,index) => {
+                const opened = row.blind!.selected === option.id
+                return <button className={`blind-reward__card${opened ? ' is-open' : ''}`} key={option.id} disabled={busy || !!row.blind!.selected}
+                  aria-label={opened ? option.zonk ? 'False Hope — Zonk' : option.name : `Pilih kartu tertutup ${index+1} untuk ${row.teamName}`}
+                  onClick={async () => {
+                    if (!activeId || busy) return
+                    setBusy(true)
+                    try {await chooseRankFiveReward(activeId,row.teamId,option.id);setNavigationError(null);await load()}
+                    catch (cause) {setNavigationError(cause instanceof Error ? cause.message : String(cause))}
+                    finally {setBusy(false)}
+                  }}>
+                  {opened && !option.zonk ? <CardTile {...option} /> : <img src={opened ? FALSE_HOPE_IMAGE : CARD_BACK_IMAGE} alt={opened ? 'False Hope' : 'Kartu tertutup'} />}
+                </button>
+              })}</div>
+            </div> : row?.cards.length ? row.cards.map((card) => <div className="reward-stage__card" key={card.id}>
               <CardTile name={card.name} type={card.type} effect={card.effect} effect_action={card.effect_action} icon={card.icon} />
             </div>) : <span className="reward-stage__empty">{row ? row.cardCount === 0 ? '0 Kartu' : 'Kartu belum dibagikan' : '—'}</span>}
           </div>

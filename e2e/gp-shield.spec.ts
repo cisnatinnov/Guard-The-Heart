@@ -10,8 +10,8 @@ test('all GP shield displays use the shared supplied PNG on admin and public scr
     if (prefix && (route === 'card-reveal' || route === 'tactical')) continue
     await page.goto(`${prefix}/${route}`)
     const shields = page.locator('img.gp-shield-icon')
-    await expect(shields).toHaveCount(count)
-    expect(await shields.evaluateAll((images) => [...new Set(images.map((image) => image.getAttribute('src')))])).toEqual(['/ui/gp-shield.png'])
+    await expect(shields).toHaveCount(route === 'gigarisk' ? 0 : count)
+    expect(await shields.evaluateAll((images) => [...new Set(images.map((image) => image.getAttribute('src')))])).toEqual(route === 'gigarisk' ? [] : ['/ui/gp-shield.png'])
     await expect.poll(() => shields.evaluateAll((images) => images.every((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
     await expect(page.locator('svg text').filter({ hasText: /^GP$/ })).toHaveCount(0)
   }

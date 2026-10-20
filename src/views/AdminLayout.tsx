@@ -7,6 +7,7 @@ import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
   { path: '/admin/challenges', label: 'Challenges' },
+  { path: '/admin/presentation', label: 'Main Presentation' },
   { path: '/admin/turn-order', label: 'Urutan Main' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },

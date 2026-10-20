@@ -28,6 +28,7 @@
 .ranking-score-item .team-pill { height:56%; font-size:2.2cqw; }
 .ranking-score-item strong { text-align:center; font-size:3.3cqw; }
 .ranking-point-label { font-size:1.8cqw; color:#d28b20; font-weight:700; }
+.ranking-score-list--pending .ranking-score-item { grid-template-columns:minmax(0,1fr) 23% 20%; padding-inline:1cqw; }
 .ranking-gp-strip { position:absolute; left:5%; top:89.6%; width:90.8%; height:6.3%; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.45cqw; margin:0; padding:0; list-style:none; }
 .ranking-gp-item { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 12% 18%; align-items:center; gap:.4cqw; padding:.45cqw .85cqw; border:.25cqw solid #ed8a22; border-radius:1.1cqw; background:linear-gradient(#40260f,#321b08); color:#fff4d9; }
 .ranking-gp-item .team-pill { height:100%; border-radius:.3cqw; font-size:1.4cqw; }
@@ -82,13 +83,14 @@
 .turn-order-item button[aria-pressed=true] { outline:.2cqw solid #da8b20; }
 .turn-order-shuffle { position:absolute; left:37.5%; top:86.2%; width:25%; height:9%; padding:0; border:.22cqw solid #bd5014; border-radius:1.2cqw; background:linear-gradient(#ffbd23,#ff8425); color:#471f0b; font:700 2.8cqw/1 Arial,sans-serif; }
 .turn-order-shuffle:disabled { opacity:1; }
-.giga-panel { position:absolute; left:5.6%; top:30.5%; width:88.2%; height:60.5%; display:grid; grid-template-rows:repeat(5,1fr); gap:.45cqw; }
+.giga-panel { position:absolute; left:5.6%; top:30.5%; width:88.2%; height:60.5%; display:grid; grid-template-rows:repeat(5,minmax(0,1fr)); gap:.45cqw; }
 .giga-row { display:grid; grid-template-columns:17% 29% 20% 8% 15%; gap:2%; align-items:center; padding:1% 3%; min-height:0; border:.1cqw solid #431463; border-radius:.8cqw; background:#fffdf4; }
 .giga-row .team-pill { height:60%; font-size:1.9cqw; }
 .giga-health { width:100%; height:2.4cqw; border:.1cqw solid #e59a24; border-radius:1cqw; overflow:hidden; background:#dbcfb9; }
 .giga-health span { display:block; height:100%; background:linear-gradient(90deg,#ffe69d,#ffb51b); transition:width .5s; }
-.giga-gp { display:flex; align-items:center; justify-content:center; gap:.5cqw; color:#bd6620; font-size:1.7cqw; font-weight:700; white-space:nowrap; }
-.giga-gp strong { color:#92302f; font-size:2.8cqw; }
+.giga-gp { display:grid; grid-template-columns:2.6cqw 5.2cqw 2.7cqw; align-items:center; justify-content:center; gap:.55cqw; color:#bd6620; font-size:1.7cqw; font-weight:700; white-space:nowrap; }
+.giga-gp strong { color:#92302f; font-size:2.8cqw; line-height:1; text-align:right; font-variant-numeric:tabular-nums; }
+.giga-gp > span { text-align:left; }
 .giga-arrow { color:#d38a20; font-size:2.7cqw; }
 .giga-burst { display:grid; place-items:center; width:6cqw; height:4.5cqw; clip-path:polygon(50% 0,60% 20%,75% 5%,75% 28%,100% 20%,86% 42%,100% 53%,82% 61%,94% 84%,68% 76%,65% 100%,50% 83%,35% 100%,30% 78%,6% 84%,19% 60%,0 50%,20% 40%,5% 20%,30% 27%,30% 5%,42% 22%); background:linear-gradient(#ffb23e,#ed151f 55%,#8f1548); color:#fff; font:700 2.2cqw/1 Arial,sans-serif; }
 .giga-defense { justify-self:start; max-width:100%; padding:.35cqw .7cqw; border-radius:2cqw; background:#084cda; color:#fff; font:700 1.1cqw/1.2 Arial,sans-serif; }
@@ -123,6 +125,14 @@
 .giga-effect-detail strong { display:inline; margin-right:.35cqw; color:#165c48; font-size:1.1cqw; line-height:1.15; }
 .giga-effect-detail span { display:inline; font-size:1cqw; line-height:1.25; }
 .giga-effects ul { max-height:5cqw; }
+.giga-row { grid-template-columns:minmax(0,19fr) minmax(0,18fr) minmax(0,10fr) minmax(0,47fr); gap:2%; padding:.55cqw 1.3cqw; box-shadow:0 .15cqw .45cqw #18032135; }
+.giga-row .team-pill { height:3.6cqw; font-size:1.9cqw; }
+.giga-row .giga-effects { padding-left:1.3cqw; border-left:.08cqw solid #e5d9cf; }
+.giga-impact.giga-burst { justify-self:center; width:5.2cqw; height:4cqw; padding:0; border:0; border-radius:0; font-size:2cqw; font-variant-numeric:tabular-nums; text-align:center; }
+.giga-waiting { grid-column:2/-1; margin:0; color:#775975; font:400 1.3cqw/1.3 Arial,sans-serif; text-align:center; }
+.giga-row.is-resolved .giga-gp { animation:giga-result-appear .65s ease-out both; }
+@keyframes giga-result-appear { from { opacity:0; transform:translateY(.5cqw); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) { .giga-row.is-resolved .giga-gp { animation:none; } }
 
 .giga-effects .card-effect-outcome { margin:0; padding:0; border:0; background:transparent; font:400 1.25cqw/1.25 Arial,sans-serif; }
 .card-effect-outcome.is-positive { color:#008b9c; }

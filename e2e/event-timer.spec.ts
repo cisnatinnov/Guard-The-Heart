@@ -57,15 +57,15 @@ test('standalone timer configuration, pause, reset and expiry synchronize with p
 
 })
 
-test('public timer opens as a standalone display and slide navigation is removed', async ({ page }) => {
+test('public timer opens as a standalone display separate from the home presentation', async ({ page }) => {
   await page.goto('/')
-  await expect(page).toHaveURL(/\/scoreboard$/)
-  await expect(page.locator('.public-ranking')).toBeVisible()
+  await expect(page).toHaveURL(/:\d+\/$/)
+  await expect(page.locator('.main-presentation-stage')).toBeVisible()
   await expect(page.getByRole('button', { name: /next slide/i })).toHaveCount(0)
 
   await page.goto('/admin/presentation')
-  await expect(page).toHaveURL(/\/admin\/timer$/)
-  await expect(page.getByRole('heading', { name: 'Timer', exact: true })).toBeVisible()
+  await expect(page).toHaveURL(/\/admin\/presentation$/)
+  await expect(page.getByRole('heading', { name: 'Main Presentation', exact: true })).toBeVisible()
   const popupPromise = page.waitForEvent('popup')
   await expect(page.getByRole('button', { name: 'Show Timer (Public)' })).toHaveCount(0)
   await page.getByRole('link', { name: 'Timer', exact: true }).click()

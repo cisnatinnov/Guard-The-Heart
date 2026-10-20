@@ -124,3 +124,62 @@
 .tactical-stage--reveal .tactical-stage__team { grid-template-rows:12% 6% 36% 8% 22% 10%; }
 .tactical-stage--reveal .tactical-stage__played-card { display:grid; grid-template-rows:minmax(0,1fr) 2cqw; gap:.2cqw; }
 .tactical-stage--reveal .tactical-stage__card-target { font-size:.95cqw; }
+.tactical-stage .fortune-reveal-open { min-height:0; margin:0; padding:.15cqw; border:.08cqw solid #087c68; border-radius:.3cqw; background:#def7ec; color:#075544; font:700 .85cqw/1.1 Arial,sans-serif; }
+.fortune-reveal { position:absolute; z-index:5; left:4.6%; top:22.9%; width:91.7%; height:51.8%; padding:1cqw 1.4cqw; border:.2cqw solid #f8b644; border-radius:1cqw; background:linear-gradient(120deg,#fff9eb,#f5e3be); box-shadow:0 .4cqw 2cqw #351a2b80; color:#4a2816; display:flex; flex-direction:column; gap:.7cqw; }
+.fortune-reveal header { display:flex; align-items:center; justify-content:space-between; gap:1cqw; flex:none; }
+.fortune-reveal h2 { margin:0; font:700 2cqw/1.2 Arial,sans-serif; }
+.fortune-reveal header button { min-height:0; padding:.5cqw .8cqw; border:.1cqw solid #8d302c; border-radius:.4cqw; background:#8d302c; color:white; font:700 1cqw/1.2 Arial,sans-serif; }
+.fortune-reveal__body { display:grid; grid-template-columns:3fr 2fr; align-items:center; gap:2cqw; flex:1; min-height:0; }
+.fortune-reveal__options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1cqw; height:100%; min-height:0; }
+.fortune-reveal__option { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4cqw; min-height:0; min-width:0; margin:0; padding:.5cqw; border:.18cqw solid #c8af85; border-radius:.7cqw; }
+.fortune-reveal__option.is-selected { background:#dcf6e8; border-color:#087c68; box-shadow:0 0 1cqw #087c6850; }
+.fortune-reveal__option .card-art { flex:1; min-height:0; width:100%; margin:0; }
+.fortune-reveal__option .card-art img { display:block; width:100%; height:100%; object-fit:contain; margin:0; }
+.fortune-reveal__option.is-selected .card-art { animation:fortune-card-open .8s ease-out both; }
+.fortune-reveal__option figcaption { flex:none; font:700 1.15cqw/1.2 Arial,sans-serif; color:#684820; }
+.fortune-reveal__option.is-selected figcaption { color:#075544; }
+.fortune-reveal__effect { max-height:100%; overflow:auto; }
+.fortune-reveal__effect h3 { margin:0 0 .8cqw; font:700 2cqw/1.2 Arial,sans-serif; color:#08775f; }
+.fortune-reveal__effect p { margin:.6cqw 0; font:400 1.6cqw/1.4 Arial,sans-serif; }
+.fortune-reveal__effect .fortune-reveal__timing { font-size:1.1cqw; color:#705033; }
+@keyframes fortune-card-open { from { opacity:0; transform:perspective(600px) rotateY(90deg); } to { opacity:1; transform:perspective(600px) rotateY(0); } }
+@media (prefers-reduced-motion:reduce) { .fortune-reveal__option.is-selected .card-art { animation:none; } }
+.tactical-stage__selected .tactical-stage__slot { position:relative; }
+.card-effect-animation { position:absolute; inset:0; overflow:hidden; pointer-events:none; border-radius:.4cqw; }
+.card-effect-animation i { position:absolute; left:14%; top:60%; font:700 2.4cqw/1 Arial,sans-serif; font-style:normal; color:#70ffd3; text-shadow:0 0 .4cqw #075f45; opacity:0; animation:card-heal-rise 3s ease-out infinite; }
+.card-effect-animation i:nth-child(2) { left:42%; animation-delay:.6s; }
+.card-effect-animation i:nth-child(3) { left:70%; animation-delay:1.2s; }
+.card-effect-animation--shield i { left:25%; top:30%; color:#8bddff; animation-name:card-shield-pulse; }
+.card-effect-animation--shield i:nth-child(2) { left:40%; }
+.card-effect-animation--shield i:nth-child(3) { left:55%; }
+.card-effect-animation--protect i { color:#ffdf79; animation-name:card-protect-orbit; }
+.card-effect-animation--swallow i { color:#c28cff; top:44%; animation-name:card-swallow-in; }
+.card-effect-animation--thief i { color:#ffd45a; font-size:1.5cqw; animation-name:card-thief-transfer; }
+.card-effect-animation--reverse i { color:#a8d7ff; animation-name:card-reverse-spin; }
+.card-effect-animation--unity i { color:#ffec96; animation-name:card-unity-link; }
+.card-effect-animation--revive i { color:#fff3a5; font-size:3cqw; animation-name:card-revive-rise; }
+.card-effect-animation--fortune i,.card-effect-animation--sparkle i { color:#fff0a0; animation-name:card-fortune-sparkle; }
+@keyframes card-heal-rise { 0%,15% { opacity:0; transform:translateY(1cqw) scale(.6); } 40% { opacity:1; } 90%,100% { opacity:0; transform:translateY(-4cqw) scale(1.1); } }
+@keyframes card-shield-pulse { 0%,100% { opacity:0; transform:scale(.5); } 35%,65% { opacity:.9; transform:scale(1.8); } }
+@keyframes card-protect-orbit { 0% { opacity:0; transform:translate(-1cqw,1cqw); } 25%,70% { opacity:1; } 100% { opacity:0; transform:translate(1cqw,-3cqw); } }
+@keyframes card-swallow-in { 0% { opacity:0; transform:translateX(3cqw) scale(1.4); } 30% { opacity:1; } 80%,100% { opacity:0; transform:translateX(-1cqw) scale(0); } }
+@keyframes card-thief-transfer { 0% { opacity:0; transform:translate(3cqw,-2cqw); } 30%,60% { opacity:1; } 100% { opacity:0; transform:translate(-2cqw,1cqw); } }
+@keyframes card-reverse-spin { 0% { opacity:0; transform:rotate(0) scale(.5); } 35%,75% { opacity:1; } 100% { opacity:0; transform:rotate(360deg) scale(1.5); } }
+@keyframes card-unity-link { 0%,100% { opacity:0; transform:translateX(-1cqw) scale(.7); } 35%,70% { opacity:1; transform:translateX(.5cqw) scale(1.2); } }
+@keyframes card-revive-rise { 0%,15% { opacity:0; transform:translateY(2cqw) scale(.3); } 50% { opacity:1; transform:translateY(-1cqw) scale(1.5); } 100% { opacity:0; transform:translateY(-4cqw) scale(.8); } }
+@keyframes card-fortune-sparkle { 0%,100% { opacity:0; transform:rotate(-45deg) scale(.3); } 45% { opacity:1; transform:rotate(45deg) scale(1.4); } }
+@media (prefers-reduced-motion:reduce) { .card-effect-animation i { animation:none; opacity:.7; } .card-effect-animation i:not(:first-child) { display:none; } }
+.tactical-stage__played-card:focus-visible { outline:.2cqw solid #087c68; outline-offset:.15cqw; border-radius:.3cqw; }
+.tactical-stage--reveal .tactical-stage__gp { position:relative; inset:auto; }
+.tactical-stage__gp--up .tactical-stage__gp-number { color:#08775f; }
+.tactical-stage__gp--down .tactical-stage__gp-number { color:#b32337; }
+.tactical-stage__gp-change { position:absolute; bottom:100%; left:0; width:100%; padding:.15cqw; border-radius:.4cqw; color:#08775f; background:#e2f7ec; font:700 .95cqw/1.15 Arial,sans-serif; text-align:center; animation:gp-hover-rise .5s ease-out both; }
+.tactical-stage__gp--down .tactical-stage__gp-change { color:#ac2032; background:#ffe7e8; animation-name:gp-hover-fall; }
+@keyframes gp-hover-rise { from { opacity:0; transform:translateY(.6cqw); } to { opacity:1; transform:translateY(0); } }
+@keyframes gp-hover-fall { from { opacity:0; transform:translateY(-.6cqw); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) { .tactical-stage__gp-change { animation:none; } }
+.fortune-reveal__option { background:#fff9ed; color:#684820; cursor:pointer; font:700 1.15cqw/1.2 Arial,sans-serif; }
+.fortune-reveal__option:disabled {opacity:1;cursor:default}
+.fortune-reveal__option:not(:disabled):hover {border-color:#087c68;transform:translateY(-.3cqw)}
+.fortune-public-mode {display:flex;align-items:center;gap:.5rem;margin:0 0 .8rem;font-weight:600;}
+.fortune-public-mode input {width:auto;min-height:0;margin:0;}

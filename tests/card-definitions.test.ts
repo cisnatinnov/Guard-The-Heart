@@ -4,7 +4,7 @@ import { cardTargetCount, teamUsedCardEffects, resolveTacticalEffects, validateT
 function card(prefix: string) { const found=CARD_POOL.find((card)=>card.name.startsWith(prefix))!; return {...found,id:prefix} }
 it('matches the twelve current card actions, including owner-and-target Protect',()=>{
  const actions:Record<string,string>={
-  'Rare Fortune Draw Card':'Ambil 1 dari 3 kartu.',
+  'Rare Fortune Draw Card':'Pilih 1 kartu: Challenge 1–2 dari 3 kartu (2 Normal, 1 Rare); Challenge 3 dari 4 kartu (2 Normal, 1 Rare, 1 Epic). Batas rank tetap berlaku.',
   'Normal Heal Card':'Menambah +2 Guard Point (GP).',
   'Normal Shield Card':'Melindungi 1 Guard Point (GP) dari serangan Gigarisk.',
   'Normal Thief Card':'Ambil 1 Guard Point (GP) dari satu tim lawan.',
@@ -13,7 +13,7 @@ it('matches the twelve current card actions, including owner-and-target Protect'
   'Epic Reverse Card':'Ambil 1 Guard Point (GP) dari setiap tim lawan.',
   'Rare Thief Card':'Ambil 2 Guard Point (GP) dari satu tim lawan.',
   'Epic Swallow Card':'Menelan efek serangan GigaRisk dan mengubahnya menjadi +4 Guard Point (GP).',
-  'Epic Thief Card':'Ambil 2 Guard Point (GP) dari dua tim lawan.',
+  'Epic Thief Card':'Ambil 2 Guard Point (GP) dari 1 atau 2 tim lawan saat Card Reveal.',
   'Legendary Gardian Unity':'Semua team terlindungi dari serangan Gigarisk dan masing-masing +1 Guard Point (GP).',
   'Legendary Second Chance Card':'(Passive Skill) Otomatis bangkit dengan penambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
  }
@@ -73,24 +73,24 @@ it('Protect can target its owner or another team and requires a valid target', (
 it('selected Second Chance activates at zero and is consumed only when triggered', () => {
   const passive = card('Legendary Second Chance Card')
   for (const gp of [0,1,2,5]) {
-    const result = resolveTacticalEffects([{id:'a',name:'A',gp,cards:[passive]}],{a:{cards:[passive.id],skipped:false}}).teams[0]
-    expect(result.finalGP).toBe(gp === 0 ? 0 : gp <= 2 ? 1 : 3)
+    const result = resolveTacticalEffects([{id:'a',name:'A',gp,cards:[passive]}],{a:{cards:[],skipped:false}}).teams[0]
+    expect(result.finalGP).toBe(gp <= 2 ? 1 : 3)
     expect(result.usedCardIds).toEqual(gp <= 2 ? [passive.id] : [])
     expect(result.usedCards).toBe(gp <= 2 ? 1 : 0)
   }
 })
-it('activates Second Chance at zero damage before applying the deferred Heal', () => {
+it('heals on reveal and preserves unused Second Chance when damage leaves GP above zero', () => {
   const passive = card('Legendary Second Chance Card'), heal = card('Normal Heal Card')
-  const result = resolveTacticalEffects([{id:'a',name:'A',gp:1,cards:[passive,heal]}],{a:{cards:[heal.id,passive.id],skipped:false}}).teams[0]
-  expect(result.finalGP).toBe(3)
-  expect(result.effects).toEqual(['+1 Second Chance','+2 Heal'])
-  expect(result.usedCardIds).toEqual([heal.id,passive.id])
+  const result = resolveTacticalEffects([{id:'a',name:'A',gp:1,cards:[passive,heal]}],{a:{cards:[heal.id],skipped:false}}).teams[0]
+  expect(result.finalGP).toBe(1)
+  expect(result.effects).toEqual(['+2 Heal'])
+  expect(result.usedCardIds).toEqual([heal.id])
 })
 it('Second Chance revives a theft victim only once during an attack', () => {
   const passive = card('Legendary Second Chance Card'), thief = card('Rare Thief Card')
   const teams = [{id:'a',name:'A',gp:5,cards:[thief]},{id:'b',name:'B',gp:3,cards:[passive]},{id:'c',name:'C',gp:5,cards:[{...thief,id:'second'}]}]
   const result = resolveTacticalEffects(teams,{a:{cards:[thief.id],skipped:false,targets:{[thief.id]:'b'}},b:{cards:[passive.id],skipped:false},c:{cards:['second'],skipped:false,targets:{second:'b'}}}).teams
-  expect(result.map((team) => team.finalGP)).toEqual([5,0,4])
+  expect(result.map((team) => team.finalGP)).toEqual([5,1,4])
   expect(result[1].effects.filter((effect) => effect.includes('Second Chance'))).toHaveLength(1)
   expect(result[1].usedCardIds).toEqual([passive.id])
 })
@@ -123,9 +123,9 @@ it('attributes targeted protection and theft to their caster without changing GP
 it('shows Unity only for the team that played it', () => {
  const unity=card('Legendary Gardian Unity')
  const results=resolveTacticalEffects([{id:'a',name:'A',gp:5,cards:[unity]},{id:'b',name:'B',gp:5,cards:[]}],{a:{cards:[unity.id],skipped:false},b:{cards:[],skipped:true}}).teams
- expect(results[0].usedCardEffects).toEqual(['Gardian Unity: semua tim terlindungi dari serangan GigaRisk','Gardian Unity: masing-masing tim +1 GP'])
+ expect(results[0].usedCardEffects).toEqual(['Gardian Unity: masing-masing tim +1 GP','Gardian Unity: semua tim terlindungi dari serangan GigaRisk'])
  expect(results[1].usedCardEffects).toEqual([])
- expect(results[1].effects).toEqual(['+2 Gardian Unity protection','+1 Gardian Unity'])
+ expect(results[1].effects).toEqual(['+1 Gardian Unity','+2 Gardian Unity protection'])
  expect(results.map((result)=>result.finalGP)).toEqual([6,6])
 })
 it('shows revival as the passive owner action without incoming theft', () => {

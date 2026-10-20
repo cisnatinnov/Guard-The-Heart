@@ -6,7 +6,7 @@ for (const width of [1280, 768, 390]) {
     await page.goto('/admin/gp-transactions')
     await expect(page.getByRole('table', { name: 'Transaksi GP' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
-    for (const route of ['/admin', '/admin/gp-transactions', '/admin/challenges', '/admin/podium', '/admin/heart-of-awareness', '/admin/turn-order', '/admin/gigarisk', '/podium', '/heart-of-awareness', '/turn-order', '/gigarisk', '/admin/scoreboard', '/admin/leaderboard', '/admin/rewards', '/admin/tactical', '/admin/timer', '/timer', '/admin/play/word-assembly', '/admin/play/emoji-decode', '/admin/play/jaws-of-risk', '/', '/scoreboard', '/leaderboard', '/rewards', '/tactical', '/card-reveal', '/play/emoji-decode', '/play/jaws-of-risk', '/play/word-assembly']) {
+    for (const route of ['/admin', '/admin/gp-transactions', '/admin/challenges', '/admin/presentation', '/admin/podium', '/admin/heart-of-awareness', '/admin/turn-order', '/admin/gigarisk', '/podium', '/heart-of-awareness', '/turn-order', '/gigarisk', '/admin/scoreboard', '/admin/leaderboard', '/admin/rewards', '/admin/tactical', '/admin/timer', '/timer', '/admin/play/word-assembly', '/admin/play/emoji-decode', '/admin/play/jaws-of-risk', '/', '/scoreboard', '/leaderboard', '/rewards', '/tactical', '/card-reveal', '/play/emoji-decode', '/play/jaws-of-risk', '/play/word-assembly']) {
       await page.goto(route)
       await expect(page.locator('.app__main')).toBeVisible()
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
@@ -21,7 +21,7 @@ for (const width of [1280, 768, 390]) {
         expect(await statuses.evaluateAll((labels) => labels.every((label) => label.scrollWidth <= label.clientWidth + 1 && label.scrollHeight <= label.clientHeight + 1))).toBe(true)
       }
       if (!route.startsWith('/admin')) {
-        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage').first()
+        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage, .main-presentation-stage').first()
         await expect(stage).toBeVisible()
         const bounds = await stage.boundingBox()
         expect(bounds?.width).toBeGreaterThan(width * .85)

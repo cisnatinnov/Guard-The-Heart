@@ -41,7 +41,7 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as con
     }
     await expect(page).toHaveURL(/\/admin\/scoreboard\//)
     await expect(projector).toHaveURL(/\/scoreboard\//)
-    await expect(projector.getByRole('list', { name: 'Challenge ranking' })).toContainText('Team A')
+    await expect(projector.getByRole('list', { name: 'Challenge ranking' }).filter({hasText:'Team A'})).toContainText('Team A')
     await page.getByRole('button', { name: 'Claim Rewards', exact: true }).click()
     await expect(page).toHaveURL(/\/admin\/rewards\//)
     await expect(projector).toHaveURL(/\/rewards\//)

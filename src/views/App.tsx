@@ -17,6 +17,7 @@ import { TurnOrderView, GigaRiskView } from './ReferenceFeatures'
 import { PodiumView } from './PodiumView'
 import { GPTransactionsView } from './GPTransactionsView'
 import { HeartAwarenessView } from './HeartAwarenessView'
+import { MainPresentationView } from './MainPresentationView'
 
 function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const { status, error } = useDatabase()
@@ -51,8 +52,9 @@ export function App() {
         <Routes>
           {/* Public routes */}
           <Route element={<PublicLayout />}>
-            <Route path="/" element={<Navigate to="/scoreboard" replace />} />
+            <Route path="/" element={<MainPresentationView />} />
             <Route path="/timer" element={<EventTimerView />} />
+            <Route path="/presentation" element={<Navigate to="/" replace />} />
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
             <Route path="/heart-of-awareness" element={<HeartAwarenessView />} />
@@ -69,7 +71,7 @@ export function App() {
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<TeamView />} />
             <Route path="/admin/timer" element={<EventTimerView admin />} />
-            <Route path="/admin/presentation" element={<Navigate to="/admin/timer" replace />} />
+            <Route path="/admin/presentation" element={<MainPresentationView admin />} />
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />

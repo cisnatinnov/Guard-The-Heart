@@ -87,7 +87,7 @@ export function openPublicDisplay(path: string, navigateExisting = false): void 
 
 export function publicFeatureForAdmin(path: string, currentPath: string): { stage: import('./publicDisplay').DisplayStage; challengeId: string } | null {
   const stage = path.replace('/admin/', '')
-  if (!['scoreboard', 'leaderboard', 'heart-of-awareness', 'podium', 'rewards', 'tactical', 'turn-order', 'gigarisk', 'timer'].includes(stage)) return null
+  if (!['scoreboard', 'leaderboard', 'heart-of-awareness', 'podium', 'rewards', 'tactical', 'turn-order', 'gigarisk', 'timer', 'presentation'].includes(stage)) return null
   const challengeId = currentPath.match(/^\/admin\/(?:scoreboard|rewards|tactical|gigarisk)\/([^/]+)/)?.[1]
     ?? currentPath.match(/^\/admin\/play\/[^/]+\/([^/]+)/)?.[1] ?? ''
   return { stage: stage as import('./publicDisplay').DisplayStage, challengeId: decodeURIComponent(challengeId) }

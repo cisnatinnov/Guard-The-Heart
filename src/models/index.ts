@@ -14,6 +14,16 @@ export class Challenge extends Model {
   declare readonly updatedAt: Date
 }
 
+/** A persisted blind reward. Selection and the inventory grant commit together. */
+export class BlindReward extends Model {
+  declare id: string
+  declare challenge: string
+  declare team: string
+  declare options: string
+  declare selected: string | null
+  declare reward_id: string | null
+}
+
 export class Team extends Model {
   declare id: string
   declare name: string
@@ -107,7 +117,14 @@ let modelsDefined = false
 
 export function defineModels(sequelize: Sequelize): void {
   if (modelsDefined) return
-
+  BlindReward.init({
+    id: {type:DataTypes.STRING,primaryKey:true},
+    challenge: {type:DataTypes.STRING,allowNull:false},
+    team: {type:DataTypes.STRING,allowNull:false},
+    options: {type:DataTypes.TEXT,allowNull:false},
+    selected: {type:DataTypes.STRING,allowNull:true},
+    reward_id: {type:DataTypes.STRING,allowNull:true},
+  }, {sequelize,modelName:'blind_reward',tableName:'blind_reward',timestamps:true})
   Challenge.init(
     {
       id: {

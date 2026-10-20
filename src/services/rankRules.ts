@@ -43,7 +43,7 @@ const REWARDS_BY_RANK: Record<number, RankRewards> = {
   2: { challenge_point: 8, guard_power: 2, cards: 2 },
   3: { challenge_point: 6, guard_power: 2, cards: 2 },
   4: { challenge_point: 4, guard_power: 1, cards: 1 },
-  5: { challenge_point: 2, guard_power: 1, cards: 0 },
+  5: { challenge_point: 2, guard_power: 1, cards: 1 },
 }
 
 /** GP first, earned challenge points second. Equal values share a dense rank. */

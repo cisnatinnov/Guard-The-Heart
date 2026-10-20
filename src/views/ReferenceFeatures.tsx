@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import { latestTacticalResolution, readTacticalPhase, subscribeTacticalPhase } from '../services/tacticalPhase'
 import { GPMark, TeamPill } from './PublicRankingBoard'
 import '../styles/reference-ui.css'
+import { gigaRiskImpact } from '../services/cardPresentation'
 
 const ORDER_KEY = 'guard-the-heart-turn-order'
 function readOrder(): string[] { try { const value: unknown = JSON.parse(localStorage.getItem(ORDER_KEY) ?? '[]'); return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [] } catch { return [] } }
@@ -54,17 +55,16 @@ export function GigaRiskView({ admin = false }: { admin?: boolean }) {
       <div className="giga-panel">{ordered.map((team) => {
         const resolved = result?.teams.find((entry) => entry.teamId === team.id)
         const effects = resolved?.effects ?? []
-        const before = resolved?.initialGP ?? team.total_gp
-        const after = resolved?.finalGP ?? before
-        const change = resolved?.gigaRisk ?? 0
-        return <article key={team.id} className={`giga-row${after === 0 ? ' is-out' : ''}`} aria-label={`Hasil GigaRisk ${team.name}`}>
+        const after = resolved?.finalGP
+        return <article key={team.id} className={`giga-row${after === 0 ? ' is-out' : ''}${resolved ? ' is-resolved' : ' is-pending'}`} aria-label={`Hasil GigaRisk ${team.name}`}>
           <TeamPill name={team.name} />
-          <div className="giga-health" role="meter" aria-label={`${team.name} GP`} aria-valuemin={0} aria-valuemax={Math.max(1,before,after)} aria-valuenow={after}><span style={{width:`${after / Math.max(1,before,after) * 100}%`}} /></div>
-          <div className="giga-gp"><GPMark /><span>{before}</span><span className="giga-arrow">→</span><strong>{after}</strong><span>GP</span></div>
-          <span className="giga-burst" title="Serangan GigaRisk">{change > 0 ? '+' : ''}{change}</span>
-          <div className="giga-effects" aria-label={`Efek kartu ${team.name}`}>
+          {resolved ? <>
+            <div className="giga-gp" aria-label={`GP after attack ${team.name}`}><GPMark /><strong>{after}</strong><span>GP</span></div>
+            <span className="giga-impact giga-burst" aria-label={`Attack outcome ${team.name}`} title={gigaRiskImpact(resolved)}>{resolved.gigaRisk < 0 ? `−${Math.abs(resolved.gigaRisk)}` : resolved.gigaRisk > 0 ? `+${resolved.gigaRisk}` : '0'}</span>
+          </> : <p className="giga-waiting">Waiting for Serang semua tim −2 GP</p>}
+          {resolved && <div className="giga-effects" aria-label={`Efek kartu ${team.name}`}>
             {effects.length > 0 && <ul tabIndex={0} aria-label={`Daftar efek ${team.name}`}>{effects.map((effect, index) => <li key={`${index}-${effect}`} className={`card-effect-outcome ${effect.startsWith('-') ? 'is-negative' : 'is-positive'}`}>{effect}</li>)}</ul>}
-          </div>
+          </div>}
         </article>
       })}</div>
     </section>

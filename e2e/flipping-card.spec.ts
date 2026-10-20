@@ -13,6 +13,7 @@ test('manual team selection has no timer or score changes and completes on both 
   await page.locator('li').filter({ hasText: 'Challenge 2 - Flipping Connect' }).getByRole('button', { name: 'Play', exact: true }).click()
   const projector = await popup
   await expect(projector.locator('.flipping-presentation')).toBeVisible()
+  await expect(projector.getByText('Challenge 2 - Flipping Connect', { exact: true })).toHaveCount(0)
   const pagesBefore = context.pages().length
   const time = new Date()
   await page.clock.install({ time })

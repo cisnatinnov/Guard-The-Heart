@@ -2,9 +2,9 @@ import type { CardType } from '../models'
 import { CHALLENGE_GAMES } from './games'
 
 export const REWARD_ODDS = [
-  [[55,40,3,2],[60,40,0,0],[90,10,0,0],[100,0,0,0]],
-  [[47,45,5,3],[55,45,0,0],[85,15,0,0],[100,0,0,0]],
-  [[50,38,8,4],[50,50,0,0],[80,20,0,0],[100,0,0,0]],
+  [[57,40,0,3],[59,40,0,1],[90,10,0,0],[100,0,0,0]],
+  [[52,45,0,3],[54,45,0,1],[85,15,0,0],[100,0,0,0]],
+  [[51,38,8,3],[49,50,0,1],[80,20,0,0],[100,0,0,0]],
 ] as const
 
 /** Built-in identity survives renaming; unnumbered custom challenges use phase 1. */

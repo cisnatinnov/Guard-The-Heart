@@ -18,6 +18,8 @@ import '../styles/rewards.css'
 
 interface RewardTeam extends TeamCardReward { cards: TeamCard[]; blind:BlindReward|null }
 interface RewardState { challengeId: string | null; rows: RewardTeam[]; error: string | null }
+const POINTER_KEY = 'guard-the-heart-reward-pointer'
+interface RewardPointer { challengeId: string; teamId: string; optionId: string }
 
 export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
   const { challenges } = useChallenges()
@@ -28,7 +30,32 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
   const [state, setState] = useState<RewardState>({ challengeId: null, rows: [], error: null })
   const [navigationError, setNavigationError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [pointer, setPointer] = useState<RewardPointer | null>(null)
   const request = useRef(0)
+
+  useEffect(() => {
+    if (admin) return
+    const receive = (event: StorageEvent) => {
+      if (event.key !== POINTER_KEY) return
+      try {
+        const value = event.newValue ? JSON.parse(event.newValue) as RewardPointer | null : null
+        setPointer(value?.challengeId === activeId ? value : null)
+      } catch { setPointer(null) }
+    }
+    window.addEventListener('storage', receive)
+    return () => window.removeEventListener('storage', receive)
+  }, [activeId, admin])
+
+  useEffect(() => {
+    if (!admin) return
+    return () => { localStorage.removeItem(POINTER_KEY) }
+  }, [activeId, admin])
+
+  function highlight(teamId: string, optionId: string | null) {
+    if (!admin || !activeId) return
+    if (optionId) localStorage.setItem(POINTER_KEY, JSON.stringify({ challengeId: activeId, teamId, optionId }))
+    else localStorage.removeItem(POINTER_KEY)
+  }
 
   const load = useCallback(async () => {
     const version = ++request.current
@@ -91,7 +118,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
     <section className="reward-stage reward-stage--earned" aria-label="Reward Claim">
     <img className="reward-stage__art" src="/ui/rewards/slide-02-reference.png" alt="" />
     <h1 className="sr-only">Reward Claim — Earned Cards</h1>
-    {!admin && <div className="reward-stage__toolbar">{challengeControl}</div>}
+    {!admin && <div className="reward-stage__toolbar"><span className="reward-stage__challenge-name">{activeChallenge?.name ?? 'Reward Claim'}</span></div>}
     <ol className="reward-stage__rows" aria-label={`Rewards for ${activeChallenge?.name ?? 'challenge'}`}>
       {Array.from({ length: 5 }, (_, slot) => {
         const row = rows[slot]
@@ -101,19 +128,25 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
           <span className="reward-stage__team" title={row?.teamName}>{row?.teamName ?? '—'}</span>
           <div className="reward-stage__earned" aria-label={row ? `${row.cardCount} cards earned by ${row.teamName}` : undefined}>
             {row?.blind ? <div className="blind-reward" aria-label={`Rank 5 blind draw ${row.teamName}`}>
-              <p>{row.blind.selected ? row.blind.selected === 'zonk' ? 'False Hope · tidak mendapat kartu' : '1 kartu Normal terpilih' : 'Pilih 1 kartu · Normal atau False Hope'}</p>
+              <p>{row.blind.selected ? row.blind.selected === 'zonk' ? 'False Hope · tidak mendapat kartu' : '1 kartu Normal terpilih' : admin ? 'Pilih 1 kartu · Normal atau False Hope' : 'Admin memilih 1 dari 3 kartu'}</p>
               <div>{(JSON.parse(row.blind.options) as BlindOption[]).map((option,index) => {
                 const opened = row.blind!.selected === option.id
-                return <button className={`blind-reward__card${opened ? ' is-open' : ''}`} key={option.id} disabled={busy || !!row.blind!.selected}
-                  aria-label={opened ? option.zonk ? 'False Hope — Zonk' : option.name : `Pilih kartu tertutup ${index+1} untuk ${row.teamName}`}
+                const visible = admin || opened
+                const pointed = !admin && !row.blind!.selected && pointer?.challengeId === activeId && pointer.teamId === row.teamId && pointer.optionId === option.id
+                return <button className={`blind-reward__card${opened ? ' is-open' : ''}${row.blind!.selected ? ' is-locked' : ''}${pointed ? ' is-pointed' : ''}`} key={option.id} disabled={!admin || busy || !!row.blind!.selected}
+                  aria-label={visible ? `${admin ? 'Pilih ' : ''}${option.zonk ? 'False Hope — Zonk' : option.name}` : `Kartu tertutup ${index+1} untuk ${row.teamName}`}
+                  onMouseEnter={() => highlight(row.teamId, option.id)} onMouseLeave={() => highlight(row.teamId, null)}
+                  onFocus={() => highlight(row.teamId, option.id)} onBlur={() => highlight(row.teamId, null)}
                   onClick={async () => {
-                    if (!activeId || busy) return
+                    if (!admin || !activeId || busy || row.blind!.selected) return
+                    highlight(row.teamId, null)
                     setBusy(true)
                     try {await chooseRankFiveReward(activeId,row.teamId,option.id);setNavigationError(null);await load()}
                     catch (cause) {setNavigationError(cause instanceof Error ? cause.message : String(cause))}
                     finally {setBusy(false)}
                   }}>
-                  {opened && !option.zonk ? <CardTile {...option} /> : <img src={opened ? FALSE_HOPE_IMAGE : CARD_BACK_IMAGE} alt={opened ? 'False Hope' : 'Kartu tertutup'} />}
+                  {visible && !option.zonk ? <CardTile {...option} /> : <img src={visible ? FALSE_HOPE_IMAGE : CARD_BACK_IMAGE} alt={visible ? 'False Hope' : 'Kartu tertutup'} />}
+                  {pointed && <svg className="reward-pointer" viewBox="0 0 32 40" role="img" aria-label="Kursor admin · menyorot kartu"><path d="M12 21V7a3 3 0 0 1 6 0v10-2a3 3 0 0 1 5 0v3a3 3 0 0 1 5 1v1a3 3 0 0 1 3 3v5c0 4-2 7-4 9H13c-2-2-3-4-5-6l-5-7a3 3 0 0 1 4-4l5 4Z" fill="white" stroke="#38230d" strokeWidth="2" strokeLinejoin="round" /></svg>}
                 </button>
               })}</div>
             </div> : row?.cards.length ? row.cards.map((card) => <div className="reward-stage__card" key={card.id}>
@@ -122,7 +155,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
           </div>
           <span className="reward-stage__gp" aria-label={row ? `${row.guardPower} GP earned` : undefined}>
             <GPShield className="reward-stage__gp-icon" />
-            {row ? `+${row.guardPower} GP` : '—'}
+            <span>{row ? `+${row.guardPower} GP` : '—'}</span>
           </span>
         </li>
       })}

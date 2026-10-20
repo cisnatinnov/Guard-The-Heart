@@ -1,7 +1,7 @@
 import {expect,test} from '@playwright/test'
 import {challengeOne,readDatabase,seedCards} from './support/cardFixture'
 import type {BlindOption} from '../src/services/blindRewards'
-for(const zonk of [true,false]) test(`rank 5 chooses one closed card and persists the result (Zonk=${zonk})`,async({page,context})=>{
+for(const zonk of [true,false]) test(`admin chooses an open rank 5 card and public mirrors cursor and result (Zonk=${zonk})`,async({page,context})=>{
  await seedCards(page,challengeOne)
  await page.goto(`/admin/scoreboard/${challengeOne}`)
  await page.getByRole('button',{name:'Draw Bonus Cards',exact:true}).click()
@@ -15,14 +15,45 @@ for(const zonk of [true,false]) test(`rank 5 chooses one closed card and persist
  const draw=projector.getByLabel('Rank 5 blind draw Pink',{exact:true})
  await expect(draw.getByAltText('Kartu tertutup',{exact:true})).toHaveCount(3)
  await expect(draw.getByAltText('False Hope',{exact:true})).toHaveCount(0)
- await draw.getByRole('button').nth(chosenIndex).click()
+ for (const button of await draw.getByRole('button').all()) await expect(button).toBeDisabled()
+ await page.goto(`/admin/rewards/${challengeOne}`)
+ const adminDraw=page.getByLabel('Rank 5 blind draw Pink',{exact:true})
+ await expect(adminDraw.getByAltText('Kartu tertutup',{exact:true})).toHaveCount(0)
+ await expect(adminDraw.getByAltText('False Hope',{exact:true})).toBeVisible()
+ await expect(adminDraw.getByRole('button').first()).toHaveCSS('cursor','pointer')
+ await expect(draw.getByRole('button').first()).toHaveCSS('cursor','pointer')
+ await adminDraw.getByRole('button').nth(chosenIndex).hover()
+ await expect(draw.getByRole('img',{name:'Kursor admin · menyorot kartu',exact:true})).toBeVisible()
+ await expect(draw.locator('.is-pointed')).toHaveCount(1)
+ await expect(draw.getByRole('button').nth(chosenIndex)).toHaveClass(/is-pointed/)
+ await expect(draw.getByAltText('Kartu tertutup',{exact:true})).toHaveCount(3)
+ await page.mouse.move(0,0)
+ await expect(draw.locator('.reward-pointer')).toHaveCount(0)
+ await adminDraw.getByRole('button').nth(chosenIndex).focus()
+ await expect(draw.getByRole('img',{name:'Kursor admin · menyorot kartu',exact:true})).toBeVisible()
+ await adminDraw.getByRole('button').nth(chosenIndex).click()
+ await expect(draw.locator('.reward-pointer')).toHaveCount(0)
  await expect(draw.locator('.is-open')).toHaveCount(1)
+ for (const cards of [draw,adminDraw]) for (const button of await cards.getByRole('button').all()) await expect(button).toHaveCSS('cursor','not-allowed')
  await expect(draw.getByAltText('Kartu tertutup',{exact:true})).toHaveCount(2)
  if(zonk) await expect(draw.getByAltText('False Hope',{exact:true})).toBeVisible()
  else await expect(draw.locator('.is-open .card-art')).toBeVisible()
  await projector.reload()
  await expect(draw.locator('.is-open')).toHaveCount(1)
- for(const button of await draw.getByRole('button').all()) await expect(button).toBeDisabled()
+ await expect(draw.locator('.reward-pointer')).toHaveCount(0)
+ for(const button of await draw.getByRole('button').all()) {
+  await expect(button).toBeDisabled()
+  await expect(button).toHaveCSS('cursor','not-allowed')
+ }
+ await projector.setViewportSize({width:1280,height:720})
+ for (const width of [390,768,1280,1920]) {
+  await projector.setViewportSize({width,height:Math.round(width*9/16)})
+  expect(await projector.locator('.reward-stage__row').evaluateAll((rows)=>rows.every((row)=>{
+   const region=row.getBoundingClientRect()
+   const cells=[...row.querySelectorAll('.reward-stage__team,.reward-stage__earned,.reward-stage__gp')].map((cell)=>cell.getBoundingClientRect())
+   return cells.every((cell,index)=>cell.top>=region.top && cell.bottom<=region.bottom && (index===0 || cell.left>=cells[index-1].right))
+  }))).toBe(true)
+ }
  await projector.setViewportSize({width:1280,height:720})
  await projector.screenshot({path:`test-results/rank5-${zonk?'zonk':'normal'}-public.png`,animations:'disabled'})
  const saved=await readDatabase(projector)

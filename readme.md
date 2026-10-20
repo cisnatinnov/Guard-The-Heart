@@ -36,6 +36,8 @@ Page Up/Page Down, Home and End also work when a control is not focused. Slide
 selection is saved and synchronizes with the shared public window. The Timer
 keeps its separate window. Fullscreen preview enlarges the admin's slide preview.
 
+### Fortune Draw
+
 In **Tactical Phase**, admin always sees the Fortune Draw option faces and names.
 **Public view: closed cards** is checked by default; uncheck it to show option
 faces publicly. This setting synchronizes and survives reload without rerolling
@@ -46,11 +48,31 @@ rank 1. Rare is limited to ranks 1–3; rank 4–5 Fortune users receive eligibl
 Normal options. No repeated effect appears within an offer; shortages show fewer
 eligible cards rather than duplicate fillers. Rewards are available next challenge.
 
-Rank 5 receives a public blind draw in **Reward Claim**: two Normal cards and one
-False Hope (Zonk), shuffled and saved once. Picking Zonk awards no inventory card.
-Only the selected card opens; unchosen physical cards return to the deck. Existing
-unfinished draws receive this feature when Reward Claim opens; completed rounds
-retain their history.
+### Reward Claim
+
+Reward Claim shows each team's earned cards and GP for the selected challenge.
+Cards retain their original left starting position with consistent spacing; they
+are not centered or stretched across the row. Fixed card slots preserve artwork
+proportions, and separate GP tracks keep icons and values aligned. The public
+challenge name is a read-only badge; the admin selects the challenge.
+
+Rank 5 receives two Normal options and one False Hope (Zonk), shuffled and saved
+once. Only the admin can choose, with all three faces visible in the admin view.
+Public option buttons remain disabled, with three backs until selection.
+
+| State | Admin | Public |
+| --- | --- | --- |
+| Before selection | Open cards; pointer cursor; click one option | Closed cards; pointer cursor; no selection action |
+| Admin hover or keyboard focus | Highlights the option | Shows a hand pointer on the matching card without opening it |
+| Admin clicks | Submits the final choice | Immediately removes the mirrored pointer, then opens only the chosen card |
+| After selection or reload | All options disabled with a forbidden (`not-allowed`) cursor | Chosen card retains its outline; no mirrored pointer; all options use the forbidden cursor |
+
+Leaving an option or the admin Reward Claim view clears the temporary public
+pointer. Picking Normal grants exactly one inventory card; picking Zonk grants
+none. Unchosen physical cards return to the deck. A Normal reward can be selected
+in the current challenge's Tactical Phase; Fortune Draw gifts are available next
+challenge. Existing unfinished draws receive missing offers when Reward Claim
+opens; completed rounds retain their history.
 
 | Command | Purpose |
 | --- | --- |
@@ -83,7 +105,8 @@ retain their history.
 5. **Claim Rewards** opens the reward board on admin and existing public pages.
    With five entries, it rolls rarity per rank and challenge, then assigns the reserved bonus cards once. Revisiting
    the page does not draw again. **Draw Bonus Cards** offers the same draw from
-   the scoreboard.
+   the scoreboard. For rank 5, select one of the three open cards on the admin
+   Reward Claim screen; the public view mirrors the hover and chosen result.
 6. From **Rewards**, open **Tactical Phase**. Owned cards are grouped by the
    challenge that awarded them. Only available cards are listed. Select
    up to two available cards from any challenge, by clicking or dragging, or choose **Skip**.
@@ -136,8 +159,9 @@ Serangan GigaRisk shows GP only after **Serang semua tim −2 GP** completes. Ea
 row displays the saved final GP, a numeric strike outcome on an orange/red boom
 badge (−1 Shield, 0 Protect/Unity, −2 ordinary damage, +4 Swallow), and saved card
 effects in aligned columns. Icons, right-aligned GP numbers and GP labels use
-fixed tracks with tabular digits, so different digit counts cannot shift them. The badge tooltip retains the defense name. Incoming effects
-such as `-1 Dicuri oleh Biru`. It does not show a before/after comparison or a
+fixed tracks with tabular digits, so different digit counts cannot shift them.
+The badge tooltip retains the defense name. Saved card activity includes incoming
+effects such as `-1 Dicuri oleh Biru`. The screen does not show a before/after comparison or a
 health bar. Positive effects are cyan and negative effects red. Long lists wrap
 and scroll. Before an attack, teams show a waiting message without GP totals.
 Historical results are displayed without replaying effects.
@@ -149,6 +173,7 @@ Play; Image Decode opens its question display when a team run starts.
 
 | Feature | Admin | Public |
 | --- | --- | --- |
+| Main Presentation | `/admin/presentation` | `/` (`/presentation` redirects here) |
 | Teams | `/admin` | — |
 | Challenge list | `/admin/challenges` | — |
 | Game | `/admin/play/:gameId/:challengeId?` | `/play/:gameId/:challengeId?` |
@@ -340,8 +365,10 @@ passive, cannot occupy a Tactical Phase selection, and revives its owner to 1 GP
 once after damage if GP reaches zero. It remains in inventory until triggered.
 Completed rounds are read from saved results without replaying effects.
 
-Fortune Draw and rank 5 choices are saved before display and settle atomically
-with their single inventory grant. No reward activates in the same challenge.
+Fortune Draw and rank 5 offers are saved before display and settle atomically
+with at most one inventory grant. Fortune Draw gifts cannot activate in the same
+challenge; a Normal rank 5 reward follows ordinary Tactical Phase availability.
+False Hope grants no inventory card.
 Existing card art lives in `public/cards/`, including `Zonk_False_Hope Card.png`.
 
 ## Timer and visual references
@@ -410,7 +437,9 @@ Existing raw CP values migrate into the new `ChallengePoint.score` column,
 then CP/GP rewards are recalculated from ranks. Recorded combat remains intact.
 
 Tactical selections, completed-attack archives, draw markers, turn order,
-standalone timer/run state and podium prizes also use localStorage.
+standalone timer/run state and podium prizes also use localStorage. Reward Claim
+uses a separate transient localStorage pointer message for admin hover/focus; it
+is not an earned reward or a GP transaction.
 
 Keep IndexedDB and localStorage together when preserving an event. Clearing
 browser site data removes local scores and history. Data does not synchronize
@@ -451,6 +480,9 @@ without materially reducing the total startup download.
 | `src/services/games/` | Game rules and synchronized runs |
 | `src/services/publicDisplay.ts`, `eventTimer.ts`, `turnOrder.ts` | Public display navigation, timer and order |
 | `src/views/`, `src/styles/` | Feature screens and responsive styles |
+| `src/views/RewardClaimPublicView.tsx`, `src/styles/rewards.css` | Earned reward rows, admin-only rank 5 choice, public hand pointer and locked cursors |
+| `src/services/mainPresentation.ts`, `src/views/MainPresentationView.tsx` | Saved slideshow selection and live scoreboard slide |
+| `src/services/cardGPPreview.ts`, `src/views/AnimatedTeamGP.tsx` | Read-only GP previews and animated displayed values |
 | `src/views/HeartAwarenessView.tsx` | Active-team GP plaques and matching admin/public canvases |
 | `src/views/GPShield.tsx`, `src/styles/gp-shield.css` | Shared supplied GP shield asset and proportional sizing |
 | `src/views/challenges/useCrocodileHover.ts` | Transient admin-to-public hand and tooth-hover synchronization |
@@ -466,16 +498,32 @@ For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
 
-Verified on **2026-10-20 (WIB)**: **260 unit/database tests across 23 files** and
-**57 browser scenarios** passed, with no skipped or flaky browser scenarios.
-ESLint, TypeScript and the production/PWA build passed. Markdown links and code
-fences were checked in the full feature audit.
+Pre-push verification on **2026-10-20 (WIB)** ran against the current repository:
 
-After the GigaRisk alignment update, targeted card-effects, shared-GP-icon and
-admin/public layout checks passed (5 scenarios). GP alignment was checked with
-1–3 digit values at 390, 768, 1280 and 1920 pixels. Route layout checks include
-presentation, scoreboard, leaderboard, rewards, tactical/reveal, games and timers
-at desktop, tablet and phone widths. ESLint, TypeScript and the production/PWA build also passed.
+| Check | Result |
+| --- | --- |
+| ESLint | Passed |
+| TypeScript | Passed |
+| Unit/database suite | 260 tests passed across 23 files |
+| Complete browser suite | 57 scenarios passed; no skipped or flaky scenarios in the final run |
+| Production/PWA build | Passed through Playwright's build-and-preview workflow |
+| Markdown | Local links, anchors, referenced source paths, table structure and fenced blocks checked |
+
+The browser suite covers admin-only Reward Claim choices, open admin/closed public
+cards, synchronized hover/focus pointers, immediate pointer removal on click,
+forbidden cursors after selection/reload, Normal/False Hope settlement, Fortune
+Draw, reveal/attack timing, GP persistence, rankings, all three games, presentation,
+timer, public-window reuse, offline reload and responsive admin/public routes.
+Reward/GP alignment includes 390, 768, 1280 and 1920-pixel checks.
+
+Initial checks exposed an intermittent page-readiness timeout and a timer assertion
+that let its simulated clock keep advancing. The layout check now explicitly waits
+for application readiness and names the route in failures; the timer test pauses
+both clocks at matching times before comparing the saved countdown. The complete
+57-scenario suite then passed without retries. These changes stabilize test setup
+without changing game timing or scoring.
+
+Run application checks from the repository root:
 
 ```sh
 npm run typecheck

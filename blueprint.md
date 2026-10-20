@@ -69,6 +69,7 @@ notifications flush SQLite before the receiving tab reloads it.
 | `guard-the-heart-crocodile:<challengeId>` | Jaw bite/pressed-tooth state and reopen deadline |
 | `guard-the-heart-presentation-timer-v2` | Standalone timer duration/deadline/challenge/active team |
 | `guard-the-heart-public-display` | Latest shared stage and challenge |
+| `guard-the-heart-reward-pointer` | Transient Reward Claim hover/focus message with challenge, team and option ids; not reward settlement |
 | Other localStorage keys | Main presentation selection, turn order, game runs, window presence, podium prizes |
 
 Keep IndexedDB and localStorage together when preserving an event. Clearing one
@@ -153,13 +154,38 @@ Normal physical cards and one virtual Zonk option. The Normal designs differ and
 exclude owned available designs. Shuffle order is saved before display. Reserved
 copies are excluded from ordinary automatic/manual allocation.
 
-Reward Claim displays three backs in both views. Clicking one opens only that
-result. A Normal choice creates exactly one TeamCard; False Hope uses
+`RewardClaimPublicView.tsx` displays all three faces to the admin. Only admin
+buttons can settle the offer; public buttons are disabled and the click handler
+also checks `admin`, busy state and an existing selection before calling
+`chooseRankFiveReward`. The public view opens only the chosen card.
+
+Admin hover and keyboard focus write `{ challengeId, teamId, optionId }` to
+`guard-the-heart-reward-pointer`. Public storage listeners match the current
+challenge and offered option before rendering a hand-pointer SVG. The pointer
+changes only presentation; it never changes GP, inventory or option order.
+Leaving an option, blurring it, changing the admin challenge or unmounting the
+admin view removes the message. Clicking clears it before awaiting settlement.
+A saved selection suppresses the public pointer, including after reload.
+
+Both views use `cursor: pointer` before selection. Once the offer has a selected
+id, every option receives `is-locked`, remains disabled, and uses
+`cursor: not-allowed`, including its image descendants. The chosen option retains
+its `is-open` outline without a persistent hand cursor. Reduced-motion preferences
+disable the card-opening animation.
+
+`rewards.css` retains the original left-positioned card groups with fixed gaps;
+card art uses contain fit. Team labels, earned-card areas and GP tracks occupy
+separate columns. The public challenge name is a read-only badge; the admin
+challenge selector publishes the chosen reward screen.
+
+A Normal choice creates exactly one TeamCard; False Hope uses
 `Zonk_False_Hope Card.png` and creates none. The choice and grant commit in one
 transaction. Unchosen physical copies return to the pool. Repeated selection is
 rejected; reload never rerolls. Physical rarity and existing rewards are rechecked
-before granting. Existing unfinished drawn rounds can receive a missing offer;
-completed rounds are unchanged. Collection/deck shortages are reported.
+before granting. A granted Normal card follows ordinary Tactical Phase availability
+in the current challenge; the next-challenge restriction applies to Fortune gifts.
+Existing unfinished drawn rounds can receive a missing offer; completed rounds are
+unchanged. Collection/deck shortages are reported.
 
 ## Tactical Phase, Card Reveal and GigaRisk
 
@@ -308,9 +334,8 @@ and public routes and do not determine Flipping's manually chosen team.
 
 See the complete [route table](./readme.md#routes-and-public-displays).
 `publicDisplay.ts` supports scoreboard, leaderboard, heart-of-awareness, podium,
-rewards, tactical, card-reveal, turn-order, gigarisk, timer, flipping-connect and
-jaws-of-risk. The
-last two stages map to `/play/word-assembly/:challengeId` and
+rewards, tactical, card-reveal, turn-order, gigarisk, timer, presentation,
+flipping-connect and jaws-of-risk. Presentation maps to `/`; the last two stages map to `/play/word-assembly/:challengeId` and
 `/play/jaws-of-risk/:challengeId`. Global routes have no challenge suffix.
 Feature navigation opens or reuses a separate public window; existing public
 pages refresh saved database state before following the published transition.
@@ -397,30 +422,40 @@ with the shared projector and survive reload. Previous/Next, selector, thumbnail
 keyboard navigation and fullscreen preview are supported. The scoreboard switches
 from alphabetical names to rank badges once all five scores are recorded.
 
-The independent `/admin/timer` controls `/timer`. Its 16:9 artwork comes from
-`public/ui/presentation-timer-no-banner.png`; it displays countdown, challenge and
+The independent `/admin/timer` controls `/timer`. Its 16:9 runtime artwork is
+`public/ui/presentation-timer-clean.png`, based on `presentation-timer-no-banner.png`; it displays countdown, challenge and
 active team with a Giliran marker. Duration is 1–5999 seconds, default 900.
 Absolute deadlines survive navigation/reload, with pause/reset support. Timer
 notifications remain isolated from other public-feature navigation.
 
 ## Validation record
 
-Verified on **2026-10-20 (WIB)**: **260 unit/database tests across 23 files** and
-**57 browser scenarios** passed. The browser run had no skipped or flaky scenarios.
-ESLint, TypeScript, production/PWA compilation, Markdown links and code fences
-passed their checks. The full audit includes admin face-up Fortune options, both
-public display modes, exact available rarity mixes, live synchronization, reload,
-one-time choices, rank 5 results, passive revival and the current responsive routes.
+Pre-push verification on **2026-10-20 (WIB)** ran against the current repository:
 
-The subsequent GigaRisk alignment update passed card-effects, shared GP-icon and
-admin/public route-layout checks (5 tests). Mixed 1–3 digit GP values preserve
-icon, number-slot and unit positions at 390, 768, 1280 and 1920 pixels. The route
-audit covers presentation, rankings, rewards, tactical/reveal, games and timers
-at 390, 768 and 1280 pixels.
-ESLint, TypeScript and the production/PWA build passed again. The earlier full
-feature audit remains the baseline for unchanged game logic.
+| Check | Result |
+| --- | --- |
+| ESLint | Passed |
+| TypeScript | Passed |
+| Unit/database suite | 260 tests passed across 23 files |
+| Complete browser suite | 57 scenarios passed; no skipped or flaky scenarios in the final run |
+| Production/PWA build | Passed through Playwright's build-and-preview workflow |
+| Markdown | Local links, anchors, referenced source paths, table structure and fenced blocks checked |
 
-Run from the repository root:
+The browser suite covers admin-only Reward Claim choices, open admin/closed public
+cards, synchronized hover/focus pointers, immediate pointer removal on click,
+forbidden cursors after selection/reload, Normal/False Hope settlement, Fortune
+Draw, reveal/attack timing, GP persistence, rankings, all three games, presentation,
+timer, public-window reuse, offline reload and responsive admin/public routes.
+Reward/GP alignment includes 390, 768, 1280 and 1920-pixel checks.
+
+Initial checks exposed an intermittent page-readiness timeout and a timer assertion
+that let its simulated clock keep advancing. The layout check now explicitly waits
+for application readiness and names the route in failures; the timer test pauses
+both clocks at matching times before comparing the saved countdown. The complete
+57-scenario suite then passed without retries. These changes stabilize test setup
+without changing game timing or scoring.
+
+Run application checks from the repository root:
 
 ```sh
 npm run typecheck

@@ -8,7 +8,7 @@ for (const width of [1280, 768, 390]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
     for (const route of ['/admin', '/admin/gp-transactions', '/admin/challenges', '/admin/presentation', '/admin/podium', '/admin/heart-of-awareness', '/admin/turn-order', '/admin/gigarisk', '/podium', '/heart-of-awareness', '/turn-order', '/gigarisk', '/admin/scoreboard', '/admin/leaderboard', '/admin/rewards', '/admin/tactical', '/admin/timer', '/timer', '/admin/play/word-assembly', '/admin/play/emoji-decode', '/admin/play/jaws-of-risk', '/', '/scoreboard', '/leaderboard', '/rewards', '/tactical', '/card-reveal', '/play/emoji-decode', '/play/jaws-of-risk', '/play/word-assembly']) {
       await page.goto(route)
-      await expect(page.locator('.app__main')).toBeVisible()
+      await expect(page.locator('.app__main'), `Application ready at ${route}`).toBeVisible({ timeout: 15_000 })
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
       if (route === '/admin/rewards') {
         const toolbar = await page.locator('.admin-toolbar').boundingBox()

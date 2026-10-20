@@ -11,7 +11,11 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as con
     await expect(page.getByText('Team A', { exact: true })).toBeVisible()
     await page.goto('/admin/challenges')
     await page.goto(`/admin/play/${game}/${CHALLENGE_GAMES.find((entry) => entry.id === game)!.challengeId}`)
-    if (game === 'emoji-decode') await page.clock.install()
+    if (game === 'emoji-decode') {
+      const time = Date.now()
+      await page.clock.install({ time })
+      await page.clock.pauseAt(new Date(time + 1000))
+    }
     await page.locator('.run-panel__teams').getByRole('checkbox', { name: 'Team A', exact: true }).check()
     const popupPromise = context.waitForEvent('page')
     await page.getByRole('button', { name: 'Start team run (1)' }).click()
@@ -21,7 +25,9 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as con
     if (game === 'emoji-decode') {
       await page.clock.runFor(5_000)
       await expect(page.locator('.qa-stage__timer')).toContainText('10s')
-      await projector.clock.install({ time: await page.evaluate(() => Date.now()) })
+      const time = await page.evaluate(() => Date.now())
+      await projector.clock.install({ time: time - 1000 })
+      await projector.clock.pauseAt(new Date(time))
       await projector.reload()
       await expect(projector.locator('.qa-stage__timer')).toContainText('10s')
       await expect(projector.locator('.qa-stage__hint')).toHaveText('1 Kata')

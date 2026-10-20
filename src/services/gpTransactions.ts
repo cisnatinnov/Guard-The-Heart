@@ -83,7 +83,9 @@ export async function recordGigaRiskGP(challengeId:string,resolution:TacticalRes
    if (!allowExisting) await settleFortuneDraws(challengeId, resolution, transaction)
    for(const result of resolution.teams){
     const team=await Team.findByPk(result.teamId,{transaction})
-    if(!team)throw new Error('Tim tidak ditemukan')
+    // Archives can outlive deleted teams or a recreated IndexedDB database.
+    // Preserve that history without attaching its GP to newly seeded teams.
+    if(!team){if(allowExisting)continue;throw new Error('Tim tidak ditemukan')}
     await opening(team,transaction)
     const before=team.total_gp
     const afterAttack=Math.max(0,before-2)

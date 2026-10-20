@@ -75,6 +75,22 @@ notifications flush SQLite before the receiving tab reloads it.
 Keep IndexedDB and localStorage together when preserving an event. Clearing one
 store cannot reconstruct the other. Data does not sync between devices/profiles.
 
+### Completed archives with missing teams
+
+On startup, `initializeGPTransactions` imports completed tactical/GigaRisk history
+using `recordGigaRiskGP(..., true)`. An archive can outlive team deletion or a
+recreated SQLite database while localStorage still holds the earlier team ids.
+That import skips only missing participants. It preserves the original archive,
+imports surviving participants once, and never matches missing ids to newly
+seeded teams by name. A completed archive containing no surviving teams produces
+no attack-ledger rows. Repeated startup remains safe.
+
+The live attack path retains its missing-team error and atomic rollback. This
+recovery is confined to historical import; it does not weaken new-attack validation
+or erase IndexedDB/localStorage. Fresh-browser tests exercise both `resolution`
+and legacy `strike` archives through reload. Unit tests cover all-missing and
+mixed participants, idempotent import and live-attack rollback.
+
 ## Teams, scores and ranking
 
 Default teams are Merah, Hijau, Biru, Kuning and Pink. Names are reserved and
@@ -430,16 +446,24 @@ notifications remain isolated from other public-feature navigation.
 
 ## Validation record
 
-Pre-push verification on **2026-10-20 (WIB)** ran against the current repository:
+Verification on **2026-10-20 (WIB)** includes the full-suite baseline and latest
+startup-recovery follow-up:
 
 | Check | Result |
 | --- | --- |
 | ESLint | Passed |
 | TypeScript | Passed |
-| Unit/database suite | 260 tests passed across 23 files |
-| Complete browser suite | 57 scenarios passed; no skipped or flaky scenarios in the final run |
+| Latest unit/database suite | 263 tests passed across 24 files, including 3 new startup/archive cases |
+| Complete browser baseline | 57 scenarios passed before the startup-recovery change; no skips or flaky results in that final run |
+| Startup-recovery browser follow-up | 8 targeted scenarios passed, including fresh-database resolution/strike archives, reload, GP ledger, reward choices, CRUD and offline startup |
 | Production/PWA build | Passed through Playwright's build-and-preview workflow |
 | Markdown | Local links, anchors, referenced source paths, table structure and fenced blocks checked |
+
+The startup error was reproduced by two failing missing-team archive tests before
+the fix. Both now pass, alongside live-attack rollback coverage. Historical import
+skips missing ids without deleting archives or applying their GP to new teams.
+The startup follow-up is targeted; the complete browser suite was not rerun after
+this narrowly scoped recovery change.
 
 The browser suite covers admin-only Reward Claim choices, open admin/closed public
 cards, synchronized hover/focus pointers, immediate pointer removal on click,

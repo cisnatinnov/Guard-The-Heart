@@ -463,6 +463,25 @@ shims kept alongside vendor dependencies. Both chunks are precached for offline
 use and stay below the existing build warning limit; this separates caching
 without materially reducing the total startup download.
 
+## Startup troubleshooting
+
+If a laptop shows **Failed to start the database: Tim tidak ditemukan**, an old
+completed-attack archive may reference team ids absent from its current SQLite
+database. Browser data is local to each origin/profile, so another laptop can
+have a different database or older cached application code.
+
+Startup imports historical GP only for team ids that still exist. Missing team
+entries remain in their original archive and do not block startup or change the
+GP of newly seeded teams. Existing participants are imported once. New attacks
+still reject missing participants and roll back their transaction.
+
+Use the updated application build on the affected laptop, retaining the same
+URL/profile. For an installed PWA, open it online and reload after the updated
+version is available. If each laptop runs its own source checkout, update that
+checkout and rebuild/restart its local app. Updating one laptop's checkout does
+not update another laptop or an already deployed site. Keep IndexedDB and
+localStorage intact; clearing site data would remove local scores and history.
+
 ## Source map and maintenance
 
 | Location | Responsibility |
@@ -498,16 +517,24 @@ For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
 
-Pre-push verification on **2026-10-20 (WIB)** ran against the current repository:
+Verification on **2026-10-20 (WIB)** includes the full-suite baseline and latest
+startup-recovery follow-up:
 
 | Check | Result |
 | --- | --- |
 | ESLint | Passed |
 | TypeScript | Passed |
-| Unit/database suite | 260 tests passed across 23 files |
-| Complete browser suite | 57 scenarios passed; no skipped or flaky scenarios in the final run |
+| Latest unit/database suite | 263 tests passed across 24 files, including 3 new startup/archive cases |
+| Complete browser baseline | 57 scenarios passed before the startup-recovery change; no skips or flaky results in that final run |
+| Startup-recovery browser follow-up | 8 targeted scenarios passed, including fresh-database resolution/strike archives, reload, GP ledger, reward choices, CRUD and offline startup |
 | Production/PWA build | Passed through Playwright's build-and-preview workflow |
 | Markdown | Local links, anchors, referenced source paths, table structure and fenced blocks checked |
+
+The startup error was reproduced by two failing missing-team archive tests before
+the fix. Both now pass, alongside live-attack rollback coverage. Historical import
+skips missing ids without deleting archives or applying their GP to new teams.
+The startup follow-up is targeted; the complete browser suite was not rerun after
+this narrowly scoped recovery change.
 
 The browser suite covers admin-only Reward Claim choices, open admin/closed public
 cards, synchronized hover/focus pointers, immediate pointer removal on click,

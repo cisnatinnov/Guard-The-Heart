@@ -1,0 +1,26 @@
+.app--public:has(.crocodile-stage) { max-width:none; width:100%; min-height:100dvh; margin:0; padding:0; background:#170d26; }
+.app--public:has(.crocodile-stage) .app__main { display:grid; min-height:100dvh; place-items:center; }
+.crocodile-stage { position:relative; width:100%; aspect-ratio:16/9; container-type:inline-size; overflow:hidden; isolation:isolate; border-radius:16px; color:#fff3d4; background:#170d26; font-family:Arial,sans-serif; }
+.app--public .crocodile-stage { width:min(100vw,177.777778dvh); border-radius:0; }
+.crocodile-stage__header { position:absolute; z-index:4; inset:3% 3% auto; display:flex; align-items:center; justify-content:space-between; gap:2cqw; pointer-events:none; }
+.crocodile-stage__header img { width:11cqw; height:auto; filter:drop-shadow(0 2px 5px #17051e); }
+.crocodile-stage__header h1 { max-width:40%; margin:0; padding:.65cqw 1.1cqw; border:1px solid #f4c87966; border-radius:.7cqw; background:#210c35cf; color:#ffe6a0; font-size:2cqw; line-height:1.25; text-align:right; }
+.crocodile-stage__instruction { position:absolute; z-index:4; top:17%; left:3%; max-width:17%; margin:0; color:#fff3d4; text-shadow:0 2px 5px #17051e; font-size:1.5cqw; line-height:1.4; }
+.crocodile { position:absolute; inset:0; width:100%; height:100%; }
+.crocodile__base-art,.crocodile__teeth { position:absolute; inset:0; width:100%; height:100%; }
+.crocodile__base-art { object-fit:contain; }
+.crocodile__teeth { z-index:2; pointer-events:none; }
+.crocodile-stage .crocodile__tooth { position:absolute; display:block; box-sizing:border-box; min-width:0; min-height:0; height:auto; margin:0; padding:0; transform:translate(-50%,-100%); background:none; border:0; border-radius:35%; box-shadow:none; cursor:pointer; pointer-events:auto; touch-action:manipulation; transition:filter .15s; }
+.crocodile__tooth svg { display:block; width:100%; height:100%; pointer-events:none; }
+.crocodile-stage .crocodile__tooth:hover:not(:disabled),.crocodile-stage .crocodile__tooth.is-hovered { transform:translate(-50%,-100%); background:none; filter:brightness(1.2) drop-shadow(0 0 .5cqw #ffdb9c); }
+.crocodile-stage .crocodile__tooth:focus-visible { outline:2px solid #ffda54; outline-offset:3px; }
+.crocodile-stage .crocodile__tooth:disabled { opacity:1; cursor:default; }
+.crocodile-stage__status { position:absolute; z-index:4; bottom:1.8%; left:20%; width:60%; margin:0; padding:.65cqw 1.2cqw; border-radius:2cqw; background:#17051ee6; text-align:center; color:#ffe6a0; font-size:1.7cqw; line-height:1.2; font-weight:700; }
+.is-biting .crocodile__teeth { opacity:0; }
+.crocodile__bite { position:absolute; z-index:3; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+.crocodile__hand { position:absolute; z-index:3; width:22cqw; height:22cqw; object-fit:contain; pointer-events:none; user-select:none; }
+.crocodile__hand--kiri { transform:translate(-90%,-25%); }
+.crocodile__hand--kanan { transform:translate(-10%,-25%); }
+.has-hand-cursor .crocodile__tooth:hover:not(:disabled),.crocodile-stage .crocodile__tooth:active:not(:disabled) { cursor:none; }
+.is-biting .crocodile-stage__status { color:#ffb274; }
+@media (prefers-reduced-motion:reduce) { .crocodile-stage *, .crocodile-stage *::before, .crocodile-stage *::after { transition:none !important; animation:none !important; } }

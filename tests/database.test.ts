@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { challengeQuestionsFor } from '../src/services/games/challengeQuestions'
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
 import { initializeAppDatabase } from '../src/db/database'
 import { getSequelize } from '../src/db/sequelize-provider'
-import { Card, Challenge, ChallengePoint, GameQuestion, Scoreboard, TeamCard } from '../src/models'
+import { BlindReward, Card, Challenge, ChallengePoint, GameQuestion, Scoreboard, TeamCard } from '../src/models'
 import { type HeartTowerColumn } from '../src/controllers/TeamController'
 import { ChallengeController } from '../src/controllers/ChallengeController'
 import { TeamController } from '../src/controllers/TeamController'
@@ -31,6 +32,8 @@ import {
   seedLockedChallenges,
 } from '../src/services/challengeSeeds'
 import { CHALLENGE_GAMES, EMOJI_DECODE_CHALLENGE_ID } from '../src/services/games'
+import { seedGameQuestions } from '../src/services/gameQuestionSeeds'
+import { DEFAULT_TEAM_NAMES, isDefaultTeam, seedDefaultTeams, teamColour } from '../src/services/defaultTeams'
 
 beforeAll(async () => {
   await initializeAppDatabase()
@@ -38,11 +41,11 @@ beforeAll(async () => {
 
 describe('rank rules', () => {
   it('maps each rank to its blueprint rewards', () => {
-    expect(rewardsForRank(1)).toEqual({ guard_power: 3 })
-    expect(rewardsForRank(2)).toEqual({ guard_power: 2 })
-    expect(rewardsForRank(3)).toEqual({ guard_power: 2 })
-    expect(rewardsForRank(4)).toEqual({ guard_power: 1 })
-    expect(rewardsForRank(5)).toEqual({ guard_power: 1 })
+    expect(rewardsForRank(1)).toEqual({ challenge_point: 10, guard_power: 3, cards: 3 })
+    expect(rewardsForRank(2)).toEqual({ challenge_point: 8, guard_power: 2, cards: 2 })
+    expect(rewardsForRank(3)).toEqual({ challenge_point: 6, guard_power: 2, cards: 2 })
+    expect(rewardsForRank(4)).toEqual({ challenge_point: 4, guard_power: 1, cards: 1 })
+    expect(rewardsForRank(5)).toEqual({ challenge_point: 2, guard_power: 1, cards: 1 })
   })
 
   it('starts every team at 5 guard power', () => {
@@ -82,13 +85,24 @@ describe('database bootstrap', () => {
 
   it('persists the PPTX question and answer banks in SQLite', async () => {
     expect(await GameQuestion.count({ where: { game_key: 'image-decode' } })).toBe(11)
-    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(50)
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(21)
+    expect(challengeQuestionsFor('word-assembly').questions).toHaveLength(21)
+    expect(challengeQuestionsFor('emoji-decode').questions).toHaveLength(11)
+    expect(challengeQuestionsFor('jaws-of-risk').questions).toHaveLength(20)
     expect(await GameQuestion.count({ where: { game_key: 'jaws-of-risk' } })).toBe(20)
     const first = await GameQuestion.findOne({ where: { game_key: 'image-decode', number: 1 } })
     expect(first?.prompt).toBe('Nasabah')
     expect(first?.answer).toBe('Rekening')
     const matchQuestion = await GameQuestion.findOne({ where: { game_key: 'match-card', number: 1 } })
     expect(matchQuestion?.answer).toBe('Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan')
+  })
+
+  it('removes old questions outside the requested reference range on reseeding', async () => {
+    await GameQuestion.create({ id: 'match-card-050', game_key: 'match-card', number: 50,
+      prompt: 'Old question', answer: 'Old answer', options: '[]', kind: 'choice', hint: '' })
+    await seedGameQuestions()
+    expect(await GameQuestion.findByPk('match-card-050')).toBeNull()
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(21)
   })
 
   it('exposes the blueprint columns on challenge_point', async () => {
@@ -121,6 +135,25 @@ describe('database bootstrap', () => {
 })
 
 describe('TeamController', () => {
+  it('seeds the five fixed teams once and protects names and deletion while allowing status changes', async () => {
+    const before = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
+    expect(before.map((team) => team.name).sort()).toEqual([...DEFAULT_TEAM_NAMES].sort())
+    await seedDefaultTeams()
+    const after = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
+    expect(after.map((team) => team.id)).toEqual(before.map((team) => team.id))
+    for (const team of after) {
+      await expect(TeamController.rename(team.id, 'Other')).rejects.toThrow('cannot be edited')
+      expect((await TeamController.toggleStatus(team.id))?.status).toBe('inactive')
+      await seedDefaultTeams()
+      expect((await TeamController.getById(team.id))?.status).toBe('inactive')
+      expect((await TeamController.toggleStatus(team.id))?.status).toBe('active')
+      await expect(TeamController.remove(team.id)).rejects.toThrow('cannot be deleted')
+    }
+    await expect(TeamController.create(' tim merah ')).rejects.toThrow('reserved')
+    expect(teamColour(' Tim HIJAU ')).toBe('hijau')
+    expect(teamColour('Custom')).toBeNull()
+  })
+
   it('creates active teams with uuid keys', async () => {
     const created = await TeamController.create('Sentinels')
     expect(created.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
@@ -195,6 +228,15 @@ describe('built-in challenges', () => {
     }
   })
 
+  it('renames the saved Flipping Card challenge without changing its id', async () => {
+    const game = CHALLENGE_GAMES.find((entry) => entry.id === 'word-assembly')!
+    const row = await Challenge.findByPk(game.challengeId)
+    await row!.update({ name: 'Challenge 2 - Flipping Card' })
+    await seedLockedChallenges()
+    expect((await Challenge.findByPk(game.challengeId))?.name).toBe('Challenge 2 - Flipping Connect')
+    expect(await Challenge.count({ where: { name: 'Challenge 2 - Flipping Connect' } })).toBe(1)
+  })
+
   it('cannot be added a second time', async () => {
     for (const game of CHALLENGE_GAMES) {
       await expect(ChallengeController.create(game.title)).rejects.toThrow(/built in/)
@@ -227,7 +269,7 @@ describe('built-in challenges', () => {
 
   it('does not let a custom challenge borrow a built-in name', async () => {
     const custom = await ChallengeController.create('Arena Borrow')
-    await expect(ChallengeController.rename(custom.id, 'Match Card')).rejects.toThrow(/built-in/)
+    await expect(ChallengeController.rename(custom.id, 'Challenge 2 - Flipping Connect')).rejects.toThrow(/built-in/)
     expect((await ChallengeController.getById(custom.id))?.name).toBe('Arena Borrow')
     await ChallengeController.remove(custom.id)
   })
@@ -237,7 +279,7 @@ describe('built-in challenges', () => {
       ['Lock A', 'Lock B', 'Lock C', 'Lock D', 'Lock E'].map((team) => TeamController.create(team))
     )
     const emoji = await ChallengeController.getById(EMOJI_DECODE_CHALLENGE_ID)
-    expect(emoji?.name).toBe('Image Decode')
+    expect(emoji?.name).toBe('Challenge 1 - Image Decode')
 
     const entries = []
     for (const [index, team] of teams.entries()) {
@@ -252,7 +294,7 @@ describe('built-in challenges', () => {
 
     const leaderboard = await ChallengePointController.listByChallenge(emoji!.id)
     expect(leaderboard).toHaveLength(5)
-    expect(leaderboard[0].challenge_point).toBe(50)
+    expect(leaderboard[0].score).toBe(50)
     expect(leaderboard[0].rank).toBe(1)
     expect(leaderboard[0].guard_power).toBe(3)
 
@@ -292,7 +334,7 @@ describe('ChallengePointController', () => {
 
     // Cards should be in challenge pool with no team assigned
     const challengeCards = await Card.findAll({ where: { challenge: challenge.id } })
-    expect(challengeCards).toHaveLength(8)
+    expect(challengeCards).toHaveLength(10)
     for (const card of challengeCards) {
       expect(card.team).toBeNull()
     }
@@ -335,7 +377,8 @@ describe('ChallengePointController', () => {
     const availableCards = await Card.findAll({ where: { challenge: challenge.id, team: null } })
     expect(availableCards.length).toBeGreaterThan(0)
 
-    const firstCard = availableCards[0]
+    const recipient = await ChallengePoint.findOne({ where: { challenge: challenge.id, team: teams[0].id } })
+    const firstCard = availableCards.find((card) => card.challenge_point === recipient!.id)!
     await CardController.assignCardToTeam(firstCard.id, teams[0].id)
 
     // Card should now be assigned to team
@@ -360,7 +403,7 @@ describe('ChallengePointController', () => {
     expect(await isChallengeCardsDrawn(challenge.id)).toBe(false)
   })
 
-  it('derives rank and rewards from the challenge point', async () => {
+  it('derives rank and rewards from the raw score', async () => {
     const challenge = await ChallengeController.create('Arena Gamma')
     const team = await TeamController.create('Alpha Squad')
 
@@ -370,12 +413,12 @@ describe('ChallengePointController', () => {
       challenge_point: 120,
     })
 
-    expect(entry.challenge_point).toBe(120)
+    expect(entry.score).toBe(120)
     expect(entry.rank).toBe(1)
     expect(entry.guard_power).toBe(3)
   })
 
-  it('ranks entries by challenge point and reshuffles on update', async () => {
+  it('ranks entries by score and reshuffles on update', async () => {
     const challenge = await ChallengeController.create('Arena Reshuffle')
     const first = await TeamController.create('Team Low')
     const second = await TeamController.create('Team High')
@@ -401,7 +444,7 @@ describe('ChallengePointController', () => {
     expect((await ChallengePointController.getById(highEntry.id))?.rank).toBe(2)
   })
 
-  it('gives tied challenge points the same rank and skips the next rank', async () => {
+  it('gives tied scores the same dense rank', async () => {
     const challenge = await ChallengeController.create('Arena Tie')
     const a = await TeamController.create('Tie A')
     const b = await TeamController.create('Tie B')
@@ -414,7 +457,7 @@ describe('ChallengePointController', () => {
     expect(first.rank).toBe(1)
     expect((await ChallengePointController.getById(second.id))?.rank).toBe(1)
     expect((await ChallengePointController.getById(third.id))?.rank).toBe(2)
-    expect((await ChallengePointController.getById(third.id))?.challenge_point).toBe(10)
+    expect((await ChallengePointController.getById(third.id))?.challenge_point).toBe(8)
   })
 
   it('refuses entries for unknown challenges and teams', async () => {
@@ -462,9 +505,16 @@ describe('ChallengePointController', () => {
   it('validates the challenge point range', async () => {
     const challenge = await ChallengeController.create('Arena Range')
     const team = await TeamController.create('Range Team')
+    const negative = await ChallengePointController.create({
+      challenge: challenge.id,
+      team: team.id,
+      challenge_point: -1,
+    })
+    expect(negative.score).toBe(-1)
+    const lowerBoundTeam = await TeamController.create('Range Lower Bound Team')
     await expect(
-      ChallengePointController.create({ challenge: challenge.id, team: team.id, challenge_point: -1 })
-    ).rejects.toThrow(/cannot be negative/i)
+      ChallengePointController.create({ challenge: challenge.id, team: lowerBoundTeam.id, challenge_point: -1000 })
+    ).rejects.toThrow(/cannot be less than -999/i)
     await expect(
       ChallengePointController.create({ challenge: challenge.id, team: team.id, challenge_point: 1000 })
     ).rejects.toThrow(/cannot exceed 999/i)
@@ -518,9 +568,9 @@ describe('ChallengePointController', () => {
 
     // Correcting the challenge point in place, which is what the view calls.
     const corrected = await ChallengePointController.update(follower.id, { challenge_point: 95 })
-    expect(corrected?.challenge_point).toBe(95)
+    expect(corrected?.score).toBe(95)
     expect(corrected?.rank).toBe(1)
-    expect(corrected?.challenge_point).toBe(95)
+    expect(corrected?.score).toBe(95)
     expect(corrected?.guard_power).toBe(3)
     expect((await ChallengePointController.getById(leader.id))?.rank).toBe(2)
 
@@ -529,8 +579,8 @@ describe('ChallengePointController', () => {
     const totals = await ScoreboardController.recalculate()
     const followerTotal = totals.find((row) => row.team === team.id)
     const rivalTotal = totals.find((row) => row.team === rival.id)
-    expect(followerTotal?.total_cp).toBe(95)
-    expect(rivalTotal?.total_cp).toBe(90)
+    expect(followerTotal?.total_cp).toBe(10)
+    expect(rivalTotal?.total_cp).toBe(8)
     expect(followerTotal!.rank).toBeLessThan(rivalTotal!.rank)
 
     // Updating is idempotent with respect to entries: still two rows.
@@ -551,11 +601,11 @@ describe('ScoreboardController', () => {
     const leaderRow = rows.find((row) => row.team === leader.id)
     const runnerUpRow = rows.find((row) => row.team === runnerUp.id)
 
-    expect(leaderRow?.total_cp).toBe(100)
-    expect(leaderRow?.total_cp).toBe(100)
+    expect(leaderRow?.total_cp).toBe(10)
+    expect(leaderRow?.total_cp).toBe(10)
     expect(leaderRow?.total_card).toBe(0)
 
-    expect(runnerUpRow?.total_cp).toBe(40)
+    expect(runnerUpRow?.total_cp).toBe(8)
     // Ranks are global across every team, so only the ordering is asserted.
     expect(leaderRow!.rank).toBeLessThan(runnerUpRow!.rank)
   })
@@ -576,12 +626,12 @@ describe('ScoreboardController', () => {
       'Arena Detail One',
       'Arena Detail Two',
     ])
-    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail One')?.challenge_point).toBe(70)
-    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail Two')?.challenge_point).toBe(30)
+    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail One')?.score).toBe(70)
+    expect(row?.challengeScores?.find((score) => score.challengeName === 'Arena Detail Two')?.score).toBe(30)
 
     const otherRow = rows.find((entry) => entry.team === other.id)
     expect(otherRow?.challengeScores).toHaveLength(1)
-    expect(otherRow?.challengeScores?.[0]?.challenge_point).toBe(50)
+    expect(otherRow?.challengeScores?.[0]?.score).toBe(50)
   })
 
   it('sums totals across multiple challenges for the same team', async () => {
@@ -593,8 +643,8 @@ describe('ScoreboardController', () => {
     await ChallengePointController.create({ challenge: second.id, team: team.id, challenge_point: 30 })
 
     const row = await ScoreboardController.getByTeam(team.id)
-    expect(row?.total_cp).toBe(100)
-    expect(row?.total_cp).toBe(100)
+    expect(row?.total_cp).toBe(20)
+    expect(row?.total_cp).toBe(20)
     expect(row?.total_card).toBe(0)
   })
 
@@ -644,7 +694,7 @@ describe('ScoreboardController', () => {
     // total_card on scoreboard is now 0; card limits enforced at TeamCard level
     expect(row?.total_card).toBe(0)
     // The other totals are not capped, so they keep accumulating.
-    expect(row?.total_cp).toBe(400)
+    expect(row?.total_cp).toBe(40)
   })
 
   it('rejects a total_card above the cap', async () => {
@@ -669,7 +719,7 @@ describe('ScoreboardController', () => {
     })
 
     const before = await ScoreboardController.getByTeam(team.id)
-    expect(before?.total_cp).toBe(30)
+    expect(before?.total_cp).toBe(10)
 
     await ChallengePointController.remove(entry.id)
     // With no entries left the team drops out of the aggregate entirely.
@@ -716,7 +766,7 @@ describe('ScoreboardController', () => {
     const challenge = await ChallengeController.create('Arena Doomed')
     const team = await TeamController.create('Doomed Team')
     await ChallengePointController.create({ challenge: challenge.id, team: team.id, challenge_point: 45 })
-    expect((await ScoreboardController.getByTeam(team.id))?.total_cp).toBe(45)
+    expect((await ScoreboardController.getByTeam(team.id))?.total_cp).toBe(10)
     expect((await TeamController.getById(team.id))?.total_gp).toBe(BASE_TEAM_GUARD_POWER + 3)
 
     await ChallengeController.remove(challenge.id)
@@ -727,22 +777,27 @@ describe('ScoreboardController', () => {
 })
 
 describe('card pool', () => {
-  it('declares 80 cards split 48 Normal, 24 Rare, 6 Epic and 2 Legendary', async () => {
+  beforeEach(async () => {
+    await BlindReward.destroy({where:{}})
+    await TeamCard.destroy({where:{}})
+    await Card.update({challenge:null,team:null,challenge_point:null},{where:{}})
+  })
+  it('declares 60 cards split 33 Normal, 16 Rare, 8 Epic and 3 Legendary', async () => {
     const pool = await getCardPoolStatus()
     const inventory = await Card.findAll()
     const names = inventory.map((card) => card.name)
     const queryInterface = getSequelize().getQueryInterface()
-    expect(CARD_POOL_TOTAL).toBe(80)
-    expect(inventory).toHaveLength(80)
-    expect(new Set(names).size).toBe(80)
+    expect(CARD_POOL_TOTAL).toBe(60)
+    expect(inventory).toHaveLength(60)
+    expect(new Set(names).size).toBe(60)
     expect(inventory.every((card) => card.effect_action.trim().length > 0)).toBe(true)
     expect(await queryInterface.describeTable('card')).toHaveProperty('effect_action')
     expect(await queryInterface.describeTable('team_card')).toHaveProperty('effect_action')
     expect(pool.total).toBe(CARD_POOL_TOTAL)
-    expect(pool.byType.Normal.total).toBe(48)
-    expect(pool.byType.Rare.total).toBe(24)
-    expect(pool.byType.Epic.total).toBe(6)
-    expect(pool.byType.Legendary.total).toBe(2)
+    expect(pool.byType.Normal.total).toBe(33)
+    expect(pool.byType.Rare.total).toBe(16)
+    expect(pool.byType.Epic.total).toBe(8)
+    expect(pool.byType.Legendary.total).toBe(3)
 
     for (const type of CARD_TYPES) {
       const bucket = pool.byType[type]
@@ -751,7 +806,7 @@ describe('card pool', () => {
     expect(pool.drawn + pool.remaining).toBe(pool.total)
 
     await seedCardPool()
-    expect(await Card.count()).toBe(80)
+    expect(await Card.count()).toBe(60)
   })
 
   it('consumes pool cards on draw and returns them only when the challenge is deleted', async () => {
@@ -772,13 +827,13 @@ describe('card pool', () => {
 
     await drawBonusCardsForChallenge(challenge.id)
     const drawn = await Card.findAll({ where: { challenge: challenge.id } })
-    expect(drawn).toHaveLength(8)
-    expect(new Set(drawn.map((card) => card.name)).size).toBe(8)
+    expect(drawn).toHaveLength(10)
+    expect(new Set(drawn.map((card) => card.name)).size).toBe(10)
     expect(drawn.every((card) => card.effect_action.trim().length > 0)).toBe(true)
 
     const afterDraw = await getCardPoolStatus()
-    expect(afterDraw.drawn - before.drawn).toBe(8)
-    expect(afterDraw.remaining).toBe(before.remaining - 8)
+    expect(afterDraw.drawn - before.drawn).toBe(10)
+    expect(afterDraw.remaining).toBe(before.remaining - 10)
     expect(afterDraw.byType.Normal.drawn - before.byType.Normal.drawn).toBe(
       drawn.filter((card) => card.type === 'Normal').length
     )
@@ -791,7 +846,7 @@ describe('card pool', () => {
 
     const firstEntry = (await ChallengePointController.listByChallenge(challenge.id))[0]
     await ChallengePointController.remove(firstEntry.id)
-    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(10)
 
     expect(await ChallengeController.remove(challenge.id)).toBe(true)
     expect(await Card.count({ where: { challenge: challenge.id } })).toBe(0)
@@ -827,8 +882,8 @@ describe('card pool', () => {
     }
 
     // 3 completed challenges x 8 cards drawn, all from distinct pool entries.
-    expect(drawnCardNames.size).toBe(24)
-    expect((await getCardPoolStatus()).drawn - baseline.drawn).toBe(24)
+    expect(drawnCardNames.size).toBe(30)
+    expect((await getCardPoolStatus()).drawn - baseline.drawn).toBe(30)
   })
 
   it('returns assigned inventory rows when their challenge is deleted', async () => {
@@ -848,9 +903,9 @@ describe('card pool', () => {
     }
 
     await drawBonusCardsForChallenge(challenge.id)
-    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(8)
+    expect(await Card.count({ where: { challenge: challenge.id } })).toBe(10)
     expect(await ChallengeController.remove(challenge.id)).toBe(true)
-    expect(await Card.count()).toBe(80)
+    expect(await Card.count()).toBe(60)
     expect(await getCardPoolStatus()).toEqual(baseline)
   })
 })

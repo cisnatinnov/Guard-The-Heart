@@ -1,0 +1,5 @@
+Edit target: heart-of-awareness-clean.png
+Remove only the five blue GP shield icons from the cream plaques.
+Seamlessly restore the original cream shading; preserve name bars, gold frames,
+gems, central crystal, arena, logo, title, and 16:9 layout.
+Runtime renders the supplied gp-shield.png through GPShield.tsx.

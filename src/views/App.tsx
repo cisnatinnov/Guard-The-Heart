@@ -7,12 +7,17 @@ import { ChallengePointPublicView } from './ChallengePointPublicView'
 import { ChallengePointAdminView } from './ChallengePointAdminView'
 import { ScoreboardTotalPublicView } from './ScoreboardTotalPublicView'
 import { ScoreboardTotalAdminView } from './ScoreboardTotalAdminView'
-import { HeartOfAwarenessView } from './HeartOfAwarenessView'
-import { CardRevealPublicView } from './CardRevealPublicView'
-import { CardRevealAdminView } from './CardRevealAdminView'
+import { RewardClaimPublicView } from './RewardClaimPublicView'
 import { GameView } from './challenges/GameView'
 import { PublicLayout } from './PublicLayout'
 import { AdminLayout } from './AdminLayout'
+import { EventTimerView } from './EventTimerView'
+import { TacticalPhaseView } from './TacticalPhaseView'
+import { TurnOrderView, GigaRiskView } from './ReferenceFeatures'
+import { PodiumView } from './PodiumView'
+import { GPTransactionsView } from './GPTransactionsView'
+import { HeartAwarenessView } from './HeartAwarenessView'
+import { MainPresentationView } from './MainPresentationView'
 
 function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const { status, error } = useDatabase()
@@ -47,22 +52,37 @@ export function App() {
         <Routes>
           {/* Public routes */}
           <Route element={<PublicLayout />}>
+            <Route path="/" element={<MainPresentationView />} />
+            <Route path="/timer" element={<EventTimerView />} />
+            <Route path="/presentation" element={<Navigate to="/" replace />} />
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
-            <Route path="/heart" element={<HeartOfAwarenessView />} />
-            <Route path="/cards" element={<CardRevealPublicView />} />
-            <Route path="/play/:gameId" element={<GameView />} />
+            <Route path="/heart-of-awareness" element={<HeartAwarenessView />} />
+            <Route path="/podium" element={<PodiumView />} />
+            <Route path="/turn-order" element={<TurnOrderView />} />
+            <Route path="/gigarisk/:challengeId?" element={<GigaRiskView />} />
+            <Route path="/rewards/:challengeId?" element={<RewardClaimPublicView />} />
+            <Route path="/tactical/:challengeId?" element={<TacticalPhaseView />} />
+            <Route path="/card-reveal/:challengeId?" element={<TacticalPhaseView reveal />} />
+            <Route path="/play/:gameId/:challengeId?" element={<GameView />} />
           </Route>
 
           {/* Admin routes */}
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<TeamView />} />
+            <Route path="/admin/timer" element={<EventTimerView admin />} />
+            <Route path="/admin/presentation" element={<MainPresentationView admin />} />
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />
-            <Route path="/admin/heart" element={<HeartOfAwarenessView />} />
-            <Route path="/admin/cards" element={<CardRevealAdminView />} />
-            <Route path="/admin/play/:gameId" element={<GameView />} />
+            <Route path="/admin/heart-of-awareness" element={<HeartAwarenessView admin />} />
+            <Route path="/admin/podium" element={<PodiumView admin />} />
+            <Route path="/admin/gp-transactions" element={<GPTransactionsView />} />
+            <Route path="/admin/turn-order" element={<TurnOrderView admin />} />
+            <Route path="/admin/gigarisk/:challengeId?" element={<GigaRiskView admin />} />
+            <Route path="/admin/rewards/:challengeId?" element={<RewardClaimPublicView admin />} />
+            <Route path="/admin/tactical/:challengeId?" element={<TacticalPhaseView admin />} />
+            <Route path="/admin/play/:gameId/:challengeId?" element={<GameView />} />
           </Route>
 
           {/* Redirect unknown routes to public scoreboard */}

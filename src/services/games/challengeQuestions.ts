@@ -32,6 +32,8 @@ export interface ChallengeQuestion {
   prompt: string
   hint: string
   options?: string[]
+  sourceSlide?: number
+  answerSlide?: number
   grade: (answer: string) => number
   /** When true a wrong answer removes the team until the next question. */
   eliminates: boolean
@@ -95,6 +97,8 @@ function wordAssemblyQuestions(): ChallengeQuestion[] {
     prompt: question.prompt,
     hint: 'Choose the best answer.',
     options: question.options,
+    sourceSlide: question.sourceSlide,
+    answerSlide: question.answerSlide,
     eliminates: true,
     grade: (value) => (normalize(value) === normalize(question.answer) ? WORD_ASSEMBLY_MATCH_POINTS : 0),
   }))
@@ -123,6 +127,8 @@ function jawsQuestions(): ChallengeQuestion[] {
     prompt: question.prompt,
     hint: 'Choose the best answer.',
     options: question.options,
+    sourceSlide: question.sourceSlide,
+    answerSlide: question.answerSlide,
     eliminates: true,
     grade: (value) => (normalize(value) === normalize(question.answer) ? JAWS_HIT_POINTS : 0),
   }))
@@ -170,7 +176,7 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
   },
   'jaws-of-risk': () => {
     const questions = jawsQuestions()
-    return { questions, pointsPerQuestion: JAWS_HIT_POINTS }
+    return { questions, pointsPerQuestion: JAWS_HIT_POINTS, secondsPerQuestion: 15 }
   },
 }
 

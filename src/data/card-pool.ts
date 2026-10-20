@@ -15,6 +15,7 @@ interface CardDesign {
   icon: string
   effect_action: string
   copies: number
+  image?: string
 }
 
 export const CARD_BACK_IMAGE = '/cards/0_BACK CARD.png'
@@ -25,16 +26,16 @@ const CARD_DESIGNS: CardDesign[] = [
     title: 'Heal Card',
     effect: 'Heal',
     icon: '💚',
-    effect_action: 'Menambah 1-2 Guard Point (GP).',
-    copies: 16,
+    effect_action: 'Menambah +2 Guard Point (GP).',
+    copies: 11,
   },
   {
     type: 'Normal',
     title: 'Shield Card',
     effect: 'Defense',
     icon: '🛡️',
-    effect_action: 'Mengurangi 1-2 damage Gigarisk.',
-    copies: 16,
+    effect_action: 'Melindungi 1 Guard Point (GP) dari serangan Gigarisk.',
+    copies: 11,
   },
   {
     type: 'Normal',
@@ -42,7 +43,7 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Thief',
     icon: '🕵️',
     effect_action: 'Ambil 1 Guard Point (GP) dari satu tim lawan.',
-    copies: 16,
+    copies: 11,
   },
   {
     type: 'Rare',
@@ -50,23 +51,23 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Heal',
     icon: '💚',
     effect_action: 'Menambah +3 Guard Point (GP).',
-    copies: 6,
+    copies: 4,
   },
   {
     type: 'Rare',
     title: 'Protect Card',
     effect: 'Defense',
     icon: '🛡️',
-    effect_action: 'Target tim tidak kehilangan Guard Point (GP) dari satu kali serangan Gigarisk.',
-    copies: 6,
+    effect_action: 'Pemilik kartu dan tim target tidak kehilangan Guard Point (GP) dari satu kali serangan Gigarisk.',
+    copies: 4,
   },
   {
-    type: 'Rare',
+    type: 'Epic',
     title: 'Reverse Card',
     effect: 'Utility',
     icon: '🔄',
     effect_action: 'Ambil 1 Guard Point (GP) dari setiap tim lawan.',
-    copies: 6,
+    copies: 3,
   },
   {
     type: 'Rare',
@@ -74,22 +75,22 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Thief',
     icon: '🕵️',
     effect_action: 'Ambil 2 Guard Point (GP) dari satu tim lawan.',
-    copies: 6,
+    copies: 4,
   },
   {
     type: 'Epic',
-    title: 'Reflect Card',
+    title: 'Swallow Card',
     effect: 'Defense',
     icon: '💥',
-    effect_action: 'Damage Gigarisk yang diterima dikonversi menjadi Guard Point (GP).',
-    copies: 3,
+    effect_action: 'Menelan efek serangan GigaRisk dan mengubahnya menjadi +4 Guard Point (GP).',
+    copies: 2,
   },
   {
     type: 'Epic',
-    title: 'Reverse Card',
-    effect: 'Utility',
-    icon: '🔄',
-    effect_action: 'Ambil 2 Guard Point (GP) dari setiap tim lawan.',
+    title: 'Thief Card',
+    effect: 'Thief',
+    icon: '🕵️',
+    effect_action: 'Ambil 2 Guard Point (GP) dari 1 atau 2 tim lawan saat Card Reveal.',
     copies: 3,
   },
   {
@@ -98,8 +99,8 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Support',
     icon: '🤝',
     effect_action:
-      'Semua tim terlindungi dari serangan Gigarisk dan masing-masing mendapat +1 Guard Point (GP).',
-    copies: 1,
+      'Semua team terlindungi dari serangan Gigarisk dan masing-masing +1 Guard Point (GP).',
+    copies: 2,
   },
   {
     type: 'Legendary',
@@ -107,12 +108,22 @@ const CARD_DESIGNS: CardDesign[] = [
     effect: 'Heal',
     icon: '✨',
     effect_action:
-      '(Passive Skill) Otomatis bangkit dengan tambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
+      '(Passive Skill) Otomatis bangkit dengan penambahan +1 Guard Point (GP) saat Guard Point (GP) mencapai 0.',
     copies: 1,
+  },
+  {
+    type: 'Rare',
+    title: 'Fortune Draw Card',
+    effect: 'Utility',
+    icon: '🎴',
+    effect_action: 'Pilih 1 kartu: Challenge 1–2 dari 3 kartu (2 Normal, 1 Rare); Challenge 3 dari 4 kartu (2 Normal, 1 Rare, 1 Epic). Batas rank tetap berlaku.',
+    copies: 4,
+    image: '/cards/Rare_Fortune_Draw Card.png',
   },
 ]
 
 function designImage(design: CardDesign): string {
+  if (design.image) return design.image
   const typePrefix = design.type === 'Legendary' ? 'Legend' : design.type
   return `/cards/${typePrefix}_${design.title}.png`
 }
@@ -139,10 +150,21 @@ export const CARD_POOL: CardPoolDefinition[] = CARD_DESIGNS.flatMap((design) =>
 )
 
 export function cardImageFor(name: string): string | null {
-  return IMAGE_BY_NAME.get(name) ?? null
+  const renamed = name.replace(/^Epic Reflect Card/, 'Epic Swallow Card')
+  return IMAGE_BY_NAME.get(renamed) ?? IMAGE_BY_NAME.get(`${renamed.replace(/ #\d+$/, '')} #01`) ?? null
+}
+
+/** Display the renamed action in old snapshots without changing ledger amounts. */
+export function cardEffectLabel(effect: string): string {
+  return effect.replace(/Reflect/g, 'Swallow').replace(/Swallow \(2 × 2 GP\)/g, 'Swallow')
+}
+
+/** Numbered inventory copies of the same rarity/design share one identity. */
+export function cardDesignKey(card: { name: string; type: CardType }): string {
+  return `${card.type}|${cardImageFor(card.name) ?? cardTitleFor(card.name, card.type)}`
 }
 
 export function cardTitleFor(name: string, type: CardType): string {
-  const design = CARD_DESIGNS.find((candidate) => IMAGE_BY_NAME.get(name) === designImage(candidate))
+  const design = CARD_DESIGNS.find((candidate) => cardImageFor(name) === designImage(candidate))
   return design && design.type === type ? design.title : name
 }

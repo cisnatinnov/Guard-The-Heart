@@ -18,12 +18,12 @@ export interface ChallengeGameInfo {
 export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   {
     id: 'emoji-decode',
-    title: 'Image Decode',
+    title: 'Challenge 1 - Image Decode',
     tagline: 'Decode the banking terms revealed by the picture clues, against the clock.',
     rules: [
       'Eleven banking-term questions based on slides 3–24 of the Image Decode reference deck.',
-      'Every slide carries a built-in 30 second timer.',
-      'Ten points per decoded answer, 110 points in total.',
+      'Every question has a 15-second timer.',
+      'Self answers score +10 correct or −10 wrong or timed out, with a maximum of 110 points.',
     ],
     deckPath: '/ui/Image_Decode.pptx',
     deckLabel: 'Image Decode deck (PPTX)',
@@ -31,36 +31,40 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   },
   {
     id: 'word-assembly',
-    title: 'Match Card',
-    tagline: 'Match a picture pair, then answer a question from the reference deck.',
+    title: 'Challenge 2 - Flipping Connect',
+    tagline: 'Flip cards and match identical picture pairs.',
     rules: [
-      'Flip two cards at a time and match identical pictures before answering the associated question.',
-      'A matched pair unlocks a reference question; the answering team gets two attempts before the turn passes.',
-      'Fifteen seconds per question in a team run.',
-      'Ten points per matched pair, minus five for each mismatch.',
+      'Flip two cards at a time and match identical pictures. There are no questions.',
+      'Choose the active team by clicking its name. Urutan Main does not set the Flipping Connect turn, and there is no turn timer.',
+      'A matched pair moves the turn to the next team. This matching activity does not award or deduct points.',
+      'Match all ten pairs to complete the challenge.',
     ],
-    deckPath: '/ui/Match-Card.pptx',
-    deckLabel: 'Match Card question deck (PPTX)',
     challengeId: WORD_ASSEMBLY_CHALLENGE_ID,
   },
   {
     id: 'jaws-of-risk',
-    title: 'Jaws of Risk',
-    tagline: 'Answer each question to protect the jaw.',
+    title: 'Challenge 3 - Jaw of Risk',
+    tagline: 'Press a tooth, take a chance. Will the crocodile bite?',
     rules: [
-      'Answer questions in sequence; there is no tooth selection or tooth board.',
-      'Questions use slides 3–42 of the supplied Match Card deck.',
+      'Take turns pressing one of the crocodile’s teeth. One hidden tooth triggers a bite.',
+      'Safe teeth stay pressed until the crocodile bites.',
+      'After a bite, the mouth opens automatically and a different biting tooth is randomly chosen for the next round.',
     ],
-    deckPath: '/ui/Match-Card.pptx',
-    deckLabel: 'Jaws question reference (PPTX)',
     challengeId: JAWS_CHALLENGE_ID,
   },
 ]
 
 /** Former built-in challenge names, mapped to their current title. */
 export const RENAMED_CHALLENGE_TITLES: Readonly<Record<string, string>> = {
-  'Emoji Decode': 'Image Decode',
-  'Word Assembly': 'Match Card',
+  'Emoji Decode': 'Challenge 1 - Image Decode',
+  'Image Decode': 'Challenge 1 - Image Decode',
+  'Word Assembly': 'Challenge 2 - Flipping Connect',
+  'Match Card': 'Challenge 2 - Flipping Connect',
+  'Flipping Connect': 'Challenge 2 - Flipping Connect',
+  'Flipping Card': 'Challenge 2 - Flipping Connect',
+  'Challenge 2 - Flipping Card': 'Challenge 2 - Flipping Connect',
+  'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
+  'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
 }
 
 /** Built-in challenges that were retired and are removed from older databases. */

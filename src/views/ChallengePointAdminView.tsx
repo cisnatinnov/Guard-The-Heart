@@ -1,3 +1,5 @@
+import { PublicRankingBoard } from './PublicRankingBoard'
+import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChallengePointController } from '../controllers/ChallengePointController'
@@ -8,7 +10,7 @@ import type { ChallengePointEntry } from '../controllers/ChallengePointControlle
 import type { Card } from '../models'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
 
-const EMPTY_FORM = { team: '', challenge_point: '' }
+const EMPTY_FORM = { team: '', score: '' }
 const EMPTY_ENTRIES: ChallengePointEntry[] = []
 
 export function ChallengePointAdminView() {
@@ -74,13 +76,13 @@ export function ChallengePointAdminView() {
     await run(async () => {
       if (editingId) {
         await ChallengePointController.update(editingId, {
-          challenge_point: Number(form.challenge_point) || 0,
+          score: Number(form.score) || 0,
         })
       } else {
         await ChallengePointController.create({
           challenge: activeId,
           team: form.team,
-          challenge_point: Number(form.challenge_point) || 0,
+          score: Number(form.score) || 0,
         })
       }
       setForm(EMPTY_FORM)
@@ -91,12 +93,13 @@ export function ChallengePointAdminView() {
   function handleSelectChallenge(challengeId: string) {
     setEditingId(null)
     setForm(EMPTY_FORM)
+    void publishPublicDisplay('scoreboard', challengeId).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
     navigate(`/admin/scoreboard/${challengeId}`)
   }
 
   function startEdit(entry: ChallengePointEntry) {
     setEditingId(entry.id)
-    setForm({ team: entry.team, challenge_point: String(entry.challenge_point) })
+    setForm({ team: entry.team, score: String(entry.score) })
     setError(null)
   }
 
@@ -128,6 +131,17 @@ export function ChallengePointAdminView() {
     }
   }
 
+  async function claimRewards() {
+    if (!activeId) return
+    await run(async () => {
+      if (isFull && !(await CardController.isChallengeCardsDrawn(activeId))) {
+        await CardController.drawBonusCards(activeId)
+      }
+      await publishPublicDisplay('rewards', activeId)
+      navigate(displayPath({ stage: 'rewards', challengeId: activeId }, true))
+    })
+  }
+
   const updateField = (key: keyof typeof EMPTY_FORM) => (event: { target: { value: string } }) =>
     setForm((current) => ({ ...current, [key]: event.target.value }))
 
@@ -141,7 +155,7 @@ export function ChallengePointAdminView() {
       <div>
         <h2>Scoreboard per challenge (Adm)</h2>
         <p className="view__hint">
-          Rank and points are derived from challenge points. Up to {MAX_ENTRIES_PER_CHALLENGE} teams per challenge.
+          Rank is determined by score. Challenge points and GP are awarded by rank. Up to {MAX_ENTRIES_PER_CHALLENGE} teams per challenge.
         </p>
       </div>
     </header>
@@ -175,6 +189,9 @@ export function ChallengePointAdminView() {
                 ))}
               </select>
             </label>
+            {activeId && <>
+              <button type="button" disabled={busy || checkingDraw || !entries.length} onClick={claimRewards}>Claim Rewards</button>
+            </>}
           </div>
 
           {activeId && isFull && !isDrawn && (
@@ -194,13 +211,7 @@ export function ChallengePointAdminView() {
             <p className="alert alert--info">
               Bonus cards already drawn for this challenge. <strong>{drawnCards.length}</strong> card(s) added to pool.
               <br />
-              Go to <strong>Card Reveal (Adm)</strong> to assign them to teams.
-            </p>
-          )}
-
-          {activeId && isFull && isDrawn && (
-            <p className="alert alert--info">
-              Bonus cards already drawn for this challenge.
+              Available rewards are assigned automatically. Open <strong>Claim Rewards</strong>, then <strong>Tactical Phase</strong> to choose cards.
             </p>
           )}
 
@@ -229,19 +240,19 @@ export function ChallengePointAdminView() {
               </select>
             </label>
             <label className="field">
-              <span>Challenge Point</span>
+              <span>Score</span>
               <input
                 type="number"
                 inputMode="numeric"
-                min={0}
+                min={-999}
                 max={999}
-                value={form.challenge_point}
-                onChange={updateField('challenge_point')}
+                value={form.score}
+                onChange={updateField('score')}
                 disabled={busy}
               />
             </label>
             <button type="submit" className="grid-form__submit" disabled={busy || !form.team}>
-              {editingId ? 'Update challenge point' : 'Add entry'}
+              {editingId ? 'Update score' : 'Add entry'}
             </button>
             {editingId && (
               <button type="button" className="ghost" onClick={cancelEdit} disabled={busy}>
@@ -254,52 +265,20 @@ export function ChallengePointAdminView() {
 
       {error && <p className="alert alert--error">{error}</p>}
 
-      {entries.length === 0 ? (
-        <p className="muted">No entries for this challenge yet.</p>
-      ) : (
-        <div className="board-panel">
-          <div className="board-banner">
-            <span className="board-banner__title">Score Board</span>
-            <span className="board-banner__sub">{activeChallenge?.name ?? 'Challenge'}</span>
-          </div>
-          <div className="board-medals" aria-hidden="true">
-            <span className="board-medals__item board-medals__item--sword">⚔</span>
-            <span className="board-medals__item board-medals__item--shield">🛡</span>
-            <span className="board-medals__item board-medals__item--star">★</span>
-          </div>
-          <ol className="board" aria-label="Challenge ranking">
-            {entries.map((entry) => (
-              <li key={entry.id} className={`board__row board__row--${Math.min(entry.rank, 5)}`}>
-                <span className="rank-badge" aria-label={`Rank ${entry.rank}`}>
-                  {entry.rank}
-                </span>
-                <span className="board__team">{entry.teamRef?.name ?? '—'}</span>
-                <span className="board__actions">
-                  <button
-                    type="button"
-                    className="ghost"
-                    disabled={busy}
-                    onClick={() => startEdit(entry)}
-                  >
-                    Edit CP
-                  </button>
-                  <button
-                    type="button"
-                    className="danger"
-                    disabled={busy}
-                    onClick={() => handleDelete(entry.id)}
-                  >
-                    Delete
-                  </button>
-                </span>
-                <span className="board__points" title="Challenge point">
-                  {entry.challenge_point}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+      <PublicRankingBoard
+        variant="scoreboard"
+        guardPoints={teams.map(team=>({id:team.id,team:team.name,guardPower:team.total_gp}))}
+        challenge={activeChallenge?.name}
+        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.score }))}
+        message={entries.length === 0 ? 'No entries for this challenge yet.' : undefined}
+      />
+      {entries.length > 0 && <div className="scoreboard-admin-actions" aria-label="Edit challenge results">
+        {entries.map((entry) => <div className="board__row" key={entry.id}>
+          <span>{entry.teamRef?.name ?? '—'} · {entry.score} score · {entry.challenge_point} CP · {entry.guard_power} GP</span>
+          <button type="button" className="ghost" disabled={busy} onClick={() => startEdit(entry)}>Edit Score</button>
+          <button type="button" className="danger" disabled={busy} onClick={() => handleDelete(entry.id)}>Delete</button>
+        </div>)}
+      </div>}
     </section>
   )
 }

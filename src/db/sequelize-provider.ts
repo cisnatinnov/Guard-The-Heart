@@ -6,19 +6,32 @@ let sequelizeInstance: Sequelize | null = null
 let engineInstance: SqlJsEngine | null = null
 let initializePromise: Promise<Sequelize> | null = null
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+let databaseDirty = false
+let saveQueue: Promise<void> = Promise.resolve()
 
 const SAVE_DEBOUNCE_MS = 150
 
-async function flushToStorage(): Promise<void> {
-  if (!engineInstance) return
-  try {
-    await saveDatabaseBytes(engineInstance.export())
-  } catch (error) {
-    console.error('Failed to persist SQLite database', error)
+/** Serialize startup, card-pool operations and combat across tabs. */
+export async function withDatabaseWriteLock<T>(operation: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== 'undefined' && navigator.locks) {
+    return navigator.locks.request('guard-the-heart-database-write', operation)
   }
+  return operation()
+}
+
+async function flushToStorage(): Promise<void> {
+  if (!engineInstance || !databaseDirty) return saveQueue
+  const bytes = engineInstance.export()
+  databaseDirty = false
+  saveQueue = saveQueue.then(() => saveDatabaseBytes(bytes)).catch((error: unknown) => {
+    databaseDirty = true
+    console.error('Failed to persist SQLite database', error)
+  })
+  await saveQueue
 }
 
 function scheduleSave(): void {
+  databaseDirty = true
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
     saveTimer = null
@@ -78,4 +91,18 @@ export async function flushDatabase(): Promise<void> {
     saveTimer = null
   }
   await flushToStorage()
+}
+
+/** Replace this tab's in-memory SQLite contents with the latest saved copy. */
+export async function refreshDatabaseFromStorage(): Promise<void> {
+  // A late public-window notification must not discard local uncommitted writes.
+  if (databaseDirty) return
+  await saveQueue
+  const [persisted] = await Promise.all([loadDatabaseBytes()])
+  if (!persisted?.length || !engineInstance || databaseDirty) return
+  if (saveTimer) {
+    clearTimeout(saveTimer)
+    saveTimer = null
+  }
+  engineInstance.reload(persisted)
 }

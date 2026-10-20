@@ -1,3 +1,4 @@
+import { QuestionPresentation } from './QuestionPresentation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   EMOJI_DECODE_POINTS_PER_ANSWER,
@@ -8,7 +9,7 @@ import {
   type EmojiDecodeAttempt,
 } from '../../services/games'
 
-export function EmojiDecodeView() {
+export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}) {
   const questions = useMemo(() => getEmojiDecodeQuestions(), [])
   const [attempts, setAttempts] = useState<Record<string, string>>({})
   const [checked, setChecked] = useState<Record<string, boolean>>({})
@@ -19,7 +20,7 @@ export function EmojiDecodeView() {
   const timerQuestionId = useRef<string | null>(questions[0]?.id ?? null)
   const checkedQuestionIds = useRef(new Set<string>())
 
-  const history: EmojiDecodeAttempt[] = questions.map((question) => ({
+  const history: EmojiDecodeAttempt[] = questions.filter((question) => checked[question.id] !== undefined).map((question) => ({
         questionId: question.id,
         guess: attempts[question.id] ?? '',
         correct: checked[question.id] ?? false,
@@ -48,6 +49,10 @@ export function EmojiDecodeView() {
     }, 1000)
     return () => window.clearInterval(timer)
   }, [answered, current?.id])
+
+  useEffect(() => {
+    if (questions.length > 0 && questions.every((question) => checked[question.id] !== undefined)) onComplete?.()
+  }, [questions, checked, onComplete])
 
   function submit(index: number) {
     const question = questions[index]
@@ -107,32 +112,11 @@ export function EmojiDecodeView() {
 
       <div className="emoji-decode emoji-decode--reference">
         <div className="emoji-decode__stage">
-          <p className="muted">
-          Question {currentIndex + 1} of {questions.length}
-          </p>
-          <p
-            className="emoji-decode__glyph emoji-decode__question-art"
-            aria-label={`Image clue ${currentIndex + 1}`}
-          >
-            <img
-              src={`/image-decode/questions/decode-${String(currentIndex + 1).padStart(2, '0')}.webp`}
-              alt={`Visual clue for question ${currentIndex + 1}`}
-              draggable={false}
-            />
-          </p>
-          <p className="emoji-decode__hint">{answered ? current.hint : `Hint: ${current.hint}`}</p>
-
-          <div className="emoji-timer" role="timer" aria-label={`Time left for question ${currentIndex + 1}`}>
-            <span className="emoji-timer__track">
-              <span
-                className={`emoji-timer__fill${
-                  remaining <= 5 && !answered ? ' emoji-timer__fill--urgent' : ''
-                }`}
-                style={{ width: `${(remaining / EMOJI_DECODE_SECONDS_PER_QUESTION) * 100}%` }}
-              />
-            </span>
-            <span className="emoji-timer__value">{timedOut ? 'Time up' : `${remaining}s`}</span>
-          </div>
+          <QuestionPresentation gameId="emoji-decode"
+            question={{ id: current.id, number: currentIndex + 1, prompt: current.emojis.join(' '),
+              hint: current.hint, eliminates: true, grade: () => 0 }}
+            counter={`Question ${currentIndex + 1} of ${questions.length}`}
+            seconds={remaining} status={answered ? current.answer : '—'} />
 
           <div className="row-form">
             <input

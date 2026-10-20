@@ -5,6 +5,14 @@ export type SqlJsStatic = Awaited<ReturnType<typeof initSqlJs>>
 export type SqlJsDatabase = InstanceType<SqlJsStatic['Database']>
 export type SqlValue = number | string | Uint8Array | null
 
+// sql.js export reopens the database and resets connection pragmas.
+function exportDatabase(database: SqlJsDatabase): Uint8Array {
+  const foreignKeys = Number(database.exec('PRAGMA foreign_keys')[0]?.values[0]?.[0] ?? 0)
+  const bytes = database.export()
+  database.run(`PRAGMA foreign_keys = ${foreignKeys}`)
+  return bytes
+}
+
 let sqlJsPromise: Promise<SqlJsStatic> | null = null
 
 function isBrowserRuntime(): boolean {
@@ -80,6 +88,7 @@ export interface Sqlite3DriverModule {
 export interface SqlJsEngine {
   driver: Sqlite3DriverModule
   export(): Uint8Array
+  reload(data: Uint8Array): void
   setMutationListener(listener: (() => void) | null): void
 }
 
@@ -91,6 +100,7 @@ export interface SqlJsEngine {
 export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | null): SqlJsEngine {
   let activeDb: SqlJsDatabase | null = null
   let mutationListener: (() => void) | null = null
+  const connections = new Set<SqlConnection>()
 
   function registerActive(db: SqlJsDatabase): void {
     activeDb = db
@@ -113,13 +123,23 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
         initialData && initialData.length > 0 ? new SQL.Database(initialData) : new SQL.Database()
       initialData = null
       registerActive(this.db)
+      connections.add(this)
       // Defer so Sequelize can store the connection before the callback fires,
       // matching the asynchronous native sqlite3 driver contract.
       if (callback) queueMicrotask(() => callback(null))
     }
 
     exportBytes(): Uint8Array {
-      return this.db.export()
+      return exportDatabase(this.db)
+    }
+
+    reload(data: Uint8Array): void {
+      const previous = this.db
+      previous.close()
+      releaseActive(previous)
+      this.db = new SQL.Database(data)
+      this.db.run('PRAGMA foreign_keys = ON')
+      registerActive(this.db)
     }
 
     private refreshMeta() {
@@ -194,6 +214,7 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
         if (callback) callback.call(this, tagError(raw))
       }
       releaseActive(db)
+      connections.delete(this)
       return this
     }
   }
@@ -208,7 +229,10 @@ export function createSqlJsEngine(SQL: SqlJsStatic, initialData?: Uint8Array | n
     driver,
     export() {
       if (!activeDb) throw new Error('No active SQLite connection to export')
-      return activeDb.export()
+      return exportDatabase(activeDb)
+    },
+    reload(data) {
+      for (const connection of connections) connection.reload(data)
     },
     setMutationListener(listener) {
       mutationListener = listener

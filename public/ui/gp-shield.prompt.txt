@@ -1,0 +1,5 @@
+Reference: heart-of-awareness-clean.png
+Extract one original blue GP shield as a transparent, closely framed UI asset.
+Preserve the pointed shield, double cyan/royal blue bevel, deep blue interior,
+bold white GP lettering and glossy illustrated finish. No plaque or border.
+Used by the shared GPMark component for leaderboard, scoreboard and GigaRisk.

@@ -5,6 +5,11 @@ import { ChallengeController } from './ChallengeController'
 import type { ChallengeGameId } from '../services/games'
 import { challengeQuestionsFor, gradeQuestion, type ChallengeQuestion } from '../services/games/challengeQuestions'
 import {
+  enableRunMatching,
+  flipRunCard,
+  advanceMatchingTurn,
+  advanceMatchingTransition,
+  chooseMatchingAnswerTeam,
   applyAnswer,
   applyPassedAnswer,
   beginNextQuestion,
@@ -50,12 +55,15 @@ export class ChallengeRunController {
     if (questionSet.questions.length === 0) {
       throw new Error('This challenge cannot be answered question by question')
     }
-    return startChallengeRun({
+    const run = startChallengeRun({
       challenge: input.challengeId,
       teams: input.teamIds,
       questionCount: questionSet.questions.length,
       pointsPerQuestion: questionSet.pointsPerQuestion,
     })
+    return input.gameId === 'word-assembly' ? enableRunMatching(run)
+      : questionSet.secondsPerQuestion ? { ...run, secondsPerTurn: questionSet.secondsPerQuestion,
+        turnDeadline: Date.now() + questionSet.secondsPerQuestion * 1000 } : run
   }
 
   static questionsFor(gameId: ChallengeGameId): ChallengeQuestion[] {
@@ -67,13 +75,43 @@ export class ChallengeRunController {
     return questions[run.questionIndex] ?? questions[0]
   }
 
-  /** Opens the next question after a correct answer, timeout, or exhausted attempts. */
+  /** Opens the next question after a correct answer or exhausted attempts. */
   static nextQuestion(run: ChallengeRun): ChallengeRun {
     return beginNextQuestion(run)
   }
 
   static complete(run: ChallengeRun): boolean {
     return isRunComplete(run)
+  }
+
+  static chooseAnswerTeam(run: ChallengeRun, teamId: string): ChallengeRun {
+    return chooseMatchingAnswerTeam(run, teamId)
+  }
+
+  static async finishMatchingTurn(run: ChallengeRun, timedOut = false): Promise<ChallengeRun> {
+    const updated = advanceMatchingTurn(run, timedOut)
+    await ChallengeRunController.recordChangedScores(run, updated)
+    return updated
+  }
+
+  static startMatchingOnly(challengeId: string, teamIds: string[]): ChallengeRun {
+    return { ...enableRunMatching(startChallengeRun({ challenge: challengeId, teams: teamIds, questionCount: 10, pointsPerQuestion: 0 })), matchingOnly: true, manualTeamSelection: true, turnDeadline: undefined }
+  }
+
+  static async flipMatchingOnly(run: ChallengeRun, cardId: string): Promise<ChallengeRun> {
+    return flipRunCard(run, cardId)
+  }
+
+  static finishMatchingTransition(run: ChallengeRun): ChallengeRun {
+    return advanceMatchingTransition(run)
+  }
+
+  private static async recordChangedScores(previous: ChallengeRun, next: ChallengeRun): Promise<void> {
+    for (const entry of next.runs) {
+      if (entry.score !== runFor(previous, entry.team)?.score) {
+        await ChallengeRunController.recordScore(next.challenge, entry.team, entry.score)
+      }
+    }
   }
 
   /**
@@ -89,7 +127,7 @@ export class ChallengeRunController {
   }): Promise<{ run: ChallengeRun; result: TeamAnswerResult }> {
     const team = await ChallengeRunController.teamName(input.teamId)
     const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
-    const graded = gradeQuestion(question, input.answer)
+    const graded = gradeQuestion(question, input.timedOut ? '' : input.answer)
     const applied = applyAnswer(input.run, input.teamId, {
       points: graded.correct ? 10 : -10,
       correct: graded.correct,
@@ -122,6 +160,12 @@ export class ChallengeRunController {
         input.teamId,
         applied.team.score
       )
+      // A given question can also change the giver's score.
+      for (const entry of applied.run.runs) {
+        if (entry.team !== input.teamId && entry.score !== runFor(input.run, entry.team)?.score) {
+          await ChallengeRunController.recordScore(input.run.challenge, entry.team, entry.score)
+        }
+      }
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause)
     }
@@ -156,7 +200,7 @@ export class ChallengeRunController {
   }
 
   /**
-   * Creates the entry on the first challenge point and corrects it afterwards, so a team
+     * Stores the raw game score and corrects it afterwards, so a team
    * that follows the challenge always has a row on the scoreboard.
    */
   static async recordScore(challengeId: string, teamId: string, challengePoint: number): Promise<number> {
@@ -168,17 +212,18 @@ export class ChallengeRunController {
       const created = await ChallengePointController.create({
         challenge: challengeId,
         team: teamId,
-        challenge_point: clamped,
+        score: clamped,
       })
-      return created.challenge_point
+      return created.score
     }
-    if (entry.challenge_point === clamped) return entry.challenge_point
-    const updated = await ChallengePointController.update(entry.id, { challenge_point: clamped })
-    return updated?.challenge_point ?? entry.challenge_point
+    if (entry.score === clamped) return entry.score
+    const updated = await ChallengePointController.update(entry.id, { score: clamped })
+    return updated?.score ?? entry.score
   }
 
   /** Puts the run on the scoreboard for every team, including those still on zero. */
   static async syncAll(run: ChallengeRun): Promise<void> {
+    if (run.matchingOnly) return
     const challenge = await ChallengeController.getById(run.challenge)
     if (!challenge) throw new Error('Related challenge was not found')
     if (run.runs.length > MAX_ENTRIES_PER_CHALLENGE) {

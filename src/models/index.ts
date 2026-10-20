@@ -14,6 +14,16 @@ export class Challenge extends Model {
   declare readonly updatedAt: Date
 }
 
+/** A persisted blind reward. Selection and the inventory grant commit together. */
+export class BlindReward extends Model {
+  declare id: string
+  declare challenge: string
+  declare team: string
+  declare options: string
+  declare selected: string | null
+  declare reward_id: string | null
+}
+
 export class Team extends Model {
   declare id: string
   declare name: string
@@ -29,6 +39,7 @@ export class ChallengePoint extends Model {
   declare team: string
   declare rank: number
   declare challenge_point: number
+  declare score: number
   declare guard_power: number
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -87,11 +98,33 @@ export class GameQuestion extends Model {
   declare readonly updatedAt: Date
 }
 
+export class GPTransaction extends Model {
+  declare id: string
+  declare team: string | null
+  declare team_name: string
+  declare challenge: string | null
+  declare challenge_name: string
+  declare source_key: string
+  declare category: 'opening' | 'reward' | 'attack' | 'card'
+  declare gp_before: number
+  declare delta: number
+  declare gp_after: number
+  declare description: string
+  declare readonly createdAt: Date
+}
+
 let modelsDefined = false
 
 export function defineModels(sequelize: Sequelize): void {
   if (modelsDefined) return
-
+  BlindReward.init({
+    id: {type:DataTypes.STRING,primaryKey:true},
+    challenge: {type:DataTypes.STRING,allowNull:false},
+    team: {type:DataTypes.STRING,allowNull:false},
+    options: {type:DataTypes.TEXT,allowNull:false},
+    selected: {type:DataTypes.STRING,allowNull:true},
+    reward_id: {type:DataTypes.STRING,allowNull:true},
+  }, {sequelize,modelName:'blind_reward',tableName:'blind_reward',timestamps:true})
   Challenge.init(
     {
       id: {
@@ -165,6 +198,7 @@ export function defineModels(sequelize: Sequelize): void {
       },
       rank: { type: DataTypes.INTEGER({ length: 2 }), allowNull: false },
       challenge_point: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
+        score: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
       guard_power: { type: DataTypes.INTEGER({ length: 3 }), allowNull: false },
     },
     {
@@ -339,6 +373,20 @@ export function defineModels(sequelize: Sequelize): void {
     }
   )
 
+  GPTransaction.init({
+    id: { type: DataTypes.UUID, primaryKey: true, defaultValue: () => uuidv4() },
+    team: { type: DataTypes.UUID, allowNull:true, references:{model:Team,key:'id'}, onDelete:'SET NULL' },
+    team_name: { type: DataTypes.STRING(100), allowNull:false },
+    challenge: { type: DataTypes.UUID, allowNull:true, references:{model:Challenge,key:'id'}, onDelete:'SET NULL' },
+    challenge_name: { type: DataTypes.STRING(100), allowNull:false, defaultValue:'' },
+    source_key: { type: DataTypes.STRING(250), allowNull:false, unique:true },
+    category: { type: DataTypes.ENUM('opening','reward','attack','card'), allowNull:false },
+    gp_before: { type: DataTypes.INTEGER, allowNull:false },
+    delta: { type: DataTypes.INTEGER, allowNull:false },
+    gp_after: { type: DataTypes.INTEGER, allowNull:false },
+    description: { type: DataTypes.TEXT, allowNull:false },
+  }, {sequelize, modelName:'gp_transaction', tableName:'gp_transaction', timestamps:true})
+
   Challenge.hasMany(ChallengePoint, { foreignKey: 'challenge', as: 'scores' })
   ChallengePoint.belongsTo(Challenge, { foreignKey: 'challenge', as: 'challengeRef' })
   Team.hasMany(ChallengePoint, { foreignKey: 'team', as: 'challengeScores' })
@@ -359,4 +407,4 @@ export function defineModels(sequelize: Sequelize): void {
   modelsDefined = true
 }
 
-export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard, GameQuestion }
+export const models = { Challenge, Team, ChallengePoint, Scoreboard, Card, TeamCard, GameQuestion, GPTransaction }

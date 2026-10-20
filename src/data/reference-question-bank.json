@@ -6,7 +6,10 @@
       "answer": "Rekening",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 3,
+      "answerSlide": 4
     },
     {
       "number": 2,
@@ -14,7 +17,10 @@
       "answer": "SLIK",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 5,
+      "answerSlide": 6
     },
     {
       "number": 3,
@@ -22,7 +28,10 @@
       "answer": "Selisih Kas",
       "options": [],
       "kind": "decode",
-      "hint": "2 Kata"
+      "hint": "2 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 7,
+      "answerSlide": 8
     },
     {
       "number": 4,
@@ -30,7 +39,10 @@
       "answer": "Amanah",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 9,
+      "answerSlide": 10
     },
     {
       "number": 5,
@@ -38,7 +50,10 @@
       "answer": "Regulasi",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 11,
+      "answerSlide": 12
     },
     {
       "number": 6,
@@ -46,7 +61,10 @@
       "answer": "Tunggakan",
       "options": [],
       "kind": "decode",
-      "hint": "1Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 13,
+      "answerSlide": 14
     },
     {
       "number": 7,
@@ -54,7 +72,10 @@
       "answer": "Siber",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 15,
+      "answerSlide": 16
     },
     {
       "number": 8,
@@ -62,7 +83,10 @@
       "answer": "Password",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 17,
+      "answerSlide": 18
     },
     {
       "number": 9,
@@ -70,7 +94,10 @@
       "answer": "Data Pribadi",
       "options": [],
       "kind": "decode",
-      "hint": "2 Kata"
+      "hint": "2 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 19,
+      "answerSlide": 20
     },
     {
       "number": 10,
@@ -78,7 +105,10 @@
       "answer": "Syariah",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 21,
+      "answerSlide": 22
     },
     {
       "number": 11,
@@ -86,26 +116,33 @@
       "answer": "Lapor",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata"
+      "hint": "1 Kata",
+      "sourceDeck": "Image_Decode.pptx",
+      "sourceSlide": 23,
+      "answerSlide": 24
     }
   ],
   "matchCard": [
     {
       "number": 1,
-      "prompt": "HP kamu tiba-tiba menampilkan notifikasi “Approve sign-in” padahal kamu sedang tidak login ke akun kerja . Apa tindakan yang paling tepat ?",
+      "prompt": "HP kamu tiba-tiba menampilkan notifikasi “Approve sign-in” padahal kamu sedang tidak login ke akun kerja. Apa tindakan yang paling tepat?",
       "answer": "Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan",
       "options": [
+        "Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan",
         "Tekan Approve agar notifikasi berhenti muncul",
         "Abaikan karena nanti hilang sendiri",
-        "Tekan Approve lalu ganti password besok",
-        "Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan"
+        "Tekan Approve lalu ganti password besok"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 3,
+      "answerSlide": 4,
+      "answerLetter": "A"
     },
     {
       "number": 2,
-      "prompt": "Kamu menerima email atas nama “IT Support” yang meminta klik tautan untuk verifikasi akun sekarang juga. Apa yang perlu dicek terlebih dahulu ?",
+      "prompt": "Kamu menerima email atas nama “IT Support” yang meminta klik tautan untuk verifikasi akun sekarang juga. Apa yang perlu dicek terlebih dahulu?",
       "answer": "Alamat pengirim dan tujuan tautan sebelum bertindak",
       "options": [
         "Warna dan logo pada email",
@@ -114,893 +151,676 @@
         "Alamat pengirim dan tujuan tautan sebelum bertindak"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 5,
+      "answerSlide": 6,
+      "answerLetter": "D"
     },
     {
       "number": 3,
-      "prompt": "Di Teams, akun yang mengaku CEO dengan kamera mati meminta kamu segera memproses pembayaran dan merahasiakannya dari tim. Apa langkah pertama yang paling tepat ?",
+      "prompt": "Di Teams, akun yang mengaku CEO dengan kamera mati meminta kamu segera memproses pembayaran dan merahasiakannya dari tim. Apa langkah pertama yang paling tepat?",
       "answer": "Verifikasi permintaan melalui kanal resmi lain sebelum melakukan apa pun",
       "options": [
+        "Langsung memproses karena permintaan dari pimpinan",
         "Verifikasi permintaan melalui kanal resmi lain sebelum melakukan apa pun",
         "Membalas chat dan meminta foto sebagai bukti",
-        "Meminta rekan lain yang memprosesnya",
-        "Langsung memproses karena permintaan dari pimpinan"
+        "Meminta rekan lain yang memprosesnya"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 7,
+      "answerSlide": 8,
+      "answerLetter": "B"
     },
     {
       "number": 4,
-      "prompt": "Rekan dari tim lain meminta pengkinian data seorang nasabah lewat chat dan berkata “ nasabahnya langganan lama”, tanpa melampirkan formulir dan KTP. Apa yang sebaiknya dilakukan ?",
+      "prompt": "Rekan dari tim lain meminta pengkinian data seorang nasabah lewat chat dan berkata “nasabahnya langganan lama”, tanpa melampirkan formulir dan KTP. Apa yang sebaiknya dilakukan?",
       "answer": "Meminta formulir dan KTP untuk diverifikasi terlebih dahulu",
       "options": [
+        "Meminta formulir dan KTP untuk diverifikasi terlebih dahulu",
         "Memproses langsung karena nasabah sudah dikenal",
-        "Memproses dulu , dokumen menyusul",
-        "Meminta nasabah mengirim foto KTP lewat chat pribadi",
-        "Meminta formulir dan KTP untuk diverifikasi terlebih dahulu"
+        "Memproses dulu, dokumen menyusul",
+        "Meminta nasabah mengirim foto KTP lewat chat pribadi"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 9,
+      "answerSlide": 10,
+      "answerLetter": "A"
     },
     {
       "number": 5,
-      "prompt": "Nasabah ingin memakai kembali rekening yang lama tidak bertransaksi (dormant). Apa yang perlu dipastikan lebih dulu sebelum rekening kembali berstatus aktif ?",
+      "prompt": "Nasabah ingin memakai kembali rekening yang lama tidak bertransaksi (dormant). Apa yang perlu dipastikan lebih dulu sebelum rekening kembali berstatus aktif?",
       "answer": "Identitas dan data nasabah sudah diverifikasi dan terkini",
       "options": [
+        "Saldo nasabah sudah mencapai nominal tertentu",
         "Nasabah sudah memiliki kartu baru",
         "Nasabah sudah mengisi survei kepuasan",
-        "Identitas dan data nasabah sudah diverifikasi dan terkini",
-        "Saldo nasabah sudah mencapai nominal tertentu"
+        "Identitas dan data nasabah sudah diverifikasi dan terkini"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 11,
+      "answerSlide": 12,
+      "answerLetter": "D"
     },
     {
       "number": 6,
-      "prompt": "Kesalahan input data nasabah baru diketahui setelah data tersebut masuk ke laporan SLIK yang disampaikan ke OJK. Apa tindakan yang paling tepat ?",
+      "prompt": "Kesalahan input data nasabah baru diketahui setelah data tersebut masuk ke laporan SLIK yang disampaikan ke OJK. Apa tindakan yang paling tepat?",
       "answer": "Koreksi data dan perbarui pelaporan sesuai ketentuan",
       "options": [
+        "Membiarkan karena laporan sudah terkirim",
         "Koreksi data dan perbarui pelaporan sesuai ketentuan",
         "Menghapus data nasabah dari sistem",
-        "Menunggu sampai nasabah mengajukan komplain",
-        "Membiarkan karena laporan sudah terkirim"
+        "Menunggu sampai nasabah mengajukan komplain"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 13,
+      "answerSlide": 14,
+      "answerLetter": "B"
     },
     {
       "number": 7,
-      "prompt": "Tim menemukan kesalahan proses yang belum menimbulkan kerugian , tetapi berpotensi terulang . Kapan kejadian ini sebaiknya dicatat di ORMS?",
-      "answer": "Segera setelah diketahui , meskipun dampaknya belum terlihat",
+      "prompt": "Tim menemukan kesalahan proses yang belum menimbulkan kerugian, tetapi berpotensi terulang. Kapan kejadian ini sebaiknya dicatat di ORMS?",
+      "answer": "Segera setelah diketahui, meskipun dampaknya belum terlihat",
       "options": [
+        "Setelah kerugian benar-benar terjadi",
         "Menunggu akhir bulan agar dicatat sekaligus",
         "Membalas chat dan meminta foto sebagai bukti",
-        "Segera setelah diketahui , meskipun dampaknya belum terlihat",
-        "Setelah kerugian benar-benar terjadi"
+        "Segera setelah diketahui, meskipun dampaknya belum terlihat"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 15,
+      "answerSlide": 16,
+      "answerLetter": "D"
     },
     {
       "number": 8,
-      "prompt": "Hasil pengecekan menemukan uang transaksi harian dibiarkan bercampur tanpa dipisah per nominal, dan transaksinya belum dicatat di tablet operasional . Risiko apa yang paling mungkin muncul saat closing?",
+      "prompt": "Hasil pengecekan menemukan uang transaksi harian dibiarkan bercampur tanpa dipisah per nominal, dan transaksinya belum dicatat di tablet operasional. Risiko apa yang paling mungkin muncul saat closing?",
       "answer": "Selisih kas yang sulit ditelusuri penyebabnya",
       "options": [
+        "Serangan phishing pada akun kerja",
         "Selisih kas yang sulit ditelusuri penyebabnya",
         "Kebocoran data nasabah",
-        "Keterlambatan pelaporan ke OJK",
-        "Serangan phishing pada akun kerja"
+        "Keterlambatan pelaporan ke OJK"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 17,
+      "answerSlide": 18,
+      "answerLetter": "B"
     },
     {
       "number": 9,
-      "prompt": "Seorang staf salah menginput satu angka pada laporan internal sehingga data tidak sesuai dengan sumbernya . Kategori risiko yang paling tepat ?",
+      "prompt": "Seorang staf salah menginput satu angka pada laporan internal sehingga data tidak sesuai dengan sumbernya. Kategori risiko yang paling tepat?",
       "answer": "Risiko Operasional",
       "options": [
+        "Risiko Operasional",
         "Risiko Likuiditas",
         "Risiko Pasar",
-        "Risiko Reputasi",
-        "Risiko Operasional"
+        "Risiko Reputasi"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 19,
+      "answerSlide": 20,
+      "answerLetter": "A"
     },
     {
       "number": 10,
-      "prompt": "Vendor mengirim hampers ke ruang kerja tim setelah kontrak disetujui dan berkata , “ ini bukan sogokan , hanya apresiasi .” Sikap yang paling tepat ?",
+      "prompt": "Vendor mengirim hampers ke ruang kerja tim setelah kontrak disetujui dan berkata, “ini bukan sogokan, hanya apresiasi.” Sikap yang paling tepat?",
       "answer": "Menolak atau mengembalikan hampers dan melaporkannya sesuai ketentuan",
       "options": [
+        "Menerima karena kontrak sudah selesai",
         "Menolak atau mengembalikan hampers dan melaporkannya sesuai ketentuan",
         "Menerima lalu membagikannya ke seluruh tim",
-        "Menyimpannya dulu sampai akhir tahun",
-        "Menerima karena kontrak sudah selesai"
+        "Menyimpannya dulu sampai akhir tahun"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 21,
+      "answerSlide": 22,
+      "answerLetter": "B"
     },
     {
       "number": 11,
-      "prompt": "Dua invoice dengan tanggal dan keperluan yang sama memiliki nominal berbeda : Rp5.000.000 dan Rp8.000.000. Perbedaan itu baru disadari saat proses pembayaran . Apa tindakan yang paling tepat ?",
+      "prompt": "Dua invoice dengan tanggal dan keperluan yang sama memiliki nominal berbeda: Rp5.000.000 dan Rp8.000.000. Perbedaan itu baru disadari saat proses pembayaran. Apa tindakan yang paling tepat?",
       "answer": "Menahan proses, memverifikasi ke vendor, dan melaporkan jika ada indikasi manipulasi",
       "options": [
+        "Membayar sesuai nominal yang lebih besar",
         "Memilih angka yang terlihat paling masuk akal",
         "Menahan proses, memverifikasi ke vendor, dan melaporkan jika ada indikasi manipulasi",
-        "Mengubah salah satu nominal agar sama",
-        "Membayar sesuai nominal yang lebih besar"
+        "Mengubah salah satu nominal agar sama"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 23,
+      "answerSlide": 24,
+      "answerLetter": "C"
     },
     {
       "number": 12,
-      "prompt": "Seorang pegawai melihat indikasi kecurangan dalam proses pengadaan dan ingin melaporkannya secara resmi . Media pelaporan fraud yang tepat adalah ?",
+      "prompt": "Seorang pegawai melihat indikasi kecurangan dalam proses pengadaan dan ingin melaporkannya secara resmi. Media pelaporan fraud yang tepat adalah?",
       "answer": "JagaOnline",
       "options": [
+        "SiapBantu",
         "ORMS",
         "Email pribadi atasan",
-        "JagaOnline",
-        "SiapBantu"
+        "JagaOnline"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 25,
+      "answerSlide": 26,
+      "answerLetter": "D"
     },
     {
       "number": 13,
-      "prompt": "Mengapa karyawan wajib mengenakan ID Card selama berada di area kerja ?",
-      "answer": "Agar identitas dan hak akses dapat dikenali , sehingga orang yang tidak berwenang mudah terdeteksi",
+      "prompt": "Mengapa karyawan wajib mengenakan ID Card selama berada di area kerja?",
+      "answer": "Agar identitas dan hak akses dapat dikenali, sehingga orang yang tidak berwenang mudah terdeteksi",
       "options": [
+        "Agar identitas dan hak akses dapat dikenali, sehingga orang yang tidak berwenang mudah terdeteksi",
         "Agar tampilan karyawan terlihat seragam",
         "Agar absensi tercatat otomatis",
-        "Agar mendapat fasilitas kantin",
-        "Agar identitas dan hak akses dapat dikenali , sehingga orang yang tidak berwenang mudah terdeteksi"
+        "Agar mendapat fasilitas kantin"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 27,
+      "answerSlide": 28,
+      "answerLetter": "A"
     },
     {
       "number": 14,
-      "prompt": "Laptop kerja menampilkan pesan aneh setelah kamu mengklik tautan dari email tidak dikenal . Media resmi untuk melaporkan risiko cyber adalah ?",
+      "prompt": "Laptop kerja menampilkan pesan aneh setelah kamu mengklik tautan dari email tidak dikenal. Media resmi untuk melaporkan risiko cyber adalah?",
       "answer": "SiapBantu",
       "options": [
+        "SiapBantu",
         "JagaOnline",
         "Grup chat tim",
-        "Email pribadi rekan",
-        "SiapBantu"
+        "Email pribadi rekan"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 29,
+      "answerSlide": 30,
+      "answerLetter": "A"
     },
     {
       "number": 15,
-      "prompt": "Tim masih memakai SOP lama karena menganggap prosesnya sama dengan SOP terbaru . Mengapa hal ini tidak tepat ?",
-      "answer": "SOP yang sudah tidak berlaku bukan acuan resmi , sehingga berisiko tidak patuh",
+      "prompt": "Tim masih memakai SOP lama karena menganggap prosesnya sama dengan SOP terbaru. Mengapa hal ini tidak tepat?",
+      "answer": "SOP yang sudah tidak berlaku bukan acuan resmi, sehingga berisiko tidak patuh",
       "options": [
-        "SOP baru hanya berlaku untuk tim tertentu",
-        "SOP yang sudah tidak berlaku bukan acuan resmi , sehingga berisiko tidak patuh",
         "SOP lama biasanya lebih rumit",
-        "SOP lama boleh dipakai sampai akhir tahun"
+        "SOP lama boleh dipakai sampai akhir tahun",
+        "SOP yang sudah tidak berlaku bukan acuan resmi, sehingga berisiko tidak patuh",
+        "SOP baru hanya berlaku untuk tim tertentu"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 31,
+      "answerSlide": 32,
+      "answerLetter": "C"
     },
     {
       "number": 16,
-      "prompt": "Seorang pegawai sengaja menyetujui pembayaran ke vendor fiktif demi keuntungan pribadi . Tindakan ini termasuk ?",
+      "prompt": "Seorang pegawai sengaja menyetujui pembayaran ke vendor fiktif demi keuntungan pribadi. Tindakan ini termasuk?",
       "answer": "Fraud",
       "options": [
+        "Kelalaian administrasi",
         "Kesalahan sistem",
         "Fraud",
-        "Risiko pasar",
-        "Kelalaian administrasi"
+        "Risiko pasar"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 33,
+      "answerSlide": 34,
+      "answerLetter": "C"
     },
     {
       "number": 17,
-      "prompt": "Tim membagi satu pembelian besar menjadi beberapa pembelian kecil agar tidak perlu persetujuan level yang lebih tinggi . Pola ini menunjukkan ?",
-      "answer": "Upaya menghindari kontrol dan otorisasi , yang menjadi indikasi fraud",
+      "prompt": "Tim membagi satu pembelian besar menjadi beberapa pembelian kecil agar tidak perlu persetujuan level yang lebih tinggi. Pola ini menunjukkan?",
+      "answer": "Upaya menghindari kontrol dan otorisasi, yang menjadi indikasi fraud",
       "options": [
+        "Efisiensi proses pembelian",
         "Strategi mendapat harga lebih murah",
-        "Upaya menghindari kontrol dan otorisasi , yang menjadi indikasi fraud",
-        "Penyesuaian anggaran yang wajar",
-        "Efisiensi proses pembelian"
+        "Upaya menghindari kontrol dan otorisasi, yang menjadi indikasi fraud",
+        "Penyesuaian anggaran yang wajar"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 35,
+      "answerSlide": 36,
+      "answerLetter": "C"
     },
     {
       "number": 18,
-      "prompt": "Tim mempercepat pengesahan dokumen karena deadline sudah dekat dan tetap meneruskannya meski approval pihak berwenang belum lengkap . Risiko utamanya apa ?",
+      "prompt": "Tim mempercepat pengesahan dokumen karena deadline sudah dekat dan tetap meneruskannya meski approval pihak berwenang belum lengkap. Risiko utamanya apa?",
       "answer": "Dokumen diproses tanpa otorisasi yang sah dan berpotensi menimbulkan keputusan yang tidak valid",
       "options": [
+        "Dokumen menjadi lebih rapi",
         "Rapat berikutnya berlangsung lebih lama",
         "Biaya cetak dokumen meningkat",
-        "Dokumen diproses tanpa otorisasi yang sah dan berpotensi menimbulkan keputusan yang tidak valid",
-        "Dokumen menjadi lebih rapi"
+        "Dokumen diproses tanpa otorisasi yang sah dan berpotensi menimbulkan keputusan yang tidak valid"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 37,
+      "answerSlide": 38,
+      "answerLetter": "D"
     },
     {
       "number": 19,
-      "prompt": "Planet yang jaraknya paling dekat dengan Matahari adalah ?",
+      "prompt": "Planet yang jaraknya paling dekat dengan Matahari adalah?",
       "answer": "Merkurius",
       "options": [
+        "Venus",
         "Merkurius",
         "Mars",
-        "Bumi",
-        "Venus"
+        "Bumi"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 39,
+      "answerSlide": 40,
+      "answerLetter": "B"
     },
     {
       "number": 20,
-      "prompt": "Teka- teki : apa yang makin banyak diambil , justru makin besar ?",
+      "prompt": "Teka-teki: apa yang makin banyak diambil, justru makin besar?",
       "answer": "Lubang",
       "options": [
+        "Utang",
         "Bayangan",
         "Mars",
-        "Lubang",
-        "Utang"
+        "Lubang"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 41,
+      "answerSlide": 42,
+      "answerLetter": "D"
     },
     {
       "number": 21,
-      "prompt": "Nasabah prioritas memberi amplop kepada karyawan setelah proses layanan selesai dan berkata , “ ini hanya sekadar tanda terima kasih .” Respon yang paling tepat adalah ?",
+      "prompt": "Nasabah prioritas memberi amplop kepada karyawan setelah proses layanan selesai dan berkata, “ini hanya sekadar tanda terima kasih.” Respon yang paling tepat adalah?",
       "answer": "Tolak secara sopan karena merupakan gratifikasi",
       "options": [
+        "Terima karena proses layanan sudah selesai",
         "Terima jika nominalnya tidak material",
         "Tolak secara sopan karena merupakan gratifikasi",
-        "Terima lalu bagikan kepada tim",
-        "Terima karena proses layanan sudah selesai"
+        "Terima lalu bagikan kepada tim"
       ],
       "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 22,
-      "prompt": "Jika kamu melihat seorang tamu masuk ke area backoffice tanpa mengisi buku tamu / menggunakan id card resmi . Risiko apa yang paling mungkin terjadi ?",
-      "answer": "Risiko Cyber - Keamanan Fisik",
-      "options": [
-        "Risiko Operasional",
-        "Risiko Kantor",
-        "Risiko Likuiditas",
-        "Risiko Cyber - Keamanan Fisik"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 23,
-      "prompt": "Ada selisih kas namun dibiarkan karena dianggap nominalnya kecil dan tidak material, Siapa yang menjadi sumber risikonya ?",
-      "answer": "Petugas yang menangani kas dan tidak menindaklanjuti adanya selisih",
-      "options": [
-        "Petugas yang menangani kas dan tidak menindaklanjuti adanya selisih",
-        "Sistem antrean cabang",
-        "Vendor penyedia perangkat",
-        "Nasabah yang melakukan transaksi terakhir"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 24,
-      "prompt": "Saat jam istirahat , dokumen nasabah masih terbuka dan terlihat di meja layanan dan kamu sebagai pegawai bank melihat hal tersebut . Apa tindakan pertama yang harus dilakukan ?",
-      "answer": "Mengamankan dokumen",
-      "options": [
-        "Membiarkannya",
-        "Mengamankan dokumen",
-        "Memotretnya sebagai bukti",
-        "Membalik dokumen agar tulisan tidak terlihat"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 25,
-      "prompt": "Proses yang membantu Bank mengenali identitas , pekerjaan , dan profil nasabah disebut ?",
-      "answer": "Customer Due Diligence (CDD/KYC)",
-      "options": [
-        "Customer Due Diligence (CDD/KYC)",
-        "Incident Report",
-        "Rekonsiliasi",
-        "Business Continuity Plan"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 26,
-      "prompt": "Notifikasi login mencurigakan dari domain yang tidak terverifikasi , biasanya disebut apakah kejadian ini ?",
-      "answer": "Phishing",
-      "options": [
-        "Phishing",
-        "Rekonsiliasi",
-        "Gratifikasi",
-        "Tailgating"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 27,
-      "prompt": "Seorang karyawan menerima hadiah dari pihak yang sedang mengikuti proses pemilihan vendor. Risiko yang paling tepat adalah ?",
-      "answer": "Fraud / Conflict of Interest",
-      "options": [
-        "Risiko teknologi",
-        "Fraud / Conflict of Interest",
-        "Risiko likuiditas",
-        "Risiko pembiayaan"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 28,
-      "prompt": "Kamu ingin melakukan backup file kerja yang berisi data rahasia , dimana seharusnya disimpan ?",
-      "answer": "Media resmi perusahaan",
-      "options": [
-        "Chat pribadi",
-        "Media resmi perusahaan",
-        "Flashdisk pribadi",
-        "Cloud pribadi"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 29,
-      "prompt": "Dokumen yang berisi ringkasan informasi produk , manfaat , biaya , risiko , serta hak dan kewajiban nasabah adalah ?",
-      "answer": "RIPLAY",
-      "options": [
-        "Laporan SLIK",
-        "RIPLAY",
-        "ORMS",
-        "Formulir CDD"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 30,
-      "prompt": "Ibu kota dari Australia adalah ?",
-      "answer": "Canberra",
-      "options": [
-        "Canberra",
-        "Melbourne",
-        "Menara SMBC",
-        "Sydney"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 31,
-      "prompt": "Dokumen kerja yang sudah tidak diperlukan dipilah dan dimusnahkan sesuai ketentuan . Tindakan ini termasuk prinsip 5R yang mana?",
-      "answer": "Ringkas",
-      "options": [
-        "Rapi",
-        "Rawat",
-        "Rajin",
-        "Ringkas"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 32,
-      "prompt": "Video, gambar , atau suara yang dimanipulasi menggunakan AI sehingga menyerupai orang asli disebut ?",
-      "answer": "Deepfake",
-      "options": [
-        "Deepfake",
-        "Smishing",
-        "Ransomware",
-        "Malware"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 33,
-      "prompt": "Media yang digunakan untuk mencatat atau melaporkan insiden risiko operasional disebut ?",
-      "answer": "ORMS",
-      "options": [
-        "Jaga Online",
-        "ORMS",
-        "CDD",
-        "SiapBantu"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 34,
-      "prompt": "CO akan berkendara saat hujan menuju PRS. Persiapan yang paling tepat adalah ?",
-      "answer": "Lihat cuaca , cek kendaraan , dan siapkan perlengkapan perjalanan seperti jas hujan",
-      "options": [
-        "Lihat cuaca , cek kendaraan , dan siapkan perlengkapan perjalanan seperti jas hujan",
-        "Cukup membawa payung",
-        "Menunda pemeriksaan kendaraan sampai perjalanan selesai",
-        "Langsung berangkat karena jaraknya dekat"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 35,
-      "prompt": "CO melihat keterlambatan pembayaran nasabah mulai berulang , Apa yang harus dilakukan ?",
-      "answer": "Lakukan tindak lanjut dan pemantauan sesuai ketentuan yang berlaku",
-      "options": [
-        "Abaikan karena nasabah sebelumnya lancar",
-        "Lakukan tindak lanjut dan pemantauan sesuai ketentuan yang berlaku",
-        "Ubah tanggal pembayaran agar terlihat tepat waktu",
-        "Tunggu sampai tunggakan menjadi besar"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 36,
-      "prompt": "Ancaman keamanan yang berasal dari orang di dalam organisasi yang memiliki akses resmi disebut ?",
-      "answer": "Insider Threat",
-      "options": [
-        "Insider Threat",
-        "Smishing",
-        "Data Recovery",
-        "External Threat"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 37,
-      "prompt": "Satu angka salah dimasukkan ke dalam laporan . Apa tindakan yang paling tepat sebelum laporan digunakan ?",
-      "answer": "Verifikasi sumber data dan koreksi angka yang salah",
-      "options": [
-        "Verifikasi sumber data dan koreksi angka yang salah",
-        "Sesuaikan angka lain agar total terlihat sama",
-        "Hapus seluruh laporan",
-        "Biarkan jika perbedaannya kecil"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 38,
-      "prompt": "Seorang CO baru akan mulai bertugas di Wisma. Apa yang sebaiknya dilakukan terlebih dahulu agar memahami tugas dan ketentuan yang harus dijalankan ?",
-      "answer": "Mempelajari SOP/ Peraturan Internal yang berlaku dan mengikuti briefing atau arahan dari atasan",
-      "options": [
-        "Mengikuti cara kerja CO yang paling senior tanpa melihat ketentuan",
-        "Langsung turun bertugas agar belajar dari pengalaman",
-        "Menunggu sampai menemukan kendala baru bertanya",
-        "Mempelajari SOP/ Peraturan Internal yang berlaku dan mengikuti briefing atau arahan dari atasan"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 39,
-      "prompt": "Uang setoran nasabah dipakai sementara untuk kebutuhan pribadi . Risiko yang paling tepat adalah ?",
-      "answer": "Fraud / penyalahgunaan dana nasabah",
-      "options": [
-        "Fraud / penyalahgunaan dana nasabah",
-        "Risiko Pasar",
-        "Risiko Likuiditas",
-        "Risiko Keamanan Siber"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 40,
-      "prompt": "CO mengetahui nominal transaksi yang diinput salah, lalu sengaja mengubah angka lain agar laporan terlihat sesuai . Tindakan tersebut termasuk ?",
-      "answer": "Manipulasi data / fraud",
-      "options": [
-        "Pemutakhiran data",
-        "Manipulasi data / fraud",
-        "Verifikasi",
-        "Rekonsiliasi"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 41,
-      "prompt": "CO akan keluar sebentar dari ruang penyimpanan uang kas wisma . Apa tindakan yang paling tepat ?",
-      "answer": "Mengunci brankas dan ruangan , walaupun hanya keluar sebentar",
-      "options": [
-        "Menitipkan kunci kepada nasabah yang sedang menunggu",
-        "Menutup pintu saja tanpa dikunci",
-        "Mengunci brankas dan ruangan , walaupun hanya keluar sebentar",
-        "Membiarkan terbuka karena hanya sebentar"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 42,
-      "prompt": "Saat menerima setoran , CO mendapati satu lembar uang yang dicurigai palsu . Apa tindakan pertama yang paling tepat ?",
-      "answer": "Memisahkannya dan segera melaporkan ke PUK",
-      "options": [
-        "Mencampurnya dengan uang lain agar tidak terlihat",
-        "Mengembalikannya ke nasabah tanpa pencatatan",
-        "Menyimpannya di jok motor",
-        "Memisahkannya dan segera melaporkan ke PUK"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 43,
-      "prompt": "Sebelum berangkat ke PRS, CO selalu memakai helm dan mengecek rem motor. Tindakan ini termasuk upaya apa dalam pengelolaan risiko ?",
-      "answer": "Mitigasi , yaitu mengurangi kemungkinan atau dampak risiko",
-      "options": [
-        "Mitigasi , yaitu mengurangi kemungkinan atau dampak risiko",
-        "Memindahkan risiko ke pihak lain",
-        "Mengabaikan risiko karena rute dekat",
-        "Menghindari seluruh risiko perjalanan"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 44,
-      "prompt": "Seorang nasabah menyampaikan keluhan kepada CO karena saldo tabungannya terlihat tidak sesuai . Apa tindakan yang paling tepat ?",
-      "answer": "Menindaklanjuti sesuai prosedur dan mencatatnya sebagai keluhan nasabah",
-      "options": [
-        "Menyarankan nasabah menyelesaikannya sendiri",
-        "Menindaklanjuti sesuai prosedur dan mencatatnya sebagai keluhan nasabah",
-        "Mengabaikan jika selisihnya kecil",
-        "Menjanjikan koreksi tanpa pengecekan terlebih dahulu"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 45,
-      "prompt": "Saat menjelaskan produk kepada kelompok nasabah , CO perlu memastikan produk dan prosesnya tetap sesuai dengan dasar apa ?",
-      "answer": "Prinsip syariah",
-      "options": [
-        "Kebiasaan setempat",
-        "Preferensi nasabah",
-        "Prinsip syariah",
-        "Target pencairan bulanan"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 46,
-      "prompt": "Beberapa CO belum memahami prosedur baru sehingga langkah kerja dilakukan dengan cara yang berbeda-beda . Kategori risiko yang paling tepat ?",
-      "answer": "Risiko Kepatuhan",
-      "options": [
-        "Risiko Likuiditas",
-        "Risiko Kepatuhan",
-        "Risiko Strategis",
-        "Risiko Pasar"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 47,
-      "prompt": "CO menyimpan nomor telepon dan data pribadi nasabah di HP pribadi supaya mudah dihubungi . Apa yang paling tepat ?",
-      "answer": "Menggunakan data nasabah hanya melalui perangkat dan sarana resmi",
-      "options": [
-        "Menggunakan data nasabah hanya melalui perangkat dan sarana resmi",
-        "Boleh , selama hanya dipakai untuk menghubungi nasabah",
-        "Boleh , kalau sudah memberi tahu sesama CO",
-        "Boleh , selama HP dikunci"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 48,
-      "prompt": "Seorang oknum di dalam organisasi sengaja berbuat curang demi keuntungan pribadi dan merugikan perusahaan . Tindakan ini disebut ?",
-      "answer": "Fraud",
-      "options": [
-        "Fraud",
-        "Kesalahan input",
-        "Risiko pasar",
-        "Kelalaian administrasi"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 49,
-      "prompt": "CO mencurigai adanya indikasi fraud pada pekerjaan rekannya , tetapi belum memiliki bukti lengkap . Apa yang sebaiknya dilakukan ?",
-      "answer": "Menyampaikan fakta atau indikasi melalui mekanisme pelaporan resmi tanpa perlu membuktikan sendiri",
-      "options": [
-        "Menyampaikan fakta atau indikasi melalui mekanisme pelaporan resmi tanpa perlu membuktikan sendiri",
-        "Menegur dan menuduh rekan tersebut secara langsung",
-        "Membahasnya di grup chat antar -CO",
-        "Menunggu bukti lengkap sebelum bicara kepada siapa pun"
-      ],
-      "kind": "choice",
-      "hint": ""
-    },
-    {
-      "number": 50,
-      "prompt": "Target pencairan CO bulan ini belum tercapai . Sikap yang paling sesuai dengan nilai integritas adalah ?",
-      "answer": "Melaporkan data sesuai kondisi sebenarnya meskipun hasilnya belum sesuai harapan",
-      "options": [
-        "Menambah angka kunjungan agar target terlihat tercapai",
-        "Menunda pelaporan sampai target tercapai",
-        "Meminta rekan melaporkan kunjungannya sebagai tambahan",
-        "Melaporkan data sesuai kondisi sebenarnya meskipun hasilnya belum sesuai harapan"
-      ],
-      "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Match-Card.pptx",
+      "sourceSlide": 43,
+      "answerSlide": 44,
+      "answerLetter": "C"
     }
   ],
   "jawsOfRisk": [
     {
       "number": 1,
-      "prompt": "HP kamu tiba-tiba menampilkan notifikasi “Approve sign-in” padahal kamu sedang tidak login ke akun kerja . Apa tindakan yang paling tepat ?",
-      "answer": "Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan",
+      "prompt": "Rekan mengunggah data nasabah ke platform AI gratis untuk membantu analisis. Risiko yang paling mungkin terjadi?",
+      "answer": "Informasi nasabah berada di luar kendali perusahaan",
       "options": [
-        "Tekan Approve agar notifikasi berhenti muncul",
-        "Abaikan karena nanti hilang sendiri",
-        "Tekan Approve lalu ganti password besok",
-        "Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan"
+        "Informasi nasabah berada di luar kendali perusahaan",
+        "Komputer menjadi lebih lambat",
+        "AI tidak dapat membaca data tersebut",
+        "Tidak ada risiko jika hasilnya akurat"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 3,
+      "answerSlide": 4,
+      "answerLetter": "A"
     },
     {
       "number": 2,
-      "prompt": "Kamu menerima email atas nama “IT Support” yang meminta klik tautan untuk verifikasi akun sekarang juga. Apa yang perlu dicek terlebih dahulu ?",
-      "answer": "Alamat pengirim dan tujuan tautan sebelum bertindak",
+      "prompt": "Tim menemukan kesalahan input data pada proses pembiayaan. Dampak yang paling umum terjadi?",
+      "answer": "Kesalahan analisis kelayakan nasabah",
       "options": [
-        "Warna dan logo pada email",
-        "Jumlah penerima email",
-        "Ukuran lampiran email",
-        "Alamat pengirim dan tujuan tautan sebelum bertindak"
+        "Proses menjadi lebih cepat",
+        "Kesalahan analisis kelayakan nasabah",
+        "Biaya operasional berkurang",
+        "Kepuasan nasabah meningkat"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 5,
+      "answerSlide": 6,
+      "answerLetter": "B"
     },
     {
       "number": 3,
-      "prompt": "Di Teams, akun yang mengaku CEO dengan kamera mati meminta kamu segera memproses pembayaran dan merahasiakannya dari tim. Apa langkah pertama yang paling tepat ?",
-      "answer": "Verifikasi permintaan melalui kanal resmi lain sebelum melakukan apa pun",
+      "prompt": "Rekan meminta tanggal pada dokumen dimundurkan agar terlihat sesuai target. Tindakan ini disebut?",
+      "answer": "Manipulasi dokumen",
       "options": [
-        "Verifikasi permintaan melalui kanal resmi lain sebelum melakukan apa pun",
-        "Membalas chat dan meminta foto sebagai bukti",
-        "Meminta rekan lain yang memprosesnya",
-        "Langsung memproses karena permintaan dari pimpinan"
+        "Pemutakhiran data",
+        "Rekonsiliasi",
+        "Manipulasi dokumen",
+        "Verifikasi dokumen"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 7,
+      "answerSlide": 8,
+      "answerLetter": "C"
     },
     {
       "number": 4,
-      "prompt": "Rekan dari tim lain meminta pengkinian data seorang nasabah lewat chat dan berkata “ nasabahnya langganan lama”, tanpa melampirkan formulir dan KTP. Apa yang sebaiknya dilakukan ?",
-      "answer": "Meminta formulir dan KTP untuk diverifikasi terlebih dahulu",
+      "prompt": "Langkah pertama dalam proses Customer Due Diligence (CDD) adalah?",
+      "answer": "Memahami dan memverifikasi profil nasabah",
       "options": [
-        "Memproses langsung karena nasabah sudah dikenal",
-        "Memproses dulu , dokumen menyusul",
-        "Meminta nasabah mengirim foto KTP lewat chat pribadi",
-        "Meminta formulir dan KTP untuk diverifikasi terlebih dahulu"
+        "Memantau transaksi secara berkala",
+        "Memahami dan memverifikasi profil nasabah",
+        "Menawarkan produk tambahan",
+        "Menutup rekening nasabah"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 9,
+      "answerSlide": 10,
+      "answerLetter": "B"
     },
     {
       "number": 5,
-      "prompt": "Nasabah ingin memakai kembali rekening yang lama tidak bertransaksi (dormant). Apa yang perlu dipastikan lebih dulu sebelum rekening kembali berstatus aktif ?",
-      "answer": "Identitas dan data nasabah sudah diverifikasi dan terkini",
+      "prompt": "Setelah berhenti beraktivitas karena menerima email mencurigakan, apa yang dilakukan sebelum melapor?",
+      "answer": "Menyimpan bukti seperti screenshot dan email asli",
       "options": [
-        "Nasabah sudah memiliki kartu baru",
-        "Nasabah sudah mengisi survei kepuasan",
-        "Identitas dan data nasabah sudah diverifikasi dan terkini",
-        "Saldo nasabah sudah mencapai nominal tertentu"
+        "Menghapus email agar tidak berbahaya",
+        "Menanyakan ke rekan apakah email itu berbahaya",
+        "Menyimpan bukti seperti screenshot dan email asli",
+        "Menunggu tanpa melakukan apa pun"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 11,
+      "answerSlide": 12,
+      "answerLetter": "C"
     },
     {
       "number": 6,
-      "prompt": "Kesalahan input data nasabah baru diketahui setelah data tersebut masuk ke laporan SLIK yang disampaikan ke OJK. Apa tindakan yang paling tepat ?",
-      "answer": "Koreksi data dan perbarui pelaporan sesuai ketentuan",
+      "prompt": "Karyawan menerima hadiah dari pihak yang sedang mengikuti proses pemilihan vendor. Kategori risikonya?",
+      "answer": "Fraud / Conflict of Interest",
       "options": [
-        "Koreksi data dan perbarui pelaporan sesuai ketentuan",
-        "Menghapus data nasabah dari sistem",
-        "Menunggu sampai nasabah mengajukan komplain",
-        "Membiarkan karena laporan sudah terkirim"
+        "Risiko Pasar",
+        "Risiko Likuiditas",
+        "Fraud / Conflict of Interest",
+        "Risiko Antrean"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 13,
+      "answerSlide": 14,
+      "answerLetter": "C"
     },
     {
       "number": 7,
-      "prompt": "Tim menemukan kesalahan proses yang belum menimbulkan kerugian , tetapi berpotensi terulang . Kapan kejadian ini sebaiknya dicatat di ORMS?",
-      "answer": "Segera setelah diketahui , meskipun dampaknya belum terlihat",
+      "prompt": "Tim menerima laporan selisih kas dari wisma. Penyebab yang paling tepat?",
+      "answer": "Salah hitung atau kurang teliti",
       "options": [
-        "Menunggu akhir bulan agar dicatat sekaligus",
-        "Membalas chat dan meminta foto sebagai bukti",
-        "Segera setelah diketahui , meskipun dampaknya belum terlihat",
-        "Setelah kerugian benar-benar terjadi"
+        "Lupa mengisi daya tablet",
+        "Salah hitung atau kurang teliti",
+        "Cuaca yang berubah-ubah",
+        "Jumlah nasabah yang sedikit"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 15,
+      "answerSlide": 16,
+      "answerLetter": "B"
     },
     {
       "number": 8,
-      "prompt": "Hasil pengecekan menemukan uang transaksi harian dibiarkan bercampur tanpa dipisah per nominal, dan transaksinya belum dicatat di tablet operasional . Risiko apa yang paling mungkin muncul saat closing?",
-      "answer": "Selisih kas yang sulit ditelusuri penyebabnya",
+      "prompt": "Karyawan menerima hadiah dari pihak yang sedang mengikuti proses pemilihan vendor. Kategori risikonya?",
+      "answer": "Fraud / Conflict of Interest",
       "options": [
-        "Selisih kas yang sulit ditelusuri penyebabnya",
-        "Kebocoran data nasabah",
-        "Keterlambatan pelaporan ke OJK",
-        "Serangan phishing pada akun kerja"
+        "Risiko Pasar",
+        "Risiko Likuiditas",
+        "Fraud / Conflict of Interest",
+        "Risiko Antrean"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 17,
+      "answerSlide": 18,
+      "answerLetter": "C"
     },
     {
       "number": 9,
-      "prompt": "Seorang staf salah menginput satu angka pada laporan internal sehingga data tidak sesuai dengan sumbernya . Kategori risiko yang paling tepat ?",
-      "answer": "Risiko Operasional",
+      "prompt": "Nasabah telah melunasi pembiayaan dan data pelunasan sudah terverifikasi. Status lunas di SLIK diperbarui paling lambat?",
+      "answer": "3 hari kerja setelah tanggal pelunasan",
       "options": [
-        "Risiko Likuiditas",
-        "Risiko Pasar",
-        "Risiko Reputasi",
-        "Risiko Operasional"
+        "1 bulan setelah pelunasan",
+        "3 hari kerja setelah tanggal pelunasan",
+        "Akhir tahun berjalan",
+        "Setelah nasabah menanyakannya"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 19,
+      "answerSlide": 20,
+      "answerLetter": "B"
     },
     {
       "number": 10,
-      "prompt": "Vendor mengirim hampers ke ruang kerja tim setelah kontrak disetujui dan berkata , “ ini bukan sogokan , hanya apresiasi .” Sikap yang paling tepat ?",
-      "answer": "Menolak atau mengembalikan hampers dan melaporkannya sesuai ketentuan",
+      "prompt": "Akses Core Banking termasuk klasifikasi informasi apa?",
+      "answer": "Sangat Rahasia",
       "options": [
-        "Menolak atau mengembalikan hampers dan melaporkannya sesuai ketentuan",
-        "Menerima lalu membagikannya ke seluruh tim",
-        "Menyimpannya dulu sampai akhir tahun",
-        "Menerima karena kontrak sudah selesai"
+        "Publik",
+        "Internal",
+        "Sangat Rahasia",
+        "Rahasia"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 21,
+      "answerSlide": 22,
+      "answerLetter": "C"
     },
     {
       "number": 11,
-      "prompt": "Dua invoice dengan tanggal dan keperluan yang sama memiliki nominal berbeda : Rp5.000.000 dan Rp8.000.000. Perbedaan itu baru disadari saat proses pembayaran . Apa tindakan yang paling tepat ?",
-      "answer": "Menahan proses, memverifikasi ke vendor, dan melaporkan jika ada indikasi manipulasi",
+      "prompt": "Tambahan atas pokok pinjaman yang memberatkan secara tidak adil dan dilarang dalam prinsip syariah disebut?",
+      "answer": "Riba",
       "options": [
-        "Memilih angka yang terlihat paling masuk akal",
-        "Menahan proses, memverifikasi ke vendor, dan melaporkan jika ada indikasi manipulasi",
-        "Mengubah salah satu nominal agar sama",
-        "Membayar sesuai nominal yang lebih besar"
+        "Gharar",
+        "Maysir",
+        "Zakat",
+        "Riba"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 23,
+      "answerSlide": 24,
+      "answerLetter": "D"
     },
     {
       "number": 12,
-      "prompt": "Seorang pegawai melihat indikasi kecurangan dalam proses pengadaan dan ingin melaporkannya secara resmi . Media pelaporan fraud yang tepat adalah ?",
-      "answer": "JagaOnline",
+      "prompt": "Gabungan beberapa kata acak yang mudah diingat tetapi sulit ditebak, dan disarankan untuk akun kerja, disebut?",
+      "answer": "Passphrase",
       "options": [
-        "ORMS",
-        "Email pribadi atasan",
-        "JagaOnline",
-        "SiapBantu"
+        "Passphrase",
+        "Kode OTP",
+        "Username",
+        "PIN"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 25,
+      "answerSlide": 26,
+      "answerLetter": "A"
     },
     {
       "number": 13,
-      "prompt": "Mengapa karyawan wajib mengenakan ID Card selama berada di area kerja ?",
-      "answer": "Agar identitas dan hak akses dapat dikenali , sehingga orang yang tidak berwenang mudah terdeteksi",
+      "prompt": "Banyak petugas menganggap kunci stang sudah cukup untuk mengamankan KDO. Mengapa?",
+      "answer": "Sudah terbiasa dan merasa itu standar",
       "options": [
-        "Agar tampilan karyawan terlihat seragam",
-        "Agar absensi tercatat otomatis",
-        "Agar mendapat fasilitas kantin",
-        "Agar identitas dan hak akses dapat dikenali , sehingga orang yang tidak berwenang mudah terdeteksi"
+        "Kunci stang tidak bisa dirusak",
+        "Aturan hanya mewajibkan kunci stang",
+        "KDO tidak pernah dicuri",
+        "Sudah terbiasa dan merasa itu standar"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 27,
+      "answerSlide": 28,
+      "answerLetter": "D"
     },
     {
       "number": 14,
-      "prompt": "Laptop kerja menampilkan pesan aneh setelah kamu mengklik tautan dari email tidak dikenal . Media resmi untuk melaporkan risiko cyber adalah ?",
-      "answer": "SiapBantu",
+      "prompt": "Tindakan kecurangan yang sengaja dilakukan oknum di dalam organisasi demi keuntungan pribadi disebut?",
+      "answer": "Fraud",
       "options": [
-        "JagaOnline",
-        "Grup chat tim",
-        "Email pribadi rekan",
-        "SiapBantu"
+        "Phishing",
+        "Fraud",
+        "Tailgating",
+        "Rekonsiliasi"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 29,
+      "answerSlide": 30,
+      "answerLetter": "B"
     },
     {
       "number": 15,
-      "prompt": "Tim masih memakai SOP lama karena menganggap prosesnya sama dengan SOP terbaru . Mengapa hal ini tidak tepat ?",
-      "answer": "SOP yang sudah tidak berlaku bukan acuan resmi , sehingga berisiko tidak patuh",
+      "prompt": "Tim masih memakai ketentuan internal yang sudah tidak berlaku. Risiko yang dapat terjadi?",
+      "answer": "Pekerjaan tidak sesuai ketentuan dan berpotensi risiko lebih besar",
       "options": [
-        "SOP baru hanya berlaku untuk tim tertentu",
-        "SOP yang sudah tidak berlaku bukan acuan resmi , sehingga berisiko tidak patuh",
-        "SOP lama biasanya lebih rumit",
-        "SOP lama boleh dipakai sampai akhir tahun"
+        "Pekerjaan tidak sesuai ketentuan dan berpotensi risiko lebih besar",
+        "Proses kerja menjadi lebih cepat",
+        "Risiko otomatis hilang",
+        "Tidak ada dampak apa pun"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 31,
+      "answerSlide": 32,
+      "answerLetter": "A"
     },
     {
       "number": 16,
-      "prompt": "Seorang pegawai sengaja menyetujui pembayaran ke vendor fiktif demi keuntungan pribadi . Tindakan ini termasuk ?",
-      "answer": "Fraud",
+      "prompt": "Sebelum mengirim email berisi informasi sensitif, apa yang perlu dilakukan?",
+      "answer": "Memeriksa ulang daftar penerima",
       "options": [
-        "Kesalahan sistem",
-        "Fraud",
-        "Risiko pasar",
-        "Kelalaian administrasi"
+        "Memeriksa ulang daftar penerima",
+        "Langsung menekan “reply all”",
+        "Mengirim ke seluruh tim agar aman",
+        "Menambah penerima tambahan sebagai tembusan"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 33,
+      "answerSlide": 34,
+      "answerLetter": "A"
     },
     {
       "number": 17,
-      "prompt": "Tim membagi satu pembelian besar menjadi beberapa pembelian kecil agar tidak perlu persetujuan level yang lebih tinggi . Pola ini menunjukkan ?",
-      "answer": "Upaya menghindari kontrol dan otorisasi , yang menjadi indikasi fraud",
+      "prompt": "Mengecek ulang data sebelum submit termasuk bagian dari?",
+      "answer": "Mitigasi risiko salah input",
       "options": [
-        "Strategi mendapat harga lebih murah",
-        "Upaya menghindari kontrol dan otorisasi , yang menjadi indikasi fraud",
-        "Penyesuaian anggaran yang wajar",
-        "Efisiensi proses pembelian"
+        "Pemborosan waktu",
+        "Tugas atasan saja",
+        "Pilihan sesuai keinginan",
+        "Mitigasi risiko salah input"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 35,
+      "answerSlide": 36,
+      "answerLetter": "D"
     },
     {
       "number": 18,
-      "prompt": "Tim mempercepat pengesahan dokumen karena deadline sudah dekat dan tetap meneruskannya meski approval pihak berwenang belum lengkap . Risiko utamanya apa ?",
-      "answer": "Dokumen diproses tanpa otorisasi yang sah dan berpotensi menimbulkan keputusan yang tidak valid",
+      "prompt": "Apa tujuan utama adanya SOP di lingkungan perbankan?",
+      "answer": "Agar pekerjaan konsisten dan risiko kesalahan berkurang",
       "options": [
-        "Rapat berikutnya berlangsung lebih lama",
-        "Biaya cetak dokumen meningkat",
-        "Dokumen diproses tanpa otorisasi yang sah dan berpotensi menimbulkan keputusan yang tidak valid",
-        "Dokumen menjadi lebih rapi"
+        "Membatasi kreativitas karyawan",
+        "Memperlambat pelayanan agar terlihat formal",
+        "Menambah tumpukan berkas",
+        "Agar pekerjaan konsisten dan risiko kesalahan berkurang"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 37,
+      "answerSlide": 38,
+      "answerLetter": "D"
     },
     {
       "number": 19,
-      "prompt": "Planet yang jaraknya paling dekat dengan Matahari adalah ?",
-      "answer": "Merkurius",
+      "prompt": "Berapa hasil dari 15 × 4?",
+      "answer": "60",
       "options": [
-        "Merkurius",
-        "Mars",
-        "Bumi",
-        "Venus"
+        "45",
+        "50",
+        "65",
+        "60"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 39,
+      "answerSlide": 40,
+      "answerLetter": "D"
     },
     {
       "number": 20,
-      "prompt": "Teka- teki : apa yang makin banyak diambil , justru makin besar ?",
-      "answer": "Lubang",
+      "prompt": "Ayah Budi punya 3 anak: Senin, Selasa, dan satu lagi. Siapa nama anak ketiga?",
+      "answer": "Budi",
       "options": [
-        "Bayangan",
-        "Mars",
-        "Lubang",
-        "Utang"
+        "Rabu",
+        "Budi",
+        "Daffa",
+        "D. Ayah"
       ],
       "kind": "choice",
-      "hint": ""
+      "hint": "Choose the best answer.",
+      "sourceDeck": "Jaw-of-risk.pptx",
+      "sourceSlide": 41,
+      "answerSlide": 42,
+      "answerLetter": "B"
     }
   ]
 }

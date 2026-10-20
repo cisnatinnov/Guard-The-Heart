@@ -8,6 +8,7 @@ export interface WordAssemblyQuestion {
 }
 
 export const WORD_ASSEMBLY_SECONDS_PER_QUESTION = 15
+export const WORD_ASSEMBLY_SECONDS_PER_MATCH = 20
 export const WORD_ASSEMBLY_QUESTIONS: WordAssemblyQuestion[] = [
   {
     id: 'word-1',
@@ -76,7 +77,6 @@ export const WORD_ASSEMBLY_CARD_COUNT =
   WORD_ASSEMBLY_QUESTIONS.length * WORD_ASSEMBLY_CARDS_PER_QUESTION
 export const WORD_ASSEMBLY_MATCH_POINTS = 10
 export const WORD_ASSEMBLY_CHALLENGE_ID = '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463'
-export const WORD_ASSEMBLY_MISMATCH_PENALTY = 5
 
 export interface WordAssemblyCard {
   id: string
@@ -92,8 +92,8 @@ export interface WordAssemblyState {
   mismatches: number
 }
 
-export function createWordAssemblyDeck(random: RandomSource = Math.random): WordAssemblyCard[] {
-  const deck = WORD_ASSEMBLY_QUESTIONS.flatMap((question) =>
+export function createWordAssemblyDeck(random: RandomSource = Math.random, pairCount = WORD_ASSEMBLY_QUESTIONS.length): WordAssemblyCard[] {
+  const deck = WORD_ASSEMBLY_QUESTIONS.slice(0, pairCount).flatMap((question) =>
     Array.from({ length: WORD_ASSEMBLY_CARDS_PER_QUESTION }, (_, copy) => ({
       id: `${question.id}-card-${copy + 1}`,
       questionId: question.id,
@@ -109,9 +109,9 @@ export function createWordAssemblyDeck(random: RandomSource = Math.random): Word
   return deck
 }
 
-export function createWordAssemblyState(random: RandomSource = Math.random): WordAssemblyState {
+export function createWordAssemblyState(random: RandomSource = Math.random, pairCount = WORD_ASSEMBLY_QUESTIONS.length): WordAssemblyState {
   return {
-    board: createWordAssemblyDeck(random),
+    board: createWordAssemblyDeck(random, pairCount),
     revealed: [],
     matchedCardIds: [],
     matchedQuestionIds: [],
@@ -164,7 +164,7 @@ export function scoreWordAssembly(state: WordAssemblyState): WordAssemblyScore {
     matchedPairs,
     mismatches: state.mismatches,
     questionsSolved: matchedPairs,
-    score: matchedPairs * WORD_ASSEMBLY_MATCH_POINTS - state.mismatches * WORD_ASSEMBLY_MISMATCH_PENALTY,
+    score: matchedPairs * WORD_ASSEMBLY_MATCH_POINTS,
     maximum: WORD_ASSEMBLY_QUESTIONS.length * WORD_ASSEMBLY_MATCH_POINTS,
   }
 }

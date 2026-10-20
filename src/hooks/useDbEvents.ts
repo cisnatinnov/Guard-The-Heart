@@ -23,6 +23,7 @@ class EventEmitter {
 export const dbEvents = new EventEmitter()
 
 export const DB_EVENTS = {
+  GP_TRANSACTIONS_CHANGED: 'gp_transactions_changed',
   CHALLENGE_POINTS_CHANGED: 'challenge_points_changed',
   TEAMS_CHANGED: 'teams_changed',
   CARDS_CHANGED: 'cards_changed',

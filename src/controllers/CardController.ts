@@ -1,4 +1,4 @@
-import { Card, TeamCard } from '../models'
+import { Card, ChallengePoint, TeamCard } from '../models'
 import {
   isChallengeComplete,
   isChallengeCardsDrawn,
@@ -15,10 +15,15 @@ import {
   getTeamCardById,
   getEligibleTeamsForChallenge,
   getEligibleTeamsForAllChallenges,
+  getAssignedChallengeRewardCount,
   type CardPoolStatus,
   type TeamCardReward,
 } from '../services/cardDraw'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
+import { MAX_TOTAL_CARD } from '../services/rankRules'
+import { flushDatabase } from '../db/sequelize-provider'
+import { cardDesignKey } from '../data/card-pool'
+import { allocateUniqueCards } from '../services/cardAllocation'
 
 export class CardController {
   static async checkChallengeComplete(challengeId: string): Promise<boolean> {
@@ -34,7 +39,11 @@ export class CardController {
   }
 
   static async drawBonusCards(challengeId: string): Promise<Card[]> {
-    return drawBonusCardsForChallenge(challengeId)
+    const cards = await drawBonusCardsForChallenge(challengeId)
+    await CardController.assignAvailableCardsRandomly(challengeId)
+    if (typeof window !== 'undefined') await flushDatabase()
+    dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
+    return cards
   }
 
   static async listTeamCards(teamId: string): Promise<Card[]> {
@@ -45,8 +54,8 @@ export class CardController {
     return getChallengeBonusCards(challengeId)
   }
 
-  static async listTeamCardsPermanent(teamId: string): Promise<TeamCard[]> {
-    return getTeamCards(teamId)
+  static async listTeamCardsPermanent(teamId: string, includeUsed = false): Promise<TeamCard[]> {
+    return getTeamCards(teamId, includeUsed)
   }
 
   static async getPoolStatus(): Promise<CardPoolStatus> {
@@ -88,9 +97,7 @@ export class CardController {
     }
 
     // Check how many cards this team has already received from this challenge
-    const assignedFromChallenge = await Card.count({
-      where: { challenge: card.challenge, team: teamId },
-    })
+    const assignedFromChallenge = await getAssignedChallengeRewardCount(card.challenge, teamId)
     if (assignedFromChallenge >= eligible.cardCount) {
       throw new Error(`Team has already received all ${eligible.cardCount} cards for this challenge`)
     }
@@ -99,6 +106,41 @@ export class CardController {
     dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
     dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
     return result
+  }
+
+  /** Assign all available cards to eligible teams using a randomized allocation. */
+  static async assignAvailableCardsRandomly(challengeId: string): Promise<{ assigned: number; waiting: number }> {
+    const cards = await getAvailableDrawnCards(challengeId)
+    const eligible = await getEligibleTeamsForChallenge(challengeId)
+    const allocationTeams = []
+    for (const team of eligible) {
+      const alreadyAssigned = await getAssignedChallengeRewardCount(challengeId, team.teamId)
+      const owned = await getTeamCards(team.teamId)
+      allocationTeams.push({ id: team.teamId, quota: Math.max(0, Math.min(team.cardCount - alreadyAssigned, MAX_TOTAL_CARD - owned.length)), ownedDesigns: new Set(owned.map(cardDesignKey)) })
+    }
+
+    for (let i = cards.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[cards[i], cards[j]] = [cards[j], cards[i]]
+    }
+
+    // Shuffle team preference too; the planner can move earlier choices to avoid
+    // stranding a reward that only one team is allowed to receive.
+    for (let i = allocationTeams.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[allocationTeams[i], allocationTeams[j]] = [allocationTeams[j], allocationTeams[i]]
+    }
+    const entries = await ChallengePoint.findAll({ where: { challenge: challengeId } })
+    const reserved = cards.map((card) => ({ id: card.id, name: card.name, type: card.type, rewardTeamId: entries.find((entry) => entry.id === card.challenge_point)?.team }))
+    const assignments = allocateUniqueCards(reserved, allocationTeams)
+    for (const { card, teamId } of assignments) await assignCardToTeamFn(card.id, teamId)
+    const assigned = assignments.length
+
+    if (assigned > 0) {
+      dbEvents.emit(DB_EVENTS.CARDS_CHANGED)
+      dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
+    }
+    return { assigned, waiting: cards.length - assigned }
   }
 
   /** Replace a team's card with a new drawn card. */

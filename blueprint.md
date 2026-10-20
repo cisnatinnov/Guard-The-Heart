@@ -1,279 +1,474 @@
-## Tech Stack
-1. MVC Framework: react latest typescript with vite (compatible with installed node and npm)
-- **Models (ORM (sequilize (no raw queries)))** and **Controllers**
-| Team (filterable; 5, 10, 20, 25, 50, or 100 teams per page with numbered page navigation) |
-| Challenge |
-| ChallengePoint |
-| Scoreboard |
-| Card |
-| TeamCard |
-| GameQuestion |
-- **Views**
-| Team |
-| Challenge |
-| Scoreboard per challenge (Public: read-only; Adm: Choose Challenge, Add entry, Edit CP, Delete) |
-| Leaderboard (Public: read-only; Adm: Recalculate, Save offline copy) |
-| Card Reveal (Public: read-only team collections; Adm: Assign drawn cards to teams, replace at capacity) |
-- **PWA**: vite-plugin-pwa with Workbox, auto-update service worker, offline caching for static assets
-- **colour themes** (current interface tokens; CSS custom properties live in `src/styles/index.css`)
-  - White / card surfaces: `#ffffff`
-  - Warm off-white: `#fff9f2`
-  - Yellow-off white: `#fff4e6`
-  - Creme: `#fff6cc`
-  - Warm border: `#e8d9c9`
-  - Orange costume accent: `#f48220`
-  - Teal costume accent: `#027479`
-  - Red: `#be392a`
-  - Dark red: `#8d3030`
-  - Charcoal text / costume: `#20292b`
-  - Muted text: `#52666a`
-  - Skin-tone accent: `#f2c4a5` (used as a soft translucent wash)
-  - Primary action orange: `#a9470c`
-  - Dark mode surfaces: `#17282b`, `#223639`, and `#30484b`; text uses warm off-white.
+# Guard The Heart — implementation blueprint
 
-### Visual theme and character assets
-- The shared app header pairs the product name with three character illustrations:
-  - `public/gardian-male.png` — male guardian
-  - `public/gardimon.png` — Gardimon mascot
-  - `public/gardian-female.png` — female guardian
-- The header also features `public/gigarisk-portrait.jpg` as a wide, proportionally framed Giga Risk dragon illustration.
-- Guardian images are shown in portrait frames with `object-fit: cover`; the mascot uses `object-fit: contain` so its wide tail remains visible. Images retain their source proportions.
-- The responsive header keeps all three characters visible and scales their frames down on narrow screens.
-- The interface palette reflects the character costumes: teal and orange for navigation and actions, warm cream surfaces, charcoal text, and a soft peach skin-tone accent. Light and dark palettes are defined by CSS custom properties in `src/styles/index.css`.
-- PWA theme and background colors use teal (`#027479`) and warm off-white (`#fff4e6`). Production Workbox caching includes the PNG and JPEG character artwork for offline use.
-- Card Reveal uses a shared portrait trading-card layout: name and rarity header, icon artwork panel, and effect/type details. The same layout works across Normal, Rare, Epic, and Legendary cards, with the layout driven only by the stored card fields.
+This document describes the current source implementation. Operating instructions,
+routes and commands are in [readme.md](./readme.md). Reference images and decks
+supply artwork and question content; source code defines game behavior.
 
-2. Database: sqlite
-- **Tables**:
-a. challenge
-| Field | type |
-| id | uuid |
-| name | varchar(225) |
-| cards_drawn_at | datetime (nullable; set once the challenge's bonus cards are drawn) |
-| createdAt | datetime |
-| updatedAt | datetime |
-b. team
-| Field | type |
-| id | uuid |
-| name | varchar(225) |
-| status | enum(active/inactive) |
-| total_gp | integer(3) |
-| createdAt | datetime |
-| updatedAt | datetime |
-c. challenge_point
-| Field | type |
-| id | uuid |
-| challenge | uuid(refer to challenge table) |
-| team | uuid(refer to team table) |
-| rank | integer(2) |
-| challenge_point | integer(3) |
-| guard_power | integer(3) |
-| createdAt | datetime |
-| updatedAt | datetime |
+## Architecture
 
-Constraints: unique (challenge, team), max 5 rows per challenge. rank is derived from challenge_point
-(competition style), as are challenge_point, guard_power.
-d. scoreboard
-| Field | type |
-| id | uuid |
-| team | uuid(refer to team table) |
-| rank | integer(2) |
-| total_cp | integer(3) |
-| total_card | integer(3) |
-| createdAt | datetime |
-| updatedAt | datetime |
+- React 19, TypeScript 5.9, Vite 7; Sequelize 6 over SQLite in sql.js/WASM.
+- IndexedDB stores the SQLite file. localStorage stores tactical archives, shared
+  game runs, presentation state, turn order, timer state and public navigation.
+- Local events and BroadcastChannel notifications refresh mounted views; storage
+  events provide a fallback. Synchronization requires the same origin/profile.
+- The production PWA precaches application assets. Large source decks are excluded;
+  the Jaw of Risk bite GIF has a runtime cache. Browser shims stay in the vendor
+  chunk alongside their CommonJS dependencies.
+- Public and admin routes have different controls; no authentication is implemented.
 
-Constraints: one row per team (unique team). Totals are summed from challenge_point per team
-and rank is derived from total_cp. total_gp is synced from team.total_gp.
-total_card is always 0 on the scoreboard; cards are managed via TeamCard.
-e. card
-| Field | type |
-| id | uuid |
-| name | varchar(100) |
-| type | enum(Normal/Rare/Epic/Legendary) |
-| effect | enum(Defense/Attack/Heal/Utility/Support/Thief) |
-| effect_action | varchar(225) |
-| icon | varchar(10) |
-| challenge | uuid(refer to challenge table, nullable) |
-| team | uuid(refer to team table, nullable) |
-| createdAt | datetime |
-| updatedAt | datetime |
+## Database schema
 
-f. team_card
-| Field | type |
-| id | uuid |
-| name | varchar(100) |
-| type | enum(Normal/Rare/Epic/Legendary) |
-| effect | enum(Defense/Attack/Heal/Utility/Support/Thief) |
-| effect_action | varchar(225) |
-| icon | varchar(10) |
-| team | uuid(refer to team table, nullable) |
-| createdAt | datetime |
-| updatedAt | datetime |
+Nine models use `createdAt` and `updatedAt` timestamps. Most ids are UUIDs;
+GameQuestion and BlindReward use stable seeded/composite ids. Model definitions
+and associations live in `src/models/index.ts`.
 
-Constraints: After the fifth team is entered and the challenge is complete, the host draws bonus cards once via Scoreboard (Adm). Cards are drawn into the challenge pool (with challenge reference, no team). Admin then assigns cards to teams via Card Reveal (Adm) using drag-and-drop or click-to-assign (click a card, then click a team). Each assigned card is linked to the team's ChallengePoint entry and mirrored once in `team_card` as the permanent team collection. If a team reaches 8 cards, admin chooses which card to replace. Drawn cards are saved permanently: later score corrections or removed entries never redraw or return them. Only deleting a challenge returns its cards to the pool.
+| Table | Fields excluding timestamps | Purpose |
+| --- | --- | --- |
+| `challenge` | `id`, `name`, nullable `cards_drawn_at` | Unique name and once-only draw marker |
+| `team` | `id`, `name`, `status`, `total_gp` | Unique name, active/inactive status, initial 5 GP |
+| `challenge_point` | `id`, `challenge`, `team`, `rank`, `score`, `challenge_point`, `guard_power` | Unique challenge/team; raw score, dense rank, earned CP/GP |
+| `scoreboard` | `id`, `team`, `rank`, `total_cp`, `total_card` | Saved standings and available-card totals |
+| `card` | `id`, `name`, `type`, `effect`, `effect_action`, `icon`, nullable `challenge`, `team`, `challenge_point` | Finite physical copy and reward reservation |
+| `team_card` | `id`, `name`, `type`, `effect`, `effect_action`, `icon`, nullable `team`, `challenge_point` | Awarded inventory and retained card history |
+| `blind_reward` | `id`, `challenge`, `team`, `options`, nullable `selected`, `reward_id` | Saved rank 5 offer, JSON options, one final selection |
+| `game_question` | `id`, `game_key`, `number`, `prompt`, `answer`, `options`, `kind`, `hint` | Seeded reference questions; unique game key/number |
+| `gp_transaction` | `id`, nullable `team`, `team_name`, nullable `challenge`, `challenge_name`, `source_key`, `category`, `gp_before`, `delta`, `gp_after`, `description` | Persistent GP ledger; unique source keys prevent duplicate writes |
 
-g. game_question
-| Field | type |
-| id | varchar(100) |
-| game_key | varchar(40) |
-| number | integer |
-| prompt | text |
-| answer | text |
-| options | JSON-encoded text |
-| kind | varchar(16) |
-| hint | text |
-| createdAt | datetime |
-| updatedAt | datetime |
+Card types are Normal/Rare/Epic/Legendary. Card effects are
+Defense/Attack/Heal/Utility/Support/Thief. False Hope is a blind-draw result,
+not an additional tactical rarity or inventory design. GP lives on Team;
+Scoreboard has no `total_gp` column. GP transaction categories are
+opening/reward/attack/card. Saved team/challenge labels retain readable history
+if referenced rows are deleted. The admin ledger shows the latest 500 matching
+rows, optionally filtered by team, using Asia/Jakarta timestamps.
 
-Constraints: unique (`game_key`, `number`). This table stores the correct
-answer alongside every question and answer choice. Startup seeds 11 Image
-Decode, 50 Match Card and 20 Jaws of Risk rows from the reference deck data.
+## Startup and persistence
 
-## Terms and conditions
-1. challenge_point accommodates only 5 teams each challenge. A team that has
-entered a challenge keeps its entry; its challenge point is corrected in place, which
-reranks the challenge and the overall scoreboard instead of removing the team.
-2. scoreboard (total challenge_point (total_cp(challenge_point), total_card=0, total_gp) per team)
-3. rank based on challenge_point (challenge_point) and total_cp (scoreboard), 1st rank have the highest and so on until 5th rank. Tied challenge points share a rank and the next rank increments by 1 (standard competition: 1, 2, 2, 3, 4)
-4. guard_power based on rank
-| rank | guard_power |
-| 1 | +3 |
-| 2 | +2 |
-| 3 | +2 |
-| 4 | +1 |
-| 5 | +1 |
-5. Team total_gp set to 5 as default
-6. Team total_gp from guard_power accumulation (base 5 + earned guard_power)
-7. **Card System**
-a. Type : Normal (48), Rare (24), Epic (6), Legendary (2) - 80 cards are seeded permanently into the `card` inventory as copies of the 11 designs in `public/cards/` (Normal Heal/Shield/Thief x16, Rare Heal/Protect/Reverse/Thief x6, Epic Reflect/Reverse x3, Legendary Gardian Unity/Second Chance x1); unassigned cards have null challenge/team references.
-b. Effect : Defense 🛡️, Attack 🗡️, Heal ❤️, Utility 🔀, Support 🤝, Thief 🕵️
-c. Every card has an `effect_action` description stored in both `card` and `team_card`, matching its artwork.
-d. After the fifth team participates, the host draws bonus cards for teams with card rewards (maximum 3 per team per challenge) from Scoreboard (Adm). Cards go to the challenge pool (challenge ref, no team).
-e. Admin assigns drawn cards to teams via Card Reveal (Adm). A team can hold max 8 cards; if at capacity, admin chooses which card to replace. Assigned cards are mirrored once in `team_card`.
-f. A challenge's cards can be drawn only once. The draw is saved permanently and is not changed by later score corrections.
-g. Only deleting a challenge returns its cards to the pool, preserving the 80-card pool.
-h. `getCardPoolStatus()` reports total, drawn and remaining counts overall and per type, and the Card Reveal (Adm) view shows them. An action description is card data; it does not by itself apply gameplay effects.
-8. **Challenges**
-a. Image Decode (formerly Emoji Decode) : Eleven banking-term clues and answers from slides 3–24 of `public/ui/Image_Decode.pptx`; 30-second timed play.
-b. Match Card (formerly Word Assembly) : A 20-card picture-matching game. Its 50 multiple-choice questions and answers come from slides 3–75 of `public/ui/Match-Card.pptx`. Each matched pair unlocks one question; the answering team has two attempts before the turn passes.
-c. Jaws of Risk: question-only challenge; answer stored questions in sequence. No teeth are displayed or selected.
-d. Retired: Gardimon Protocol, Incident Trail and Save the Core were removed together with all related code, content and decks. Older databases drop these challenge rows (with their entries) on startup and return their drawn cards to the pool.
+Startup synchronizes the current schema, applies compatibility migrations, seeds
+locked challenges, default teams, reference questions and missing deck copies,
+and imports completed combat history without replaying effects. Current-schema
+data is retained. A database without `ChallengePoint.score` receives that column
+and copies the former raw `challenge_point` input before reranking.
 
-9. Point 8 link to Challenge feature (save as challenge data and cannot be added more, edited and deleted)
+The new deck retires only undrawn excess copies. Already-earned and historical
+copies retain their identity and links. Legacy Reverse/Reflect definitions migrate
+to Reverse/Thief/Swallow using saved names and actions. Old pending timing changes
+are normalized; completed GP totals remain saved results.
 
-## Implementation notes
+SQLite changes export to IndexedDB after a debounce; draw/attack/display transitions
+flush explicitly. Exported connections restore foreign-key enforcement. Database
+write locks, ordered saves and refreshes protect browser-tab mutations. Public
+notifications flush SQLite before the receiving tab reloads it.
 
-The three challenges above are played from the **Challenge** view. Game rules
-and screens are in `src/services/games/` and `src/views/challenges/`. The
-reference question bank is bundled at `src/data/reference-question-bank.json`
-and seeded into SQLite's `game_question` table at startup.
+| Storage | Contents |
+| --- | --- |
+| IndexedDB `guard-the-heart` / `sqlite` / `database` | Entire SQLite file, including blind draws and GP ledger |
+| `guard-the-heart-tactical:<challengeId>` | Choices, targets, Fortune offers/visibility, assignment, reveal flags, resolution |
+| `guard-the-heart-gigarisk-completed:<challengeId>` | Permanent completed attack snapshot |
+| `guard-the-heart-cards-drawn:<challengeId>` | Additional draw marker |
+| `guard-the-heart-crocodile:<challengeId>` | Jaw bite/pressed-tooth state and reopen deadline |
+| `guard-the-heart-presentation-timer-v2` | Standalone timer duration/deadline/challenge/active team |
+| `guard-the-heart-public-display` | Latest shared stage and challenge |
+| `guard-the-heart-reward-pointer` | Transient Reward Claim hover/focus message with challenge, team and option ids; not reward settlement |
+| Other localStorage keys | Main presentation selection, turn order, game runs, window presence, podium prizes |
 
-1. **Image Decode** — 11 clue/answer pairs from slides 3–24 of
-   `public/ui/Image_Decode.pptx` are stored in SQLite. The screen scores 10
-   points per decoded answer (110 total) and uses a live 30-second countdown;
-   letting it expire counts as a miss. Team runs use the same timer for each team's
-   attempt. Self-answer scores +10 when correct and −10 when wrong. A wrong
-   answer passes the question to the next team; a correct
-   answer or timeout ends the question.
-2. **Match Card** — 50 multiple-choice question rows and correct answers from
-   slides 3–75 of `public/ui/Match-Card.pptx` are stored in SQLite. The 20
-   picture cards still form 10 pairs sourced from `public/match-card/`. Players reveal two
-   cards at a time; a matching pair remains face up, while a mismatch turns all
-   open cards face down after a brief reveal. A matched pair draws the next
-   question from a shuffled selection of ten bank rows. A team has two attempts
-   before a wrong answer passes to the next team. Each matched pair is worth 10 points, and each
-   mismatch costs 5 (100 max). Team-run questions have a 15-second timer and ask
-   teams to choose among the bank question's options.
-3. **Jaws of Risk** — the first 20 Match Card questions (slides 3–42) are stored
-   for this game. Solo and team runs ask these questions in sequence. The game
-   has no tooth board, click-tooth action or automatic tooth selection. Answers
-   score +10 when correct and −10 when wrong.
+Keep IndexedDB and localStorage together when preserving an event. Clearing one
+store cannot reconstruct the other. Data does not sync between devices/profiles.
 
-The game screen styles follow their references in `public/ui/`: Image Decode
-uses the question-panel styling in `Image_Decode.pptx` with the clue images from
-slides 3–24 stored as WebP files in `public/image-decode/questions/`; Match Card
-uses the hidden and revealed board
-art in `Preview-CH-3_Online_Card-Hidden.png` and
-`Preview-CH-3_Online_Card-Reveal.png`, cropped into individual lightweight
-card faces in `public/match-card/reference/`; and Jaws of Risk follows the blue,
-gold and purple question styling in `Jaw-of-risk.pptx`.
-Both the Match Card Q&A deck and Jaw of Risk visual deck are available from its
-screen. A matched card image remains visible beside its database-backed question
-while the answer is open.
+## Teams, scores and ranking
 
-The `game_question` table stores a stable id, game key, order, prompt, answer,
-JSON answer choices, question kind and hint. Startup upserts all 81 seeded
-question rows without resetting existing teams, scores or cards.
+Default teams are Merah, Hijau, Biru, Kuning and Pink. Names are reserved and
+cannot be changed/deleted; all teams can be deactivated manually. Team creation
+starts at 5 GP. Zero GP deactivates a team; automatic Second Chance can restore a
+participant after damage. Positive rewards do not undo manual inactivity.
 
-Internal identifiers keep their original names (`emoji-decode`,
-`word-assembly`, `emojiDecode.ts`, `wordAssembly.ts`) so existing ids and the
-deck path stay stable; only the displayed titles changed.
+The three locked challenges are Image Decode, Flipping Connect and Jaw of Risk.
+Their identities survive compatible renames; controllers reject duplicates,
+renaming or deleting built-in challenges. Internal game ids remain
+`emoji-decode`, `word-assembly`, `jaws-of-risk`.
 
-### Point 9: the challenges are challenge data
+At most five teams have one score each per challenge. `rerankChallenge` sorts
+raw scores descending with dense ties (`1,2,2,3,4`). The scoreboard displays all
+teams alphabetically until five scores exist, counting zero as a recorded score;
+it then sorts by rank and displays badges. Removing a score restores name order.
 
-The three games are saved as rows in the `challenge` table, so they are seeded on
-every launch and behave like any other challenge:
+| Rank | CP | GP | Ranked card reward |
+| --- | --- | --- | --- |
+| 1 | 10 | 3 | 3 |
+| 2 | 8 | 2 | 2 |
+| 3 | 6 | 2 | 2 |
+| 4 | 4 | 1 | Exactly 1 Normal |
+| 5 | 2 | 1 | One blind result: 1 Normal or False Hope |
 
-- `src/services/challengeSeeds.ts` seeds one row per game with
-  `seedLockedChallenges()`. Seeding is idempotent and matches on the name, so an
-  existing row keeps its id, scoreboard, bonus cards and timestamps. Each game
-  also carries a fixed `challengeId`, used as the id for freshly seeded rows.
-  Before seeding, rows saved under a former title (`Emoji Decode`,
-  `Word Assembly`) are renamed, and retired challenges are deleted.
-- Their names are reserved. `ChallengeController.create()` rejects a second row
-  for any of the built-in names, and `rename()` rejects both renaming a built-in
-  row and renaming another challenge to one of those names.
-- `ChallengeController.rename()` and `ChallengeController.remove()` throw for a
-  built-in row, so the lock holds even if the UI is bypassed. The Challenge view
-  has no **Add challenge** form at all, shows no Rename or Delete control, and
-  marks the seeded rows `Built-in`.
-- A built-in row offers **Scoreboard**, **Play** and a deck link when one exists.
-  **Play** opens the game's screen, which is a detail view and is not listed in
-  the navigation; it is reachable only from its challenge row, and its
-  **← All challenges** button is the only way back. Each challenge also offers
-  **Team run**, letting the host run the challenge question by question with up
-  to five teams. One team answers at a time in the order selected when the run
-  starts. The turn table highlights the team answering now. Teams may pass a
-  question to an opponent: a correct opponent answer gives that team +5 and the
-  passing team −10; a wrong opponent answer gives both teams −5. Self-answer
-  scoring is +10 correct and −10 wrong for all three challenges. Match Card gives a
-  team two attempts before a wrong answer passes the same question to the next
-  team. Other challenges pass a wrong answer after one attempt. A correct answer or timeout ends
-  the question, after which the host advances and the next team's input becomes
-  available. If every team answers incorrectly, the host can advance as well.
-  Team-run timers are 30 seconds for Image Decode and 15 seconds for Match Card.
-  Jaws of Risk has no timer. Timeout grades only the team currently answering
-  and moves the run to the next question.
-- Because the rows are ordinary challenge data, the existing rules apply to them:
-  up to 5 teams per challenge, ranks derived from scores, rank rewards awarding
-  guard power, and a single permanent bonus-card draw depleting the card pool.
+Total standings rank current GP descending, then earned CP descending; identical
+GP/CP values share a dense rank and names stabilize exact ties. Leaderboards
+include inactive teams marked OUT. Podium ranks active teams and displays the
+first three with matching rank artwork and configured prizes. Available inventory
+counts exclude consumed/reserved cards and are capped at eight.
 
-### Navigation
+Reward synchronization computes `max(0, 5 + earned GP + recorded combat deltas)`.
+Score corrections preserve card/attack transactions. Opening, assignment, attack
+and card source keys prevent repeat entries. `assignmentGP` and `revealApplied`
+prevent reveal effects from being applied again with damage. Team balances and
+ledger rows commit together. There is no arbitrary direct-GP edit screen.
 
-There is no separate games or Challenges tab. The games are listed as rows on
-the Challenge view, the playing screen is a detail view reachable only from a
-built-in row's Play button. The team run panel is shown within the same detail
-view when the host chooses **Team run**. All other views are reached from the
-top navigation tabs, which now include separate Public and Adm tabs for
-Scoreboard, Leaderboard, and Card Reveal.
+## Card pool and ranked rewards
 
-### Correcting a built-in challenge score
+`src/data/card-pool.ts` defines 60 new-deck copies across 12 designs:
 
-A built-in challenge behaves like any other challenge row on the per-challenge
-scoreboard. A team gains challenge point either through the team run (where one team
-answers at a time and a wrong answer passes the same question to the next team)
-or by entering it manually with **Add entry** (Adm). A corrected result is
-applied with **Edit CP** (Adm), which calls `ChallengePointController.update()`
-and keeps the team in the challenge. Reranking and guard power follow the
-corrected value; bonus cards already drawn for the challenge stay as drawn.
+| Rarity | Copies per design | Total |
+| --- | --- | --- |
+| Normal | Heal 11, Shield 11, Thief 11 | 33 |
+| Rare | Heal 4, Protect 4, Thief 4, Fortune Draw 4 | 16 |
+| Epic | Reverse 3, Thief 3, Swallow 2 | 8 |
+| Legendary | Gardian Unity 2, Second Chance 1 | 3 |
 
-Game state is intentionally kept in the browser tab only. The games themselves
-are never written to the database. In the team run, each answering team's challenge point
-is persisted to the challenge point as it is earned; in solo play, the
-challenge's scoreboard is filled in by hand with the player's result. The card
-pool and scoreboard rules are unchanged by the games.
+### Random reward odds
 
-The deck is regenerated with `npm run decks`. The generator writes the ZIP and
-OOXML parts without any PowerPoint dependency and validates the archive and all
-XML parts before writing, so content edits only require re-running the script.
+These are percentages per ranked reward slot, in Normal/Rare/Epic/Legendary order.
+
+| Rank | Challenge 1 | Challenge 2 | Challenge 3 |
+| --- | --- | --- | --- |
+| 1 | 57/40/0/3 | 52/45/0/3 | 51/38/8/3 |
+| 2 | 59/40/0/1 | 54/45/0/1 | 49/50/0/1 |
+| 3 | 90/10/0/0 | 85/15/0/0 | 80/20/0/0 |
+| 4 | 100/0/0/0 | 100/0/0/0 | 100/0/0/0 |
+| 5 | Blind draw below | Blind draw below | Blind draw below |
+
+Rare eligibility is ranks 1–3. Epic eligibility is rank 1 in Challenge 3.
+Legendary odds are 3% for rank 1 and 1% for rank 2. Built-in ids determine the
+phase; numbered custom challenge names map to phases 1–3, otherwise phase 1.
+
+Drawing requires five entries and commits physical reservations and the draw
+marker atomically. A rolled-rarity shortage rolls back the draw without consuming
+copies or changing the odds. Each card keeps its ChallengePoint recipient.
+Assignment/replacement checks recipient, design uniqueness and capacity. Rank 4
+cannot receive a second Normal ranked reward or a higher rarity; replacing an
+older card cannot bypass its quota. Unassignable rewards wait rather than becoming
+duplicate available designs. Deleting a custom challenge releases its inventory.
+
+### Rank 5 blind draw
+
+`blindRewards.ts` saves an offer under `rank5:<challengeId>:<teamId>` with two
+Normal physical cards and one virtual Zonk option. The Normal designs differ and
+exclude owned available designs. Shuffle order is saved before display. Reserved
+copies are excluded from ordinary automatic/manual allocation.
+
+`RewardClaimPublicView.tsx` displays all three faces to the admin. Only admin
+buttons can settle the offer; public buttons are disabled and the click handler
+also checks `admin`, busy state and an existing selection before calling
+`chooseRankFiveReward`. The public view opens only the chosen card.
+
+Admin hover and keyboard focus write `{ challengeId, teamId, optionId }` to
+`guard-the-heart-reward-pointer`. Public storage listeners match the current
+challenge and offered option before rendering a hand-pointer SVG. The pointer
+changes only presentation; it never changes GP, inventory or option order.
+Leaving an option, blurring it, changing the admin challenge or unmounting the
+admin view removes the message. Clicking clears it before awaiting settlement.
+A saved selection suppresses the public pointer, including after reload.
+
+Both views use `cursor: pointer` before selection. Once the offer has a selected
+id, every option receives `is-locked`, remains disabled, and uses
+`cursor: not-allowed`, including its image descendants. The chosen option retains
+its `is-open` outline without a persistent hand cursor. Reduced-motion preferences
+disable the card-opening animation.
+
+`rewards.css` retains the original left-positioned card groups with fixed gaps;
+card art uses contain fit. Team labels, earned-card areas and GP tracks occupy
+separate columns. The public challenge name is a read-only badge; the admin
+challenge selector publishes the chosen reward screen.
+
+A Normal choice creates exactly one TeamCard; False Hope uses
+`Zonk_False_Hope Card.png` and creates none. The choice and grant commit in one
+transaction. Unchosen physical copies return to the pool. Repeated selection is
+rejected; reload never rerolls. Physical rarity and existing rewards are rechecked
+before granting. A granted Normal card follows ordinary Tactical Phase availability
+in the current challenge; the next-challenge restriction applies to Fortune gifts.
+Existing unfinished drawn rounds can receive a missing offer; completed rounds are
+unchanged. Collection/deck shortages are reported.
+
+## Tactical Phase, Card Reveal and GigaRisk
+
+A team selects up to two available active cards by click or drag/drop, or explicitly
+skips. Available cards can originate in any challenge. Second Chance cannot be
+selected and uses no slot. Thief targets are opposing teams; Normal/Rare require
+one, Epic accepts one or two different opponents. Protect always covers its owner
+and the chosen target. Ownership and targets are retained through drag/drop.
+
+Selection and retargeting change no GP. Card Reveal validates targets, commits
+reveal-time effects exactly once, sets `cardsRevealed` and locks card/target
+selections. Returning to the Tactical screen does not unlock an applied reveal.
+A pending Fortune choice can still be confirmed before attacking.
+
+| Card | Card Reveal | After GigaRisk damage |
+| --- | --- | --- |
+| Normal Heal | +2 GP | Normal damage |
+| Rare Heal | +3 GP | Normal damage |
+| Normal Thief | Take up to 1 GP from one opponent | Normal damage |
+| Rare Thief | Take up to 2 GP from one opponent | Normal damage |
+| Epic Thief | Take up to 2 GP per chosen opponent, one or two targets | Normal damage |
+| Epic Reverse | Take up to 1 GP from each opponent | Normal damage |
+| Normal Shield | No GP change | Lose 1 GP instead of 2 |
+| Rare Protect | No GP change | Owner and chosen team avoid damage |
+| Epic Swallow | No GP change | Avoid damage and gain 4 GP |
+| Gardian Unity | Each active participant gains 1 GP | All participants avoid damage |
+| Second Chance | Passive; no manual selection | Restore 1 GP if zero, once globally |
+| Fortune Draw | Confirm a saved offered reward for a later challenge | Never activates the reward in this challenge |
+
+Reverse/Thief transfers use available GP and cannot make a target negative.
+Reveal resolves transfers before Heal/Unity bonuses, in saved team/card order.
+Damage applies −2 GP with defenses, then evaluates automatic Second Chance.
+Swallow retains its bonus alongside protection. New snapshots carry
+`effectTimingVersion: 4` and `revealApplied`; damage reuses the reveal snapshot.
+Stale owned-card lists cannot reuse a consumed Second Chance in another challenge.
+
+Attacks lock per challenge, refresh saved balances and commit GP history before
+publishing the archive. A completed round cannot attack again. Consumed records
+stay for history and are filtered out of future inventory/counts. GigaRisk shows
+waiting before the attack and saved final GP/outcomes afterward. The aligned
+four-column rows show team, final GP, a numeric boom badge (−1 Shield, 0
+Protect/Unity, −2 ordinary damage, +4 Swallow), and card effects. Badge tooltips
+retain defense labels; saved attack calculations are unchanged. GP uses fixed
+icon/number/unit tracks and right-aligned tabular digits across rows.
+
+### Fortune Draw offers and display modes
+
+| Challenge | Base offer |
+| --- | --- |
+| 1 and 2 | 2 Normal + 1 Rare; choose 1 of 3 |
+| 3 | 2 Normal + 1 Rare + 1 Epic; choose 1 of 4 |
+
+Existing rank eligibility applies: ranks 2–3 in Challenge 3 do not receive the
+Epic slot; ranks 4–5 receive eligible Normal options. Offers contain distinct
+actions across rarities and exclude Fortune Draw itself and owned designs.
+Shortages show fewer valid options instead of repeated effects.
+
+Admin always shows all option faces, rarity labels and names. The per-offer
+**Public view: closed cards** checkbox defaults to checked and persists in
+`FortuneChoice.publicClosed`. Uncheck to show all faces publicly; check to show
+backs for unchosen cards. The selected card stays open in either mode. Toggle
+changes synchronize with the public display and survive reload; they do not
+reroll options, change the selection, alter GP or create another reward.
+
+Admin or public can choose exactly one saved option. The choice is final and
+locks the option buttons. Settlement rechecks physical availability, source
+ownership/consumption, rarity eligibility, unique design and capacity, then
+atomically creates its TeamCard. `rewardId` prevents duplicate grants across
+reload/reveal/attack. The gift is marked Available next challenge and excluded
+from current selections and normal ranked-reward quotas. Offers preview copies;
+another operation taking a copy can cause a clear availability error. Completed
+imports never grant again. Old duplicate offers are repaired in pending admin
+views; saved historical GP is retained.
+
+### Card presentation
+
+Card Reveal retains equal-height card art and target captions. Effect-specific
+animations support reduced-motion preferences. The rotating log identifies the
+current effect and uses per-card saved `cardEffects` where available. Hover/focus
+pins a card and replays/previews affected GP; leaving, blur or Escape restores
+saved balances. Hover never saves or applies effects. Unknown historical amounts
+fall back to action names rather than fabricated GP changes. Triggered passives
+appear in history; untriggered Second Chance remains available.
+
+## Game behavior
+
+### Image Decode
+
+Image Decode has 11 banking clues. Its current solo and team question screens have 15-second deadlines. Team runs
+select up to five participants and randomize initial order through roulette.
+
+- Self: +10 correct, −10 wrong/expired.
+- Passed question: recipient +5/giver −10 if correct; both −5 if wrong/expired.
+- Correct advances. Wrong/expired keeps the question for the next eligible team.
+  All-team failure also advances.
+- Scores are persisted to ChallengePoint. Final completion saves all participants
+  and transitions host/projector to their scoreboard. Early End run cancels.
+- Solo has no selected team, so its score must be entered manually.
+
+Shared run state and deadlines survive public reload. Question content is
+upserted from `src/data/reference-question-bank.json`; the importer retains
+source slide numbers and answer positions. There are 52 stored reference rows
+(11 Image Decode, 21 retained Flipping, 20 Jaw). Image Decode question 11 uses
+the KDO clue and answer Lapor.
+
+### Jaw of Risk
+
+The routed game is a fourteen-tooth bite toy without questions, scoring or a
+question timer. `CROCODILE_TEETH` is 14 and `CROCODILE_BITE_MS` is 4440, matching
+the supplied GIF. Safe teeth remain pressed until the bite finishes, then a
+new round chooses a different biting tooth. Round storage includes the last
+press timestamp so both windows briefly render the same press hand.
+
+Only admin can activate teeth. Public buttons are disabled and input handlers
+also guard their controlling role. `useCrocodileHover` publishes normalized
+1920 x 1080 pointer coordinates and the hovered tooth over a challenge-specific
+BroadcastChannel, falling back to storage events. A newly connected display
+requests the current pointer. Leaving the tooth/window or unmounting the admin
+clears the remote hand and highlight; public pointer events do not publish.
+
+The source assets in `public/ui/jaw-of-risk/` provide the proportional background,
+fourteen full/pressed tooth pairs, left/right hands and all four MP3 cues. Sounds
+play only in the controlling window. Small MP3s are precached; the 63 MB GIF uses
+Workbox CacheFirst runtime caching after a controlled load. The twenty retained
+Jaw questions are reference-bank content only.
+
+### Flipping Connect
+
+The routed game is matching-only: twenty cards, ten pairs, no Q&A, score changes
+or turn timer. Only team runs are available. Play immediately opens or reuses the public matching board, and starting a run publishes the game as the current display so a previous public feature cannot replace it. The admin clicks a
+participating team name above the board to select whose turn it is;
+`manualTeamSelection` prevents automatic rotation. Mismatches close after a
+short delay. A selected team's matched pairs are identified on the shared
+board. All ten pairs complete the activity on admin and public screens; it does
+not auto-save CP or open reward screens. Live GP lookup includes inactive teams
+so an existing participant keeps its name and balance after deactivation. Waiting
+boards use the active roster; selecting new participants still excludes inactive
+teams. Starting a run awaits display publication and reports popup failures
+without publishing an incomplete run. Legacy saved matching runs ignore old
+turn deadlines so the removed timer cannot block an active game.
+
+Urutan Main is a separate stored order. Its click/shuffle controls work on admin
+and public routes and do not determine Flipping's manually chosen team.
+
+## Views, references and synchronization
+
+See the complete [route table](./readme.md#routes-and-public-displays).
+`publicDisplay.ts` supports scoreboard, leaderboard, heart-of-awareness, podium,
+rewards, tactical, card-reveal, turn-order, gigarisk, timer, presentation,
+flipping-connect and jaws-of-risk. Presentation maps to `/`; the last two stages map to `/play/word-assembly/:challengeId` and
+`/play/jaws-of-risk/:challengeId`. Global routes have no challenge suffix.
+Feature navigation opens or reuses a separate public window; existing public
+pages refresh saved database state before following the published transition.
+Play awaits successful publication before leaving the challenge list, preserving
+popup errors and retry controls. Starting Flipping Connect republishes its stage
+before sharing the run. The saved stage also restores the correct feature after
+a public reload instead of replaying an earlier scoreboard/leaderboard command.
+
+| Screen | Visual reference |
+| --- | --- |
+| Urutan Main | Visual Guide slide 1 |
+| Scoreboard | Visual Guide slide 4 layout and `Page_Score_Board.jpeg` GP footer |
+| Serangan GigaRisk | Visual Guide slide 8 |
+| Leaderboard | Restored Visual Guide slide 9, 16:9 seven-column live table without CP labels |
+| Heart of Awareness | `heart-of-awareness-no-gp.png`, derived from `Heart_of_Awareness.png`, full 16:9 canvas and five live GP plaques |
+| Podium | `podium-no-gp.png`, based on Visual Guide slide 10, plus live rank and GP icons |
+| Tactical Phase / Card Reveal | `tactical-slide-05-reference.png` / `tactical-slide-06-reference.png` |
+| Flipping board | `flipping-slide-03-reference.png` and matching card faces |
+
+The Visual Guide is `public/ui/Visual_Guide_App-Game_5.pptx`; extracted slide
+assets are used as backgrounds with dynamic HTML values. Admin feature navigation
+opens the associated public screen; separate public-view buttons are removed.
+Rewards and Tactical Phase actions publish their selected challenge while
+preserving tactical choices and reveal state. Timer uses its own named window,
+so other feature changes leave it visible and running. Podium supports three prize amounts
+stored locally and mirrored publicly. GP ledger is admin-only.
+Scoreboard uses `Page_Score_Board.jpeg` and overlays a five-column GP strip below
+the ranking box. Names, team colours and live GP come from active Team records;
+participating teams appear first. Admin/public scoreboard share this component.
+
+`HeartAwarenessView.tsx` shares `useTeams` and its team/GP transaction refresh
+events. Admin/public routes are `/admin/heart-of-awareness` and
+`/heart-of-awareness`; public display commands support the new stage. Each
+canvas contains five active teams, ordered green/red/yellow/blue/pink, followed
+by custom teams. Names and GP replace reference samples inside the original
+plaques. Shared `GPShield` (also used by `GPMark`) renders the supplied
+`gp-shield.png` across every screen with a GP shield. Rewards and Tactical/Card
+Reveal no longer draw SVG shields. Heart of Awareness and podium backgrounds
+have embedded icons removed so their shields use the same live image asset. Additional teams use subsequent canvases; empty slots use a dash.
+Artwork remains complete at 16:9 on desktop and mobile.
+
+Podium value overlays scale typography by name/GP/prize length and remain within
+the reference plaques. Long names have ellipsis/tooltips. `podium-no-gp.png`
+retains the black jilbab and removes fixed medals, GP icons and prize placeholder text.
+Every occupied slot renders its entire `Icon-Rank_<rank>.png` using the actual
+GP/CP rank; ties therefore share both the number and the medal colour. Badge
+frames sit above the name plaques, and numeric/prize typography stays within
+the illustrated panels. Prize inputs use three columns and stack on narrow screens.
+Name and GP overlays are transparent; text sits directly on the original plaque
+surfaces without adding rectangular backgrounds over the frames.
+
+Card Reveal uses aligned grid rows for header, caption, proportional card art,
+status, effects and GP. Effect text wraps; excessive content scrolls within the
+effects area. Waiting/status labels use centered single-line type sized to stay
+inside their badge at desktop, tablet and phone widths; layout tests check both
+horizontal and vertical text containment.
+Card Reveal reserves matching caption space in every card slot, keeping targeted and non-targeted images proportional and aligned. Tactical and ranking card backs use contain fit.
+Leaderboard includes pending assignment effects before damage and uses live
+available TeamCard counts for Sisa Kartu, including teams without scored entries.
+Long team pills truncate with an ellipsis, and admin headings/toolbars wrap.
+Flipping team labels also truncate within their buttons. Leaderboard effect
+lists scroll within a bounded container so long descriptions do not enlarge rows.
+Challenge artwork scales to viewport width; admin toolbars stay outside
+artwork. Shared layout supports narrow and wide screens. Team labels follow the
+team's colour identity; medal artwork follows the actual rank. `index.css`/`layout.css` supply the app theme;
+reference, tactical, flipping, rewards and podium styles handle each screen.
+`GPShield.tsx` and `gp-shield.css` own the common decorative GP mark; each
+screen supplies only its placement and dimensions.
+
+Admin team cards use a separate `.team-card__status` group. Below 680 pixels,
+badges occupy their own row and the three action buttons share equal columns.
+Tactical Phase uses a native, keyboard-accessible `details`/`summary` panel for
+card timing and targeting rules, keeping the challenge controls close to the
+page heading. Challenge team-selection labels have a minimum 44-pixel click
+area, contained text, selected-state colour and visible keyboard focus, including
+Flipping Connect. Shared spacing, borders and focus styling live in `layout.css`.
+
+### Main Presentation and standalone timer
+
+`/` is the main public presentation; `/presentation` redirects there.
+`/admin/presentation` controls six supplied images and a seventh live Image Decode
+Scoreboard slide immediately after Image Decode — Cara Bermain. Slides synchronize
+with the shared projector and survive reload. Previous/Next, selector, thumbnails,
+keyboard navigation and fullscreen preview are supported. The scoreboard switches
+from alphabetical names to rank badges once all five scores are recorded.
+
+The independent `/admin/timer` controls `/timer`. Its 16:9 runtime artwork is
+`public/ui/presentation-timer-clean.png`, based on `presentation-timer-no-banner.png`; it displays countdown, challenge and
+active team with a Giliran marker. Duration is 1–5999 seconds, default 900.
+Absolute deadlines survive navigation/reload, with pause/reset support. Timer
+notifications remain isolated from other public-feature navigation.
+
+## Validation record
+
+Pre-push verification on **2026-10-20 (WIB)** ran against the current repository:
+
+| Check | Result |
+| --- | --- |
+| ESLint | Passed |
+| TypeScript | Passed |
+| Unit/database suite | 260 tests passed across 23 files |
+| Complete browser suite | 57 scenarios passed; no skipped or flaky scenarios in the final run |
+| Production/PWA build | Passed through Playwright's build-and-preview workflow |
+| Markdown | Local links, anchors, referenced source paths, table structure and fenced blocks checked |
+
+The browser suite covers admin-only Reward Claim choices, open admin/closed public
+cards, synchronized hover/focus pointers, immediate pointer removal on click,
+forbidden cursors after selection/reload, Normal/False Hope settlement, Fortune
+Draw, reveal/attack timing, GP persistence, rankings, all three games, presentation,
+timer, public-window reuse, offline reload and responsive admin/public routes.
+Reward/GP alignment includes 390, 768, 1280 and 1920-pixel checks.
+
+Initial checks exposed an intermittent page-readiness timeout and a timer assertion
+that let its simulated clock keep advancing. The layout check now explicitly waits
+for application readiness and names the route in failures; the timer test pauses
+both clocks at matching times before comparing the saved countdown. The complete
+57-scenario suite then passed without retries. These changes stabilize test setup
+without changing game timing or scoring.
+
+Run application checks from the repository root:
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run test:e2e -- --workers=2
+npm run build
+```
+
+Playwright builds production assets before starting its preview server. Chromium
+is required (`npx playwright install chromium`); custom installations can use
+`PLAYWRIGHT_BROWSERS_PATH`. Tests use isolated browser contexts and saved fixtures.
+Coverage includes game rules, CRUD, rankings, deck migration/rarities, blind draws,
+reveal timing, passive revival, cross-tab navigation, layout, timers and offline
+reload. Passing these checks covers the implemented scenarios, not every possible
+device or simultaneous administrative edit.

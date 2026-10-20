@@ -473,7 +473,10 @@ have a different database or older cached application code.
 Startup imports historical GP only for team ids that still exist. Missing team
 entries remain in their original archive and do not block startup or change the
 GP of newly seeded teams. Existing participants are imported once. New attacks
-still reject missing participants and roll back their transaction.
+still reject missing participants and roll back their transaction. Regression
+tests also delete a real team and recreate the same name, ensuring its old GP
+never transfers to the replacement. Browser checks recreate SQLite while keeping
+localStorage, open two tabs together and reload both to detect startup regressions.
 
 Use the updated application build on the affected laptop, retaining the same
 URL/profile. For an installed PWA, open it online and reload after the updated
@@ -517,38 +520,29 @@ For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
 
-Verification on **2026-10-20 (WIB)** includes the full-suite baseline and latest
-startup-recovery follow-up:
+Latest full verification on **2026-10-20 (WIB)**:
 
 | Check | Result |
 | --- | --- |
-| ESLint | Passed |
-| TypeScript | Passed |
-| Latest unit/database suite | 263 tests passed across 24 files, including 3 new startup/archive cases |
-| Complete browser baseline | 57 scenarios passed before the startup-recovery change; no skips or flaky results in that final run |
-| Startup-recovery browser follow-up | 8 targeted scenarios passed, including fresh-database resolution/strike archives, reload, GP ledger, reward choices, CRUD and offline startup |
+| ESLint and TypeScript | Passed |
+| Complete unit/database suite | 264 tests passed across 24 files |
+| Complete browser suite | 60 scenarios passed, with no skips, failures or flaky results |
 | Production/PWA build | Passed through Playwright's build-and-preview workflow |
-| Markdown | Local links, anchors, referenced source paths, table structure and fenced blocks checked |
+| Markdown | Local links, anchors and fenced blocks checked |
 
-The startup error was reproduced by two failing missing-team archive tests before
-the fix. Both now pass, alongside live-attack rollback coverage. Historical import
-skips missing ids without deleting archives or applying their GP to new teams.
-The startup follow-up is targeted; the complete browser suite was not rerun after
-this narrowly scoped recovery change.
+Startup regression coverage includes missing archived team ids, mixed existing and
+missing participants, idempotent imports, real team deletion followed by a new
+team with the same name, strict live-attack rollback, both completed `resolution`
+and legacy `strike` archives, SQLite recreation with localStorage retained, and
+two tabs opening/reloading together. Recovery must preserve original history and
+valid balances without attaching old GP to replacement teams.
 
-The browser suite covers admin-only Reward Claim choices, open admin/closed public
-cards, synchronized hover/focus pointers, immediate pointer removal on click,
-forbidden cursors after selection/reload, Normal/False Hope settlement, Fortune
-Draw, reveal/attack timing, GP persistence, rankings, all three games, presentation,
-timer, public-window reuse, offline reload and responsive admin/public routes.
-Reward/GP alignment includes 390, 768, 1280 and 1920-pixel checks.
-
-Initial checks exposed an intermittent page-readiness timeout and a timer assertion
-that let its simulated clock keep advancing. The layout check now explicitly waits
-for application readiness and names the route in failures; the timer test pauses
-both clocks at matching times before comparing the saved countdown. The complete
-57-scenario suite then passed without retries. These changes stabilize test setup
-without changing game timing or scoring.
+The complete browser run also checks reward selection/cursors, Fortune Draw,
+reveal/attack timing, GP persistence, rankings, all three games, presentation,
+timer, public-window reuse, offline reload and responsive layouts. It replaces
+the earlier 57-scenario baseline and targeted startup follow-up as the latest
+full browser verification. These regression cases run as part of the normal
+`npm test` and `npm run test:e2e` suites.
 
 Run application checks from the repository root:
 

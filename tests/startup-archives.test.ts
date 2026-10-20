@@ -49,3 +49,23 @@ it('still rejects a new attack with a missing team and rolls back valid particip
   expect((await team.reload()).total_gp).toBe(5)
   expect(await GPTransaction.count({ where: { challenge: challenge.id, category: 'attack' } })).toBe(0)
 })
+
+it('keeps history after real team deletion and never applies old GP to a replacement with the same name', async () => {
+  const survivor = await TeamController.create(crypto.randomUUID())
+  const removed = await TeamController.create(crypto.randomUUID())
+  const name = removed.name
+  const challenge = await Challenge.create({ name: crypto.randomUUID() })
+  const resolution: TacticalResolution = { resolvedAt: 4, teams: [result(survivor.id), result(removed.id)] }
+  publishTacticalPhase(challenge.id, { choices: {}, revealed: true, resolution })
+  await recordGigaRiskGP(challenge.id, resolution)
+  expect(await TeamController.remove(removed.id)).toBe(true)
+  const replacement = await TeamController.create(name)
+  expect(replacement.id).not.toBe(removed.id)
+  for (let run = 0; run < 3; run++) await initializeGPTransactions()
+  expect((await survivor.reload()).total_gp).toBe(3)
+  expect((await replacement.reload()).total_gp).toBe(5)
+  const ledger = await GPTransaction.findAll({ where: { challenge: challenge.id, category: 'attack' } })
+  expect(ledger).toHaveLength(2)
+  expect(ledger.find((row) => row.source_key === `attack:${challenge.id}:${removed.id}`)?.team).toBeNull()
+  expect(readTacticalPhase(challenge.id).resolution).toEqual(resolution)
+})

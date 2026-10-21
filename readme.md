@@ -54,7 +54,10 @@ Reward Claim shows each team's earned cards and GP for the selected challenge.
 Cards retain their original left starting position with consistent spacing; they
 are not centered or stretched across the row. Fixed card slots preserve artwork
 proportions, and separate GP tracks keep icons and values aligned. The public
-challenge name is a read-only badge; the admin selects the challenge.
+challenge name is a read-only badge; the admin selects the challenge. Rank badges
+fit inside their colored rows and the illustrated frame. Public Reward Claim
+uses a concrete 16:9 wrapper bounded by both viewport width and height, preserving
+the full artwork on short laptop screens.
 
 Rank 5 receives two Normal options and one False Hope (Zonk), shuffled and saved
 once. Only the admin can choose, with all three faces visible in the admin view.
@@ -428,7 +431,7 @@ sized action buttons. Tactical Phase keeps its selection guidance short; expand
 **Card timing and targeting rules** for full effect and targeting instructions.
 Challenge team selectors use full-width click areas with selected and keyboard
 focus states, including Flipping Connect.
-UI checks cover all current routes at 1280, 768 and 390 pixels, including both
+UI checks cover all current routes at 1366×600, 1280×800, 768×800 and 390×844, including both
 Heart of Awareness views, the standalone timer, direct Image Decode and Jaw of
 Risk pages and GP transactions.
 
@@ -522,6 +525,14 @@ localStorage intact; clearing site data would remove local scores and history.
 For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
+
+Reward Claim frame follow-up on **2026-10-21 (WIB)**: all 11 targeted browser
+scenarios passed. Route checks cover admin/public pages at 1366×600, 1280×800,
+768×800 and 390×844; public canvases must fit both viewport axes. Populated reward
+rows are checked through 1920 pixels, including medals, cards, GP, choice captions
+and the mirrored hand cursor. Both reward outcomes passed a final cursor-bound
+recheck. ESLint, TypeScript and production/PWA builds passed. These are targeted
+UI checks; the full-suite baseline below was not rerun for this CSS change.
 
 Timer team-selection follow-up on **2026-10-21 (WIB)**: all 4 timer browser
 scenarios passed, including click/keyboard selection, dropdown/public synchronization

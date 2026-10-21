@@ -1,6 +1,7 @@
 import {expect,test} from '@playwright/test'
 import {challengeOne,readDatabase,seedCards} from './support/cardFixture'
 import type {BlindOption} from '../src/services/blindRewards'
+import {expectRewardContentsWithinFrame} from './support/layoutBounds'
 for(const zonk of [true,false]) test(`admin chooses an open rank 5 card and public mirrors cursor and result (Zonk=${zonk})`,async({page,context})=>{
  await seedCards(page,challengeOne)
  await page.goto(`/admin/scoreboard/${challengeOne}`)
@@ -14,6 +15,7 @@ for(const zonk of [true,false]) test(`admin chooses an open rank 5 card and publ
  const projector=await context.newPage();await projector.goto(`/rewards/${challengeOne}`)
  const draw=projector.getByLabel('Rank 5 blind draw Pink',{exact:true})
  await expect(draw.getByAltText('Kartu tertutup',{exact:true})).toHaveCount(3)
+ await expectRewardContentsWithinFrame(projector)
  await expect(draw.getByAltText('False Hope',{exact:true})).toHaveCount(0)
  for (const button of await draw.getByRole('button').all()) await expect(button).toBeDisabled()
  await page.goto(`/admin/rewards/${challengeOne}`)
@@ -26,6 +28,8 @@ for(const zonk of [true,false]) test(`admin chooses an open rank 5 card and publ
  await expect(draw.getByRole('img',{name:'Kursor admin · menyorot kartu',exact:true})).toBeVisible()
  await expect(draw.locator('.is-pointed')).toHaveCount(1)
  await expect(draw.getByRole('button').nth(chosenIndex)).toHaveClass(/is-pointed/)
+ await expectRewardContentsWithinFrame(projector)
+ await expectRewardContentsWithinFrame(page)
  await expect(draw.getByAltText('Kartu tertutup',{exact:true})).toHaveCount(3)
  await page.mouse.move(0,0)
  await expect(draw.locator('.reward-pointer')).toHaveCount(0)
@@ -46,8 +50,12 @@ for(const zonk of [true,false]) test(`admin chooses an open rank 5 card and publ
   await expect(button).toHaveCSS('cursor','not-allowed')
  }
  await projector.setViewportSize({width:1280,height:720})
- for (const width of [390,768,1280,1920]) {
-  await projector.setViewportSize({width,height:Math.round(width*9/16)})
+ for (const width of [390,768,1280,1366,1920]) {
+  const height=width===1366?600:Math.round(width*9/16)
+  await projector.setViewportSize({width,height})
+  await page.setViewportSize({width,height})
+  await expectRewardContentsWithinFrame(projector)
+  await expectRewardContentsWithinFrame(page)
   expect(await projector.locator('.reward-stage__row').evaluateAll((rows)=>rows.every((row)=>{
    const region=row.getBoundingClientRect()
    const cells=[...row.querySelectorAll('.reward-stage__team,.reward-stage__earned,.reward-stage__gp')].map((cell)=>cell.getBoundingClientRect())

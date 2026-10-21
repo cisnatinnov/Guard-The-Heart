@@ -1,8 +1,8 @@
 .app--public:has(.reward-stage) { width: 100%; max-width: none; min-height: 100dvh; margin: 0; padding: 0; background: #102b42; }
-.reward-public { display: contents; }
+.reward-public { display:block; width:min(100vw,177.777778dvh); min-width:0; }
 .app--public:has(.reward-stage) .app__main { display: grid; min-height: 100dvh; place-items: center; }
-.reward-stage { position: relative; width: min(100%, 177.777778dvh); aspect-ratio: 16 / 9; container-type: inline-size; isolation: isolate; color: #080808; font-family: Arial, sans-serif; }
-.reward-stage__art { display: block; width: 100%; height: 100%; }
+.reward-stage { position: relative; width:100%; aspect-ratio: 16 / 9; container-type: inline-size; isolation: isolate; overflow:hidden; color: #080808; font-family: Arial, sans-serif; }
+.reward-stage__art { display: block; width: 100%; height: 100%; object-fit:contain; }
 .reward-stage::before { content: ''; position: absolute; left: 4.8%; top: 20.4%; width: 91.4%; height: 70.7%; background: #fff8e5; }
 .reward-stage__toolbar { position: absolute; z-index: 2; right: 2%; top: 2%; }
 .reward-stage__challenge select { display: block; max-width: 22cqw; padding: .45cqw .8cqw; border: .12cqw solid #ed8e18; border-radius: .6cqw; background: #fff7e7; color: #5d230b; font: 700 1.1cqw/1.3 Arial, sans-serif; }
@@ -13,8 +13,8 @@
 .reward-stage__row--biru { --row-fill: #d1e2e6; --team-fill: #8abed8; --row-border: #a7cbdc; }
 .reward-stage__row--kuning { --row-fill: #feebc3; --team-fill: #fad794; --row-border: #ffda88; }
 .reward-stage__row--pink { --row-fill: #fcd8e6; --team-fill: #f5a4c6; --row-border: #efa7c4; }
-.reward-stage__row::before { content: ''; position: absolute; left: 9.8%; top: 0; width: 85.95%; height: 100%; border: .1cqw solid var(--row-border); border-radius: .8cqw; background: var(--row-fill); }
-.reward-stage__medal { position: absolute; left: 4.6875%; top: -5.8%; width: 10.4167%; height: 108.5%; object-fit: contain; }
+.reward-stage__row::before { content: ''; position: absolute; left: 4.8%; top: 0; width: 90.95%; height: 100%; border: .1cqw solid var(--row-border); border-radius: .8cqw; background: var(--row-fill); }
+.reward-stage__medal { position: absolute; left: 5.6%; top: 5%; width: 8.8%; height: 90%; object-fit: contain; }
 .reward-stage__team { position: absolute; left: 18.12%; top: 23%; width: 15.8%; height: 50%; display: block; align-content: center; padding-inline: .8cqw; border-radius: .55cqw; overflow: hidden; background: var(--team-fill); font: 700 2.05cqw/1.2 Arial, sans-serif; white-space: nowrap; text-overflow: ellipsis; }
 .reward-stage__earned { position: absolute; left: 37%; top: 3%; width: 40%; height: 94%; display: flex; align-items: center; justify-content: flex-start; gap: .8cqw; padding: 0 2cqw; background: var(--row-fill); }
 .reward-stage__card { height: 100%; aspect-ratio: 1040 / 1500; flex: 0 0 auto; }
@@ -35,6 +35,6 @@
 .blind-reward__card img,.blind-reward__card .card-art { display:block; width:100%; height:100%; object-fit:contain; margin:0; }
 .reward-stage .blind-reward__card:is(:focus-visible,:hover):not(:disabled), .reward-stage .blind-reward__card.is-pointed { outline:.18cqw solid #eead20; outline-offset:.2cqw; }
 .reward-stage .blind-reward__card.is-open { outline:.18cqw solid #07886d; outline-offset:.2cqw; animation:blind-card-open .7s ease-out; }
-.reward-pointer { position:absolute; z-index:5; right:-1.5cqw; bottom:-.5cqw; width:2.2cqw; height:2.75cqw; pointer-events:none; filter:drop-shadow(0 .1cqw .12cqw #0006); }
+.reward-pointer { position:absolute; z-index:5; right:-1cqw; bottom:.1cqw; width:2.2cqw; height:2.75cqw; pointer-events:none; filter:drop-shadow(0 .1cqw .12cqw #0006); }
 @keyframes blind-card-open { from {transform:rotateY(90deg);opacity:.3} to {transform:rotateY(0);opacity:1} }
 @media (prefers-reduced-motion:reduce) { .blind-reward__card.is-open {animation:none} }

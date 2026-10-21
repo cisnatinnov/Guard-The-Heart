@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { expectRewardContentsWithinFrame } from './support/layoutBounds'
 
-for (const width of [1280, 768, 390]) {
+for (const width of [1366, 1280, 768, 390]) {
   test(`public and admin layouts fit a ${width}px viewport`, async ({ page }) => {
-    await page.setViewportSize({ width, height: width === 390 ? 844 : 800 })
+    const height = width === 1366 ? 600 : width === 390 ? 844 : 800
+    await page.setViewportSize({ width, height })
     await page.goto('/admin/gp-transactions')
     await expect(page.getByRole('table', { name: 'Transaksi GP' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
@@ -15,6 +17,7 @@ for (const width of [1280, 768, 390]) {
         const artwork = await page.locator('.reward-stage').boundingBox()
         expect(toolbar && artwork && toolbar.y + toolbar.height <= artwork.y).toBeTruthy()
       }
+      if (route === '/admin/rewards' || route === '/rewards') await expectRewardContentsWithinFrame(page)
       if (route === '/card-reveal') {
         const statuses = page.locator('.tactical-stage__status')
         await expect(statuses).toHaveCount(5)
@@ -24,7 +27,11 @@ for (const width of [1280, 768, 390]) {
         const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage, .main-presentation-stage').first()
         await expect(stage).toBeVisible()
         const bounds = await stage.boundingBox()
-        expect(bounds?.width).toBeGreaterThan(width * .85)
+        expect(bounds?.width).toBeGreaterThan(Math.min(width, height * 16 / 9) * .85)
+        expect(bounds!.x).toBeGreaterThanOrEqual(-1)
+        expect(bounds!.y).toBeGreaterThanOrEqual(-1)
+        expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width + 1)
+        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height + 1)
       }
       await page.screenshot({ path: `test-results/ui-${width}-${route.replaceAll('/', '-') || 'home'}.png`, fullPage: route.startsWith('/admin') })
     }

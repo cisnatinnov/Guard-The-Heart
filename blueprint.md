@@ -195,7 +195,10 @@ its `is-open` outline without a persistent hand cursor. Reduced-motion preferenc
 disable the card-opening animation.
 
 `rewards.css` retains the original left-positioned card groups with fixed gaps;
-card art uses contain fit. Team labels, earned-card areas and GP tracks occupy
+card art uses contain fit. Rank badges use positive in-row offsets and fit within
+the colored row backgrounds. A concrete `.reward-public` wrapper uses
+`min(100vw, 177.777778dvh)` so the whole 16:9 artwork fits short screens; the
+inner stage has bounded overflow. Team labels, earned-card areas and GP tracks occupy
 separate columns. The public challenge name is a read-only badge; the admin
 challenge selector publishes the chosen reward screen.
 
@@ -456,6 +459,14 @@ or keyboard activation publishes a fresh `readEventTimer()` snapshot with only
 The dropdown, active-team highlight and Giliran marker synchronize across tabs.
 
 ## Validation record
+
+Reward Claim frame follow-up on **2026-10-21 (WIB)**: all 11 targeted browser
+scenarios passed. Route checks cover admin/public pages at 1366×600, 1280×800,
+768×800 and 390×844; public canvases must fit both viewport axes. Populated reward
+rows are checked through 1920 pixels, including medals, cards, GP, choice captions
+and the mirrored hand cursor. Both reward outcomes passed a final cursor-bound
+recheck. ESLint, TypeScript and production/PWA builds passed. These are targeted
+UI checks; the full-suite baseline below was not rerun for this CSS change.
 
 Timer team-selection follow-up on **2026-10-21 (WIB)**: all 4 timer browser
 scenarios passed, including click/keyboard selection, dropdown/public synchronization

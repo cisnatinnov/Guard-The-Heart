@@ -378,8 +378,11 @@ slides. Admins configure 1–5999 seconds and can start, pause or reset the time
 Its deadline is saved locally, so the countdown continues across page changes and
 reloads. `/timer` is a read-only 16:9 display with the selected challenge,
 active teams and a Giliran marker. Choose the challenge and active team in the
-timer controls; those selections survive pause, reset and reload and synchronize
-with the public display. The runtime artwork is `presentation-timer-clean.png`,
+timer controls, or click a team name directly on the admin timer artwork. Team
+buttons also support keyboard activation and reflect the active selection. Changing
+teams updates the Giliran marker and dropdown without restarting the countdown;
+selections survive pause, reset and reload and synchronize with the read-only
+public display. The runtime artwork is `presentation-timer-clean.png`,
 based on `presentation-timer-no-banner.png`, with live text and team panels.
 Main Presentation is a separate feature at `/admin/presentation`; its public
 slideshow is the home page `/`, including the live Scoreboard after the rules.
@@ -519,6 +522,11 @@ localStorage intact; clearing site data would remove local scores and history.
 For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
+
+Timer team-selection follow-up on **2026-10-21 (WIB)**: all 4 timer browser
+scenarios passed, including click/keyboard selection, dropdown/public synchronization
+and unchanged running deadlines. ESLint, TypeScript and production/PWA build passed.
+The full-suite results below remain the baseline; this UI change used targeted checks.
 
 Latest full verification on **2026-10-20 (WIB)**:
 

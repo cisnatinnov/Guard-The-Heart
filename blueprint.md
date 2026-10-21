@@ -449,7 +449,18 @@ active team with a Giliran marker. Duration is 1–5999 seconds, default 900.
 Absolute deadlines survive navigation/reload, with pause/reset support. Timer
 notifications remain isolated from other public-feature navigation.
 
+`EventTimerDisplay` receives `admin` from `EventTimerView`. Admin team names are
+native buttons with `aria-pressed`; public names remain display-only spans. Click
+or keyboard activation publishes a fresh `readEventTimer()` snapshot with only
+`activeTeamId` replaced. Duration, remaining time, label and deadline are retained.
+The dropdown, active-team highlight and Giliran marker synchronize across tabs.
+
 ## Validation record
+
+Timer team-selection follow-up on **2026-10-21 (WIB)**: all 4 timer browser
+scenarios passed, including click/keyboard selection, dropdown/public synchronization
+and unchanged running deadlines. ESLint, TypeScript and production/PWA build passed.
+The full-suite results below remain the baseline; this UI change used targeted checks.
 
 Latest full verification on **2026-10-20 (WIB)**:
 

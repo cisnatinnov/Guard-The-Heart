@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTeams } from '../hooks/useTeams'
-import { timerRemaining, readEventTimer, subscribeEventTimer } from '../services/eventTimer'
+import { timerRemaining, readEventTimer, subscribeEventTimer, publishEventTimer } from '../services/eventTimer'
 
-export function EventTimerDisplay() {
+export function EventTimerDisplay({ admin = false }: { admin?: boolean }) {
   const { teams } = useTeams()
   const [timer, setTimer] = useState(readEventTimer)
   const [now, setNow] = useState(Date.now)
@@ -20,7 +20,10 @@ export function EventTimerDisplay() {
     <h2 className="event-timer__label">{timer.label}</h2>
     <div className="event-timer__teams" role="list" aria-label="Team turns">
       {teams.map((team) => <div key={team.id} role="listitem" className={`event-timer__team${team.id === timer.activeTeamId ? ' is-active' : ''}`} aria-current={team.id === timer.activeTeamId ? 'step' : undefined}>
-        <span className="event-timer__team-name">{team.name.match(/^tim\s/i) ? team.name : `Tim ${team.name}`}</span>
+        {admin ? <button type="button" className="event-timer__team-name" aria-pressed={team.id === timer.activeTeamId}
+          onClick={() => publishEventTimer({ ...readEventTimer(), activeTeamId: team.id })}>
+          {team.name.match(/^tim\s/i) ? team.name : `Tim ${team.name}`}
+        </button> : <span className="event-timer__team-name">{team.name.match(/^tim\s/i) ? team.name : `Tim ${team.name}`}</span>}
         {team.id === timer.activeTeamId && <span className="event-timer__turn">Giliran</span>}
       </div>)}
       {teams.length === 0 && <p className="event-timer__empty">No active teams</p>}

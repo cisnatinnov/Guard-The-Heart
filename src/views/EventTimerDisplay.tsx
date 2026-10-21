@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTeams } from '../hooks/useTeams'
+import { teamColour } from '../services/defaultTeams'
 import { timerRemaining, readEventTimer, subscribeEventTimer, publishEventTimer } from '../services/eventTimer'
 
 export function EventTimerDisplay({ admin = false }: { admin?: boolean }) {
@@ -19,7 +20,7 @@ export function EventTimerDisplay({ admin = false }: { admin?: boolean }) {
     <div className="event-timer__digits" role="timer" aria-label="Time remaining">{display}</div>
     <h2 className="event-timer__label">{timer.label}</h2>
     <div className="event-timer__teams" role="list" aria-label="Team turns">
-      {teams.map((team) => <div key={team.id} role="listitem" className={`event-timer__team${team.id === timer.activeTeamId ? ' is-active' : ''}`} aria-current={team.id === timer.activeTeamId ? 'step' : undefined}>
+      {teams.map((team) => <div key={team.id} role="listitem" className={`event-timer__team team-colour--${teamColour(team.name) ?? 'neutral'}${team.id === timer.activeTeamId ? ' is-active' : ''}`} aria-current={team.id === timer.activeTeamId ? 'step' : undefined}>
         {admin ? <button type="button" className="event-timer__team-name" aria-pressed={team.id === timer.activeTeamId}
           onClick={() => publishEventTimer({ ...readEventTimer(), activeTeamId: team.id })}>
           {team.name.match(/^tim\s/i) ? team.name : `Tim ${team.name}`}

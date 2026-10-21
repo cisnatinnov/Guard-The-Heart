@@ -5,11 +5,11 @@
 .tactical-stage__challenge { position:absolute; z-index:2; top:3.2%; right:3.5%; max-width:39%; padding:.65cqw 1.25cqw; border:.12cqw solid #eac979; border-radius:2cqw; background:linear-gradient(135deg,#fff9e9,#f4dfac); box-shadow:0 .2cqw .6cqw #331b1533; color:#573522; font:700 1.35cqw/1.25 Arial,sans-serif; text-align:center; overflow-wrap:anywhere; }
 .tactical-stage__panel { position:absolute; left:4.4%; top:21%; width:92.2%; height:69.4%; background:#fff7e7; }
 .tactical-stage__team { --fill:#f5ead8; --pill:#e5d3b8; --border:#ddc6a1; position:absolute; left:1.5%; width:97%; top:calc(.8% + var(--slot)*19.75%); height:18.7%; border:.12cqw solid var(--border); border-radius:.7cqw; background:var(--fill); }
-.tactical-colour--merah { --fill:#fac6c3; --pill:#fb7376; --border:#ff8f8e; }
-.tactical-colour--biru { --fill:#d1e2e6; --pill:#8abed8; --border:#a7cbdc; }
-.tactical-colour--kuning { --fill:#feebc3; --pill:#fad794; --border:#ffda88; }
-.tactical-colour--pink { --fill:#fcd8e6; --pill:#f5a4c6; --border:#efa7c4; }
-.tactical-colour--hijau { --fill:#d0efc0; --pill:#8be4a0; --border:#a5df9c; }
+.tactical-colour--merah { --fill:#fac6c3; --pill:var(--team-merah); --border:var(--team-merah); }
+.tactical-colour--biru { --fill:#d1e2e6; --pill:var(--team-biru); --border:var(--team-biru); }
+.tactical-colour--kuning { --fill:#feebc3; --pill:var(--team-kuning); --border:var(--team-kuning); }
+.tactical-colour--pink { --fill:#fcd8e6; --pill:var(--team-pink); --border:var(--team-pink); }
+.tactical-colour--hijau { --fill:#d0efc0; --pill:var(--team-hijau); --border:var(--team-hijau); }
 .tactical-stage__team h2 { position:absolute; margin:0; left:1.5%; top:24%; width:17.2%; height:51%; display:grid; place-items:center; border-radius:4cqw; border:.12cqw solid var(--border); background:var(--pill); font:bold 2.2cqw/1 Arial,sans-serif; }
 .tactical-stage__gp { position:absolute; left:20%; top:24%; width:13%; height:51%; display:flex; align-items:center; justify-content:center; gap:.5cqw; border-radius:4cqw; background:#fff; border:.12cqw solid #acdce5; font:bold 2cqw/1 Arial,sans-serif; }
 .tactical-stage__gp .gp-shield-icon { width:2.6cqw; height:3.25cqw; }

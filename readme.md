@@ -270,6 +270,21 @@ progress and selected teams survive public reload.
 The 21 reference Flipping Connect questions remain seeded for compatibility and
 reference decks; they are not part of the current matching-only screen.
 
+## Team colors
+
+Team identity colors are defined once in `src/styles/team-colors.css` and shared
+by admin/public team badges, reward labels, Tactical Phase/Card Reveal, timer and
+Flipping Connect. Active turns retain the team color and add a turn marker/outline.
+Rows retain their lighter background tints for readable card and effect content.
+
+| Tim | Warna |
+| --- | --- |
+| Merah | `#ff2424` |
+| Biru | `#43b3ff` |
+| Kuning | `#ffd039` |
+| Hijau | `#5aff7d` |
+| Pink | `#ff1585` |
+
 ## Ranking, GP and cards
 
 Challenge rankings use raw game score descending. Scores are stored separately
@@ -525,6 +540,12 @@ localStorage intact; clearing site data would remove local scores and history.
 For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
+
+Team palette follow-up on **2026-10-21 (WIB)**: all 12 targeted browser scenarios
+passed. Exact computed colors were checked on admin/public labels, including
+reordered reward ranks, timer active turns and Flipping Connect. ESLint, TypeScript
+and the production/PWA build passed. The full-suite baseline below was not rerun
+for this presentation change.
 
 Reward Claim frame follow-up on **2026-10-21 (WIB)**: all 11 targeted browser
 scenarios passed. Route checks cover admin/public pages at 1366×600, 1280×800,

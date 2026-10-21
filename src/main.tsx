@@ -6,6 +6,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { App } from './views/App'
 import './styles/index.css'
 import './styles/layout.css'
+import './styles/team-colors.css'
 
 // Auto-updating service worker: a new build is picked up and activated
 // without asking the user, and cached static assets keep the app usable offline.

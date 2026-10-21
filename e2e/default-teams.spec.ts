@@ -22,11 +22,13 @@ test('default teams are locked and reward colours follow teams when ranks change
   const projector = await context.newPage()
   await projector.goto(page.url().replace('/admin/', '/'))
   const colours = { Hijau: 'rgb(208, 239, 192)', Pink: 'rgb(252, 216, 230)', Merah: 'rgb(250, 198, 195)', Biru: 'rgb(209, 226, 230)', Kuning: 'rgb(254, 235, 195)' }
+  const labels: Record<string,string> = { Merah:'rgb(255, 36, 36)', Biru:'rgb(67, 179, 255)', Kuning:'rgb(255, 208, 57)', Hijau:'rgb(90, 255, 125)', Pink:'rgb(255, 21, 133)' }
   for (const surface of [page, projector]) {
     for (const [name, colour] of Object.entries(colours)) {
       const row = surface.getByRole('listitem', { name, exact: true })
       await expect(row.locator('.reward-stage__earned')).toHaveCSS('background-color', colour)
       await expect(row.locator('.reward-stage__team')).toHaveText(name)
+      await expect(row.locator('.reward-stage__team')).toHaveCSS('background-color', labels[name])
       await expect.poll(() => row.evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(colour)
     }
   }

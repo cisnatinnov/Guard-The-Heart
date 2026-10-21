@@ -8,11 +8,11 @@
 .reward-stage__challenge select { display: block; max-width: 22cqw; padding: .45cqw .8cqw; border: .12cqw solid #ed8e18; border-radius: .6cqw; background: #fff7e7; color: #5d230b; font: 700 1.1cqw/1.3 Arial, sans-serif; }
 .reward-stage__rows { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
 .reward-stage__row { --row-fill: #f5ead8; --team-fill: #e5d3b8; --row-border: #ddc6a1; position: absolute; left: 0; width: 100%; top: calc(21.6% + var(--slot) * 13.75%); height: 12.8%; }
-.reward-stage__row--merah { --row-fill: #fac6c3; --team-fill: #fb7376; --row-border: #ff8f8e; }
-.reward-stage__row--hijau { --row-fill: #d0efc0; --team-fill: #8be4a0; --row-border: #a5df9c; }
-.reward-stage__row--biru { --row-fill: #d1e2e6; --team-fill: #8abed8; --row-border: #a7cbdc; }
-.reward-stage__row--kuning { --row-fill: #feebc3; --team-fill: #fad794; --row-border: #ffda88; }
-.reward-stage__row--pink { --row-fill: #fcd8e6; --team-fill: #f5a4c6; --row-border: #efa7c4; }
+.reward-stage__row--merah { --row-fill: #fac6c3; --team-fill:var(--team-merah); --row-border:var(--team-merah); }
+.reward-stage__row--hijau { --row-fill: #d0efc0; --team-fill:var(--team-hijau); --row-border:var(--team-hijau); }
+.reward-stage__row--biru { --row-fill: #d1e2e6; --team-fill:var(--team-biru); --row-border:var(--team-biru); }
+.reward-stage__row--kuning { --row-fill: #feebc3; --team-fill:var(--team-kuning); --row-border:var(--team-kuning); }
+.reward-stage__row--pink { --row-fill: #fcd8e6; --team-fill:var(--team-pink); --row-border:var(--team-pink); }
 .reward-stage__row::before { content: ''; position: absolute; left: 4.8%; top: 0; width: 90.95%; height: 100%; border: .1cqw solid var(--row-border); border-radius: .8cqw; background: var(--row-fill); }
 .reward-stage__medal { position: absolute; left: 5.6%; top: 5%; width: 8.8%; height: 90%; object-fit: contain; }
 .reward-stage__team { position: absolute; left: 18.12%; top: 23%; width: 15.8%; height: 50%; display: block; align-content: center; padding-inline: .8cqw; border-radius: .55cqw; overflow: hidden; background: var(--team-fill); font: 700 2.05cqw/1.2 Arial, sans-serif; white-space: nowrap; text-overflow: ellipsis; }

@@ -3398,11 +3398,11 @@ tbody tr:last-child td {
 .public-ranking--scoreboard .public-ranking__row--5 .public-ranking__team { left:60.5%; }
 .public-ranking--scoreboard .public-ranking__row--4 .public-ranking__points,
 .public-ranking--scoreboard .public-ranking__row--5 .public-ranking__points { left:77.8%; }
-.public-ranking--scoreboard .tactical-colour--merah { --pill:#eb5c60; }
-.public-ranking--scoreboard .tactical-colour--biru { --pill:#42b4f3; }
-.public-ranking--scoreboard .tactical-colour--kuning { --pill:#ffd139; }
-.public-ranking--scoreboard .tactical-colour--pink { --pill:#f71587; }
-.public-ranking--scoreboard .tactical-colour--hijau { --pill:#4eee82; }
+.public-ranking--scoreboard .tactical-colour--merah { --pill:var(--team-merah); }
+.public-ranking--scoreboard .tactical-colour--biru { --pill:var(--team-biru); }
+.public-ranking--scoreboard .tactical-colour--kuning { --pill:var(--team-kuning); }
+.public-ranking--scoreboard .tactical-colour--pink { --pill:var(--team-pink); }
+.public-ranking--scoreboard .tactical-colour--hijau { --pill:var(--team-hijau); }
 .public-ranking--scoreboard .public-ranking__challenge { position:absolute; left:32.4%; top:23.7%; width:35.5%; height:5.7%; display:grid; place-items:center; overflow:hidden; color:white; background:#a20d0b; border:.2cqw solid #581326; border-radius:.8cqw; font:700 1.9cqw/1 Arial,sans-serif; white-space:nowrap; }
 .public-ranking--leaderboard .public-ranking__team { left:15.2%; top:25%; width:11.5%; height:50%; overflow:hidden; border-radius:.35cqw; background:var(--pill,#fad794); color:#15120d; font-size:1.8cqw; text-overflow:ellipsis; }
 .public-ranking__initial-gp { left:33.1%; width:5.3%; color:#8e302d; font-size:2.65cqw !important; }

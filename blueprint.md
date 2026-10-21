@@ -133,6 +133,22 @@ and card source keys prevent repeat entries. `assignmentGP` and `revealApplied`
 prevent reveal effects from being applied again with damage. Team balances and
 ledger rows commit together. There is no arbitrary direct-GP edit screen.
 
+### Shared team palette
+
+`src/styles/team-colors.css`, imported by `src/main.tsx`, owns the five exact team
+hex values. Team pills, reward-name fills and tactical headings consume these
+variables instead of screen-specific approximations. Timer and Flipping Connect
+use `teamColour(name)` classes to select the same palette. Active turns retain
+their identity color and use outlines/Giliran markers. Row fills remain light tints.
+
+| Tim | Warna |
+| --- | --- |
+| Merah | `#ff2424` |
+| Biru | `#43b3ff` |
+| Kuning | `#ffd039` |
+| Hijau | `#5aff7d` |
+| Pink | `#ff1585` |
+
 ## Card pool and ranked rewards
 
 `src/data/card-pool.ts` defines 60 new-deck copies across 12 designs:
@@ -459,6 +475,12 @@ or keyboard activation publishes a fresh `readEventTimer()` snapshot with only
 The dropdown, active-team highlight and Giliran marker synchronize across tabs.
 
 ## Validation record
+
+Team palette follow-up on **2026-10-21 (WIB)**: all 12 targeted browser scenarios
+passed. Exact computed colors were checked on admin/public labels, including
+reordered reward ranks, timer active turns and Flipping Connect. ESLint, TypeScript
+and the production/PWA build passed. The full-suite baseline below was not rerun
+for this presentation change.
 
 Reward Claim frame follow-up on **2026-10-21 (WIB)**: all 11 targeted browser
 scenarios passed. Route checks cover admin/public pages at 1366×600, 1280×800,

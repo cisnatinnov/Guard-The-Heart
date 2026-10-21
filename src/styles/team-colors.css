@@ -1,0 +1,12 @@
+:root {
+  --team-merah:#ff2424;
+  --team-biru:#43b3ff;
+  --team-kuning:#ffd039;
+  --team-hijau:#5aff7d;
+  --team-pink:#ff1585;
+}
+.team-colour--merah { --team-color:var(--team-merah); }
+.team-colour--biru { --team-color:var(--team-biru); }
+.team-colour--kuning { --team-color:var(--team-kuning); }
+.team-colour--hijau { --team-color:var(--team-hijau); }
+.team-colour--pink { --team-color:var(--team-pink); }

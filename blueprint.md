@@ -651,3 +651,17 @@ old matches, reload during preview and switching teams after board completion.
 Application imports use relative paths or package names, while browser shims
 remain configured in Vite. Removing the unnecessary option resolves the editor's
 `baseUrl` deprecation diagnostic without adding `ignoreDeprecations`.
+
+
+### Flipping Connect header spacing (2026-10-22 WIB)
+
+The team row sits higher above the card frame. The Giliran marker has a visible
+gap below its team panel and clearance above the frame. The preview countdown
+sits above the team row with its own gap. The old turn marker embedded in the
+reference artwork is covered so only the live marker appears. Team panel size, colors and card
+positions remain consistent. Admin/public spacing is checked at desktop, tablet
+and phone widths in the existing Flipping Connect browser scenario.
+
+Validation: ESLint passed. All 6 Flipping Connect browser scenarios passed,
+with a final targeted visual recheck of the cleaned header backing and spacing
+on both admin/public views at 1366, 768 and 390 pixels.

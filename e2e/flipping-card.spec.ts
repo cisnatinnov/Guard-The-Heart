@@ -29,6 +29,23 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
     await expect(screen.locator('.tile--matched')).toHaveCount(0)
   }
   await expect(page.locator('.tile').first()).toBeDisabled()
+  for (const screen of [page,projector]) {
+    for (const viewport of [{width:1366,height:768},{width:768,height:1024},{width:390,height:844}]) {
+      await screen.setViewportSize(viewport)
+      const stage = (await screen.locator('.flipping-presentation').boundingBox())!
+      const teams = (await screen.locator('.flipping-presentation__teams').boundingBox())!
+      const turn = (await screen.locator('.flipping-presentation__turn').boundingBox())!
+      const preview = (await screen.getByRole('timer',{name:'Cards preview countdown'}).boundingBox())!
+      expect(teams.y).toBeLessThan(stage.y + stage.height * .065)
+      expect(preview.y).toBeGreaterThanOrEqual(stage.y)
+      expect(preview.y + preview.height).toBeLessThan(teams.y)
+      expect(turn.y - teams.y - teams.height).toBeGreaterThan(stage.width * .005)
+      expect(turn.y + turn.height).toBeLessThan(stage.y + stage.height * .18)
+      const panels = await screen.locator('.flipping-presentation__teams li').evaluateAll((items) => items.map((item) => { const box=item.getBoundingClientRect();return {left:box.left,right:box.right} }))
+      for (let index=1;index<panels.length;index++) expect(panels[index].left-panels[index-1].right).toBeGreaterThan(stage.width * .008)
+    }
+    await screen.setViewportSize({width:1280,height:720})
+  }
   await projector.screenshot({path:'test-results/flipping-initial-preview.png'})
   await page.clock.runFor(1000)
   await page.reload()

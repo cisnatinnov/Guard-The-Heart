@@ -90,7 +90,24 @@ test('Protect and Thief support clicking and direct drops while keeping ownershi
   await expect(protectTarget('Biru')).toHaveAttribute('aria-pressed', 'true')
   await expect(epicTarget('Kuning', 2)).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('.giga-card-actions select')).toHaveCount(0)
-  await page.locator('.giga-card-actions').screenshot({ path: 'test-results/click-and-drop-targets.png' })
+  const ownerPanel = page.locator('.tactical-admin__team').filter({ has: page.getByRole('heading', { name: /^Tim Merah / }) })
+  await expect(ownerPanel.locator('.tactical-targets')).toHaveCount(3)
+  await expect(page.locator('.giga-card-actions .tactical-targets')).toHaveCount(0)
+  await expect(page.locator('.giga-card-actions')).toHaveCount(0)
+  for (const width of [1366, 768, 390]) {
+    await page.setViewportSize({width,height:900})
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
+    const violations = await ownerPanel.evaluate((panel) => {
+      const bounds = panel.getBoundingClientRect()
+      return [...panel.querySelectorAll('.tactical-admin__target-card, .tactical-targets, .tactical-targets button')].filter((node) => {
+        const box = node.getBoundingClientRect()
+        return box.left < bounds.left || box.right > bounds.right || box.top < bounds.top || box.bottom > bounds.bottom
+      }).length
+    })
+    expect(violations).toBe(0)
+    await ownerPanel.screenshot({path:`test-results/tactical-targets-${width}.png`})
+  }
+  await page.setViewportSize({width:1440,height:2400})
   const leaderboard = await page.context().newPage()
   await leaderboard.goto('/leaderboard')
   const redStanding = leaderboard.locator('.ranking-table tbody tr').filter({ hasText: 'Tim Merah' })

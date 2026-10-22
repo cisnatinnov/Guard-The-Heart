@@ -185,8 +185,8 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
           <li><strong>On attack:</strong> Heal, Thief, Reverse and Gardian Unity change GP once on Card Reveal. Selecting or retargeting cards does not change GP. Fortune Draw grants the chosen card for another challenge.</li>
           <li><strong>After damage:</strong> Gardian Unity and Protect prevent damage. Shield reduces damage to −1 GP. Swallow prevents damage and adds +4 GP. Second Chance revives automatically once at 0 GP.</li>
           <li><strong>Shield:</strong> Blocks damage when GigaRisk attacks.</li>
-          <li><strong>Protect target:</strong> Click the card, then its owner or another team below; or drag it onto that team’s selection.</li>
-          <li><strong>Thief target:</strong> Click the card, then an opponent below; or drag it onto an opponent’s selection. Epic Thief accepts one or two different opponents.</li>
+          <li><strong>Protect target:</strong> Select the card, then choose its owner or another team in the owner's panel; or drag it onto that team’s selection.</li>
+          <li><strong>Thief target:</strong> Select the card, then choose an opponent in the owner's panel; or drag it onto an opponent’s selection. Epic Thief accepts one or two different opponents.</li>
           <li><strong>Second Chance:</strong> Passive card; cannot be selected. It activates automatically after damage at 0 GP and is consumed only once.</li>
         </ul>
       </details>
@@ -198,7 +198,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     </div>
     {(actionError || error || teamError) && <p className="alert alert--error" role="alert">{actionError || error || teamError}</p>}
     {phase.cardsRevealed && !resolution && <p className="alert alert--info">Card Reveal selesai. Kartu dan target sudah dikunci. Pilih hadiah Fortune Draw yang belum dibuka, lalu lanjutkan serangan GigaRisk.</p>}
-      {!resolution && revealedCards.length > 0 && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.map(({ team, card }) => { const action = card; const offer = phase.choices[team.id]?.fortune?.[card.id]; const validOffer = !!offer && hasDistinctFortuneEffects(offer.options); return <article key={card.id}>
+      {!resolution && revealedCards.some(({ card }) => isFortuneCard(card)) && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.filter(({ card }) => isFortuneCard(card)).map(({ team, card }) => { const offer = phase.choices[team.id]?.fortune?.[card.id]; const validOffer = !!offer && hasDistinctFortuneEffects(offer.options); return <article key={card.id}>
       <div><strong>Tim {team.name.replace(/^tim\s+/i, '')} · {card.name}</strong><p>{card.effect_action}</p></div>
       {isFortuneCard(card) && <fieldset className="fortune-choices" disabled={busy || loading || teamsLoading || !!resolution}>
         <legend>{validOffer ? `Pilih 1 dari ${offer.options.length} kartu` : 'Fortune Draw'} · tersedia untuk challenge berikutnya</legend>
@@ -218,14 +218,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
             setActionError(null)
             }}><CardTile {...option} /><span>{option.type} · {cardTitleFor(option.name, option.type)}</span></button>)}</div>
       </fieldset>}
-      {Array.from({ length: cardTargetCount(action) }, (_, slot) => <fieldset className="tactical-targets" key={`direct-${slot}`} disabled={locked}>
-        <legend>{isProtectCard(action) ? `Protect team · ${team.name} (owner) is always protected` : 'Steal from team'}{cardTargetCount(action) === 2 ? ` ${slot + 1}${slot === 1 ? ' (optional)' : ''}` : ''}</legend>
-        <div>{allTeams.filter((target) => isProtectCard(action) || target.id !== team.id).map((target) => <button type="button" key={target.id}
-          aria-label={`Assign ${card.name} owned by ${team.name} to ${target.name}${cardTargetCount(action) === 2 ? ` · ${slot + 1}` : ''}`}
-          aria-pressed={selectedCardTargets(phase.choices[team.id], card.id)[slot] === target.id}
-          disabled={selectedCardTargets(phase.choices[team.id], card.id).some((value, index) => index !== slot && value === target.id)}
-          onClick={() => assign(team.id, card.id, target.id, slot)}>{target.name}{target.id === team.id ? ' (owner)' : ''}</button>)}</div>
-      </fieldset>)}
+
     </article>})}</div>}
     {availableTeams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team.name) ?? 'neutral'}`}>
       <header className="tactical-admin__team-header"><h3>Tim {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{resolution ? 'Serangan selesai' : phase.choices[team.id]?.skipped ? 'SKIP' : `${playedIds(team.id).length}/2 selected`}</span></header>
@@ -247,6 +240,19 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
           <p key={card.id}>{isProtectCard(card) ? 'Protected by' : 'Thief target of'} {card.name} · Owner: {owner.name}</p>)}
       </div>
       <button className="ghost" disabled={locked} onClick={() => void saveChoices({ ...phase, choices: { ...phase.choices, [team.id]: { ...phase.choices[team.id], cards: [], skipped: true } } })}>Skip {team.name}</button></div></div>
+      {!resolution && selectedCardsFor(team.id).some((card) => cardTargetCount(card) > 0) && <div className="tactical-admin__targeting" aria-label={`Target assignments for ${team.name}`}>
+        {selectedCardsFor(team.id).filter((card) => cardTargetCount(card) > 0).map((card) => <section className="tactical-admin__target-card" key={card.id} aria-label={`Targets for ${card.name} owned by ${team.name}`}>
+          <h4>{card.name}</h4><p>{card.effect_action}</p>
+      {Array.from({ length: cardTargetCount(card) }, (_, slot) => <fieldset className="tactical-targets" key={`direct-${slot}`} disabled={locked}>
+        <legend>{isProtectCard(card) ? `Protect team · ${team.name} (owner) is always protected` : 'Steal from team'}{cardTargetCount(card) === 2 ? ` ${slot + 1}${slot === 1 ? ' (optional)' : ''}` : ''}</legend>
+        <div>{allTeams.filter((target) => isProtectCard(card) || target.id !== team.id).map((target) => <button type="button" key={target.id}
+          aria-label={`Assign ${card.name} owned by ${team.name} to ${target.name}${cardTargetCount(card) === 2 ? ` · ${slot + 1}` : ''}`}
+          aria-pressed={selectedCardTargets(phase.choices[team.id], card.id)[slot] === target.id}
+          disabled={selectedCardTargets(phase.choices[team.id], card.id).some((value, index) => index !== slot && value === target.id)}
+          onClick={() => assign(team.id, card.id, target.id, slot)}>{target.name}{target.id === team.id ? ' (owner)' : ''}</button>)}</div>
+      </fieldset>)}
+        </section>)}
+      </div>}
     </article>)}
   </section>
   return <section key={`${id}-${resolution?.resolvedAt ?? 'pending'}`} className={`tactical-stage ${reveal ? 'tactical-stage--reveal' : ''}${reveal && resolution ? ' tactical-stage--resolved' : ''}`} aria-label={reveal ? 'Card Reveal' : 'Tactical Phase'}>

@@ -615,7 +615,7 @@ shared separately; styles live in `src/styles/team-gp.css`. Reward Claim shows
 **current team GP**, including later card effects and damage, and labels the
 challenge bonus separately as **Hadiah +N GP**. Cards retain their left alignment.
 Timer and Flipping Connect leave a visible gap above the Giliran marker.
-The empty scoreboard message ìNo entries for this challenge yet.î is removed.
+The empty scoreboard message ‚ÄúNo entries for this challenge yet.‚Äù is removed.
 
 Flipping Connect unmatched pairs remain open for 5 seconds, with a synchronized
 admin/public countdown. Reload does not restart the delay. Matching pairs remain
@@ -628,3 +628,20 @@ Regression coverage includes `tests/matching-close.test.ts`,
 Validation: ESLint and TypeScript passed; all 266 unit tests passed. The full
 63-scenario browser suite and targeted reruns cover the updated panels,
 countdown, reward selection, game flows and responsive admin/public layouts.
+
+
+### Tactical target assignment placement (2026-10-22 WIB)
+
+Thief and Protect target controls now appear inside the card owner's team panel,
+below Owned cards and Selected cards. Each selected targeted card has its own
+labeled section. Protect always includes its owner; Epic Thief retains two
+opponent slots with duplicate targets disabled. Incoming effects remain beside
+the target team's selection. Click and drag-and-drop assignment, reveal locking,
+GP timing and public Card Reveal behavior are preserved. Fortune Draw choices
+remain in their separate offer area. Target sections adapt to narrow screens.
+`e2e/tactical-assignment.spec.ts` checks ownership, click/drop assignment,
+reloading, locked targets and panel bounds at 1366, 768 and 390 pixels.
+
+Validation: ESLint and TypeScript passed. All 5 targeted browser scenarios
+passed across Tactical Phase, click/drop targeting, upgraded cards and Fortune
+Draw, including the responsive target-panel assertions.

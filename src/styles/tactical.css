@@ -183,3 +183,14 @@
 .fortune-reveal__option:not(:disabled):hover {border-color:#087c68;transform:translateY(-.3cqw)}
 .fortune-public-mode {display:flex;align-items:center;gap:.5rem;margin:0 0 .8rem;font-weight:600;}
 .fortune-public-mode input {width:auto;min-height:0;margin:0;}
+
+/* Keep card targeting alongside the owning team's tactical choices. */
+.tactical-admin__targeting { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:16px; margin-top:20px; padding-top:20px; border-top:1px solid var(--border); }
+.tactical-admin__target-card { min-width:0; padding:16px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }
+.tactical-admin__target-card h4 { margin:0; font-size:15px; overflow-wrap:anywhere; }
+.tactical-admin__target-card > p { margin:8px 0 14px; color:var(--muted); font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+.tactical-admin__target-card .tactical-targets { margin:12px 0 0; padding:10px; border-color:var(--border); background:var(--surface); }
+.tactical-admin__target-card legend { max-width:100%; padding:0 4px; font-size:13px; font-weight:600; line-height:1.4; overflow-wrap:anywhere; }
+.tactical-admin__target-card .tactical-targets button { flex:1 1 90px; min-width:0; padding:9px 12px; white-space:normal; overflow-wrap:anywhere; }
+.tactical-admin__assignments:empty { display:none; }
+.tactical-admin__assignments p { margin:0 0 10px; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }

@@ -15,17 +15,13 @@
 .reward-stage__row--pink { --row-fill: #fcd8e6; --team-fill:var(--team-pink); --row-border:var(--team-pink); }
 .reward-stage__row::before { content: ''; position: absolute; left: 4.8%; top: 0; width: 90.95%; height: 100%; border: .1cqw solid var(--row-border); border-radius: .8cqw; background: var(--row-fill); }
 .reward-stage__medal { position: absolute; left: 5.6%; top: 5%; width: 8.8%; height: 90%; object-fit: contain; }
-.reward-stage__team { position: absolute; left: 18.12%; top: 23%; width: 15.8%; height: 50%; display: block; align-content: center; padding-inline: .8cqw; border-radius: .55cqw; overflow: hidden; background: var(--team-fill); font: 700 2.05cqw/1.2 Arial, sans-serif; white-space: nowrap; text-overflow: ellipsis; }
-.reward-stage__earned { position: absolute; left: 37%; top: 3%; width: 40%; height: 94%; display: flex; align-items: center; justify-content: flex-start; gap: .8cqw; padding: 0 2cqw; background: var(--row-fill); }
+.reward-stage__earned { position: absolute; left: 43%; top: 3%; width: 51%; height: 94%; display: flex; align-items: center; justify-content: flex-start; gap: .8cqw; padding: 0 2cqw; background: var(--row-fill); }
 .reward-stage__card { height: 100%; aspect-ratio: 1040 / 1500; flex: 0 0 auto; }
 .reward-stage__card .card-art, .reward-stage__card .card-art img { display: block; width: 100%; height: 100%; object-fit: contain; margin: 0; }
-.reward-stage__gp { position: absolute; left: 79.45%; top: 17.5%; width: 13.8%; height: 62%; display: grid; grid-template-columns: 3.4cqw 7.4cqw; align-items: center; justify-content: center; gap: .6cqw; border: .1cqw solid #74ced7; border-radius: 4cqw; background: #fff; font: 700 2.5cqw/1 Arial, sans-serif; white-space: nowrap; }
-.reward-stage__gp-icon { width: 3.4cqw; height: 4.2cqw; flex: none; }
 .reward-stage__empty { margin: 0; color: #4c280f; font: 700 1.6cqw/1.4 Arial, sans-serif; }
 .reward-stage select:focus-visible { outline: .3cqw solid #fff5a6; outline-offset: .2cqw; }
 .reward-stage__status { position: absolute; left: 30%; bottom: 1%; width: 40%; margin: 0; padding: .45cqw; border-radius: .5cqw; background: #fff7e5; color: #65220a; text-align: center; font: 700 1.3cqw/1.3 Arial, sans-serif; }
 .reward-stage__challenge-name { display:block; max-width:27cqw; padding:.6cqw 1cqw; border:.1cqw solid #edb96e; border-radius:2cqw; background:#fff7e7; color:#63331e; font:700 1.1cqw/1.2 Arial,sans-serif; text-align:center; }
-.reward-stage__gp > span { text-align:center; font-variant-numeric:tabular-nums; }
 .blind-reward { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:.35cqw; height:100%; width:100%; min-width:0; }
 .blind-reward p { margin:0; max-width:100%; color:#55381f; font:700 .9cqw/1.15 Arial,sans-serif; text-align:left; white-space:nowrap; }
 .blind-reward > div { display:flex; justify-content:flex-start; align-items:center; gap:.8cqw; width:100%; min-height:0; }
@@ -38,3 +34,6 @@
 .reward-pointer { position:absolute; z-index:5; right:-1cqw; bottom:.1cqw; width:2.2cqw; height:2.75cqw; pointer-events:none; filter:drop-shadow(0 .1cqw .12cqw #0006); }
 @keyframes blind-card-open { from {transform:rotateY(90deg);opacity:.3} to {transform:rotateY(0);opacity:1} }
 @media (prefers-reduced-motion:reduce) { .blind-reward__card.is-open {animation:none} }
+
+.reward-stage__identity.team-gp-badge { position:absolute; left:17%; top:19%; width:24%; height:50%; --team-badge-name-size:1.7cqw; --team-badge-gp-size:2.25cqw; }
+.reward-stage__bonus { position:absolute; left:17%; top:76%; width:24%; color:#58391f; font:700 .95cqw/1.2 Arial,sans-serif; text-align:center; }

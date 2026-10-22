@@ -12,14 +12,14 @@ test('team identity colors match the shared palette on admin and public screens'
     if (prefix && ['tactical', 'card-reveal', 'play/word-assembly'].includes(route)) continue
     await page.goto(`${prefix}/${route}`)
     for (const [name, color] of Object.entries(colors)) {
-      const labels = page.locator(`${selector}${name}${selector === '.tactical-colour--' ? ' h2' : ''}`)
+      const labels = page.locator(`${selector}${name}${selector === '.tactical-colour--' ? ' h2' : selector === '.event-timer__team.team-colour--' ? ' .team-pill' : ''}`)
       await expect(labels.first(), `${prefix}/${route}: ${name}`).toBeVisible()
       expect(await labels.evaluateAll((nodes) => [...new Set(nodes.map((node) => getComputedStyle(node).backgroundColor))])).toEqual([color])
     }
   }
   await page.goto('/admin/timer')
   await page.getByRole('button', { name:'Tim Biru', exact:true }).click()
-  await expect(page.locator('.event-timer__team.is-active')).toHaveCSS('background-color', colors.biru)
+  await expect(page.locator('.event-timer__team.is-active .team-pill')).toHaveCSS('background-color', colors.biru)
   await page.goto('/timer')
-  await expect(page.locator('.event-timer__team.is-active')).toHaveCSS('background-color', colors.biru)
+  await expect(page.locator('.event-timer__team.is-active .team-pill')).toHaveCSS('background-color', colors.biru)
 })

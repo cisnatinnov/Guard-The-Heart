@@ -50,7 +50,8 @@ eligible cards rather than duplicate fillers. Rewards are available next challen
 
 ### Reward Claim
 
-Reward Claim shows each team's earned cards and GP for the selected challenge.
+Reward Claim shows each team's earned cards for the selected challenge and
+current GP balance. The challenge GP bonus is labeled separately below the panel.
 Cards retain their original left starting position with consistent spacing; they
 are not centered or stretched across the row. Fixed card slots preserve artwork
 proportions, and separate GP tracks keep icons and values aligned. The public
@@ -261,7 +262,9 @@ has no turn timer and does not use Urutan Main. Team badges show current GP on
 both screens, including teams deactivated during a saved run. The waiting board
 shows the current active roster and GP before a run starts.
 
-Mismatches close automatically after 900 ms. Matching or waiting does not change
+Unmatched pairs stay open for 5 seconds, with a visible countdown on admin and
+public boards. The absolute close deadline survives reload; team selection is
+locked until the pair closes. Matched pairs stay open. Matching or waiting does not change
 the selected team. Matched pairs retain their team's identity. All ten pairs
 complete the activity on both screens without creating scores or opening
 rewards. **End run** returns the public display to its waiting board. Shared
@@ -602,3 +605,26 @@ responsive layouts and offline reload. Tests validate these scenarios; they cann
 guarantee every possible device or simultaneous edit sequence.
 
 See [blueprint.md](./blueprint.md#validation-record) for the implementation and audit.
+
+
+### Shared live GP panels and card-close countdown (2026-10-22 WIB)
+
+Timer, Scoreboard and Reward Claim use `TeamGPBadge` with the shared brown/orange
+frame, exact team colour, GP shield and aligned numeric balance. `TeamPill` is
+shared separately; styles live in `src/styles/team-gp.css`. Reward Claim shows
+**current team GP**, including later card effects and damage, and labels the
+challenge bonus separately as **Hadiah +N GP**. Cards retain their left alignment.
+Timer and Flipping Connect leave a visible gap above the Giliran marker.
+The empty scoreboard message “No entries for this challenge yet.” is removed.
+
+Flipping Connect unmatched pairs remain open for 5 seconds, with a synchronized
+admin/public countdown. Reload does not restart the delay. Matching pairs remain
+visible; closing a mismatch does not rotate teams or award points. Legacy saved
+unmatched pairs receive a close deadline when resumed.
+
+Regression coverage includes `tests/matching-close.test.ts`,
+`e2e/team-panels.spec.ts` and the Flipping, timer, palette and frame-bound tests.
+
+Validation: ESLint and TypeScript passed; all 266 unit tests passed. The full
+63-scenario browser suite and targeted reruns cover the updated panels,
+countdown, reward selection, game flows and responsive admin/public layouts.

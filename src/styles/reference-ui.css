@@ -30,7 +30,7 @@
 .ranking-point-label { font-size:1.8cqw; color:#d28b20; font-weight:700; }
 .ranking-score-list--pending .ranking-score-item { grid-template-columns:minmax(0,1fr) 23% 20%; padding-inline:1cqw; }
 .ranking-gp-strip { position:absolute; left:5%; top:89.6%; width:90.8%; height:6.3%; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.45cqw; margin:0; padding:0; list-style:none; }
-.ranking-gp-item { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) 12% 18%; align-items:center; gap:.4cqw; padding:.45cqw .85cqw; border:.25cqw solid #ed8a22; border-radius:1.1cqw; background:linear-gradient(#40260f,#321b08); color:#fff4d9; }
+.ranking-gp-item { min-width:0; display:block; }
 .ranking-gp-item .team-pill { height:100%; border-radius:.3cqw; font-size:1.4cqw; }
 .ranking-gp-item .gp-mark { width:1.6cqw; height:2cqw; font-size:.85cqw; justify-self:center; }
 .ranking-gp-item strong { font:700 2.1cqw/1 Arial,sans-serif; text-align:center; font-variant-numeric:tabular-nums; }

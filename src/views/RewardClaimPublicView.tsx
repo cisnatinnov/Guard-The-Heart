@@ -1,4 +1,5 @@
-import { GPShield } from './GPShield'
+import { TeamGPBadge } from './TeamGPBadge'
+import { useTeams } from '../hooks/useTeams'
 import { publishPublicDisplay } from '../services/publicDisplay'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -23,6 +24,7 @@ interface RewardPointer { challengeId: string; teamId: string; optionId: string 
 
 export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
   const { challenges } = useChallenges()
+  const { teams } = useTeams({ includeInactive: true })
   const { challengeId } = useParams<{ challengeId?: string }>()
   const navigate = useNavigate()
   const activeId = challengeId ?? challenges[0]?.id ?? null
@@ -112,7 +114,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
   </label>
   return <div className={admin ? 'view reward-admin' : 'reward-public'}>
     {admin && <>
-      <header className="view__header"><h2>Reward Claim</h2><p className="view__hint">Cards and Guard Points earned in the selected challenge.</p></header>
+      <header className="view__header"><h2>Reward Claim</h2><p className="view__hint">Earned cards and current team GP. Challenge GP bonuses appear below each team panel.</p></header>
       <div className="admin-toolbar">{challengeControl}<button disabled={!activeId} onClick={() => { if (activeId) void publishPublicDisplay('tactical', activeId).then(() => navigate(`/admin/tactical/${activeId}`)).catch((cause: unknown) => setNavigationError(cause instanceof Error ? cause.message : String(cause))) }}>Tactical Phase</button></div>
     </>}
     <section className="reward-stage reward-stage--earned" aria-label="Reward Claim">
@@ -125,7 +127,8 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
         return <li className={`reward-stage__row reward-stage__row--${slot + 1} reward-stage__row--${teamColour(row?.teamName ?? '') ?? 'neutral'}`} key={row?.teamId ?? slot}
           style={{ '--slot': slot } as CSSProperties} aria-label={row?.teamName ?? 'Empty reward row'} aria-hidden={!row || undefined}>
           <RewardRankBadge rank={row?.rank ?? slot + 1} />
-          <span className="reward-stage__team" title={row?.teamName}>{row?.teamName ?? '—'}</span>
+          <TeamGPBadge className="reward-stage__identity" name={row?.teamName ?? '—'} gp={row ? teams.find((team) => team.id === row.teamId)?.total_gp ?? null : null}/>
+          {row && <span className="reward-stage__bonus" aria-label={`${row.guardPower} GP earned`}>Hadiah +{row.guardPower} GP</span>}
           <div className="reward-stage__earned" aria-label={row ? `${row.cardCount} cards earned by ${row.teamName}` : undefined}>
             {row?.blind ? <div className="blind-reward" aria-label={`Rank 5 blind draw ${row.teamName}`}>
               <p>{row.blind.selected ? row.blind.selected === 'zonk' ? 'False Hope · tidak mendapat kartu' : '1 kartu Normal terpilih' : admin ? 'Pilih 1 kartu · Normal atau False Hope' : 'Admin memilih 1 dari 3 kartu'}</p>
@@ -153,10 +156,6 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
               <CardTile name={card.name} type={card.type} effect={card.effect} effect_action={card.effect_action} icon={card.icon} />
             </div>) : <span className="reward-stage__empty">{row ? row.cardCount === 0 ? '0 Kartu' : 'Kartu belum dibagikan' : '—'}</span>}
           </div>
-          <span className="reward-stage__gp" aria-label={row ? `${row.guardPower} GP earned` : undefined}>
-            <GPShield className="reward-stage__gp-icon" />
-            <span>{row ? `+${row.guardPower} GP` : '—'}</span>
-          </span>
         </li>
       })}
     </ol>

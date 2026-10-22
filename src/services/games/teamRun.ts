@@ -1,4 +1,4 @@
-import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard, WORD_ASSEMBLY_SECONDS_PER_MATCH, WORD_ASSEMBLY_SECONDS_PER_QUESTION, type WordAssemblyState } from './wordAssembly'
+import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard, WORD_ASSEMBLY_SECONDS_PER_MATCH, WORD_ASSEMBLY_SECONDS_PER_QUESTION, MATCHING_CLOSE_SECONDS, type WordAssemblyState } from './wordAssembly'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../rankRules'
 
 /**
@@ -21,6 +21,8 @@ export interface TeamRun {
 export interface ChallengeRun {
   manualTeamSelection?: boolean
   matchingOnly?: boolean
+  /** Absolute deadline for displaying an unmatched pair; separate from a turn timer. */
+  matchingCloseDeadline?: number
   matchingBoard?: WordAssemblyState
   matchingPhase?: 'matching' | 'matched-delay' | 'choice' | 'answer' | 'handoff-delay'
   matchingTurn?: number
@@ -290,7 +292,8 @@ export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
   if (board === run.matchingBoard) return run
   const matched = board.matchedQuestionIds.length > run.matchingBoard.matchedQuestionIds.length
   if (run.matchingOnly) {
-    if (!matched) return { ...run, matchingBoard: board, turnDeadline: undefined }
+    if (!matched) return { ...run, matchingBoard: board, turnDeadline: undefined,
+      matchingCloseDeadline: board.revealed.length === 2 ? Date.now() + MATCHING_CLOSE_SECONDS * 1000 : undefined }
     const team = teamForQuestion(run)
     return {
       ...run, matchingBoard: { ...board, revealed: [] }, questionIndex: board.matchedQuestionIds.length,
@@ -299,6 +302,7 @@ export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
       nextTeamIndex: run.manualTeamSelection ? run.nextTeamIndex : (run.nextTeamIndex + 1) % run.runs.length,
       matchingTurn: (run.matchingTurn ?? 0) + 1,
       turnDeadline: undefined,
+      matchingCloseDeadline: undefined,
     }
   }
   return {
@@ -337,12 +341,14 @@ export function isMatchingQuestionUnlocked(run: ChallengeRun): boolean {
 export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): ChallengeRun {
   if (!run.matchingBoard || isMatchingQuestionUnlocked(run) || isRunComplete(run)) return run
   if (!timedOut && run.matchingBoard.revealed.length !== 2) return run
+  if (run.matchingOnly && run.matchingCloseDeadline !== undefined && Date.now() < run.matchingCloseDeadline) return run
   if (timedOut && run.turnDeadline !== undefined && Date.now() < run.turnDeadline) return run
   const team = teamForQuestion(run)
   if (!team) return run
   return {
     ...run,
     matchingBoard: closeUnmatchedWordAssemblyCards(run.matchingBoard),
+    matchingCloseDeadline: undefined,
     nextTeamIndex: run.manualTeamSelection ? run.nextTeamIndex : (run.runs.findIndex((entry) => entry.team === team.team) + 1) % run.runs.length,
     matchingTurn: (run.matchingTurn ?? 0) + 1,
     turnDeadline: run.matchingOnly ? undefined : Date.now() + WORD_ASSEMBLY_SECONDS_PER_MATCH * 1000,
@@ -354,8 +360,10 @@ export function selectMatchingTeam(run: ChallengeRun, teamId: string): Challenge
   if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Connect run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
   if (index < 0) throw new Error('Choose a team participating in this run')
+  if (run.matchingBoard.revealed.length === 2 && run.matchingCloseDeadline !== undefined && Date.now() < run.matchingCloseDeadline) return run
   return { ...run, manualTeamSelection:true, nextTeamIndex:index,
     matchingBoard:closeUnmatchedWordAssemblyCards(run.matchingBoard),
+    matchingCloseDeadline:undefined,
     matchingTurn:(run.matchingTurn ?? 0)+1,
     turnDeadline:undefined }
 }

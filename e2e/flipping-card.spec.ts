@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('manual team selection has no timer or score changes and completes on both screens', async ({ page, context }) => {
+test('manual team selection has a five-second card-close countdown without score changes and completes on both screens', async ({ page, context }) => {
   await page.goto('/admin')
   for (const name of ['Alpha', 'Beta']) {
     await page.getByRole('textbox', { name: 'New team name' }).fill(name)
@@ -18,6 +18,8 @@ test('manual team selection has no timer or score changes and completes on both 
   const time = new Date()
   await page.clock.install({ time })
   await page.clock.pauseAt(new Date(time.getTime() + 1000))
+  await projector.clock.install({time})
+  await projector.clock.pauseAt(new Date(time.getTime() + 1000))
   for (const name of ['Alpha', 'Beta']) await page.locator('.run-panel__teams').getByRole('checkbox', { name, exact: true }).check()
   await page.getByRole('button', { name: 'Start team run (2)' }).click()
   expect(context.pages()).toHaveLength(pagesBefore)
@@ -39,7 +41,22 @@ test('manual team selection has no timer or score changes and completes on both 
   await expect(page.getByText(/Matched pairs:.*s$/)).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
+  await expect(page.getByRole('timer', {name:'Cards close countdown'})).toContainText('5s')
+  await expect(projector.getByRole('timer', {name:'Cards close countdown'})).toContainText('5s')
   await page.clock.runFor(1000)
+  await expect(page.locator('.tile--revealed')).toHaveCount(2)
+  await expect(projector.getByRole('timer', {name:'Cards close countdown'})).toContainText('4s')
+  await projector.reload()
+  await expect(projector.getByRole('timer', {name:'Cards close countdown'})).toContainText('4s')
+  await page.reload()
+  await expect(page.getByRole('timer', {name:'Cards close countdown'})).toContainText('4s')
+  await expect(page.locator('.flipping-presentation__teams button').first()).toBeDisabled()
+  await page.clock.runFor(3999)
+  await expect(page.locator('.tile--revealed')).toHaveCount(2)
+  await page.clock.runFor(1)
+  await expect(page.locator('.tile--revealed')).toHaveCount(0)
+  await expect(projector.locator('.tile--revealed')).toHaveCount(0)
+  await expect(page.getByRole('timer', {name:'Cards close countdown'})).toHaveCount(0)
   await expect(active).toContainText(order[0]!)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
   await expect(active).toContainText(order[1]!)

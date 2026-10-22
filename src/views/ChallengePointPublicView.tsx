@@ -50,7 +50,7 @@ export function ChallengePointPublicView({ challengeName }: { challengeName?: st
         guardPoints={teams.map(team=>({id:team.id,team:team.name,guardPower:team.total_gp}))}
         challenge={activeChallenge?.name}
         rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.score }))}
-        message={error ?? (challenges.length === 0 ? 'No challenges are available yet.' : entries.length === 0 ? 'No entries for this challenge yet.' : undefined)}
+        message={error ?? (challenges.length === 0 ? 'No challenges are available yet.' : undefined)}
       />
     </section>
   )

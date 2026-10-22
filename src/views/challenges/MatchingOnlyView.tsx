@@ -3,6 +3,7 @@ import { ChallengeRunController } from '../../controllers/ChallengeRunController
 import { useTeams } from '../../hooks/useTeams'
 import { isRunComplete, selectMatchingTeam, teamForQuestion, type ChallengeRun } from '../../services/games/teamRun'
 import { FlippingPresentation } from './FlippingPresentation'
+import { MATCHING_CLOSE_SECONDS } from '../../services/games/wordAssembly'
 
 export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, onUpdate, onEnd }: {
   challengeId: string
@@ -26,12 +27,19 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     if (!canControl || !run || !onUpdate || busy || complete) return
     const mismatch = run.matchingBoard?.revealed.length === 2
     if (!mismatch) return
+    if (run.matchingCloseDeadline === undefined) {
+      setBusy(true)
+      void onUpdate({ ...run, matchingCloseDeadline: Date.now() + MATCHING_CLOSE_SECONDS * 1000 })
+        .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
+        .finally(() => setBusy(false))
+      return
+    }
     const timeout = window.setTimeout(() => {
       setBusy(true)
       void ChallengeRunController.finishMatchingTurn(run, !mismatch).then(onUpdate)
         .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
         .finally(() => setBusy(false))
-    }, mismatch ? 900 : 0)
+    }, Math.max(0, run.matchingCloseDeadline - Date.now()))
     return () => window.clearTimeout(timeout)
   }, [canControl, run, onUpdate, busy, complete])
 
@@ -54,7 +62,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     finally { setBusy(false) }
   }
   async function chooseTeam(id: string) {
-    if (!canControl || !run || busy || complete) return
+    if (!canControl || !run || busy || complete || run.matchingBoard?.revealed.length === 2) return
     setBusy(true)
     setError(null)
     try { await onUpdate?.(selectMatchingTeam(run,id)) }
@@ -65,11 +73,11 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     teamGP={(teamId) => teams.find((entry) => entry.id === teamId)?.total_gp}
     complete={complete} disabled={busy || complete}
     onFlip={canControl ? (id) => void flip(id) : undefined}
-    onChooseTeam={canControl ? (id) => void chooseTeam(id) : undefined} teamSelectionDisabled={busy} />
+    onChooseTeam={canControl ? (id) => void chooseTeam(id) : undefined} teamSelectionDisabled={busy || run?.matchingBoard?.revealed.length === 2} />
   if (!canControl) return presentation
   return <section className="view matching-only">
     <h2>Challenge 2 - Flipping Connect</h2>
-    <p>Match identical pictures to complete all ten pairs. Click a team name above the board to choose whose turn it is.</p>
+    <p>Match identical pictures to complete all ten pairs. Unmatched cards stay open for 5 seconds. Click a team name above the board to choose whose turn it is.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>
       <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''}</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>

@@ -6,7 +6,7 @@ export async function expectRewardContentsWithinFrame(page: Page) {
     const bounds = row.getBoundingClientRect()
     const left = stage.left + stage.width * .048
     const right = stage.left + stage.width * .9575
-    return [...row.querySelectorAll('.reward-stage__medal, .reward-stage__team, .reward-stage__earned, .reward-stage__gp, .reward-stage__card, .blind-reward__card, .blind-reward p, .reward-pointer')].flatMap((node) => {
+    return [...row.querySelectorAll('.reward-stage__medal, .reward-stage__identity, .reward-stage__bonus, .reward-stage__earned, .reward-stage__card, .blind-reward__card, .blind-reward p, .reward-pointer')].flatMap((node) => {
       const box = node.getBoundingClientRect()
       return box.left < left - 1 || box.right > right + 1 || box.top < bounds.top - 1 || box.bottom > bounds.bottom + 1
         ? [`${row.getAttribute('aria-label')}: ${node.getAttribute('class') || node.tagName}`] : []

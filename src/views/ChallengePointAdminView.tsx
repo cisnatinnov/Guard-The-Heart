@@ -270,7 +270,6 @@ export function ChallengePointAdminView() {
         guardPoints={teams.map(team=>({id:team.id,team:team.name,guardPower:team.total_gp}))}
         challenge={activeChallenge?.name}
         rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.score }))}
-        message={entries.length === 0 ? 'No entries for this challenge yet.' : undefined}
       />
       {entries.length > 0 && <div className="scoreboard-admin-actions" aria-label="Edit challenge results">
         {entries.map((entry) => <div className="board__row" key={entry.id}>

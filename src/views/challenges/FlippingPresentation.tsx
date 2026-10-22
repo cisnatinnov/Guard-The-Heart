@@ -3,6 +3,7 @@ import { teamColour } from '../../services/defaultTeams'
 import { createWordAssemblyState, type WordAssemblyState } from '../../services/games'
 import { MatchingCards } from './MatchingCards'
 import type { ChallengeRun } from '../../services/games/teamRun'
+import { useRunCountdown } from './useRunCountdown'
 import '../../styles/flipping.css'
 
 export function FlippingPresentation({ board, run, teamName, teamGP, teamIds, complete, disabled, onFlip, onChooseTeam, teamSelectionDisabled }: {
@@ -18,8 +19,10 @@ export function FlippingPresentation({ board, run, teamName, teamGP, teamIds, co
   teamSelectionDisabled?: boolean
 }) {
   const [waitingBoard] = useState(createWordAssemblyState)
+  const closeRemaining = useRunCountdown(run?.matchingBoard?.revealed.length === 2 ? run.matchingCloseDeadline : undefined)
   return <section className="flipping-presentation" aria-label="Flipping Connect matching board">
     <img className="flipping-presentation__art" src="/ui/flipping-slide-03-reference.png" alt="" />
+    {closeRemaining !== undefined && <div className="flipping-presentation__close-timer" role="timer" aria-label="Cards close countdown">Kartu ditutup dalam {closeRemaining}s</div>}
     <ol className="flipping-presentation__teams" aria-label="Select the active team">
       {Array.from({ length: 5 }, (_, slot) => {
         const entry = run?.runs[slot]

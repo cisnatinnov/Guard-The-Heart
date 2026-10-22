@@ -58,7 +58,7 @@ for(const zonk of [true,false]) test(`admin chooses an open rank 5 card and publ
   await expectRewardContentsWithinFrame(page)
   expect(await projector.locator('.reward-stage__row').evaluateAll((rows)=>rows.every((row)=>{
    const region=row.getBoundingClientRect()
-   const cells=[...row.querySelectorAll('.reward-stage__team,.reward-stage__earned,.reward-stage__gp')].map((cell)=>cell.getBoundingClientRect())
+   const cells=[...row.querySelectorAll('.reward-stage__identity,.reward-stage__earned')].map((cell)=>cell.getBoundingClientRect())
    return cells.every((cell,index)=>cell.top>=region.top && cell.bottom<=region.bottom && (index===0 || cell.left>=cells[index-1].right))
   }))).toBe(true)
  }

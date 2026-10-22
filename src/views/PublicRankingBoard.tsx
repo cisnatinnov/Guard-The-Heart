@@ -1,4 +1,5 @@
-import { teamColour } from '../services/defaultTeams'
+import { TeamPill } from './TeamPill'
+import { TeamGPBadge } from './TeamGPBadge'
 import { CARD_BACK_IMAGE } from '../data/card-pool'
 import { GPShield } from './GPShield'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
@@ -11,9 +12,7 @@ export interface PublicRankingRow {
 }
 const number = new Intl.NumberFormat('id-ID')
 export function GPMark() { return <GPShield className="gp-mark" /> }
-export function TeamPill({ name }: { name: string }) {
-  return <span className={`team-pill team-pill--${teamColour(name) ?? 'neutral'}`} title={name}><span>Tim {name.replace(/^tim\s+/i, '')}</span></span>
-}
+export { TeamPill } from './TeamPill'
 export function PublicRankingBoard({ variant, rows, challenge, message, guardPoints = [] }: {
   variant: 'scoreboard' | 'leaderboard'; rows: PublicRankingRow[]; challenge?: string; message?: string
   guardPoints?: Array<Pick<PublicRankingRow, 'id' | 'team' | 'guardPower'>>
@@ -49,7 +48,7 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
     </ol></div>}
     {!final && <ol className="ranking-gp-strip" aria-label="Current team GP">
       {[...page.map(row=>guardPoints.find(team=>team.team===row.team)??row),...guardPoints.filter(team=>!page.some(row=>row.team===team.team))].slice(0,5).map(team=><li key={team.id} className="ranking-gp-item" aria-label={`${team.team}: ${team.guardPower??0} GP`}>
-        <TeamPill name={team.team}/><GPMark/><strong>{number.format(team.guardPower??0)}</strong>
+        <TeamGPBadge name={team.team} gp={team.guardPower??0}/>
       </li>)}
     </ol>}
     {message && <p className="reference-status" role="status">{message}</p>}

@@ -27,8 +27,8 @@ test('default teams are locked and reward colours follow teams when ranks change
     for (const [name, colour] of Object.entries(colours)) {
       const row = surface.getByRole('listitem', { name, exact: true })
       await expect(row.locator('.reward-stage__earned')).toHaveCSS('background-color', colour)
-      await expect(row.locator('.reward-stage__team')).toHaveText(name)
-      await expect(row.locator('.reward-stage__team')).toHaveCSS('background-color', labels[name])
+      await expect(row.locator('.reward-stage__identity .team-pill')).toHaveText(`Tim ${name}`)
+      await expect(row.locator('.reward-stage__identity .team-pill')).toHaveCSS('background-color', labels[name])
       await expect.poll(() => row.evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(colour)
     }
   }

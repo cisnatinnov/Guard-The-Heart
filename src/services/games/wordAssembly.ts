@@ -9,6 +9,7 @@ export interface WordAssemblyQuestion {
 
 export const WORD_ASSEMBLY_SECONDS_PER_QUESTION = 15
 export const WORD_ASSEMBLY_SECONDS_PER_MATCH = 20
+export const MATCHING_CLOSE_SECONDS = 5
 export const WORD_ASSEMBLY_QUESTIONS: WordAssemblyQuestion[] = [
   {
     id: 'word-1',

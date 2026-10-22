@@ -64,7 +64,7 @@ it('blocks card flips and team changes during the initial preview and unlocks at
   expect(selectMatchingTeam(saved,'b').nextTeamIndex).toBe(1)
 })
 
-it('replays the five-second preview only when changing team and preserves matched pairs', () => {
+it('reshuffles and clears matches when changing team, with a saved five-second preview', () => {
   vi.useFakeTimers()
   const current = run()
   const pair = current.matchingBoard!.board.filter((card) => card.questionId === 'word-1')
@@ -72,8 +72,14 @@ it('replays the five-second preview only when changing team and preserves matche
   expect(selectMatchingTeam(matched,'a')).toBe(matched)
   const changed = selectMatchingTeam(matched,'b')
   expect(changed.matchingPreviewDeadline).toBe(Date.now()+5000)
-  expect(changed.matchingBoard!.matchedCardIds).toEqual(matched.matchingBoard!.matchedCardIds)
-  expect(changed.questionIndex).toBe(1)
+  expect(changed.matchingBoard!.matchedCardIds).toEqual([])
+  expect(changed.matchingBoard!.matchedQuestionIds).toEqual([])
+  expect(changed.matchingBoard!.revealed).toEqual([])
+  expect(changed.matchingBoard!.mismatches).toBe(0)
+  expect(changed.matchingBoard!.board.map((card) => card.id)).not.toEqual(matched.matchingBoard!.board.map((card) => card.id))
+  expect(changed.matchingBoard!.board.map((card) => card.id).sort()).toEqual(matched.matchingBoard!.board.map((card) => card.id).sort())
+  expect(changed.runs).toEqual(matched.runs)
+  expect(changed.questionIndex).toBe(0)
   const card = changed.matchingBoard!.board.find((card) => card.questionId !== 'word-1')!
   const saved = JSON.parse(JSON.stringify(changed)) as typeof changed
   vi.advanceTimersByTime(4999)
@@ -81,4 +87,25 @@ it('replays the five-second preview only when changing team and preserves matche
   vi.advanceTimersByTime(1)
   expect(flipRunCard(saved,card.id).matchingBoard!.revealed).toEqual([card.id])
   expect(selectMatchingTeam(saved,'b')).toBe(saved)
+})
+
+it('reshuffles even if the random source repeats the previous layout', () => {
+  const random = vi.spyOn(Math,'random').mockReturnValue(.2)
+  try {
+    const current = run()
+    const changed = selectMatchingTeam(current,'b')
+    expect(changed.matchingBoard!.board.map((card) => card.id)).not.toEqual(current.matchingBoard!.board.map((card) => card.id))
+  } finally { random.mockRestore() }
+})
+it('allows another team to begin a fresh board after all pairs were matched', () => {
+  let current = run()
+  for (let pair = 1; pair <= 10; pair++) {
+    for (const card of current.matchingBoard!.board.filter((entry) => entry.questionId === `word-${pair}`)) current = flipRunCard(current,card.id) as typeof current
+  }
+  expect(current.questionIndex).toBe(10)
+  const changed = selectMatchingTeam(current,'b')
+  expect(changed.nextTeamIndex).toBe(1)
+  expect(changed.questionIndex).toBe(0)
+  expect(changed.matchingBoard!.matchedCardIds).toEqual([])
+  expect(changed.matchingPreviewDeadline).toBeGreaterThan(Date.now())
 })

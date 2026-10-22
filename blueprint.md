@@ -611,8 +611,9 @@ closing, persistent matches, reload and the initial 5-second preview.
 ### Team-change preview and visible mismatches (2026-10-22 WIB)
 
 Changing to a different active team starts a fresh 5-second all-card preview on
-admin and public screens. Afterward, unmatched cards close and matching resumes;
-previous matches stay open and matched progress, GP and scores are preserved.
+admin and public screens. The board is reshuffled and all previous matches and
+board progress are cleared before this preview. Afterward all cards close and
+the new team begins matching. GP and recorded scores are preserved.
 Clicking the already active team does not restart the preview. Preview deadlines
 survive reload without granting extra time.
 
@@ -623,4 +624,22 @@ pending delays are capped at 600 ms on resume. No mismatch countdown is shown.
 
 Validation: all 269 unit tests and 9 Flipping Connect/challenge-flow browser
 scenarios passed, including visible mismatch pairs, preview on team changes,
-matched-card preservation and reload during the repeated preview.
+matched pairs within a turn and reload during the repeated preview.
+
+
+### Fresh randomized board on team changes (2026-10-22 WIB)
+
+Choosing a different team creates a newly shuffled 20-card board with zero
+matched pairs and no partial flips. Every card opens for the 5-second preview,
+then all cards close for the new team's matching attempt. Clicking the same team
+does not reset its board. Team changes also work after all ten pairs are matched.
+The randomized layout and preview deadline persist across admin/public reload.
+
+Within that team's attempt, matching pairs stay open. Both mismatched faces show
+for 600 ms and then close automatically. Switching teams resets only the matching
+board and its progress; team GP and recorded scores are preserved. Repeated
+random output still produces a changed layout through a one-position rotation.
+
+Validation: ESLint, TypeScript and all 271 unit tests passed. All 9 Flipping
+Connect/challenge-flow browser scenarios passed, including reshuffling, clearing
+old matches, reload during preview and switching teams after board completion.

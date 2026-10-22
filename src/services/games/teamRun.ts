@@ -362,12 +362,18 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
 
 /** Pick the next matching team directly, independently of the Urutan Main page. */
 export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
-  if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Connect run')
+  if (!run.matchingOnly || !run.matchingBoard) throw new Error('Choose a team during a Flipping Connect run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
   if (index < 0) throw new Error('Choose a team participating in this run')
   if (index === run.nextTeamIndex || Date.now() < (run.matchingPreviewDeadline ?? 0) || Date.now() < (run.matchingCloseDeadline ?? 0)) return run
+  const matchingBoard = createWordAssemblyState(Math.random, Math.min(10, run.questionCount))
+  // A fresh team's layout must differ even if the random source repeats an order.
+  if (matchingBoard.board.every((card, slot) => card.id === run.matchingBoard!.board[slot]?.id) && matchingBoard.board.length > 1) {
+    matchingBoard.board.push(matchingBoard.board.shift()!)
+  }
   return { ...run, manualTeamSelection:true, nextTeamIndex:index,
-    matchingBoard:closeUnmatchedWordAssemblyCards(run.matchingBoard),
+    matchingBoard, questionIndex:0, questionResolved:false, attemptedTeams:[], matchingPhase:'matching',
+    matchedByTeam:undefined, matchingTeamIndex:undefined, passedByTeam:undefined,
     matchingPreviewDeadline:Date.now() + MATCHING_PREVIEW_SECONDS * 1000,
     matchingCloseDeadline:undefined,
     matchingTurn:(run.matchingTurn ?? 0)+1,

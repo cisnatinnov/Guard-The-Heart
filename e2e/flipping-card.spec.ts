@@ -107,19 +107,26 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
         await projector.screenshot({ path: 'test-results/matching-only.png' })
         await projector.reload()
         await expect(projector.locator('.tile--matched')).toHaveCount(2)
+        const previousLayout = await projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))
         await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
         await expect(projector.locator('.tile--revealed')).toHaveCount(20)
-        await expect(projector.locator('.tile--matched')).toHaveCount(2)
+        await expect(projector.locator('.tile--matched')).toHaveCount(0)
+        const newLayout = await projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))
+        expect(newLayout).not.toEqual(previousLayout)
         await page.clock.runFor(1000)
         await page.reload()
         await projector.reload()
         await expect(projector.getByRole('timer', {name:'Cards preview countdown'})).toContainText('4s')
+        expect(await projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))).toEqual(newLayout)
         await page.clock.runFor(4000)
         for (const screen of [page, projector]) {
-          await expect(screen.locator('.tile--revealed')).toHaveCount(2)
-          await expect(screen.locator('.tile--matched')).toHaveCount(2)
+          await expect(screen.locator('.tile--revealed')).toHaveCount(0)
+          await expect(screen.locator('.tile--matched')).toHaveCount(0)
           await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toHaveCount(0)
         }
+        await page.locator('.tile[data-pair="word-1"]').nth(0).click()
+        await page.locator('.tile[data-pair="word-1"]').nth(1).click()
+        await expect(projector.locator('.tile--matched')).toHaveCount(2)
       }
     }
   }
@@ -127,6 +134,14 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(projector.getByText('All pairs matched!', { exact: true })).toBeVisible()
   await expect(page).toHaveURL(/\/admin\/play\/word-assembly\//)
   await expect(projector).toHaveURL(/\/play\/word-assembly\//)
+  await page.locator('.flipping-presentation__teams').getByRole('button', {name:order[0]!,exact:true}).click()
+  for (const screen of [page,projector]) {
+    await expect(screen.locator('.tile--revealed')).toHaveCount(20)
+    await expect(screen.locator('.tile--matched')).toHaveCount(0)
+    await expect(screen.getByText('All pairs matched!',{exact:true})).toHaveCount(0)
+  }
+  await page.clock.runFor(5000)
+  await expect(projector.locator('.tile--revealed')).toHaveCount(0)
   await page.goto('/admin/scoreboard/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
   await expect(page.locator('.board__row')).toHaveCount(0)
 })

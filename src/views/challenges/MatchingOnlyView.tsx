@@ -55,7 +55,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     finally { setBusy(false) }
   }
   async function chooseTeam(id: string) {
-    if (!canControl || !run || busy || complete || run.matchingBoard?.revealed.length === 2) return
+    if (!canControl || !run || busy || run.matchingBoard?.revealed.length === 2) return
     setBusy(true)
     setError(null)
     try { await onUpdate?.(selectMatchingTeam(run,id)) }
@@ -70,7 +70,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
   if (!canControl) return presentation
   return <section className="view matching-only">
     <h2>Challenge 2 - Flipping Connect</h2>
-    <p>All cards open for 5 seconds at the start, then close for matching. Match identical pictures to complete all ten pairs. Both unmatched cards appear briefly, then close; matched pairs stay open. Changing the active team starts another 5-second preview.</p>
+    <p>All cards open for 5 seconds at the start, then close for matching. Match identical pictures to complete all ten pairs. Both unmatched cards appear briefly, then close; matched pairs stay open. Changing to another team reshuffles the board, clears previous matches and starts a new 5-second preview.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>
       <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''}</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>

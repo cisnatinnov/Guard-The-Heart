@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 afterEach(() => vi.useRealTimers())
 import { startChallengeRun, enableRunMatching, selectMatchingTeam, flipRunCard } from '../src/services/games/teamRun'
 function run() { return {...enableRunMatching(startChallengeRun({challenge:'c',teams:['a','b'],questionCount:10,pointsPerQuestion:0})),matchingOnly:true,manualTeamSelection:true} }
-it('chooses the clicked team and clears partial flips while preserving matched cards', () => {
+it('chooses the clicked team and clears partial flips for a fresh randomized board', () => {
   const current=run();const flipped=flipRunCard(current,current.matchingBoard!.board[0].id)
   const next=selectMatchingTeam(flipped,'b')
   expect(next.nextTeamIndex).toBe(1)

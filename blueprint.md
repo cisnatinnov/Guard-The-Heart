@@ -643,3 +643,11 @@ random output still produces a changed layout through a one-position rotation.
 Validation: ESLint, TypeScript and all 271 unit tests passed. All 9 Flipping
 Connect/challenge-flow browser scenarios passed, including reshuffling, clearing
 old matches, reload during preview and switching teams after board completion.
+
+
+### TypeScript configuration cleanup (2026-10-22 WIB)
+
+`tsconfig.app.json` omits the unused `baseUrl` and empty `paths` settings.
+Application imports use relative paths or package names, while browser shims
+remain configured in Vite. Removing the unnecessary option resolves the editor's
+`baseUrl` deprecation diagnostic without adding `ignoreDeprecations`.

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ChallengeRunController } from '../../controllers/ChallengeRunController'
 import { useTeams } from '../../hooks/useTeams'
 import { isRunComplete, selectMatchingTeam, teamForQuestion, type ChallengeRun } from '../../services/games/teamRun'
+import { MATCHING_MISMATCH_MS } from '../../services/games/wordAssembly'
 import { FlippingPresentation } from './FlippingPresentation'
 
 export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, onUpdate, onEnd }: {
@@ -28,10 +29,10 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     if (!mismatch) return
     const timeout = window.setTimeout(() => {
       setBusy(true)
-      void ChallengeRunController.finishMatchingTurn(run).then(onUpdate)
+      void ChallengeRunController.finishMatchingTurn({ ...run, matchingCloseDeadline: undefined }).then(onUpdate)
         .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
         .finally(() => setBusy(false))
-    }, 0)
+    }, Math.min(MATCHING_MISMATCH_MS, Math.max(0, (run.matchingCloseDeadline ?? 0) - Date.now())))
     return () => window.clearTimeout(timeout)
   }, [canControl, run, onUpdate, busy, complete])
 
@@ -69,7 +70,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
   if (!canControl) return presentation
   return <section className="view matching-only">
     <h2>Challenge 2 - Flipping Connect</h2>
-    <p>All cards open for 5 seconds at the start, then close for matching. Match identical pictures to complete all ten pairs. Unmatched cards close immediately; matched pairs stay open. Click a team name above the board to choose whose turn it is.</p>
+    <p>All cards open for 5 seconds at the start, then close for matching. Match identical pictures to complete all ten pairs. Both unmatched cards appear briefly, then close; matched pairs stay open. Changing the active team starts another 5-second preview.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>
       <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''}</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>

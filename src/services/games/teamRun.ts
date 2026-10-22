@@ -1,4 +1,4 @@
-import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard, WORD_ASSEMBLY_SECONDS_PER_MATCH, WORD_ASSEMBLY_SECONDS_PER_QUESTION, type WordAssemblyState } from './wordAssembly'
+import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard, WORD_ASSEMBLY_SECONDS_PER_MATCH, WORD_ASSEMBLY_SECONDS_PER_QUESTION, MATCHING_PREVIEW_SECONDS, MATCHING_MISMATCH_MS, type WordAssemblyState } from './wordAssembly'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../rankRules'
 
 /**
@@ -23,7 +23,7 @@ export interface ChallengeRun {
   matchingOnly?: boolean
   /** Initial all-card preview ends at this shared absolute time. */
   matchingPreviewDeadline?: number
-  /** Legacy saved close deadline, ignored by current matching-only games. */
+  /** Brief shared display of both unmatched cards before automatic closing. */
   matchingCloseDeadline?: number
   matchingBoard?: WordAssemblyState
   matchingPhase?: 'matching' | 'matched-delay' | 'choice' | 'answer' | 'handoff-delay'
@@ -296,8 +296,8 @@ export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
   const matched = board.matchedQuestionIds.length > run.matchingBoard.matchedQuestionIds.length
   if (run.matchingOnly) {
     if (!matched) {
-      const next = { ...run, matchingBoard: board, turnDeadline: undefined, matchingCloseDeadline: undefined }
-      return board.revealed.length === 2 ? advanceMatchingTurn(next) : next
+      return { ...run, matchingBoard: board, turnDeadline: undefined,
+        matchingCloseDeadline: board.revealed.length === 2 ? Date.now() + MATCHING_MISMATCH_MS : undefined }
     }
     const team = teamForQuestion(run)
     return {
@@ -346,6 +346,7 @@ export function isMatchingQuestionUnlocked(run: ChallengeRun): boolean {
 export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): ChallengeRun {
   if (!run.matchingBoard || isMatchingQuestionUnlocked(run) || isRunComplete(run)) return run
   if (!timedOut && run.matchingBoard.revealed.length !== 2) return run
+  if (run.matchingOnly && Date.now() < (run.matchingCloseDeadline ?? 0)) return run
   if (timedOut && run.turnDeadline !== undefined && Date.now() < run.turnDeadline) return run
   const team = teamForQuestion(run)
   if (!team) return run
@@ -361,12 +362,13 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
 
 /** Pick the next matching team directly, independently of the Urutan Main page. */
 export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
-  if (run.matchingOnly && Date.now() < (run.matchingPreviewDeadline ?? 0)) return run
   if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Connect run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
   if (index < 0) throw new Error('Choose a team participating in this run')
+  if (index === run.nextTeamIndex || Date.now() < (run.matchingPreviewDeadline ?? 0) || Date.now() < (run.matchingCloseDeadline ?? 0)) return run
   return { ...run, manualTeamSelection:true, nextTeamIndex:index,
     matchingBoard:closeUnmatchedWordAssemblyCards(run.matchingBoard),
+    matchingPreviewDeadline:Date.now() + MATCHING_PREVIEW_SECONDS * 1000,
     matchingCloseDeadline:undefined,
     matchingTurn:(run.matchingTurn ?? 0)+1,
     turnDeadline:undefined }

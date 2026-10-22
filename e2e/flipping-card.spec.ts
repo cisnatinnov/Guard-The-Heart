@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('initial preview closes after five seconds, mismatches close immediately and matches stay open on both screens', async ({ page, context }) => {
+test('team changes replay preview, both mismatched cards appear briefly and matches stay open on both screens', async ({ page, context }) => {
   await page.goto('/admin')
   for (const name of ['Alpha', 'Beta']) {
     await page.getByRole('textbox', { name: 'New team name' }).fill(name)
@@ -64,6 +64,11 @@ test('initial preview closes after five seconds, mismatches close immediately an
   await expect(page.getByText(/Matched pairs:.*s$/)).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
+  for (const screen of [page, projector]) await expect(screen.locator('.tile--revealed')).toHaveCount(2)
+  await expect(page.locator('.tile').first()).toBeDisabled()
+  await page.clock.runFor(599)
+  await expect(page.locator('.tile--revealed')).toHaveCount(2)
+  await page.clock.runFor(1)
   await expect(page.locator('.tile--revealed')).toHaveCount(0)
   await expect(projector.locator('.tile--revealed')).toHaveCount(0)
   await expect(page.getByRole('timer', {name:'Cards close countdown'})).toHaveCount(0)
@@ -75,6 +80,8 @@ test('initial preview closes after five seconds, mismatches close immediately an
   await expect(active).toContainText(order[0]!)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
   await expect(active).toContainText(order[1]!)
+  await expect(projector.locator('.tile--revealed')).toHaveCount(20)
+  await expect(page.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
   await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
   await page.clock.runFor(20100)
   await expect(active).toContainText(order[1]!)
@@ -82,6 +89,8 @@ test('initial preview closes after five seconds, mismatches close immediately an
   await expect(page.locator('.tile--revealed')).toHaveCount(1)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[0]!, exact: true }).click()
   await expect(active).toContainText(order[0]!)
+  await expect(projector.locator('.tile--revealed')).toHaveCount(20)
+  await page.clock.runFor(5000)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[0]!, exact: true }).click()
   await expect(active).toContainText(order[0]!)
   for (let pair = 1; pair <= 10; pair++) {
@@ -98,6 +107,19 @@ test('initial preview closes after five seconds, mismatches close immediately an
         await projector.screenshot({ path: 'test-results/matching-only.png' })
         await projector.reload()
         await expect(projector.locator('.tile--matched')).toHaveCount(2)
+        await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
+        await expect(projector.locator('.tile--revealed')).toHaveCount(20)
+        await expect(projector.locator('.tile--matched')).toHaveCount(2)
+        await page.clock.runFor(1000)
+        await page.reload()
+        await projector.reload()
+        await expect(projector.getByRole('timer', {name:'Cards preview countdown'})).toContainText('4s')
+        await page.clock.runFor(4000)
+        for (const screen of [page, projector]) {
+          await expect(screen.locator('.tile--revealed')).toHaveCount(2)
+          await expect(screen.locator('.tile--matched')).toHaveCount(2)
+          await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toHaveCount(0)
+        }
       }
     }
   }

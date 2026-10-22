@@ -262,8 +262,8 @@ has no turn timer and does not use Urutan Main. Team badges show current GP on
 both screens, including teams deactivated during a saved run. The waiting board
 shows the current active roster and GP before a run starts.
 
-After the initial 5-second all-card preview, unmatched pairs close immediately
-when the second card is selected. Matched pairs stay open. Matching or waiting does not change
+After the initial 5-second all-card preview, both unmatched cards are shown
+for 600 ms when the second card is selected, then close automatically. Matched pairs stay open. Matching or waiting does not change
 the selected team. Matched pairs retain their team's identity. All ten pairs
 complete the activity on both screens without creating scores or opening
 rewards. **End run** returns the public display to its waiting board. Shared
@@ -616,9 +616,10 @@ challenge bonus separately as **Hadiah +N GP**. Cards retain their left alignmen
 Timer and Flipping Connect leave a visible gap above the Giliran marker.
 The empty scoreboard message “No entries for this challenge yet.” is removed.
 
-Flipping Connect unmatched pairs close immediately on admin and public views.
+Flipping Connect shows both unmatched cards for 600 ms on admin and public views,
+then closes them automatically.
 Matched pairs remain visible; closing a mismatch does not rotate teams or award
-points. Legacy saved unmatched pairs close immediately when resumed.
+points. Legacy saved unmatched pairs close within 600 ms when resumed.
 
 Regression coverage includes `tests/matching-close.test.ts`,
 `e2e/team-panels.spec.ts` and the Flipping, timer, palette and frame-bound tests.
@@ -653,21 +654,39 @@ locked during this memorization preview. The cards then close automatically and
 normal matching begins. The preview is presentation-only: it creates no matches,
 points or mismatches. `matchingPreviewDeadline` persists the absolute end time,
 so reload and late public viewers retain only the time remaining. Existing runs
-without that field continue normally. Unmatched pairs close immediately; matching pairs stay open. A new run starts a fresh preview; End run cancels it.
+without that field continue normally. Both unmatched cards show for 600 ms before closing; matching pairs stay open. A new run starts a fresh preview; End run cancels it.
 
 Validation: ESLint, TypeScript and all 267 unit tests passed. All 9 Flipping
 Connect and challenge-flow browser scenarios passed, including preview timing,
 reload during preview, automatic closing and subsequent matching.
 
 
-### Immediate mismatch closing (2026-10-22 WIB)
+### Mismatch display and closing (2026-10-22 WIB)
 
 The initial all-card preview still lasts 5 seconds. During matching, selecting a
-second card with a different picture closes both cards immediately in the shared
-run update, with no mismatch countdown. Matching pairs stay open, including
+second card with a different picture shows both faces for 600 ms, then closes
+both automatically, with no mismatch countdown. Matching pairs stay open, including
 after later mismatches and reload. Manual team selection, scoring and GP remain
-unchanged. Legacy saves with a pending mismatch are closed immediately.
+unchanged. Legacy saves with a pending mismatch are closed within 600 ms.
 
 Validation: ESLint, TypeScript and all 268 unit tests passed. All 9 Flipping
-Connect and challenge-flow browser scenarios passed, including immediate
-mismatch closing, persistent matches, reload and the initial 5-second preview.
+Connect and challenge-flow browser scenarios passed, including brief mismatch display and automatic
+closing, persistent matches, reload and the initial 5-second preview.
+
+
+### Team-change preview and visible mismatches (2026-10-22 WIB)
+
+Changing to a different active team starts a fresh 5-second all-card preview on
+admin and public screens. Afterward, unmatched cards close and matching resumes;
+previous matches stay open and matched progress, GP and scores are preserved.
+Clicking the already active team does not restart the preview. Preview deadlines
+survive reload without granting extra time.
+
+During matching, both mismatched faces are visibly shown together for 600 ms,
+then close automatically. Card clicks and team changes are blocked during this
+short display. `matchingCloseDeadline` persists the short delay; old longer
+pending delays are capped at 600 ms on resume. No mismatch countdown is shown.
+
+Validation: all 269 unit tests and 9 Flipping Connect/challenge-flow browser
+scenarios passed, including visible mismatch pairs, preview on team changes,
+matched-card preservation and reload during the repeated preview.

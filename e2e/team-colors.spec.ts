@@ -18,7 +18,7 @@ test('team identity colors match the shared palette on admin and public screens'
     }
   }
   await page.goto('/admin/timer')
-  await page.getByRole('button', { name:'Tim Biru', exact:true }).click()
+  await page.getByRole('button', { name:'Biru', exact:true }).click()
   await expect(page.locator('.event-timer__team.is-active .team-pill')).toHaveCSS('background-color', colors.biru)
   await page.goto('/timer')
   await expect(page.locator('.event-timer__team.is-active .team-pill')).toHaveCSS('background-color', colors.biru)

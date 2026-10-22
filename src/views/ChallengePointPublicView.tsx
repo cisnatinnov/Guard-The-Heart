@@ -39,7 +39,7 @@ export function ChallengePointPublicView({ challengeName }: { challengeName?: st
   }, [activeId, load])
 
   // Real-time updates
-  useDbEventRefresh([DB_EVENTS.CHALLENGE_POINTS_CHANGED, DB_EVENTS.SCOREBOARD_CHANGED], () => {
+  useDbEventRefresh([DB_EVENTS.CHALLENGE_POINTS_CHANGED, DB_EVENTS.SCOREBOARD_CHANGED, DB_EVENTS.TEAMS_CHANGED], () => {
     void load(activeId)
   })
 
@@ -47,9 +47,9 @@ export function ChallengePointPublicView({ challengeName }: { challengeName?: st
     <section className="view view--public-ranking">
       <PublicRankingBoard
         variant="scoreboard"
-        guardPoints={teams.map(team=>({id:team.id,team:team.name,guardPower:team.total_gp}))}
+        guardPoints={teams.map(team=>({id:team.id,team:team.name,colour:team.colour,guardPower:team.total_gp}))}
         challenge={activeChallenge?.name}
-        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.score }))}
+        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', colour: entry.teamRef?.colour, points: entry.score }))}
         message={error ?? (challenges.length === 0 ? 'No challenges are available yet.' : undefined)}
       />
     </section>

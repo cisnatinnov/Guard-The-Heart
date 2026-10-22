@@ -44,6 +44,10 @@ export function initializeAppDatabase(): Promise<void> {
       // database persisted by an older build is discarded rather than
       // migrated. Current databases keep their data and are synced in place.
       await sequelize.sync({ force: await isLegacySchema(sequelize) })
+      const teamColumns = await sequelize.getQueryInterface().describeTable('team')
+      if (!('colour' in teamColumns)) {
+        await sequelize.getQueryInterface().addColumn('team', 'colour', { type: DataTypes.STRING(16), allowNull: true, defaultValue: null })
+      }
       await migrateChallengePointRemoveCardColumn(sequelize)
       const pointColumns = await sequelize.getQueryInterface().describeTable('challenge_point')
       if (!('score' in pointColumns)) {

@@ -35,4 +35,6 @@ export async function seedCards(page:Page,challengeId:string,awards:Array<[strin
  const bytes=Array.from(db.export());db.close()
  await page.evaluate((bytes)=>new Promise<void>((accept,reject)=>{const open=indexedDB.open('guard-the-heart',1);open.onerror=()=>reject(open.error);open.onsuccess=()=>{const db=open.result,tx=db.transaction('sqlite','readwrite');tx.objectStore('sqlite').put(new Uint8Array(bytes),'database');tx.oncomplete=()=>{db.close();accept()};tx.onerror=()=>reject(tx.error)}}),bytes)
  await page.reload()
+ // Wait for startup to flush rank-derived GP before another navigation can interrupt it.
+ await expect(page.getByRole('button',{name:'Skip Biru',exact:true})).toBeVisible()
 }

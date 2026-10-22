@@ -135,19 +135,26 @@ describe('database bootstrap', () => {
 })
 
 describe('TeamController', () => {
-  it('seeds the five fixed teams once and protects names and deletion while allowing status changes', async () => {
+  it('seeds permanent team colours once and allows renaming and status changes while protecting deletion', async () => {
     const before = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
     expect(before.map((team) => team.name).sort()).toEqual([...DEFAULT_TEAM_NAMES].sort())
     await seedDefaultTeams()
     const after = (await TeamController.list()).filter((team) => isDefaultTeam(team.name))
     expect(after.map((team) => team.id)).toEqual(before.map((team) => team.id))
     for (const team of after) {
-      await expect(TeamController.rename(team.id, 'Other')).rejects.toThrow('cannot be edited')
+      await TeamController.rename(team.id, `Guardians ${team.colour}`)
+      const renamed = await TeamController.getById(team.id)
+      expect(renamed?.colour).toBe(team.colour)
+      expect(teamColour(renamed!)).toBe(team.colour)
+      expect(renamed?.total_gp).toBe(team.total_gp)
       expect((await TeamController.toggleStatus(team.id))?.status).toBe('inactive')
       await seedDefaultTeams()
       expect((await TeamController.getById(team.id))?.status).toBe('inactive')
       expect((await TeamController.toggleStatus(team.id))?.status).toBe('active')
       await expect(TeamController.remove(team.id)).rejects.toThrow('cannot be deleted')
+      expect((await TeamController.list()).filter((entry) => entry.colour === team.colour)).toHaveLength(1)
+      // Restore the display name for the remaining database scenarios.
+      await TeamController.rename(team.id, team.name)
     }
     await expect(TeamController.create(' tim merah ')).rejects.toThrow('reserved')
     expect(teamColour(' Tim HIJAU ')).toBe('hijau')

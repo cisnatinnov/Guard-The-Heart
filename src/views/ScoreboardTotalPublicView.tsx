@@ -57,6 +57,7 @@ export function ScoreboardTotalPublicView() {
       id: entry?.id ?? team.id,
       teamId: team.id,
       team: team.name ?? teamNameById.get(team.id) ?? '—',
+      colour: team.colour,
       status: team.status,
       points: entry?.total_cp ?? 0,
       initialGP: result?.initialGP ?? team.total_gp ?? 0,

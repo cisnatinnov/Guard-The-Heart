@@ -6,6 +6,8 @@ import { ChallengePointController } from '../controllers/ChallengePointControlle
 import { CardController } from '../controllers/CardController'
 import { useChallenges } from '../hooks/useChallenges'
 import { useTeams } from '../hooks/useTeams'
+import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
+import { DB_EVENTS } from '../hooks/useDbEvents'
 import type { ChallengePointEntry } from '../controllers/ChallengePointController'
 import type { Card } from '../models'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
@@ -56,6 +58,8 @@ export function ChallengePointAdminView() {
   useEffect(() => {
     void load(activeId)
   }, [activeId, load])
+
+  useDbEventRefresh([DB_EVENTS.TEAMS_CHANGED], () => { void load(activeId) })
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true)
@@ -267,9 +271,9 @@ export function ChallengePointAdminView() {
 
       <PublicRankingBoard
         variant="scoreboard"
-        guardPoints={teams.map(team=>({id:team.id,team:team.name,guardPower:team.total_gp}))}
+        guardPoints={teams.map(team=>({id:team.id,team:team.name,colour:team.colour,guardPower:team.total_gp}))}
         challenge={activeChallenge?.name}
-        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', points: entry.score }))}
+        rows={entries.map((entry) => ({ id: entry.id, rank: entry.rank, team: entry.teamRef?.name ?? '—', colour: entry.teamRef?.colour, points: entry.score }))}
       />
       {entries.length > 0 && <div className="scoreboard-admin-actions" aria-label="Edit challenge results">
         {entries.map((entry) => <div className="board__row" key={entry.id}>

@@ -14,7 +14,6 @@ import { CARD_BACK_IMAGE } from '../data/card-pool'
 import type { TeamCardReward } from '../services/cardDraw'
 import { CardTile } from './CardTile'
 import { RewardRankBadge } from './RewardRankBadge'
-import { teamColour } from '../services/defaultTeams'
 import '../styles/rewards.css'
 
 interface RewardTeam extends TeamCardReward { cards: TeamCard[]; blind:BlindReward|null }
@@ -124,10 +123,10 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
     <ol className="reward-stage__rows" aria-label={`Rewards for ${activeChallenge?.name ?? 'challenge'}`}>
       {Array.from({ length: 5 }, (_, slot) => {
         const row = rows[slot]
-        return <li className={`reward-stage__row reward-stage__row--${slot + 1} reward-stage__row--${teamColour(row?.teamName ?? '') ?? 'neutral'}`} key={row?.teamId ?? slot}
+        return <li className={`reward-stage__row reward-stage__row--${slot + 1} reward-stage__row--${teams.find((team) => team.id === row?.teamId)?.colour ?? 'neutral'}`} key={row?.teamId ?? slot}
           style={{ '--slot': slot } as CSSProperties} aria-label={row?.teamName ?? 'Empty reward row'} aria-hidden={!row || undefined}>
           <RewardRankBadge rank={row?.rank ?? slot + 1} />
-          <TeamGPBadge className="reward-stage__identity" name={row?.teamName ?? '—'} gp={row ? teams.find((team) => team.id === row.teamId)?.total_gp ?? null : null}/>
+          <TeamGPBadge className="reward-stage__identity" colour={teams.find((team) => team.id === row?.teamId)?.colour} name={row?.teamName ?? '—'} gp={row ? teams.find((team) => team.id === row.teamId)?.total_gp ?? null : null}/>
           {row && <span className="reward-stage__bonus" aria-label={`${row.guardPower} GP earned`}>Hadiah +{row.guardPower} GP</span>}
           <div className="reward-stage__earned" aria-label={row ? `${row.cardCount} cards earned by ${row.teamName}` : undefined}>
             {row?.blind ? <div className="blind-reward" aria-label={`Rank 5 blind draw ${row.teamName}`}>

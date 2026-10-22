@@ -27,7 +27,7 @@ export function PodiumView({admin=false}:{admin?:boolean}) {
     <section className="podium-stage" aria-label="Podium ranked by GP"><img className="podium-art" src="/ui/podium-no-gp.png" alt="Celebration podium with the guardians and Gardimon"/><h1 className="sr-only">Podium</h1>
       {[0,1,2].map(slot=>{
         const team=sorted[slot]
-        const name=team?`Tim ${team.name.replace(/^tim\s+/i,'')}`:'—'
+        const name=team?`${team.name.replace(/^tim\s+/i,'')}`:'—'
         const gp=String(team?.gp??'—')
         const prize=`Rp ${prizes[slot]?new Intl.NumberFormat('id-ID').format(Number(prizes[slot])):'—'}`
         const size={

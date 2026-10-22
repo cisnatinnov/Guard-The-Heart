@@ -4,7 +4,7 @@ test('Heart of Awareness mirrors live GP on five proportional plaques', async ({
   await page.goto('/admin/heart-of-awareness')
   const panels = page.getByRole('list', { name: 'Current team GP' })
   await expect(panels.getByRole('listitem')).toHaveCount(5)
-  await expect(panels.locator('.team-pill')).toHaveText(['Tim Hijau', 'Tim Merah', 'Tim Kuning', 'Tim Biru', 'Tim Pink'])
+  await expect(panels.locator('.team-pill')).toHaveText(['Hijau', 'Merah', 'Kuning', 'Biru', 'Pink'])
   await page.goto('/admin/scoreboard/9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10')
   await page.locator('.grid-form select').selectOption({ label: 'Merah' })
   await page.locator('.grid-form input[type="number"]').fill('100')

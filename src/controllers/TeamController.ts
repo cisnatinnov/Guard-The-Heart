@@ -1,7 +1,7 @@
 import { Team, TEAM_STATUSES, type TeamStatus } from '../models'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 import { ChallengePoint } from '../models'
-import { isDefaultTeam } from '../services/defaultTeams'
+import { isDefaultTeam, teamColour } from '../services/defaultTeams'
 import { flushDatabase } from '../db/sequelize-provider'
 import { openGPAccount } from '../services/gpTransactions'
 
@@ -62,12 +62,12 @@ export class TeamController {
     const team = await Team.findByPk(id)
     if (!team) return null
     const trimmed = name.trim()
-    if (isDefaultTeam(team.name)) throw new Error('Default teams cannot be edited')
-    if (isDefaultTeam(trimmed)) throw new Error('Default team names are reserved')
+    if (isDefaultTeam(trimmed) && teamColour(trimmed) !== team.colour) throw new Error('Default team names are reserved')
     if (!trimmed) throw new Error('Team name is required')
     const duplicate = await Team.findOne({ where: { name: trimmed } })
     if (duplicate && duplicate.id !== id) throw new Error(`Team "${trimmed}" already exists`)
     await team.update({ name: trimmed })
+    if (typeof window !== 'undefined') await flushDatabase()
     dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
     return team
   }
@@ -92,7 +92,7 @@ export class TeamController {
 
   static async remove(id: string): Promise<boolean> {
     const team = await Team.findByPk(id)
-    if (team && isDefaultTeam(team.name)) throw new Error('Default teams cannot be deleted')
+    if (team && isDefaultTeam(team)) throw new Error('Default teams cannot be deleted')
     const deleted = await Team.destroy({ where: { id } })
     if (deleted > 0) {
       dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)

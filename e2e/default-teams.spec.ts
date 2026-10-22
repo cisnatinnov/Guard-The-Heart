@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test'
 
-test('default teams are locked and reward colours follow teams when ranks change', async ({ page, context }) => {
+test('default teams allow renaming, protect deletion and keep reward colours when ranks change', async ({ page, context }) => {
   await page.goto('/admin')
   for (const name of ['Merah', 'Hijau', 'Biru', 'Kuning', 'Pink']) {
     const team = page.locator('.card', { has: page.locator('.card__title', { hasText: new RegExp(`^${name}$`) }) })
     await expect(team).toBeVisible()
     await expect(team.getByRole('button', { name: 'Deactivate', exact: true })).toBeEnabled()
-    for (const action of ['Rename', 'Delete']) await expect(team.getByRole('button', { name: action, exact: true })).toBeDisabled()
+    await expect(team.getByRole('button', { name: 'Rename', exact: true })).toBeEnabled()
+    await expect(team.getByRole('button', { name: 'Delete', exact: true })).toBeDisabled()
   }
   await page.reload()
   await expect(page.locator('.card')).toHaveCount(5)
@@ -27,7 +28,7 @@ test('default teams are locked and reward colours follow teams when ranks change
     for (const [name, colour] of Object.entries(colours)) {
       const row = surface.getByRole('listitem', { name, exact: true })
       await expect(row.locator('.reward-stage__earned')).toHaveCSS('background-color', colour)
-      await expect(row.locator('.reward-stage__identity .team-pill')).toHaveText(`Tim ${name}`)
+      await expect(row.locator('.reward-stage__identity .team-pill')).toHaveText(`${name}`)
       await expect(row.locator('.reward-stage__identity .team-pill')).toHaveCSS('background-color', labels[name])
       await expect.poll(() => row.evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(colour)
     }

@@ -10,3 +10,6 @@
 .team-colour--kuning { --team-color:var(--team-kuning); }
 .team-colour--hijau { --team-color:var(--team-hijau); }
 .team-colour--pink { --team-color:var(--team-pink); }
+
+.team-card__name { padding:.35rem .7rem; border-radius:.4rem; }
+.team-card__name:not(.team-colour--neutral) { background:var(--team-color); color:#17120c; }

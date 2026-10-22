@@ -8,14 +8,14 @@ import '../styles/reference-ui.css'
 export interface PublicRankingRow {
   id: string; rank: number; team: string; points: number; guardPower?: number
   initialGP?: number; gigaRisk?: number; effects?: string[]; remainingCards?: number; status?: 'active' | 'inactive'
-  pendingScore?: boolean
+  pendingScore?: boolean; colour?: string | null
 }
 const number = new Intl.NumberFormat('id-ID')
 export function GPMark() { return <GPShield className="gp-mark" /> }
 export { TeamPill } from './TeamPill'
 export function PublicRankingBoard({ variant, rows, challenge, message, guardPoints = [] }: {
   variant: 'scoreboard' | 'leaderboard'; rows: PublicRankingRow[]; challenge?: string; message?: string
-  guardPoints?: Array<Pick<PublicRankingRow, 'id' | 'team' | 'guardPower'>>
+  guardPoints?: Array<Pick<PublicRankingRow, 'id' | 'team' | 'guardPower' | 'colour'>>
 }) {
   const final = variant === 'leaderboard'
   const scoresComplete = rows.length === MAX_ENTRIES_PER_CHALLENGE && new Set(rows.map((row) => row.team)).size === MAX_ENTRIES_PER_CHALLENGE
@@ -33,7 +33,7 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
       <thead><tr>{['Rank','Nama Tim','GP Awal','Serangan GigaRisk','Efek Kartu','GP Akhir','Sisa Kartu'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
       <tbody>{page.map((row) => <tr key={row.id} className={row.status === 'inactive' || row.guardPower === 0 ? 'is-out' : ''}>
         <td><img className="ranking-medal" src={`/ui/Icon%20rank/Icon-Rank_${Math.min(5, row.rank)}.png`} alt={`Rank ${row.rank}`} /></td>
-        <td><div className="ranking-team-name"><TeamPill name={row.team} />{(row.status === 'inactive' || row.guardPower === 0) && <small className="out-label">OUT</small>}</div></td>
+        <td><div className="ranking-team-name"><TeamPill name={row.team} colour={row.colour} />{(row.status === 'inactive' || row.guardPower === 0) && <small className="out-label">OUT</small>}</div></td>
         <td><GPMark /><strong>{number.format(row.initialGP ?? row.guardPower ?? 0)}</strong></td>
         <td className="ranking-damage">{(row.gigaRisk ?? 0) > 0 ? '+' : ''}{row.gigaRisk ?? 0}</td>
         <td className={`ranking-effects${(row.effects?.length ?? 0)>4 ? ' ranking-effects--dense' : ''}`} title={row.effects?.join('\n')}><div className="ranking-effect-list">{row.effects?.length ? row.effects.map((effect, i) => <div className={effect.startsWith('+') || effect.startsWith('Fortune Draw:') ? 'positive' : 'negative'} key={i}>{effect}</div>) : <span>—</span>}</div></td>
@@ -43,12 +43,12 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
     </table></div> : <div className="ranking-score-panel"><ol className={`ranking-score-list${scoresComplete ? '' : ' ranking-score-list--pending'}`} aria-label="Challenge ranking">
       {page.map((row, slot) => <li key={row.id} className={`ranking-score-item ranking-score-item--${slot + 1}`}>
         {scoresComplete && <img className="ranking-medal" src={`/ui/Icon%20rank/Icon-Rank_${Math.min(5, row.rank)}.png`} alt={`Rank ${row.rank}`} />}
-        <TeamPill name={row.team} /><strong aria-label={row.pendingScore ? 'Score not entered' : undefined}>{row.pendingScore ? '—' : number.format(row.points)}</strong><span className="ranking-point-label">Poin</span>
+        <TeamPill name={row.team} colour={row.colour} /><strong aria-label={row.pendingScore ? 'Score not entered' : undefined}>{row.pendingScore ? '—' : number.format(row.points)}</strong><span className="ranking-point-label">Poin</span>
       </li>)}
     </ol></div>}
     {!final && <ol className="ranking-gp-strip" aria-label="Current team GP">
       {[...page.map(row=>guardPoints.find(team=>team.team===row.team)??row),...guardPoints.filter(team=>!page.some(row=>row.team===team.team))].slice(0,5).map(team=><li key={team.id} className="ranking-gp-item" aria-label={`${team.team}: ${team.guardPower??0} GP`}>
-        <TeamGPBadge name={team.team} gp={team.guardPower??0}/>
+        <TeamGPBadge name={team.team} colour={team.colour} gp={team.guardPower??0}/>
       </li>)}
     </ol>}
     {message && <p className="reference-status" role="status">{message}</p>}

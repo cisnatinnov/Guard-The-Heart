@@ -220,7 +220,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       </fieldset>}
 
     </article>})}</div>}
-    {availableTeams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team.name) ?? 'neutral'}`}>
+    {availableTeams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team) ?? 'neutral'}`}>
       <header className="tactical-admin__team-header"><h3>Tim {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{resolution ? 'Serangan selesai' : phase.choices[team.id]?.skipped ? 'SKIP' : `${playedIds(team.id).length}/2 selected`}</span></header>
       <div className="tactical-admin__body"><div><h4>Owned cards · {team.cards.length}</h4>
       <div className="tactical-admin__history">{Array.from(new Set(team.cards.map((card) => card.challenge_point))).map((entryId) => <section key={entryId} className="tactical-admin__card-group">
@@ -266,7 +266,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       const availableCards = team?.cards.filter((card) => !usedCards.has(card.id)) ?? []
       const visible = reveal && (phase.revealed || !!resolution)
       const result = team ? resolution?.teams.find((entry) => entry.teamId === team.id) : undefined
-      return <article key={team?.id ?? index} className={`tactical-stage__team tactical-colour--${teamColour(team?.name ?? '') ?? 'neutral'}`} style={{ '--slot': index } as CSSProperties} aria-label={team?.name ?? 'Empty team'}>
+      return <article key={team?.id ?? index} className={`tactical-stage__team tactical-colour--${(team ? teamColour(team) : null) ?? 'neutral'}`} style={{ '--slot': index } as CSSProperties} aria-label={team?.name ?? 'Empty team'}>
         <h2>Tim {team?.name.replace(/^tim\s+/i, '') ?? '—'}</h2><AnimatedTeamGP key={`${id}:${team?.id}:${hoveredLog?.card.id ?? 'idle'}:${resolution?.resolvedAt ?? 'pending'}`} value={visible ? result?.finalGP ?? team?.gp ?? 0 : team?.gp ?? 0} preview={visible && team ? gpPreviews[team.id] : undefined} />
         {reveal && <p className="tactical-stage__caption">Kartu yang dipakai</p>}
         {!reveal && <div className="tactical-stage__collection" aria-label={`Owned cards for ${team?.name ?? 'empty team'}`}>{Array.from({ length: Math.max(8, availableCards.length) }, (_, slot) => {
@@ -296,7 +296,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       </article>
     })}</div>
     <div className="tactical-stage__footer">{reveal ? phase.revealed || resolution ? 'Card Reveal selesai' : 'Menunggu admin membuka kartu' : 'Maksimal 2 kartu per Tactical Phase'}</div>
-    {reveal && <div className="tactical-stage__log" data-card-id={currentLog?.card.id}>{(phase.revealed || resolution) ? currentLog ? <><span className="tactical-stage__log-count">{activeLogIndex + 1}/{revealedCards.length}</span><strong>{cardTitleFor(currentLog.card.name, currentLog.card.type).replace(/ Card$/i, '')}</strong><span>{resolution || phase.assignment?.revealApplied ? `Tim ${currentLog.team.name.replace(/^tim\s+/i, '')}: ${currentLogEffects.join(' · ')}` : `Tim ${currentLog.team.name.replace(/^tim\s+/i, '')} memilih ${cardTitleFor(currentLog.card.name, currentLog.card.type)}`}</span></> : 'Semua tim memilih SKIP' : 'Kartu belum dibuka'}</div>}
+    {reveal && <div className="tactical-stage__log" data-card-id={currentLog?.card.id}>{(phase.revealed || resolution) ? currentLog ? <><span className="tactical-stage__log-count">{activeLogIndex + 1}/{revealedCards.length}</span><strong>{cardTitleFor(currentLog.card.name, currentLog.card.type).replace(/ Card$/i, '')}</strong><span>{resolution || phase.assignment?.revealApplied ? `${currentLog.team.name.replace(/^tim\s+/i, '')}: ${currentLogEffects.join(' · ')}` : `${currentLog.team.name.replace(/^tim\s+/i, '')} memilih ${cardTitleFor(currentLog.card.name, currentLog.card.type)}`}</span></> : 'Semua tim memilih SKIP' : 'Kartu belum dibuka'}</div>}
     {activeFortune && fortuneOffer && <FortuneReveal teamName={activeFortune.team.name} offer={fortuneOffer} selectedId={fortuneSelected} busy={busy || !!resolution} onChoose={(selected) => void saveChoices(readTacticalPhase(id),{teamId:activeFortune.team.id,cardId:activeFortune.card.id,selected})} onClose={() => {
       setDismissedFortunes((current) => [...current, `${id}:${activeFortune.card.id}`])
       setFortunePreview(null)

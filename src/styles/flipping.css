@@ -26,3 +26,7 @@
 .flipping-presentation__teams li[aria-current] { box-shadow:0 0 0 .2cqw #784514; }
 
 .flipping-presentation__close-timer { position:absolute; z-index:3; top:.5%; left:38%; width:34%; min-height:2.1cqw; padding:.3cqw .65cqw; border:.15cqw solid #f79318; border-radius:.6cqw; background:#8d302c; color:#fff; font:700 1.25cqw/1 Arial,sans-serif; text-align:center; }
+
+.flipping-presentation__feedback { position:absolute; z-index:4; left:1%; top:43%; width:10.5%; padding:.7cqw .2cqw; border:.18cqw solid #ed8a22; border-radius:.8cqw; background:#fff0cf; color:#492308; font:700 1.5cqw/1.2 Arial,sans-serif; text-align:center; pointer-events:none; }
+.flipping-presentation__feedback.is-match { background:#d7ffd9; color:#155b25; }
+.flipping-presentation__feedback.is-mismatch { background:#ffe1d9; color:#85261b; }

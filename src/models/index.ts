@@ -27,6 +27,7 @@ export class BlindReward extends Model {
 export class Team extends Model {
   declare id: string
   declare name: string
+  declare colour: string | null
   declare status: TeamStatus
   declare total_gp: number
   declare readonly createdAt: Date
@@ -159,6 +160,11 @@ export function defineModels(sequelize: Sequelize): void {
         type: DataTypes.STRING(225),
         allowNull: false,
         unique: true,
+      },
+      colour: {
+        type: DataTypes.STRING(16),
+        allowNull: true,
+        defaultValue: null,
       },
       status: {
         type: DataTypes.ENUM(...TEAM_STATUSES),

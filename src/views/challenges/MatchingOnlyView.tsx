@@ -62,7 +62,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
     finally { setBusy(false) }
   }
-  const presentation = <FlippingPresentation board={run?.matchingBoard} run={run} teamName={teamName} teamIds={activeTeams.map((team) => team.id)}
+  const presentation = <FlippingPresentation board={run?.matchingBoard} run={run} teamName={teamName} teamColour={(id) => teams.find((team) => team.id === id)?.colour} teamIds={activeTeams.map((team) => team.id)}
     teamGP={(teamId) => teams.find((entry) => entry.id === teamId)?.total_gp}
     complete={complete} disabled={busy || complete}
     onFlip={canControl ? (id) => void flip(id) : undefined}

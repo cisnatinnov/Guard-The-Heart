@@ -2,20 +2,29 @@ import { Team } from '../models'
 
 export const DEFAULT_TEAM_NAMES = ['Merah', 'Hijau', 'Biru', 'Kuning', 'Pink'] as const
 
-export function teamColour(name: string): string | null {
-  const colour = name.trim().toLowerCase().replace(/^tim\s+/, '')
+type TeamIdentity = { name: string; colour: string | null }
+
+export function teamColour(team: string | TeamIdentity): string | null {
+  if (typeof team !== 'string') return team.colour
+  const colour = team.trim().toLowerCase().replace(/^tim\s+/, '')
   return DEFAULT_TEAM_NAMES.find((entry) => entry.toLowerCase() === colour)?.toLowerCase() ?? null
 }
 
-export function isDefaultTeam(name: string): boolean {
-  return teamColour(name) !== null
+export function isDefaultTeam(team: string | TeamIdentity): boolean {
+  return teamColour(team) !== null
 }
 
-/** Reuse existing colour teams so their scores and cards stay attached. */
+/** Persist original colours and reuse their identities even after a rename. */
 export async function seedDefaultTeams(): Promise<void> {
   const teams = await Team.findAll()
   for (const name of DEFAULT_TEAM_NAMES) {
-    const existing = teams.find((team) => teamColour(team.name) === name.toLowerCase())
-    if (!existing) await Team.create({ name, status: 'active' })
+    const colour = name.toLowerCase()
+    const existing = teams.find((team) => team.colour === colour)
+      ?? teams.find((team) => !team.colour && teamColour(team.name) === colour)
+    if (existing) {
+      if (!existing.colour) await existing.update({ colour })
+    } else {
+      await Team.create({ name, colour, status: 'active' })
+    }
   }
 }

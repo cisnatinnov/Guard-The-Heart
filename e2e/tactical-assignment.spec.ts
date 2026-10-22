@@ -110,7 +110,7 @@ test('Protect and Thief support clicking and direct drops while keeping ownershi
   await page.setViewportSize({width:1440,height:2400})
   const leaderboard = await page.context().newPage()
   await leaderboard.goto('/leaderboard')
-  const redStanding = leaderboard.locator('.ranking-table tbody tr').filter({ hasText: 'Tim Merah' })
+  const redStanding = leaderboard.locator('.ranking-table tbody tr').filter({ hasText: 'Merah' })
   await expect(redStanding.locator('.ranking-effects')).not.toContainText('Dicuri')
   await expect(redStanding.locator('td').nth(5)).toContainText('5')
   await expect(redStanding.locator('.ranking-effects')).not.toContainText('Protect')

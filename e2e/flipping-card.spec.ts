@@ -27,6 +27,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
     await expect(screen.locator('.tile--revealed')).toHaveCount(20)
     await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
     await expect(screen.locator('.tile--matched')).toHaveCount(0)
+    await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Cards!')
   }
   await expect(page.locator('.tile').first()).toBeDisabled()
   for (const screen of [page,projector]) {
@@ -41,6 +42,11 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
       expect(preview.y + preview.height).toBeLessThan(teams.y)
       expect(turn.y - teams.y - teams.height).toBeGreaterThan(stage.width * .005)
       expect(turn.y + turn.height).toBeLessThan(stage.y + stage.height * .18)
+      const feedback = (await screen.locator('.flipping-presentation__feedback').boundingBox())!
+      const firstCard = (await screen.locator('.tile').first().boundingBox())!
+      expect(feedback.x).toBeGreaterThanOrEqual(stage.x)
+      expect(feedback.x + feedback.width).toBeLessThan(firstCard.x)
+      await expect(screen.locator('.flipping-presentation__feedback')).toHaveCSS('pointer-events', 'none')
       const panels = await screen.locator('.flipping-presentation__teams li').evaluateAll((items) => items.map((item) => { const box=item.getBoundingClientRect();return {left:box.left,right:box.right} }))
       for (let index=1;index<panels.length;index++) expect(panels[index].left-panels[index-1].right).toBeGreaterThan(stage.width * .008)
     }
@@ -81,7 +87,10 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(page.getByText(/Matched pairs:.*s$/)).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
-  for (const screen of [page, projector]) await expect(screen.locator('.tile--revealed')).toHaveCount(2)
+  for (const screen of [page, projector]) {
+    await expect(screen.locator('.tile--revealed')).toHaveCount(2)
+    await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Mismatch!')
+  }
   await expect(page.locator('.tile').first()).toBeDisabled()
   await page.clock.runFor(599)
   await expect(page.locator('.tile--revealed')).toHaveCount(2)
@@ -115,15 +124,20 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
     await page.locator(`.tile[data-pair="word-${pair}"]`).nth(1).click()
     if (pair < 10) {
       await expect(projector.locator('.tile--matched')).toHaveCount(pair * 2)
+      for (const screen of [page, projector]) await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Match!')
       await expect(page.getByRole('list', { name: 'Answer choices' })).toHaveCount(0)
       await expect(page.getByRole('button', { name: 'Answer myself', exact: true })).toHaveCount(0)
       if (pair === 1) {
         await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
-        await page.clock.runFor(6000)
+        await page.clock.runFor(1200)
+        await projector.clock.runFor(1200)
+        for (const screen of [page, projector]) await expect(screen.locator('.flipping-presentation__feedback')).toHaveCount(0)
+        await page.clock.runFor(4800)
         await expect(projector.locator('.tile--matched')).toHaveCount(2)
         await projector.screenshot({ path: 'test-results/matching-only.png' })
         await projector.reload()
         await expect(projector.locator('.tile--matched')).toHaveCount(2)
+        await expect(projector.locator('.flipping-presentation__feedback')).toHaveCount(0)
         const previousLayout = await projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))
         await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
         await expect(projector.locator('.tile--revealed')).toHaveCount(20)

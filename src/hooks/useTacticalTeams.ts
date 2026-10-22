@@ -6,7 +6,7 @@ import type { TeamCard } from '../models'
 import { useDbEventRefresh } from './useDbEventRefresh'
 import { DB_EVENTS } from './useDbEvents'
 
-export interface TacticalTeam { id: string; name: string; gp: number; cards: TeamCard[]; cardChallenges: Record<string, { id: string; name: string }> }
+export interface TacticalTeam { id: string; name: string; colour: string | null; gp: number; cards: TeamCard[]; cardChallenges: Record<string, { id: string; name: string }> }
 
 export function useTacticalTeams(challengeId: string, { includeInactive = false }: { includeInactive?: boolean } = {}) {
   const [state, setState] = useState<{ challengeId: string; teams: TacticalTeam[] }>({ challengeId: '', teams: [] })
@@ -21,7 +21,7 @@ export function useTacticalTeams(challengeId: string, { includeInactive = false 
       const cardChallenges = Object.fromEntries(history.map((entry) => [entry.id, { id: entry.challenge, name: entry.challengeRef?.name ?? 'Challenge' }]))
       const ordered = all.filter((team) => !participants.size || participants.has(team.id))
         .sort((a, b) => b.total_gp - a.total_gp || a.name.localeCompare(b.name)).slice(0, 5)
-      const rows = await Promise.all(ordered.map(async (team) => ({ id: team.id, name: team.name, gp: team.total_gp,
+      const rows = await Promise.all(ordered.map(async (team) => ({ id: team.id, name: team.name, colour: team.colour, gp: team.total_gp,
         cards: await CardController.listTeamCardsPermanent(team.id, true), cardChallenges })))
       if (version === request.current) { setState({ challengeId, teams: rows }); setError(null) }
     } catch (cause) { if (version === request.current) setError(cause instanceof Error ? cause.message : String(cause)) }

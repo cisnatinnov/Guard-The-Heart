@@ -19,6 +19,14 @@ main presentation. The standalone scoreboard remains at `/scoreboard`.
 Configure and run the standalone event timer at `/admin/timer`; its
 public display is `/timer`. Production hosting must serve `index.html` for application routes.
 
+### Team names and colours
+
+Rename teams from **Teams** in `/admin`. The original Merah, Hijau, Biru,
+Kuning and Pink backgrounds stay attached to those teams across all displays,
+even after renaming or reloading. Existing saved games gain these permanent
+colours automatically while keeping their scores, cards and GP. Default teams
+remain protected against deletion; their names and active status can change.
+
 ### Main Presentation
 
 Open **Main Presentation** in the admin navigation (`/admin/presentation`) to
@@ -94,7 +102,8 @@ opens; completed rounds retain their history.
 ## Running an event
 
 1. Review teams in **Team**. Merah, Hijau, Biru, Kuning and Pink are seeded,
-   active and protected from renaming/deletion. All teams, including defaults,
+   active and protected from deletion. Rename them while keeping their original
+   background colours. All teams, including defaults,
    can be deactivated manually. Additional teams can be created, renamed and
    deleted. Each team starts with 5 GP.
 2. Use **Urutan Main** to click team names in the desired order or use **Acak
@@ -251,6 +260,13 @@ cancels early. Solo scores require manual entry because no team is selected.
 
 ### Flipping Connect
 
+The board shows **Cards!** during the 5-second all-card preview. A newly matched
+pair shows **Match!**; a mismatched pair shows **Mismatch!**. These bold status
+messages appear beside the cards on admin and public screens, without intercepting
+clicks. Match/mismatch feedback clears after 1.2 seconds or the next first flip;
+a fresh team preview replaces it with Cards!. Reloading restores board progress
+without replaying old match/mismatch messages. Feedback changes no scores or GP.
+
 Flipping Connect only supports team runs. **Play** immediately opens or reuses
 the public matching board. Choose up to five active teams and start the run;
 the same public window switches to the shared board without opening a duplicate.
@@ -264,7 +280,7 @@ shows the current active roster and GP before a run starts.
 
 After the initial 5-second all-card preview, both unmatched cards are shown
 for 600 ms when the second card is selected, then close automatically. Matched pairs stay open. Matching or waiting does not change
-the selected team. Matched pairs retain their team's identity. All ten pairs
+the selected team. Matched pairs remain open within the selected team's current attempt. All ten pairs
 complete the activity on both screens without creating scores or opening
 rewards. **End run** returns the public display to its waiting board. Shared
 progress and selected teams survive public reload.
@@ -273,6 +289,10 @@ The 21 reference Flipping Connect questions remain seeded for compatibility and
 reference decks; they are not part of the current matching-only screen.
 
 ## Team colors
+
+Colours follow saved team identity, independently of the editable team name.
+Team pills and podium labels show the saved name without adding a Tim prefix;
+a leading Tim already in a name is removed for display.
 
 Team identity colors are defined once in `src/styles/team-colors.css` and shared
 by admin/public team badges, reward labels, Tactical Phase/Card Reveal, timer and
@@ -458,6 +478,8 @@ SQLite runs in WASM and is stored as bytes in IndexedDB (`guard-the-heart`,
 store `sqlite`, key `database`). ORM models are defined in `src/models/index.ts`.
 Existing raw CP values migrate into the new `ChallengePoint.score` column,
 then CP/GP rewards are recalculated from ranks. Recorded combat remains intact.
+Existing teams also gain a nullable permanent `colour` field; original colour
+teams are reused after renaming, preserving their ids, scores, cards and GP.
 
 Tactical selections, completed-attack archives, draw markers, turn order,
 standalone timer/run state and podium prizes also use localStorage. Reward Claim
@@ -543,6 +565,28 @@ For schema and implementation rules, see [blueprint.md](./blueprint.md).
 
 ## Verification
 
+Latest verification on **2026-10-22 (WIB)** covers permanent team colours,
+editable team names, the existing team-label/podium changes, and Flipping Connect
+feedback. Both repository Markdown files reflect the current behavior and schema.
+
+| Check | Result |
+| --- | --- |
+| Unit/database suite | 271 tests passed across 25 files |
+| Browser coverage | All 65 scenarios verified: 63 passed in the full run; the remaining 2 passed after correcting a panel selector and waiting for fixture startup |
+| TypeScript and production/PWA build | Passed (`npm run build`) |
+| ESLint | Passed |
+| Markdown fences, local links and anchors | Passed in both files |
+
+Unit verification used `npx vitest run --maxWorkers=2 --testTimeout=15000` to
+avoid contention-related timeouts. Browser tests used the production preview on
+a fresh loopback port with three workers; the final two fixture/selector checks
+ran with one worker. The Flipping Connect test covers all three bold feedback
+messages on admin/public displays, dismissal, no replay after reload, and bounds
+at desktop, tablet and phone sizes. Team tests cover renaming, live scoreboard
+refresh, permanent backgrounds, GP/cards/scores, repeated reload and migration.
+
+Earlier dated results below are retained as historical records.
+
 Team palette follow-up on **2026-10-21 (WIB)**: all 12 targeted browser scenarios
 passed. Exact computed colors were checked on admin/public labels, including
 reordered reward ranks, timer active turns and Flipping Connect. ESLint, TypeScript
@@ -562,7 +606,7 @@ scenarios passed, including click/keyboard selection, dropdown/public synchroniz
 and unchanged running deadlines. ESLint, TypeScript and production/PWA build passed.
 The full-suite results below remain the baseline; this UI change used targeted checks.
 
-Latest full verification on **2026-10-20 (WIB)**:
+Historical full verification on **2026-10-20 (WIB)**:
 
 | Check | Result |
 | --- | --- |
@@ -581,9 +625,9 @@ valid balances without attaching old GP to replacement teams.
 
 The complete browser run also checks reward selection/cursors, Fortune Draw,
 reveal/attack timing, GP persistence, rankings, all three games, presentation,
-timer, public-window reuse, offline reload and responsive layouts. It replaces
-the earlier 57-scenario baseline and targeted startup follow-up as the latest
-full browser verification. These regression cases run as part of the normal
+timer, public-window reuse, offline reload and responsive layouts. That historical
+run replaced the earlier 57-scenario baseline and targeted startup follow-up
+at that time. These regression cases run as part of the normal
 `npm test` and `npm run test:e2e` suites.
 
 Run application checks from the repository root:

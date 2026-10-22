@@ -9,11 +9,11 @@ const number = new Intl.NumberFormat('id-ID')
 export function HeartAwarenessView({ admin = false }: { admin?: boolean }) {
   const { teams, loading, error } = useTeams()
   const ordered = [...teams].sort((a, b) => {
-    const position = (name: string) => {
-      const index = colours.indexOf(teamColour(name) ?? '')
+    const position = (team: (typeof teams)[number]) => {
+      const index = colours.indexOf(teamColour(team) ?? '')
       return index < 0 ? colours.length : index
     }
-    return position(a.name) - position(b.name) || a.name.localeCompare(b.name)
+    return position(a) - position(b) || a.name.localeCompare(b.name)
   })
   const pages = Array.from({ length: Math.max(1, Math.ceil(ordered.length / 5)) }, (_, index) => ordered.slice(index * 5, index * 5 + 5))
   return <section className={admin ? 'view reference-feature-admin' : 'reference-feature-public'}>
@@ -26,7 +26,7 @@ export function HeartAwarenessView({ admin = false }: { admin?: boolean }) {
           const team = page[slot]
           const gp = team?.total_gp ?? 0
           return <li key={team?.id ?? slot} className="awareness-team" aria-label={team ? `${team.name}: ${gp} GP` : 'Empty team slot'}>
-            <div className={`awareness-name${team && teamColour(team.name) === colours[slot] ? ' awareness-name--native' : ''}`}>{team ? <TeamPill name={team.name} /> : <span className="team-pill">—</span>}</div>
+            <div className={`awareness-name${team && teamColour(team) === colours[slot] ? ' awareness-name--native' : ''}`}>{team ? <TeamPill name={team.name} colour={team.colour} /> : <span className="team-pill">—</span>}</div>
             <GPShield className="awareness-gp-icon" />
             <div className="awareness-score"><strong style={{ fontSize: `${Math.min(5.5, 10 / number.format(gp).length)}cqw` }}>{team ? number.format(gp) : '—'}</strong></div>
           </li>

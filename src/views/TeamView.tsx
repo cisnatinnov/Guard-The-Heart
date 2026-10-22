@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { TeamController } from '../controllers/TeamController'
 import { useTeams } from '../hooks/useTeams'
 import { BASE_TEAM_GUARD_POWER } from '../services/rankRules'
-import { isDefaultTeam } from '../services/defaultTeams'
+import { isDefaultTeam, teamColour } from '../services/defaultTeams'
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 25, 50, 100] as const
 type TeamStatusFilter = 'active' | 'inactive' | 'all'
@@ -76,7 +76,7 @@ export function TeamView() {
       <header className="view__header">
         <h2>Teams</h2>
         <p className="view__hint">
-          Merah, Hijau, Biru, Kuning, and Pink are fixed default teams. Each team starts with{' '}
+          Default teams keep their original background colours when renamed. Each team starts with{' '}
           {BASE_TEAM_GUARD_POWER} GP and earns more from its challenge ranks. Teams deactivate at 0 GP after card effects resolve. You can also deactivate any team manually.
         </p>
       </header>
@@ -182,7 +182,7 @@ export function TeamView() {
                 </form>
               ) : (
                 <div className="card__body">
-                  <span className="card__title">{team.name}</span>
+                  <span className={`card__title team-card__name team-colour--${teamColour(team) ?? 'neutral'}`}>{team.name}</span>
                   <div className="card__actions team-card__actions">
                     <div className="team-card__status">
                       <span className={team.status === 'active' ? 'badge' : 'badge badge--muted'}>
@@ -203,7 +203,7 @@ export function TeamView() {
                     <button
                       type="button"
                       className="ghost"
-                      disabled={busy || isDefaultTeam(team.name)}
+                      disabled={busy}
                       onClick={() => {
                         setEditingId(team.id)
                         setEditingName(team.name)
@@ -214,7 +214,7 @@ export function TeamView() {
                     <button
                       type="button"
                       className="danger"
-                      disabled={busy || isDefaultTeam(team.name)}
+                      disabled={busy || isDefaultTeam(team)}
                       onClick={() => run(() => TeamController.remove(team.id))}
                     >
                       Delete

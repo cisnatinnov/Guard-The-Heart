@@ -357,11 +357,10 @@ Jaw questions are reference-bank content only.
 The routed game is matching-only: twenty cards, ten pairs, no Q&A, score changes
 or turn timer. Only team runs are available. Play immediately opens or reuses the public matching board, and starting a run publishes the game as the current display so a previous public feature cannot replace it. The admin clicks a
 participating team name above the board to select whose turn it is;
-`manualTeamSelection` prevents automatic rotation. Unmatched pairs close after
-5 seconds. `matchingCloseDeadline` stores the absolute close time separately from
-legacy turn deadlines; `useRunCountdown` displays remaining seconds on both boards.
-Reload preserves the deadline, team selection is blocked while the pair is open,
-and matching pairs remain visible. A selected team's matched pairs are identified on the shared
+`manualTeamSelection` prevents automatic rotation. After the initial all-card
+preview, unmatched pairs close immediately within `flipRunCard`; matched pairs
+remain visible. Legacy saved unmatched pairs close without honoring their old
+`matchingCloseDeadline`. `useRunCountdown` displays only the initial preview. A selected team's matched pairs are identified on the shared
 board. All ten pairs complete the activity on admin and public screens; it does
 not auto-save CP or open reward screens. Live GP lookup includes inactive teams
 so an existing participant keeps its name and balance after deactivation. Waiting
@@ -541,7 +540,7 @@ reload. Passing these checks covers the implemented scenarios, not every possibl
 device or simultaneous administrative edit.
 
 
-### Shared live GP panels and card-close countdown (2026-10-22 WIB)
+### Shared live GP panels and Flipping timing (2026-10-22 WIB)
 
 Timer, Scoreboard and Reward Claim use `TeamGPBadge` with the shared brown/orange
 frame, exact team colour, GP shield and aligned numeric balance. `TeamPill` is
@@ -551,10 +550,9 @@ challenge bonus separately as **Hadiah +N GP**. Cards retain their left alignmen
 Timer and Flipping Connect leave a visible gap above the Giliran marker.
 The empty scoreboard message “No entries for this challenge yet.” is removed.
 
-Flipping Connect unmatched pairs remain open for 5 seconds, with a synchronized
-admin/public countdown. Reload does not restart the delay. Matching pairs remain
-visible; closing a mismatch does not rotate teams or award points. Legacy saved
-unmatched pairs receive a close deadline when resumed.
+Flipping Connect unmatched pairs close immediately on admin and public views.
+Matched pairs remain visible; closing a mismatch does not rotate teams or award
+points. Legacy saved unmatched pairs close immediately when resumed.
 
 Regression coverage includes `tests/matching-close.test.ts`,
 `e2e/team-panels.spec.ts` and the Flipping, timer, palette and frame-bound tests.
@@ -589,9 +587,21 @@ locked during this memorization preview. The cards then close automatically and
 normal matching begins. The preview is presentation-only: it creates no matches,
 points or mismatches. `matchingPreviewDeadline` persists the absolute end time,
 so reload and late public viewers retain only the time remaining. Existing runs
-without that field continue normally. The separate 5-second unmatched-pair close
-delay remains unchanged. A new run starts a fresh preview; End run cancels it.
+without that field continue normally. Unmatched pairs close immediately; matching pairs stay open. A new run starts a fresh preview; End run cancels it.
 
 Validation: ESLint, TypeScript and all 267 unit tests passed. All 9 Flipping
 Connect and challenge-flow browser scenarios passed, including preview timing,
 reload during preview, automatic closing and subsequent matching.
+
+
+### Immediate mismatch closing (2026-10-22 WIB)
+
+The initial all-card preview still lasts 5 seconds. During matching, selecting a
+second card with a different picture closes both cards immediately in the shared
+run update, with no mismatch countdown. Matching pairs stay open, including
+after later mismatches and reload. Manual team selection, scoring and GP remain
+unchanged. Legacy saves with a pending mismatch are closed immediately.
+
+Validation: ESLint, TypeScript and all 268 unit tests passed. All 9 Flipping
+Connect and challenge-flow browser scenarios passed, including immediate
+mismatch closing, persistent matches, reload and the initial 5-second preview.

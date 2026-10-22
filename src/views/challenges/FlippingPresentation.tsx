@@ -22,11 +22,9 @@ export function FlippingPresentation({ board, run, teamName, teamGP, teamIds, co
   const [waitingBoard] = useState(createWordAssemblyState)
   const previewRemaining = useRunCountdown(run?.matchingPreviewDeadline)
   const previewing = (previewRemaining ?? 0) > 0
-  const closeRemaining = useRunCountdown(run?.matchingBoard?.revealed.length === 2 ? run.matchingCloseDeadline : undefined)
   return <section className="flipping-presentation" aria-label="Flipping Connect matching board">
     <img className="flipping-presentation__art" src="/ui/flipping-slide-03-reference.png" alt="" />
     {previewing && <div className="flipping-presentation__close-timer" role="timer" aria-label="Cards preview countdown">Hafalkan kartu: {Math.min(MATCHING_PREVIEW_SECONDS, previewRemaining!)}s</div>}
-    {!previewing && closeRemaining !== undefined && <div className="flipping-presentation__close-timer" role="timer" aria-label="Cards close countdown">Kartu ditutup dalam {closeRemaining}s</div>}
     <ol className="flipping-presentation__teams" aria-label="Select the active team">
       {Array.from({ length: 5 }, (_, slot) => {
         const entry = run?.runs[slot]

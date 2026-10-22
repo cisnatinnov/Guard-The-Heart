@@ -3,23 +3,26 @@ import { advanceMatchingTurn, enableRunMatching, flipRunCard, selectMatchingTeam
 
 afterEach(() => vi.useRealTimers())
 function run() { return { ...enableRunMatching(startChallengeRun({ challenge:'test', teams:['a','b'], questionCount:10, pointsPerQuestion:0 })), matchingOnly:true, manualTeamSelection:true, turnDeadline:undefined } }
-it('keeps unmatched cards open for exactly five seconds without changing team or score', () => {
-  vi.useFakeTimers()
-  let current = run()
+it('closes an unmatched pair immediately without changing the selected team or score', () => {
+  const current = run()
   const first = current.matchingBoard!.board.find((card) => card.questionId === 'word-1')!
   const second = current.matchingBoard!.board.find((card) => card.questionId === 'word-2')!
-  current = flipRunCard(flipRunCard(current,first.id),second.id) as typeof current
-  expect(current.matchingCloseDeadline).toBe(Date.now()+5000)
-  const saved = JSON.parse(JSON.stringify(current)) as typeof current
-  vi.advanceTimersByTime(4999)
-  expect(advanceMatchingTurn(saved)).toBe(saved)
-  expect(selectMatchingTeam(saved,'b')).toBe(saved)
-  vi.advanceTimersByTime(1)
-  const closed = advanceMatchingTurn(saved)
+  const opened = flipRunCard(current,first.id)
+  expect(opened.matchingBoard!.revealed).toEqual([first.id])
+  const closed = flipRunCard(opened,second.id)
   expect(closed.matchingBoard!.revealed).toEqual([])
+  expect(closed.matchingBoard!.mismatches).toBe(1)
   expect(closed.matchingCloseDeadline).toBeUndefined()
-  expect(closed.nextTeamIndex).toBe(saved.nextTeamIndex)
+  expect(closed.nextTeamIndex).toBe(current.nextTeamIndex)
   expect(closed.runs.map((team) => team.score)).toEqual([0,0])
+  expect(flipRunCard(closed,first.id).matchingBoard!.revealed).toEqual([first.id])
+})
+it('closes a legacy unmatched pair immediately even if its old deadline is in the future', () => {
+  const current = run()
+  const cards = current.matchingBoard!.board
+  const saved = { ...current, matchingCloseDeadline: Date.now()+5000,
+    matchingBoard: { ...current.matchingBoard!, revealed: [cards[0].id,cards.find((card) => card.questionId !== cards[0].questionId)!.id] } }
+  expect(advanceMatchingTurn(saved).matchingBoard!.revealed).toEqual([])
 })
 it('does not start a close countdown for one card or a matched pair', () => {
   const current = run()
@@ -29,6 +32,11 @@ it('does not start a close countdown for one card or a matched pair', () => {
   const matched = flipRunCard(first,pair[1].id)
   expect(matched.matchingCloseDeadline).toBeUndefined()
   expect(matched.matchingBoard!.matchedCardIds).toHaveLength(2)
+  const others = matched.matchingBoard!.board.filter((card) => card.questionId !== 'word-1')
+  const second = others.find((card) => card.questionId !== others[0].questionId)!
+  const afterMismatch = flipRunCard(flipRunCard(matched,others[0].id),second.id)
+  expect(afterMismatch.matchingBoard!.matchedCardIds).toEqual(matched.matchingBoard!.matchedCardIds)
+  expect(afterMismatch.matchingBoard!.revealed).toEqual([])
 })
 
 it('blocks card flips and team changes during the initial preview and unlocks at its saved deadline', () => {

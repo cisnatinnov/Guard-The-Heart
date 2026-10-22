@@ -262,9 +262,8 @@ has no turn timer and does not use Urutan Main. Team badges show current GP on
 both screens, including teams deactivated during a saved run. The waiting board
 shows the current active roster and GP before a run starts.
 
-Unmatched pairs stay open for 5 seconds, with a visible countdown on admin and
-public boards. The absolute close deadline survives reload; team selection is
-locked until the pair closes. Matched pairs stay open. Matching or waiting does not change
+After the initial 5-second all-card preview, unmatched pairs close immediately
+when the second card is selected. Matched pairs stay open. Matching or waiting does not change
 the selected team. Matched pairs retain their team's identity. All ten pairs
 complete the activity on both screens without creating scores or opening
 rewards. **End run** returns the public display to its waiting board. Shared
@@ -607,7 +606,7 @@ guarantee every possible device or simultaneous edit sequence.
 See [blueprint.md](./blueprint.md#validation-record) for the implementation and audit.
 
 
-### Shared live GP panels and card-close countdown (2026-10-22 WIB)
+### Shared live GP panels and Flipping timing (2026-10-22 WIB)
 
 Timer, Scoreboard and Reward Claim use `TeamGPBadge` with the shared brown/orange
 frame, exact team colour, GP shield and aligned numeric balance. `TeamPill` is
@@ -617,10 +616,9 @@ challenge bonus separately as **Hadiah +N GP**. Cards retain their left alignmen
 Timer and Flipping Connect leave a visible gap above the Giliran marker.
 The empty scoreboard message “No entries for this challenge yet.” is removed.
 
-Flipping Connect unmatched pairs remain open for 5 seconds, with a synchronized
-admin/public countdown. Reload does not restart the delay. Matching pairs remain
-visible; closing a mismatch does not rotate teams or award points. Legacy saved
-unmatched pairs receive a close deadline when resumed.
+Flipping Connect unmatched pairs close immediately on admin and public views.
+Matched pairs remain visible; closing a mismatch does not rotate teams or award
+points. Legacy saved unmatched pairs close immediately when resumed.
 
 Regression coverage includes `tests/matching-close.test.ts`,
 `e2e/team-panels.spec.ts` and the Flipping, timer, palette and frame-bound tests.
@@ -655,9 +653,21 @@ locked during this memorization preview. The cards then close automatically and
 normal matching begins. The preview is presentation-only: it creates no matches,
 points or mismatches. `matchingPreviewDeadline` persists the absolute end time,
 so reload and late public viewers retain only the time remaining. Existing runs
-without that field continue normally. The separate 5-second unmatched-pair close
-delay remains unchanged. A new run starts a fresh preview; End run cancels it.
+without that field continue normally. Unmatched pairs close immediately; matching pairs stay open. A new run starts a fresh preview; End run cancels it.
 
 Validation: ESLint, TypeScript and all 267 unit tests passed. All 9 Flipping
 Connect and challenge-flow browser scenarios passed, including preview timing,
 reload during preview, automatic closing and subsequent matching.
+
+
+### Immediate mismatch closing (2026-10-22 WIB)
+
+The initial all-card preview still lasts 5 seconds. During matching, selecting a
+second card with a different picture closes both cards immediately in the shared
+run update, with no mismatch countdown. Matching pairs stay open, including
+after later mismatches and reload. Manual team selection, scoring and GP remain
+unchanged. Legacy saves with a pending mismatch are closed immediately.
+
+Validation: ESLint, TypeScript and all 268 unit tests passed. All 9 Flipping
+Connect and challenge-flow browser scenarios passed, including immediate
+mismatch closing, persistent matches, reload and the initial 5-second preview.

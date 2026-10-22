@@ -21,6 +21,8 @@ export interface TeamRun {
 export interface ChallengeRun {
   manualTeamSelection?: boolean
   matchingOnly?: boolean
+  /** Initial all-card preview ends at this shared absolute time. */
+  matchingPreviewDeadline?: number
   /** Absolute deadline for displaying an unmatched pair; separate from a turn timer. */
   matchingCloseDeadline?: number
   matchingBoard?: WordAssemblyState
@@ -285,6 +287,7 @@ export function questionWasClean(run: ChallengeRun): boolean {
 
 /** Matching progress is part of the shared run, including public spectators. */
 export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
+  if (run.matchingOnly && Date.now() < (run.matchingPreviewDeadline ?? 0)) return run
   if (!run.matchingBoard || run.questionResolved || isRunComplete(run) ||
       (run.matchingPhase !== undefined && run.matchingPhase !== 'matching') || isMatchingQuestionUnlocked(run) ||
       (!run.matchingOnly && run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run
@@ -357,6 +360,7 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
 
 /** Pick the next matching team directly, independently of the Urutan Main page. */
 export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
+  if (run.matchingOnly && Date.now() < (run.matchingPreviewDeadline ?? 0)) return run
   if (!run.matchingOnly || !run.matchingBoard || isRunComplete(run)) throw new Error('Choose a team during an active Flipping Connect run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
   if (index < 0) throw new Error('Choose a team participating in this run')

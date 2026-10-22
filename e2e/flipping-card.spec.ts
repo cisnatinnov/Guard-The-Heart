@@ -23,6 +23,29 @@ test('manual team selection has a five-second card-close countdown without score
   for (const name of ['Alpha', 'Beta']) await page.locator('.run-panel__teams').getByRole('checkbox', { name, exact: true }).check()
   await page.getByRole('button', { name: 'Start team run (2)' }).click()
   expect(context.pages()).toHaveLength(pagesBefore)
+  for (const screen of [page, projector]) {
+    await expect(screen.locator('.tile--revealed')).toHaveCount(20)
+    await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
+    await expect(screen.locator('.tile--matched')).toHaveCount(0)
+  }
+  await expect(page.locator('.tile').first()).toBeDisabled()
+  await projector.screenshot({path:'test-results/flipping-initial-preview.png'})
+  await page.clock.runFor(1000)
+  await page.reload()
+  await projector.reload()
+  for (const screen of [page, projector]) {
+    await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toContainText('4s')
+    await expect(screen.locator('.tile--revealed')).toHaveCount(20)
+  }
+  await page.clock.runFor(3999)
+  await expect(page.locator('.tile--revealed')).toHaveCount(20)
+  await page.clock.runFor(1)
+  for (const screen of [page, projector]) {
+    await expect(screen.locator('.tile--revealed')).toHaveCount(0)
+    await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toHaveCount(0)
+  }
+  await expect(page.locator('.tile').first()).toBeEnabled()
+
   await expect(projector.locator('.flipping-presentation__art')).toHaveAttribute('src', '/ui/flipping-slide-03-reference.png')
   const stage = await projector.locator('.flipping-presentation').boundingBox()
   const firstCard = await projector.locator('.tile').first().boundingBox()

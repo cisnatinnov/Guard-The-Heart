@@ -30,3 +30,20 @@ it('does not start a close countdown for one card or a matched pair', () => {
   expect(matched.matchingCloseDeadline).toBeUndefined()
   expect(matched.matchingBoard!.matchedCardIds).toHaveLength(2)
 })
+
+it('blocks card flips and team changes during the initial preview and unlocks at its saved deadline', () => {
+  vi.useFakeTimers()
+  const current = { ...run(), matchingPreviewDeadline: Date.now() + 5000 }
+  const saved = JSON.parse(JSON.stringify(current)) as typeof current
+  const cardId = saved.matchingBoard!.board[0].id
+  expect(flipRunCard(saved,cardId)).toBe(saved)
+  expect(selectMatchingTeam(saved,'b')).toBe(saved)
+  vi.advanceTimersByTime(4999)
+  expect(flipRunCard(saved,cardId)).toBe(saved)
+  expect(saved.matchingBoard!.revealed).toEqual([])
+  expect(saved.matchingBoard!.matchedCardIds).toEqual([])
+  expect(saved.runs.map((team) => team.score)).toEqual([0,0])
+  vi.advanceTimersByTime(1)
+  expect(flipRunCard(saved,cardId).matchingBoard!.revealed).toEqual([cardId])
+  expect(selectMatchingTeam(saved,'b').nextTeamIndex).toBe(1)
+})

@@ -77,7 +77,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
   if (!canControl) return presentation
   return <section className="view matching-only">
     <h2>Challenge 2 - Flipping Connect</h2>
-    <p>Match identical pictures to complete all ten pairs. Unmatched cards stay open for 5 seconds. Click a team name above the board to choose whose turn it is.</p>
+    <p>All cards open for 5 seconds at the start, then close for matching. Match identical pictures to complete all ten pairs. Unmatched cards stay open for 5 seconds. Click a team name above the board to choose whose turn it is.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>
       <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''}</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>

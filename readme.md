@@ -645,3 +645,19 @@ reloading, locked targets and panel bounds at 1366, 768 and 390 pixels.
 Validation: ESLint and TypeScript passed. All 5 targeted browser scenarios
 passed across Tactical Phase, click/drop targeting, upgraded cards and Fortune
 Draw, including the responsive target-panel assertions.
+
+
+### Flipping Connect initial preview (2026-10-22 WIB)
+
+Starting a new team run reveals all 20 shuffled cards on admin and public views
+for 5 seconds, with a shared visible countdown. Card clicks and team changes are
+locked during this memorization preview. The cards then close automatically and
+normal matching begins. The preview is presentation-only: it creates no matches,
+points or mismatches. `matchingPreviewDeadline` persists the absolute end time,
+so reload and late public viewers retain only the time remaining. Existing runs
+without that field continue normally. The separate 5-second unmatched-pair close
+delay remains unchanged. A new run starts a fresh preview; End run cancels it.
+
+Validation: ESLint, TypeScript and all 267 unit tests passed. All 9 Flipping
+Connect and challenge-flow browser scenarios passed, including preview timing,
+reload during preview, automatic closing and subsequent matching.

@@ -11,16 +11,17 @@ function matchingCardFace(questionId: string, position: number, revealed: boolea
     : `/match-card/reference/hidden-${String(position + 1).padStart(2, '0')}.webp`
 }
 
-export function MatchingCards({ board, disabled = false, onFlip, reference = false }: {
+export function MatchingCards({ board, disabled = false, onFlip, reference = false, revealAll = false }: {
   board: WordAssemblyState
   disabled?: boolean
   onFlip?: (cardId: string) => void
   reference?: boolean
+  revealAll?: boolean
 }) {
   return <div className={`tile-grid matching-cards${reference ? ' matching-cards--reference' : ''}`} role="group" aria-label="Picture matching cards">
     {board.board.map((card, position) => {
       const matched = board.matchedCardIds.includes(card.id)
-      const revealed = matched || board.revealed.includes(card.id)
+      const revealed = revealAll || matched || board.revealed.includes(card.id)
       const label = WORD_ASSEMBLY_QUESTIONS.find((question) => question.id === card.questionId)?.prompt ?? 'Picture'
       const props = {
         className: `tile${revealed ? ' tile--revealed' : ''}${matched ? ' tile--matched' : ''}`,

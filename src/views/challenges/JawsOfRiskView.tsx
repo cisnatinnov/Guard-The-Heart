@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import { CROCODILE_TEETH, createCrocodileRound, pressCrocodileTooth, type CrocodileRound } from '../../services/games/crocodile'
+import { CROCODILE_TEETH, createCrocodileRound, configureCrocodileTeeth, nextCrocodileRound, pressCrocodileTooth, type CrocodileRound } from '../../services/games/crocodile'
 import '../../styles/crocodile.css'
 import { useCrocodileHover } from './useCrocodileHover'
+import { useRunCountdown } from './useRunCountdown'
 
 const ASSET_ROOT = '/ui/jaw-of-risk/'
-const BITE_GIF = `${ASSET_ROOT}GIF-Gigarisk Gigit.gif`
+const BITE_ANIMATION = `${ASSET_ROOT}gigarisk-bite.webp`
 const SOUNDS = {
   hover: 'CH-3_Sound_Belum Click.mp3',
   click: 'CH-3_Sound_Click.mp3',
@@ -56,7 +57,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   function read(): CrocodileRound | null {
     try {
       const value = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as CrocodileRound | null
-      return value && Number.isInteger(value.bitingTooth) && value.bitingTooth >= 0 && value.bitingTooth < CROCODILE_TEETH && Array.isArray(value.pressed) && (value.reopenAt === null || typeof value.reopenAt === 'number') ? value : null
+      return value && (value.bitingTeeth === undefined || (Array.isArray(value.bitingTeeth) && value.bitingTeeth.length > 0 && value.bitingTeeth.every((tooth) => Number.isInteger(tooth) && tooth >= 0 && tooth < CROCODILE_TEETH))) && Number.isInteger(value.bitingTooth) && value.bitingTooth >= 0 && value.bitingTooth < CROCODILE_TEETH && Array.isArray(value.pressed) && (value.reopenAt === null || typeof value.reopenAt === 'number') ? value : null
     } catch { return null }
   }
   const [round, setRound] = useState(() => read() ?? createCrocodileRound())
@@ -77,11 +78,15 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   }, [storageKey])
   useEffect(() => {
     if (round.reopenAt === null) return
-    const timeout = window.setTimeout(() => {
+    const reopen = () => {
       const current = read()
-      if (current && current.reopenAt !== null && current.reopenAt === round.reopenAt) publish(createCrocodileRound(current.bitingTooth))
-    }, Math.max(0, round.reopenAt - Date.now()))
-    return () => window.clearTimeout(timeout)
+      if (current && current.reopenAt !== null && current.reopenAt === round.reopenAt && Date.now() >= current.reopenAt) publish(nextCrocodileRound(current))
+    }
+    const timeout = window.setTimeout(reopen, Math.max(0, round.reopenAt - Date.now()))
+    // Background windows may throttle timers; catch up immediately on return.
+    window.addEventListener('focus', reopen)
+    document.addEventListener('visibilitychange', reopen)
+    return () => { window.clearTimeout(timeout); window.removeEventListener('focus', reopen); document.removeEventListener('visibilitychange', reopen) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round.reopenAt, storageKey])
 
@@ -95,7 +100,19 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
     playSound(next.reopenAt === null ? 'safe' : 'bite')
     publish(next)
   }
-  const biting = round.reopenAt !== null
+  const reopenRemaining = useRunCountdown(round.reopenAt ?? undefined)
+  const expiredBite = round.reopenAt !== null && reopenRemaining === 0
+  const biting = round.reopenAt !== null && !expiredBite
+  const [selectedTeeth, setSelectedTeeth] = useState<number[]>(() => round.bitingTeeth ?? [round.bitingTooth])
+  const [configurationError, setConfigurationError] = useState<string | null>(null)
+  function applyTeeth() {
+    if (!canControl) return
+    try {
+      const current = read() ?? round
+      publish(configureCrocodileTeeth(current.reopenAt !== null && Date.now() >= current.reopenAt ? nextCrocodileRound(current) : current, selectedTeeth))
+      setConfigurationError(null)
+    } catch (cause) { setConfigurationError(cause instanceof Error ? cause.message : String(cause)) }
+  }
   // Coordinates share the supplied 1920 x 1080 background's coordinate system.
   const toothRoots = [
     [448.4, 746, .414], [504.1, 803.4, .414], [578.3, 841.3, .425], [661.1, 884.9, .414],
@@ -106,18 +123,30 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   const toothCrops = [[130, 89, 340, 487], [127, 87, 342, 477], [128, 88, 355, 459], [130, 88, 368, 468], [130, 88, 355, 464], [130, 89, 357, 467], [130, 89, 362, 457], [129, 88, 360, 463], [125, 85, 365, 471], [129, 87, 372, 465], [128, 89, 366, 465], [126, 89, 340, 497], [125, 86, 327, 511], [129, 90, 348, 530]]
   const lastTooth = round.pressed.at(-1)
   const handRoot = lastTooth === undefined ? null : toothRoots[lastTooth]
-  return <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy">
-    <link rel="preload" as="image" href={BITE_GIF} />
+  return <>
+    {canControl && <fieldset className="crocodile-settings" disabled={biting}>
+      <legend>Biting teeth</legend>
+      <p>Choose one or more teeth, then apply to reset the mouth. Selected teeth keep biting in later rounds until changed.</p>
+      <div className="crocodile-settings__teeth">{Array.from({ length: CROCODILE_TEETH }, (_, tooth) => <label key={tooth}>
+        <input type="checkbox" aria-label={`Biting tooth ${tooth + 1}`} checked={selectedTeeth.includes(tooth)} onChange={() => setSelectedTeeth((selected) => selected.includes(tooth) ? selected.filter((entry) => entry !== tooth) : [...selected, tooth])} />
+        {tooth + 1}
+      </label>)}</div>
+      <div className="row-form"><button type="button" disabled={!selectedTeeth.length} onClick={applyTeeth}>Apply biting teeth</button>
+      <button type="button" className="ghost" onClick={() => { const next = createCrocodileRound(round.bitingTooth); publish(next); setSelectedTeeth([next.bitingTooth]); setConfigurationError(null) }}>Use random tooth</button></div>
+      <p>Current mode: {round.bitingTeeth ? `Selected teeth ${round.bitingTeeth.map((tooth) => tooth + 1).join(', ')}` : 'Random tooth'}</p>
+      {configurationError && <p className="alert alert--error">{configurationError}</p>}
+    </fieldset>}
+    <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy">
+    <link rel="preload" as="image" href={BITE_ANIMATION} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kiri.png`} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kanan.png`} />
     {Object.entries(SOUNDS).map(([name, file]) => <audio key={name} data-sound={name} ref={(element) => { if (element) sounds.current[name as keyof typeof SOUNDS] = element }} src={`${ASSET_ROOT}Sound/${file}`} preload="auto" />)}
-    <header className="crocodile-stage__header"><img src="/Logo_Game-5.png" alt="Guard the Heart" /><h1>Challenge 3 - Jaw of Risk</h1></header>
-    <p className="crocodile-stage__instruction">{canControl ? 'Press a tooth. Take a chance.' : 'Watch closely. One tooth will bite.'}</p>
+    <p className="crocodile-stage__instruction">{canControl ? 'Press a tooth. Take a chance.' : 'Watch closely. The dragon may bite'}</p>
     <div className="crocodile" aria-label={biting ? 'Crocodile bites!' : 'Crocodile mouth open'}>
       <img className="crocodile__base-art" src="/ui/jaw-of-risk/CH-3_Background-Polos.png" alt="GigaRisk head" />
       <div className="crocodile__teeth" role="group" aria-label="Lower jaw teeth">
         {toothRoots.map(([x, y, scale], tooth) => {
-          const pressed = round.pressed.includes(tooth)
+          const pressed = !expiredBite && round.pressed.includes(tooth)
           const [left, top, right, bottom] = toothCrops[tooth]
           const number = tooth === 0 ? '01' : String(tooth + 1)
           return <button key={tooth} type="button"
@@ -137,10 +166,11 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
           </button>
         })}
       </div>
-      {biting && <img key={round.reopenAt} className="crocodile__bite" src={`${BITE_GIF}#${round.reopenAt}`} alt="" aria-hidden="true" draggable={false} />}
+      {biting && <img key={round.reopenAt} className="crocodile__bite" src={`${BITE_ANIMATION}#${round.reopenAt}`} alt="" aria-hidden="true" draggable={false} />}
       {pointerHand && !biting && !round.pressed.includes(pointerHand.tooth) && <HandCursor {...pointerHand} />}
       {!pointerHand && handRoot && lastTooth !== undefined && typeof round.lastPressedAt === 'number' && <PressHand key={round.lastPressedAt} tooth={lastTooth} x={handRoot[0]} y={handRoot[1] - 100} pressedAt={round.lastPressedAt} />}
     </div>
     <p className="crocodile-stage__status" role="status" aria-live="polite">{biting ? 'CHOMP! Watch your fingers!' : round.pressed.length ? 'Safe! Choose another tooth.' : 'Which tooth will bite?'}</p>
   </section>
+  </>
 }

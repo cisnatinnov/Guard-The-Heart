@@ -2,9 +2,6 @@
 .app--public:has(.crocodile-stage) .app__main { display:grid; min-height:100dvh; place-items:center; }
 .crocodile-stage { position:relative; width:100%; aspect-ratio:16/9; container-type:inline-size; overflow:hidden; isolation:isolate; border-radius:16px; color:#fff3d4; background:#170d26; font-family:Arial,sans-serif; }
 .app--public .crocodile-stage { width:min(100vw,177.777778dvh); border-radius:0; }
-.crocodile-stage__header { position:absolute; z-index:4; inset:3% 3% auto; display:flex; align-items:center; justify-content:space-between; gap:2cqw; pointer-events:none; }
-.crocodile-stage__header img { width:11cqw; height:auto; filter:drop-shadow(0 2px 5px #17051e); }
-.crocodile-stage__header h1 { max-width:40%; margin:0; padding:.65cqw 1.1cqw; border:1px solid #f4c87966; border-radius:.7cqw; background:#210c35cf; color:#ffe6a0; font-size:2cqw; line-height:1.25; text-align:right; }
 .crocodile-stage__instruction { position:absolute; z-index:4; top:17%; left:3%; max-width:17%; margin:0; color:#fff3d4; text-shadow:0 2px 5px #17051e; font-size:1.5cqw; line-height:1.4; }
 .crocodile { position:absolute; inset:0; width:100%; height:100%; }
 .crocodile__base-art,.crocodile__teeth { position:absolute; inset:0; width:100%; height:100%; }
@@ -24,3 +21,8 @@
 .has-hand-cursor .crocodile__tooth:hover:not(:disabled),.crocodile-stage .crocodile__tooth:active:not(:disabled) { cursor:none; }
 .is-biting .crocodile-stage__status { color:#ffb274; }
 @media (prefers-reduced-motion:reduce) { .crocodile-stage *, .crocodile-stage *::before, .crocodile-stage *::after { transition:none !important; animation:none !important; } }
+
+.crocodile-settings { margin:0 0 1rem; min-width:0; }
+.crocodile-settings__teeth { display:flex; flex-wrap:wrap; gap:.65rem; margin-bottom:.8rem; }
+.crocodile-settings__teeth label { display:flex; align-items:center; gap:.3rem; padding:.4rem; }
+.crocodile-settings__teeth input { width:18px; height:18px; margin:0; }

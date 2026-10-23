@@ -1,8 +1,20 @@
 export const PUBLIC_WINDOW_NAME = 'guard-the-heart-projector'
 export const TIMER_WINDOW_NAME = 'guard-the-heart-timer'
-const windows: Partial<Record<'projector' | 'timer', Window>> = {}
+export const TURN_ORDER_WINDOW_NAME = 'guard-the-heart-turn-order'
+export type PublicWindowKind = 'projector' | 'timer' | 'turn-order'
+export function publicWindowKind(path: string): PublicWindowKind {
+  return path === '/timer' ? 'timer' : path === '/turn-order' ? 'turn-order' : 'projector'
+}
+export function publicWindowName(kind: PublicWindowKind): string {
+  return kind === 'timer' ? TIMER_WINDOW_NAME : kind === 'turn-order' ? TURN_ORDER_WINDOW_NAME : PUBLIC_WINDOW_NAME
+}
+const windows: Partial<Record<PublicWindowKind, Window>> = {}
 const PRESENCE_PREFIX = 'guard-the-heart-projector:'
 const TIMER_PRESENCE_PREFIX = 'guard-the-heart-timer-window:'
+const TURN_ORDER_PRESENCE_PREFIX = 'guard-the-heart-turn-order-window:'
+function presencePrefix(kind: PublicWindowKind): string {
+  return kind === 'timer' ? TIMER_PRESENCE_PREFIX : kind === 'turn-order' ? TURN_ORDER_PRESENCE_PREFIX : PRESENCE_PREFIX
+}
 const NAVIGATION_KEY = 'guard-the-heart-public-window-navigation'
 
 export function listenForPublicWindowNavigation(accept: (path: string) => void): () => void {
@@ -38,8 +50,8 @@ export function restoreAdminFocusAfterPublicLoad(): () => void {
   }
 }
 
-export function registerPublicWindow(timer = false): () => void {
-  const key = (timer ? TIMER_PRESENCE_PREFIX : PRESENCE_PREFIX) + crypto.randomUUID()
+export function registerPublicWindow(kind: PublicWindowKind = 'projector'): () => void {
+  const key = presencePrefix(kind) + crypto.randomUUID()
   const heartbeat = () => localStorage.setItem(key, String(Date.now()))
   const remove = () => localStorage.removeItem(key)
   heartbeat()
@@ -54,8 +66,8 @@ export function registerPublicWindow(timer = false): () => void {
   }
 }
 
-function publicWindowExists(timer: boolean): boolean {
-  const prefix = timer ? TIMER_PRESENCE_PREFIX : PRESENCE_PREFIX
+function publicWindowExists(kind: PublicWindowKind): boolean {
+  const prefix = presencePrefix(kind)
   for (let index = 0; index < localStorage.length; index++) {
     const key = localStorage.key(index)
     if (key?.startsWith(prefix) && Date.now() - Number(localStorage.getItem(key)) < 90_000) return true
@@ -66,18 +78,17 @@ function publicWindowExists(timer: boolean): boolean {
 /** Called during the click gesture so a closed projector can be reopened. */
 export function openPublicDisplay(path: string, navigateExisting = false): void {
   if (!path.startsWith('/') || path.startsWith('//')) return
-  const timer = path === '/timer'
-  const kind = timer ? 'timer' : 'projector'
+  const kind = publicWindowKind(path)
   let projector = windows[kind]
   if (projector && !projector.closed) {
     if (navigateExisting) projector.location.replace(path)
     return
   }
-  if (publicWindowExists(timer)) {
+  if (publicWindowExists(kind)) {
     if (navigateExisting) localStorage.setItem(NAVIGATION_KEY, JSON.stringify({ path, id: crypto.randomUUID() }))
     return
   }
-  const opened = window.open(path, timer ? TIMER_WINDOW_NAME : PUBLIC_WINDOW_NAME, 'popup,width=1280,height=720')
+  const opened = window.open(path, publicWindowName(kind), 'popup,width=1280,height=720')
   if (!opened) throw new Error('Allow pop-ups to open the public display, then click the feature again.')
   projector = windows[kind] = opened
   projector.blur()

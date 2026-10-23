@@ -1,7 +1,7 @@
 import { Link, useLocation, Outlet } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useDatabase } from '../hooks/useDatabase'
-import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, publicFeatureForAdmin } from '../services/publicWindow'
+import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME, publicFeatureForAdmin } from '../services/publicWindow'
 import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 
 const ADMIN_NAV = [
@@ -24,7 +24,7 @@ export function AdminLayout() {
   const { status, error } = useDatabase()
   const location = useLocation()
   useEffect(() => {
-    if (window.name === PUBLIC_WINDOW_NAME || window.name === TIMER_WINDOW_NAME) window.name = ''
+    if ([PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME].includes(window.name)) window.name = ''
   }, [])
 
   if (status === 'loading') {

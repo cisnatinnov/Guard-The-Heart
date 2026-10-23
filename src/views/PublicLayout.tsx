@@ -3,28 +3,28 @@ import { displayPath, listenForPublicDisplay } from '../services/publicDisplay'
 import { refreshDatabaseFromStorage } from '../db/sequelize-provider'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useDatabase } from '../hooks/useDatabase'
-import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, registerPublicWindow, restoreAdminFocusAfterPublicLoad, listenForPublicWindowNavigation } from '../services/publicWindow'
+import { publicWindowKind, publicWindowName, registerPublicWindow, restoreAdminFocusAfterPublicLoad, listenForPublicWindowNavigation } from '../services/publicWindow'
 
 export function PublicLayout() {
   const { status, error } = useDatabase()
   const navigate = useNavigate()
-  const timer = useLocation().pathname === '/timer'
+  const kind = publicWindowKind(useLocation().pathname)
   useEffect(() => restoreAdminFocusAfterPublicLoad(), [])
-  useEffect(() => registerPublicWindow(timer), [timer])
+  useEffect(() => registerPublicWindow(kind), [kind])
   useEffect(() => listenForPublicWindowNavigation((path) => {
-    if ((path === '/timer') === timer) navigate(path)
-  }), [navigate, timer])
+    if (publicWindowKind(path) === kind) navigate(path)
+  }), [navigate, kind])
   useEffect(() => {
-    window.name = timer ? TIMER_WINDOW_NAME : PUBLIC_WINDOW_NAME
+    window.name = publicWindowName(kind)
     let queue = Promise.resolve()
     return listenForPublicDisplay((display) => {
-      if ((display.stage === 'timer') !== timer) return
+      if (publicWindowKind(displayPath(display)) !== kind) return
       queue = queue.then(async () => {
         await refreshDatabaseFromStorage()
         navigate(displayPath(display))
       }).catch(console.error)
     })
-  }, [navigate, timer])
+  }, [navigate, kind])
 
   if (status === 'loading') {
     return (

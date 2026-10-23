@@ -1,4 +1,5 @@
-import { shuffleTeamIds } from '../services/turnOrder'
+import { orderTeams, publishTurnOrder, shuffleTeamIds } from '../services/turnOrder'
+import { useTurnOrder } from '../hooks/useTurnOrder'
 import { useEffect, useState } from 'react'
 import { useTeams } from '../hooks/useTeams'
 import { useChallenges } from '../hooks/useChallenges'
@@ -7,29 +8,22 @@ import { latestTacticalResolution, readTacticalPhase, subscribeTacticalPhase } f
 import { GPMark, TeamPill } from './PublicRankingBoard'
 import '../styles/reference-ui.css'
 import { gigaRiskImpact } from '../services/cardPresentation'
+import { publishEventTimer, readEventTimer, subscribeEventTimer } from '../services/eventTimer'
 
-const ORDER_KEY = 'guard-the-heart-turn-order'
-function readOrder(): string[] { try { const value: unknown = JSON.parse(localStorage.getItem(ORDER_KEY) ?? '[]'); return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [] } catch { return [] } }
 export function TurnOrderView({ admin = false }: { admin?: boolean }) {
   const { teams } = useTeams()
-  const [chosen, setChosen] = useState(readOrder)
-  useEffect(() => { const update = () => setChosen(readOrder()); window.addEventListener('storage', update); return () => window.removeEventListener('storage', update) }, [])
-  const names = ['kuning','merah','biru','pink','hijau']
-  const candidates = [...teams].sort((a,b) => {
-    const order = (colour: string | null) => { const position = names.indexOf(colour ?? ''); return position < 0 ? 5 : position }
-    return order(a.colour) - order(b.colour) || a.name.localeCompare(b.name)
-  }).slice(0,5)
-  const ordered = [...candidates].sort((a,b) => {
-    const position = (id: string) => { const index = chosen.indexOf(id); return index < 0 ? chosen.length + candidates.findIndex((team) => team.id === id) : index }
-    return position(a.id) - position(b.id)
-  })
-  function save(ids: string[]) { localStorage.setItem(ORDER_KEY, JSON.stringify(ids)); setChosen(ids) }
+  const chosen = useTurnOrder()
+  const [timer, setTimer] = useState(readEventTimer)
+  useEffect(() => subscribeEventTimer(() => setTimer(readEventTimer())), [])
+  const candidates = orderTeams(teams, []).slice(0,5)
+  const ordered = orderTeams(candidates, chosen)
+  function save(ids: string[]) { if (!admin) return; publishTurnOrder(ids) }
   function shuffle() { save(shuffleTeamIds(candidates.map((team) => team.id))) }
   return <section className={admin ? 'view reference-feature-admin' : 'reference-feature-public'}>
-    {admin && <div className="admin-toolbar"><button className="ghost" onClick={() => save([])}>Reset order</button><p>Click team names in the order they will play.</p></div>}
+    {admin && <div className="admin-toolbar"><button className="ghost" onClick={() => save([])}>Reset order</button><p>Click a team name to choose whose turn it is. Acak Giliran shuffles the play order.</p></div>}
     <section className="reference-stage turn-order-stage" aria-label="Urutan Main"><img className="reference-art" src="/ui/visual-guide-slide-01.png" alt="" /><h1 className="sr-only">Urutan Main</h1>
-      <div className="turn-order-panel"><ol className="turn-order-list">{ordered.map((team, slot) => <li key={team.id} className={`turn-order-item turn-order-item--${slot+1}`}><span className="turn-order-number">{slot + 1}</span><button type="button" aria-pressed={chosen.includes(team.id)} onClick={() => save(chosen.includes(team.id) ? chosen.filter((id) => id !== team.id) : [...chosen,team.id])}><TeamPill name={team.name} colour={team.colour} /></button></li>)}</ol></div>
-      <button className="turn-order-shuffle" disabled={!candidates.length} onClick={shuffle}>Acak Giliran</button>
+      <div className="turn-order-panel"><ol className="turn-order-list">{ordered.map((team, slot) => <li key={team.id} className={`turn-order-item turn-order-item--${slot+1}`} aria-current={timer.activeTeamId === team.id ? 'step' : undefined}><span className="turn-order-number">{slot + 1}</span><button type="button" aria-pressed={timer.activeTeamId === team.id} disabled={!admin} onClick={() => { if (admin) publishEventTimer({ ...readEventTimer(), activeTeamId: team.id }) }}><TeamPill name={team.name} colour={team.colour} /></button>{timer.activeTeamId === team.id && <span className="turn-order-turn">Giliran</span>}</li>)}</ol></div>
+      <button className="turn-order-shuffle" disabled={!admin || !candidates.length} onClick={shuffle}>Acak Giliran</button>
     </section>
   </section>
 }

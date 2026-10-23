@@ -19,7 +19,7 @@ import {
   teamForQuestion,
   type ChallengeRun,
 } from '../services/games/teamRun'
-import { MATCHING_PREVIEW_SECONDS } from '../services/games/wordAssembly'
+import { MATCHING_PREVIEW_SECONDS, MATCHING_ATTEMPT_SECONDS } from '../services/games/wordAssembly'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
 
 const MAX_CHALLENGE_POINT = 999
@@ -96,7 +96,7 @@ export class ChallengeRunController {
   }
 
   static startMatchingOnly(challengeId: string, teamIds: string[]): ChallengeRun {
-    return { ...enableRunMatching(startChallengeRun({ challenge: challengeId, teams: teamIds, questionCount: 10, pointsPerQuestion: 0 })), matchingOnly: true, manualTeamSelection: true, turnDeadline: undefined, matchingPreviewDeadline: Date.now() + MATCHING_PREVIEW_SECONDS * 1000 }
+    return { ...enableRunMatching(startChallengeRun({ challenge: challengeId, teams: teamIds, questionCount: 10, pointsPerQuestion: 0 })), matchingOnly: true, manualTeamSelection: true, turnDeadline: undefined, matchingPreviewDeadline: Date.now() + MATCHING_PREVIEW_SECONDS * 1000, matchingDeadline: Date.now() + (MATCHING_PREVIEW_SECONDS + MATCHING_ATTEMPT_SECONDS) * 1000 }
   }
 
   static async flipMatchingOnly(run: ChallengeRun, cardId: string): Promise<ChallengeRun> {

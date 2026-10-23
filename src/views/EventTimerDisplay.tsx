@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react'
 import { useTeams } from '../hooks/useTeams'
 import { teamColour } from '../services/defaultTeams'
 import { TeamGPBadge } from './TeamGPBadge'
+import { useTurnOrder } from '../hooks/useTurnOrder'
+import { orderTeams } from '../services/turnOrder'
 import { timerRemaining, readEventTimer, subscribeEventTimer, publishEventTimer } from '../services/eventTimer'
 
 export function EventTimerDisplay({ admin = false }: { admin?: boolean }) {
-  const { teams } = useTeams()
+  const { teams: availableTeams } = useTeams()
+  const order = useTurnOrder()
+  const teams = orderTeams(availableTeams, order)
   const [timer, setTimer] = useState(readEventTimer)
   const [now, setNow] = useState(Date.now)
   useEffect(() => subscribeEventTimer(() => { setTimer(readEventTimer()); setNow(Date.now()) }), [])

@@ -27,7 +27,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
     await expect(screen.locator('.tile--revealed')).toHaveCount(20)
     await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
     await expect(screen.locator('.tile--matched')).toHaveCount(0)
-    await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Cards!')
+    await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Card opened')
   }
   await expect(page.locator('.tile').first()).toBeDisabled()
   for (const screen of [page,projector]) {
@@ -66,6 +66,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   for (const screen of [page, projector]) {
     await expect(screen.locator('.tile--revealed')).toHaveCount(0)
     await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toHaveCount(0)
+    await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Card closed')
   }
   await expect(page.locator('.tile').first()).toBeEnabled()
 
@@ -83,7 +84,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(projector.locator('.flipping-presentation__team-gp')).toHaveText(['5 GP', '5 GP'])
   const active = page.locator('.flipping-presentation__teams [aria-current]')
   await expect(active).toContainText(order[0]!)
-  await expect(page.getByRole('timer')).toHaveCount(0)
+  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('15s')
   await expect(page.getByText(/Matched pairs:.*s$/)).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
@@ -109,7 +110,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(projector.locator('.tile--revealed')).toHaveCount(20)
   await expect(page.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
   await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
-  await page.clock.runFor(20100)
+  await page.clock.runFor(5100)
   await expect(active).toContainText(order[1]!)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await expect(page.locator('.tile--revealed')).toHaveCount(1)
@@ -193,7 +194,7 @@ test('Play opens the public board immediately and Flipping Connect only offers t
 test('public waiting board shows real team GP before a run starts', async ({ page }) => {
   await page.goto('/play/word-assembly/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
   await expect(page.locator('.flipping-presentation__team-gp')).toHaveText(Array(5).fill('5 GP'))
-  await expect(page.locator('.flipping-presentation__team-name')).toHaveText(['Biru', 'Hijau', 'Kuning', 'Merah', 'Pink'])
+  await expect(page.locator('.flipping-presentation__team-name')).toHaveText(['Kuning', 'Merah', 'Biru', 'Pink', 'Hijau'])
   await page.screenshot({ path:'test-results/flipping-waiting-gp.png' })
 })
 

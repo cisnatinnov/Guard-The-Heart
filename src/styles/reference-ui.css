@@ -71,7 +71,7 @@
 .scoreboard-admin-reference { width:100%; min-width:0; }
 .turn-order-panel { position:absolute; left:8.5%; top:22%; width:83.8%; height:58.4%; background:linear-gradient(#fffdf8,#fff3ce); }
 .turn-order-list { position:relative; list-style:none; padding:0; margin:0; width:100%; height:100%; }
-.turn-order-item { position:absolute; top:4%; left:4%; width:40%; height:21%; display:grid; grid-template-columns:23% 72%; gap:12%; align-items:center; }
+.turn-order-item { position:absolute; top:4%; left:4%; width:40%; height:21%; display:grid; grid-template-columns:23% 49% 24%; gap:4%; align-items:center; }
 .turn-order-item--2 { top:40%; }
 .turn-order-item--3 { top:76%; }
 .turn-order-item--4 { left:54%; }
@@ -79,7 +79,8 @@
 .turn-order-number { display:grid; place-items:center; width:6.5cqw; height:6.5cqw; border-radius:50%; border:.17cqw solid #9d3c2c; background:#f78220; color:#fff; font:700 5cqw/1 Arial,sans-serif; }
 .turn-order-item button { width:100%; height:70%; padding:0; border:0; border-radius:.7cqw; background:transparent; }
 .turn-order-item button:disabled { opacity:1; }
-.turn-order-item .team-pill { font-size:2.8cqw; }
+.turn-order-item .team-pill { font-size:2.2cqw; }
+.turn-order-turn { display:grid; place-items:center; border-radius:1.4cqw; background:#a13228; color:#fff; font:700 1.4cqw/1 Arial,sans-serif; padding:.3cqw .4cqw; }
 .turn-order-item button[aria-pressed=true] { outline:.2cqw solid #da8b20; }
 .turn-order-shuffle { position:absolute; left:37.5%; top:86.2%; width:25%; height:9%; padding:0; border:.22cqw solid #bd5014; border-radius:1.2cqw; background:linear-gradient(#ffbd23,#ff8425); color:#471f0b; font:700 2.8cqw/1 Arial,sans-serif; }
 .turn-order-shuffle:disabled { opacity:1; }

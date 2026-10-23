@@ -1,4 +1,4 @@
-import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard, WORD_ASSEMBLY_SECONDS_PER_MATCH, WORD_ASSEMBLY_SECONDS_PER_QUESTION, MATCHING_PREVIEW_SECONDS, MATCHING_MISMATCH_MS, type WordAssemblyState } from './wordAssembly'
+import { closeUnmatchedWordAssemblyCards, createWordAssemblyState, revealWordAssemblyCard, WORD_ASSEMBLY_SECONDS_PER_MATCH, WORD_ASSEMBLY_SECONDS_PER_QUESTION, MATCHING_PREVIEW_SECONDS, MATCHING_ATTEMPT_SECONDS, MATCHING_MISMATCH_MS, type WordAssemblyState } from './wordAssembly'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../rankRules'
 
 /**
@@ -23,6 +23,8 @@ export interface ChallengeRun {
   matchingOnly?: boolean
   /** Initial all-card preview ends at this shared absolute time. */
   matchingPreviewDeadline?: number
+  /** Matching locks at this shared deadline, after the preview plus 15 seconds. */
+  matchingDeadline?: number
   /** Brief shared display of both unmatched cards before automatic closing. */
   matchingCloseDeadline?: number
   matchingBoard?: WordAssemblyState
@@ -287,7 +289,7 @@ export function questionWasClean(run: ChallengeRun): boolean {
 
 /** Matching progress is part of the shared run, including public spectators. */
 export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
-  if (run.matchingOnly && Date.now() < (run.matchingPreviewDeadline ?? 0)) return run
+  if (run.matchingOnly && (Date.now() < (run.matchingPreviewDeadline ?? 0) || Date.now() >= (run.matchingDeadline ?? Infinity))) return run
   if (!run.matchingBoard || run.questionResolved || isRunComplete(run) ||
       (run.matchingPhase !== undefined && run.matchingPhase !== 'matching') || isMatchingQuestionUnlocked(run) ||
       (!run.matchingOnly && run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run
@@ -360,7 +362,7 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
   }
 }
 
-/** Pick the next matching team directly, independently of the Urutan Main page. */
+/** Pick a participating matching team and start its fresh board and preview. */
 export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
   if (!run.matchingOnly || !run.matchingBoard) throw new Error('Choose a team during a Flipping Connect run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
@@ -375,6 +377,7 @@ export function selectMatchingTeam(run: ChallengeRun, teamId: string): Challenge
     matchingBoard, questionIndex:0, questionResolved:false, attemptedTeams:[], matchingPhase:'matching',
     matchedByTeam:undefined, matchingTeamIndex:undefined, passedByTeam:undefined,
     matchingPreviewDeadline:Date.now() + MATCHING_PREVIEW_SECONDS * 1000,
+    matchingDeadline:Date.now() + (MATCHING_PREVIEW_SECONDS + MATCHING_ATTEMPT_SECONDS) * 1000,
     matchingCloseDeadline:undefined,
     matchingTurn:(run.matchingTurn ?? 0)+1,
     turnDeadline:undefined }

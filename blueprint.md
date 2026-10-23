@@ -12,7 +12,7 @@ supply artwork and question content; source code defines game behavior.
 - Local events and BroadcastChannel notifications refresh mounted views; storage
   events provide a fallback. Synchronization requires the same origin/profile.
 - The production PWA precaches application assets. Large source decks are excluded;
-  the Jaw of Risk bite GIF has a runtime cache. Browser shims stay in the vendor
+  the optimized Jaw of Risk bite WebP is precached. Browser shims stay in the vendor
   chunk alongside their CommonJS dependencies.
 - Public and admin routes have different controls; no authentication is implemented.
 
@@ -341,10 +341,25 @@ the KDO clue and answer Lapor.
 
 ### Jaw of Risk
 
+After a bite, the next press is accepted as soon as the 4.44-second deadline
+expires, even if the reset callback was throttled in a background window. Focus
+and visibility changes also catch up expired rounds. The animation uses an
+optimized WebP with the same 111 frames and duration; playback no longer loads
+the much larger source GIF on each attempt.
+
+
+The Jaw of Risk game display has no overlaid challenge-title label or game logo.
+Its public instruction reads “Watch closely. The dragon may bite”.
+
 The routed game is a fourteen-tooth bite toy without questions, scoring or a
 question timer. `CROCODILE_TEETH` is 14 and `CROCODILE_BITE_MS` is 4440, matching
 the supplied GIF. Safe teeth remain pressed until the bite finishes, then a
-new round chooses a different biting tooth. Round storage includes the last
+new round retains the configured biting teeth, or chooses a different single
+tooth in random mode. Optional `bitingTeeth` preserves admin selections; older
+rounds with only `bitingTooth` continue in random mode. `configureCrocodileTeeth`
+validates at least one distinct index in 0–13 and resets the mouth on Apply.
+The settings are outside the public stage and only rendered for admin. Applying
+changes and returning to random mode are disabled during the bite animation. Round storage includes the last
 press timestamp so both windows briefly render the same press hand.
 
 Only admin can activate teeth. Public buttons are disabled and input handlers
@@ -356,21 +371,30 @@ clears the remote hand and highlight; public pointer events do not publish.
 
 The source assets in `public/ui/jaw-of-risk/` provide the proportional background,
 fourteen full/pressed tooth pairs, left/right hands and all four MP3 cues. Sounds
-play only in the controlling window. Small MP3s are precached; the 63 MB GIF uses
-Workbox CacheFirst runtime caching after a controlled load. The twenty retained
+play only in the controlling window. Small MP3s and the optimized bite WebP are precached. The original 63 MB GIF
+is retained only as source material and excluded from the precache. The twenty retained
 Jaw questions are reference-bank content only.
 
 ### Flipping Connect
 
-The board shows **Cards!** during the 5-second all-card preview. A newly matched
+Each team gets **15 seconds**, starting after its **5-second preview**. Admin
+and public displays share the saved `matchingDeadline`. At zero, **Time's up!**
+replaces the countdown and cards lock; the game logic rejects late flips too.
+The same team's button cannot restart its timer. Selecting a different team
+reshuffles the board, clears matches and starts a new preview plus 15 seconds.
+Reload preserves remaining time or the expired lock. Finishing all pairs before
+time runs out keeps the completion state. This activity still changes no GP or scores.
+
+The board shows **Card opened** during the 5-second all-card preview, then
+**Card closed** when the preview ends and the cards close. A newly matched
 pair shows **Match!**; a mismatched pair shows **Mismatch!**. These bold status
 messages appear beside the cards on admin and public screens, without intercepting
-clicks. Match/mismatch feedback clears after 1.2 seconds or the next first flip;
-a fresh team preview replaces it with Cards!. Reloading restores board progress
+clicks. Closing and match/mismatch feedback clears after 1.2 seconds or the next first flip;
+a fresh team preview replaces it with Card opened. Reloading restores board progress
 without replaying old match/mismatch messages. Feedback changes no scores or GP.
 
-The routed game is matching-only: twenty cards, ten pairs, no Q&A, score changes
-or turn timer. Only team runs are available. Play immediately opens or reuses the public matching board, and starting a run publishes the game as the current display so a previous public feature cannot replace it. The admin clicks a
+The routed game is matching-only: twenty cards, ten pairs, no Q&A or score changes,
+and a 15-second timer per team after the 5-second preview. Only team runs are available. Play immediately opens or reuses the public matching board, and starting a run publishes the game as the current display so a previous public feature cannot replace it. The admin clicks a
 participating team name above the board to select whose turn it is;
 `manualTeamSelection` prevents automatic rotation. After the initial all-card
 preview, both unmatched cards remain visible for 600 ms, then close automatically;
@@ -382,10 +406,26 @@ so an existing participant keeps its name and balance after deactivation. Waitin
 boards use the active roster; selecting new participants still excludes inactive
 teams. Starting a run awaits display publication and reports popup failures
 without publishing an incomplete run. Legacy saved matching runs ignore old
-turn deadlines so the removed timer cannot block an active game.
+question-game turn deadlines. When the admin opens an older untimed run, it
+gains one saved 15-second deadline; later reloads keep that deadline.
 
-Urutan Main is a separate stored order. Its click/shuffle controls work on admin
-and public routes and do not determine Flipping's manually chosen team.
+Urutan Main stores team ids under `guard-the-heart-turn-order`. `turnOrder.ts`
+provides read/publish/subscribe and shared ordering; `useTurnOrder` updates mounted
+views through same-window events and cross-tab storage notifications. Shuffle
+changes the numbered order; reset restores Kuning, Merah, Biru, Pink, Hijau.
+Timer and Flipping Connect use this order left to right, filtering to their own
+rosters. Unlisted teams follow in default colour/name order. Reordering the panels
+does not mutate a matching run's participant indices or reset its active turn.
+
+Clicking an admin Urutan Main team selects Giliran without changing its position.
+The selected id is shared through `EventTimer.activeTeamId`; `useActiveTeam`
+subscribes Flipping Connect to it. Timer and Flipping team buttons update the same
+selection. A new matching run uses that team when it participates, otherwise
+publishes its first participant as active. `MatchingOnlyView` synchronizes an
+eligible external selection using `selectMatchingTeam`, waiting until preview
+and pending mismatch displays finish before resetting the board and deadlines.
+Public controls are disabled and writes are guarded. Selection changes preserve
+the standalone timer's duration, remaining time, label and deadline.
 
 ## Views, references and synchronization
 
@@ -416,8 +456,12 @@ The Visual Guide is `public/ui/Visual_Guide_App-Game_5.pptx`; extracted slide
 assets are used as backgrounds with dynamic HTML values. Admin feature navigation
 opens the associated public screen; separate public-view buttons are removed.
 Rewards and Tactical Phase actions publish their selected challenge while
-preserving tactical choices and reveal state. Timer uses its own named window,
-so other feature changes leave it visible and running. Podium supports three prize amounts
+preserving tactical choices and reveal state. Timer and Urutan Main each use an
+independent named window, so other feature changes leave both visible and the
+timer running. `publicWindowKind` separates projector, timer and turn-order
+window names/presence; public navigation listeners accept only their own kind.
+Admin reload reuses existing windows, and closing a window permits reopening it.
+Podium supports three prize amounts
 stored locally and mirrored publicly. GP ledger is admin-only.
 Scoreboard uses `Page_Score_Board.jpeg` and overlays a five-column GP strip below
 the ranking box. Names, team colours and live GP come from active Team records;
@@ -489,11 +533,51 @@ notifications remain isolated from other public-feature navigation.
 native buttons with `aria-pressed`; public names remain display-only spans. Click
 or keyboard activation publishes a fresh `readEventTimer()` snapshot with only
 `activeTeamId` replaced. Duration, remaining time, label and deadline are retained.
-The dropdown, active-team highlight and Giliran marker synchronize across tabs.
+The dropdown, active-team highlight and Giliran marker synchronize across tabs,
+Urutan Main and Flipping Connect. Team panels follow the saved Urutan Main order
+from left to right and update on shuffle/reset without changing timer deadlines.
 
 ## Validation record
 
-Latest verification on **2026-10-22 (WIB)** covers permanent team colours,
+Full pre-push verification on **2026-10-23 (WIB)**:
+
+| Check | Result |
+| --- | --- |
+| Complete unit/database suite | 274 tests passed across 25 files |
+| Complete browser suite | 71 tests passed, no failures or skips (`npx playwright test --workers=2`) |
+| TypeScript and production/PWA build | Passed through Playwright's fresh build-and-preview workflow |
+| ESLint | Passed (`npm run lint`) |
+| Markdown | Both tracked Markdown files checked for balanced fences, local links and anchors |
+
+Coverage includes all three public window kinds; order changes without active-turn
+resets; Giliran synchronization from Urutan Main to Timer and Flipping Connect;
+queued team changes during preview; Card opened/Card closed timing; matching expiry
+and reload; selectable biting teeth; repeated/offline WebP playback; score/card
+rules; startup recovery; and responsive admin/public layouts. Unit tests used
+`npm test -- --maxWorkers=2 --testTimeout=15000`. Dated records below are historical.
+
+Previous public-order/response checks on **2026-10-22 (WIB)**: all 274 unit tests
+passed, and all 11 affected browser scenarios passed. Coverage includes disabled
+public shuffle/reorder controls, continued admin synchronization, repeated bites,
+the first press after reopening, multi-tooth settings and offline WebP playback.
+The optimized animation preserves 111 frames, 1280×720 dimensions and 4440 ms
+duration while reducing the file from 63,096,657 to 12,250,668 bytes. Production/PWA
+build, TypeScript, ESLint and Markdown links/anchors/fences passed. The complete
+browser suite was not rerun for this change.
+
+
+Previous timer/teeth verification on **2026-10-22 (WIB)**: 273 unit/database tests
+passed across 25 files. All 18 affected browser scenarios passed across
+`timed-matching-and-teeth`, `flipping-card`, `crocodile` and `challenge-flow`.
+These cover the exact 15-second boundary, expired reload, same-team lock,
+new-team preview/reset, preserved GP, multi-tooth bites, retained configuration,
+random fallback, public read-only controls, cursors, sounds and game flow.
+The complete browser suite was not rerun for this change; the earlier full-suite
+record remains below. Production/PWA build, TypeScript, ESLint and Markdown
+fences/local links/anchors passed.
+
+
+Previous verification on **2026-10-22 (WIB)** covers permanent team colours,
 editable team names, the existing team-label/podium changes, and Flipping Connect
 feedback. Both repository Markdown files reflect the current behavior and schema.
 

@@ -56,8 +56,8 @@ test('three skipped attacks eliminate teams, preserve reveal history and persist
   await page.goto(`/admin/tactical/${game.challengeId}`)
   for (const name of names) await page.getByRole('button',{name:`Skip ${name}`,exact:true}).click()
   await projector.goto(`/gigarisk/${game.challengeId}`)
-  await page.getByRole('button',{name:'Serang semua tim −2 GP',exact:true}).click()
-  await expect(page.getByRole('button',{name:'Serangan selesai',exact:true})).toBeDisabled()
+  await page.getByRole('button',{name:'Attack all teams −2 GP',exact:true}).click()
+  await expect(page.getByRole('button',{name:'Attack complete',exact:true})).toBeDisabled()
  }
  await expect(projector.locator('.tactical-stage__team')).toHaveCount(5)
  await expect(projector.locator('.tactical-stage__gp')).toContainText(['0 GP','0 GP','0 GP','0 GP','0 GP'])
@@ -75,7 +75,7 @@ test('three skipped attacks eliminate teams, preserve reveal history and persist
  await projector.reload()
  await expect(projector.locator('.giga-row.is-out')).toHaveCount(5)
  await page.goto('/admin/turn-order')
- await expect(page.getByRole('button',{name:'Acak Giliran',exact:true})).toBeDisabled()
+ await expect(page.getByRole('button',{name:'Shuffle Order',exact:true})).toBeDisabled()
  for (const route of ['/admin/leaderboard', '/leaderboard']) {
   await page.goto(route)
   await expect(page.locator('.ranking-table tbody tr.is-out')).toHaveCount(5)

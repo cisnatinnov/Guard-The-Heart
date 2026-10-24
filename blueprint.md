@@ -18,7 +18,9 @@ supply artwork and question content; source code defines game behavior.
 
 ## Database schema
 
-Nine models use `createdAt` and `updatedAt` timestamps. Most ids are UUIDs;
+`challenge_answer` stores host verdict ids, answering/pressing teams, correctness, bite results, saved press counts, a matching bonus deadline and the unique awarded pair numbers. New columns migrate into existing saves. Legacy `challenge_point.raw_score_only` flags are cleared during reranking; CP/GP always follow current raw-score rank.
+
+Ten models use `createdAt` and `updatedAt` timestamps. Most ids are UUIDs;
 GameQuestion and BlindReward use stable seeded/composite ids. Model definitions
 and associations live in `src/models/index.ts`.
 
@@ -26,7 +28,8 @@ and associations live in `src/models/index.ts`.
 | --- | --- | --- |
 | `challenge` | `id`, `name`, nullable `cards_drawn_at` | Unique name and once-only draw marker |
 | `team` | `id`, `name`, nullable `colour`, `status`, `total_gp` | Editable unique name, permanent original colour, active/inactive status, initial 5 GP |
-| `challenge_point` | `id`, `challenge`, `team`, `rank`, `score`, `challenge_point`, `guard_power` | Unique challenge/team; raw score, dense rank, earned CP/GP |
+| `challenge_point` | `id`, `challenge`, `team`, `rank`, `score`, `raw_score_only`, `challenge_point`, `guard_power` | Unique challenge/team; raw score, dense rank, earned CP/GP, legacy compatibility flag (cleared on rerank) |
+| `challenge_answer` | `id`, `challenge`, `team`, `correct`, nullable `pressing_team`, `settled`, nullable `bitten`, `press_count`, nullable `matching_deadline`, `matching_pairs` | Idempotent host verdict, minimum-two press assignment, per-press bite settlement and unique matching bonuses |
 | `scoreboard` | `id`, `team`, `rank`, `total_cp`, `total_card` | Saved standings and available-card totals |
 | `card` | `id`, `name`, `type`, `effect`, `effect_action`, `icon`, nullable `challenge`, `team`, `challenge_point` | Finite physical copy and reward reservation |
 | `team_card` | `id`, `name`, `type`, `effect`, `effect_action`, `icon`, nullable `team`, `challenge_point` | Awarded inventory and retained card history |
@@ -35,7 +38,7 @@ and associations live in `src/models/index.ts`.
 | `gp_transaction` | `id`, nullable `team`, `team_name`, nullable `challenge`, `challenge_name`, `source_key`, `category`, `gp_before`, `delta`, `gp_after`, `description` | Persistent GP ledger; unique source keys prevent duplicate writes |
 
 Card types are Normal/Rare/Epic/Legendary. Card effects are
-Defense/Attack/Heal/Utility/Support/Thief. False Hope is a blind-draw result,
+Defense/Attack/Heal/Utility/Support/Thief. False Hope is a legacy blind-draw result,
 not an additional tactical rarity or inventory design. GP lives on Team;
 Scoreboard has no `total_gp` column. GP transaction categories are
 opening/reward/attack/card. Saved team/challenge labels retain readable history
@@ -118,11 +121,11 @@ it then sorts by rank and displays badges. Removing a score restores name order.
 
 | Rank | CP | GP | Ranked card reward |
 | --- | --- | --- | --- |
-| 1 | 10 | 3 | 3 |
-| 2 | 8 | 2 | 2 |
-| 3 | 6 | 2 | 2 |
-| 4 | 4 | 1 | Exactly 1 Normal |
-| 5 | 2 | 1 | One blind result: 1 Normal or False Hope |
+| 1 | 3 | 3 | 3 |
+| 2 | 2 | 2 | 2 |
+| 3 | 1 | 1 | 2 |
+| 4 | 1 | 1 | Exactly 1 Normal |
+| 5 | 1 | 1 | Choose 1 from 3 random cards |
 
 Total standings rank current GP descending, then earned CP descending; identical
 GP/CP values share a dense rank and names stabilize exact ties. Leaderboards
@@ -147,7 +150,7 @@ colour names once. Seeding matches by permanent colour before display name, so
 renamed teams are reused without duplicating teams or losing scores/cards/GP.
 Renaming flushes SQLite before notifying other tabs; both scoreboard views
 refresh joined team names when `TEAMS_CHANGED` arrives. Active turns retain
-their identity color and use outlines/Giliran markers. Row fills remain light tints.
+their identity color and use outlines/Your Turn markers. Row fills remain light tints.
 
 | Tim | Warna |
 | --- | --- |
@@ -180,7 +183,7 @@ These are percentages per ranked reward slot, in Normal/Rare/Epic/Legendary orde
 | 4 | 100/0/0/0 | 100/0/0/0 | 100/0/0/0 |
 | 5 | Blind draw below | Blind draw below | Blind draw below |
 
-Rare eligibility is ranks 1–3. Epic eligibility is rank 1 in Challenge 3.
+For ranks 1–4 rarity rolls, Rare eligibility is ranks 1–3 and Epic eligibility is rank 1 in Challenge 3. Rank 5 samples eligible cards of any rarity.
 Legendary odds are 3% for rank 1 and 1% for rank 2. Built-in ids determine the
 phase; numbered custom challenge names map to phases 1–3, otherwise phase 1.
 
@@ -194,8 +197,8 @@ duplicate available designs. Deleting a custom challenge releases its inventory.
 
 ### Rank 5 blind draw
 
-`blindRewards.ts` saves an offer under `rank5:<challengeId>:<teamId>` with two
-Normal physical cards and one virtual Zonk option. The Normal designs differ and
+`blindRewards.ts` saves an offer under `rank5:<challengeId>:<teamId>` with three
+random physical cards of any rarity. Their designs differ and
 exclude owned available designs. Shuffle order is saved before display. Reserved
 copies are excluded from ordinary automatic/manual allocation.
 
@@ -226,11 +229,10 @@ inner stage has bounded overflow. Team labels, earned-card areas and GP tracks o
 separate columns. The public challenge name is a read-only badge; the admin
 challenge selector publishes the chosen reward screen.
 
-A Normal choice creates exactly one TeamCard; False Hope uses
-`Zonk_False_Hope Card.png` and creates none. The choice and grant commit in one
+Any chosen card creates exactly one TeamCard. Old saved False Hope offers remain readable, but new rank 5 offers contain three real cards. The choice and grant commit in one
 transaction. Unchosen physical copies return to the pool. Repeated selection is
 rejected; reload never rerolls. Physical rarity and existing rewards are rechecked
-before granting. A granted Normal card follows ordinary Tactical Phase availability
+before granting. A granted card follows ordinary Tactical Phase availability
 in the current challenge; the next-challenge restriction applies to Fortune gifts.
 Existing unfinished drawn rounds can receive a missing offer; completed rounds are
 unchanged. Collection/deck shortages are reported.
@@ -320,13 +322,21 @@ appear in history; untriggered Second Chance remains available.
 
 ## Game behavior
 
+### English interface and host scoring (2026-10-24 WIB)
+
+All three challenges have **Right Answer (+10)** and **Wrong Answer (-10)** host controls. These add or deduct raw challenge score. Every score change recalculates raw-score ranks and the CP/GP rewards of all teams in that challenge, including teams whose own raw score did not change. Combat GP transactions remain intact. **Claim Rewards** grants cards once using the current rank. Image Decode supports host verdicts during a team run; A right answer in Flipping Connect also unlocks a 20-second matching bonus after a 5-second preview; each matched pair earns +5 raw score, while mismatches and timeout deduct nothing. Automatic question grading still accepts the saved answer and its English equivalent.
+
+In Challenge 3, choose the answering team. A right answer adds 10 and assigns a different active opponent selected under **Opponent to press**. A wrong answer deducts 10 and assigns the answering team itself. The assigned team must press at least two teeth before another answer can be recorded. A bite on the first press does not waive the second press: wait for the mouth to reopen and press again. A bite deducts 5 more from that team's raw score; a safe press has no extra penalty. Pending assignments and completed verdicts persist in SQLite, with idempotent answer ids, saved press counts, and transactional per-press bite settlement to prevent duplicate penalties after reload. Only the admin can score or press; the public display mirrors scores and assignments.
+
+The interface uses **Turn Order**, **Shuffle Order**, **Your Turn**, **GigaRisk Attack** and **GP Transactions**. Navigation, controls, statuses, accessible labels and saved effect descriptions display English. Live English overlays cover source-language presentation and Turn Order headings while retaining the supplied artwork. Saved team names, database ids and source-asset filenames remain unchanged.
+
 ### Image Decode
 
 Image Decode has 11 banking clues. Its current solo and team question screens have 15-second deadlines. Team runs
 select up to five participants and randomize initial order through roulette.
 
 - Self: +10 correct, −10 wrong/expired.
-- Passed question: recipient +5/giver −10 if correct; both −5 if wrong/expired.
+- Passed question: recipient +10 if correct or −10 if wrong/expired; giver unchanged.
 - Correct advances. Wrong/expired keeps the question for the next eligible team.
   All-team failure also advances.
 - Scores are persisted to ChallengePoint. Final completion saves all participants
@@ -341,7 +351,7 @@ the KDO clue and answer Lapor.
 
 ### Jaw of Risk
 
-After a bite, the next press is accepted as soon as the 4.44-second deadline
+After a bite and another recorded answer, the next press is accepted as soon as the 4.44-second deadline
 expires, even if the reset callback was throttled in a background window. Focus
 and visibility changes also catch up expired rounds. The animation uses an
 optimized WebP with the same 111 frames and duration; playback no longer loads
@@ -351,8 +361,7 @@ the much larger source GIF on each attempt.
 The Jaw of Risk game display has no overlaid challenge-title label or game logo.
 Its public instruction reads “Watch closely. The dragon may bite”.
 
-The routed game is a fourteen-tooth bite toy without questions, scoring or a
-question timer. `CROCODILE_TEETH` is 14 and `CROCODILE_BITE_MS` is 4440, matching
+The routed game has fourteen teeth, host answer scoring and no question timer. `CROCODILE_TEETH` is 14 and `CROCODILE_BITE_MS` is 4440, matching
 the supplied GIF. Safe teeth remain pressed until the bite finishes, then a
 new round retains the configured biting teeth, or chooses a different single
 tooth in random mode. Optional `bitingTeeth` preserves admin selections; older
@@ -377,13 +386,13 @@ Jaw questions are reference-bank content only.
 
 ### Flipping Connect
 
-Each team gets **15 seconds**, starting after its **5-second preview**. Admin
+A **Right Answer (+10)** unlocks **20 seconds** of matching after a **5-second preview**. Each unique matched pair earns **+5 raw score**. A wrong answer deducts 10 and does not unlock a bonus. Mismatches and timeouts deduct nothing. Admin
 and public displays share the saved `matchingDeadline`. At zero, **Time's up!**
 replaces the countdown and cards lock; the game logic rejects late flips too.
 The same team's button cannot restart its timer. Selecting a different team
-reshuffles the board, clears matches and starts a new preview plus 15 seconds.
+reshuffles the board, clears matches and ends the previous bonus; another Right Answer is required to unlock matching.
 Reload preserves remaining time or the expired lock. Finishing all pairs before
-time runs out keeps the completion state. This activity still changes no GP or scores.
+time runs out keeps the completion state. Matching adds +5 per unique pair during the active bonus; duplicate submissions and reloads cannot award the same pair twice.
 
 The board shows **Card opened** during the 5-second all-card preview, then
 **Card closed** when the preview ends and the cards close. A newly matched
@@ -391,33 +400,36 @@ pair shows **Match!**; a mismatched pair shows **Mismatch!**. These bold status
 messages appear beside the cards on admin and public screens, without intercepting
 clicks. Closing and match/mismatch feedback clears after 1.2 seconds or the next first flip;
 a fresh team preview replaces it with Card opened. Reloading restores board progress
-without replaying old match/mismatch messages. Feedback changes no scores or GP.
+without replaying old match/mismatch messages. Feedback itself changes no scores; a matched pair adds +5 and recalculates rank rewards.
 
-The routed game is matching-only: twenty cards, ten pairs, no Q&A or score changes,
-and a 15-second timer per team after the 5-second preview. Only team runs are available. Play immediately opens or reuses the public matching board, and starting a run publishes the game as the current display so a previous public feature cannot replace it. The admin clicks a
+The routed game is matching-only: twenty cards, ten pairs, host verdict scoring without a question bank,
+and a 20-second matching bonus after the 5-second preview, unlocked by a Right Answer. Only team runs are available. Play immediately opens or reuses the public matching board, and starting a run publishes the game as the current display so a previous public feature cannot replace it. The admin clicks a
 participating team name above the board to select whose turn it is;
 `manualTeamSelection` prevents automatic rotation. After the initial all-card
 preview, both unmatched cards remain visible for 600 ms, then close automatically;
 matched pairs remain visible. The shared `matchingCloseDeadline` persists this short display across reload.
 Legacy long delays are capped at 600 ms; `useRunCountdown` displays the all-card preview. A selected team's matched pairs are identified on the shared
 board. All ten pairs complete the activity on admin and public screens; it does
-not auto-save CP or open reward screens. Live GP lookup includes inactive teams
+not automatically open reward screens; each +5 bonus updates CP/GP by raw-score rank. Live GP lookup includes inactive teams
 so an existing participant keeps its name and balance after deactivation. Waiting
 boards use the active roster; selecting new participants still excludes inactive
 teams. Starting a run awaits display publication and reports popup failures
 without publishing an incomplete run. Legacy saved matching runs ignore old
 question-game turn deadlines. When the admin opens an older untimed run, it
-gains one saved 15-second deadline; later reloads keep that deadline.
+requires a new Right Answer to unlock scoring; later reloads keep the saved bonus deadline.
 
-Urutan Main stores team ids under `guard-the-heart-turn-order`. `turnOrder.ts`
+Turn Order stores team ids under `guard-the-heart-turn-order`. `turnOrder.ts`
 provides read/publish/subscribe and shared ordering; `useTurnOrder` updates mounted
 views through same-window events and cross-tab storage notifications. Shuffle
 changes the numbered order; reset restores Kuning, Merah, Biru, Pink, Hijau.
+Both actions publish the resulting first team's id as active, placing Your Turn
+to its right while preserving the standalone timer's countdown state.
 Timer and Flipping Connect use this order left to right, filtering to their own
-rosters. Unlisted teams follow in default colour/name order. Reordering the panels
-does not mutate a matching run's participant indices or reset its active turn.
+rosters. Unlisted teams follow in default colour/name order. Rendering reordered
+panels does not mutate a matching run's participant indices; shuffle and reset
+explicitly select the first team in the resulting order.
 
-Clicking an admin Urutan Main team selects Giliran without changing its position.
+Clicking an admin Turn Order team selects Your Turn without changing its position.
 The selected id is shared through `EventTimer.activeTeamId`; `useActiveTeam`
 subscribes Flipping Connect to it. Timer and Flipping team buttons update the same
 selection. A new matching run uses that team when it participates, otherwise
@@ -443,9 +455,9 @@ a public reload instead of replaying an earlier scoreboard/leaderboard command.
 
 | Screen | Visual reference |
 | --- | --- |
-| Urutan Main | Visual Guide slide 1 |
+| Turn Order | Visual Guide slide 1 |
 | Scoreboard | Visual Guide slide 4 layout and `Page_Score_Board.jpeg` GP footer |
-| Serangan GigaRisk | Visual Guide slide 8 |
+| GigaRisk Attack | Visual Guide slide 8 |
 | Leaderboard | Restored Visual Guide slide 9, 16:9 seven-column live table without CP labels |
 | Heart of Awareness | `heart-of-awareness-no-gp.png`, derived from `Heart_of_Awareness.png`, full 16:9 canvas and five live GP plaques |
 | Podium | `podium-no-gp.png`, based on Visual Guide slide 10, plus live rank and GP icons |
@@ -456,7 +468,7 @@ The Visual Guide is `public/ui/Visual_Guide_App-Game_5.pptx`; extracted slide
 assets are used as backgrounds with dynamic HTML values. Admin feature navigation
 opens the associated public screen; separate public-view buttons are removed.
 Rewards and Tactical Phase actions publish their selected challenge while
-preserving tactical choices and reveal state. Timer and Urutan Main each use an
+preserving tactical choices and reveal state. Timer and Turn Order each use an
 independent named window, so other feature changes leave both visible and the
 timer running. `publicWindowKind` separates projector, timer and turn-order
 window names/presence; public navigation listeners accept only their own kind.
@@ -525,7 +537,7 @@ from alphabetical names to rank badges once all five scores are recorded.
 
 The independent `/admin/timer` controls `/timer`. Its 16:9 runtime artwork is
 `public/ui/presentation-timer-clean.png`, based on `presentation-timer-no-banner.png`; it displays countdown, challenge and
-active team with a Giliran marker. Duration is 1–5999 seconds, default 900.
+active team with a Your Turn marker. Duration is 1–5999 seconds, default 900.
 Absolute deadlines survive navigation/reload, with pause/reset support. Timer
 notifications remain isolated from other public-feature navigation.
 
@@ -533,11 +545,25 @@ notifications remain isolated from other public-feature navigation.
 native buttons with `aria-pressed`; public names remain display-only spans. Click
 or keyboard activation publishes a fresh `readEventTimer()` snapshot with only
 `activeTeamId` replaced. Duration, remaining time, label and deadline are retained.
-The dropdown, active-team highlight and Giliran marker synchronize across tabs,
-Urutan Main and Flipping Connect. Team panels follow the saved Urutan Main order
+The dropdown, active-team highlight and Your Turn marker synchronize across tabs,
+Turn Order and Flipping Connect. Team panels follow the saved Turn Order order
 from left to right and update on shuffle/reset without changing timer deadlines.
 
 ## Validation record
+
+Latest challenge/reward verification on **2026-10-24 (WIB)**: **281 unit/database tests** passed across 26 files. All **74 browser scenarios** were verified across the complete run and focused follow-ups; two expectations using the old rewards were corrected. Final focused checks passed 16 unit/database tests and 6 browser scenarios. Coverage includes +5 per matching pair, preview/20-second boundaries, mismatch/timeout without penalties, minimum two tooth presses, rank changes affecting other teams, saved-game migration, and choosing any of three random rank 5 cards. TypeScript, production/PWA build, ESLint and Markdown checks passed.
+
+Historical verification below records earlier versions; the current rules above supersede earlier matching durations and reward rules.
+
+Previous English/scoring verification (superseded scoring rules) on **2026-10-24 (WIB)**: **279 unit/database
+tests** passed across 26 files. All **74 browser scenarios** were verified across
+the full run and targeted follow-ups. The full run passed 72 scenarios; the two
+remaining language/inventory fixtures were corrected and passed on rerun.
+Tests cover raw score changes without CP/GP adjustments, reward freezing across
+rank changes and reload, explicit finalization, opponent/self press assignments,
+safe presses, once-only bite penalties, persistence, offline use and layouts.
+Production/PWA build, TypeScript, ESLint and Markdown checks passed; translated
+presentation and reference-heading overlays received visual inspection.
 
 Full pre-push verification on **2026-10-23 (WIB)**:
 
@@ -550,7 +576,7 @@ Full pre-push verification on **2026-10-23 (WIB)**:
 | Markdown | Both tracked Markdown files checked for balanced fences, local links and anchors |
 
 Coverage includes all three public window kinds; order changes without active-turn
-resets; Giliran synchronization from Urutan Main to Timer and Flipping Connect;
+resets; Your Turn synchronization from Turn Order to Timer and Flipping Connect;
 queued team changes during preview; Card opened/Card closed timing; matching expiry
 and reload; selectable biting teeth; repeated/offline WebP playback; score/card
 rules; startup recovery; and responsive admin/public layouts. Unit tests used
@@ -667,8 +693,8 @@ Timer, Scoreboard and Reward Claim use `TeamGPBadge` with the shared brown/orang
 frame, exact team colour, GP shield and aligned numeric balance. `TeamPill` is
 shared separately; styles live in `src/styles/team-gp.css`. Reward Claim shows
 **current team GP**, including later card effects and damage, and labels the
-challenge bonus separately as **Hadiah +N GP**. Cards retain their left alignment.
-Timer and Flipping Connect leave a visible gap above the Giliran marker.
+challenge bonus separately as **Reward +N GP**. Cards retain their left alignment.
+Timer and Flipping Connect leave a visible gap above the Your Turn marker.
 The empty scoreboard message “No entries for this challenge yet.” is removed.
 
 Flipping Connect shows both unmatched cards for 600 ms on admin and public views,
@@ -776,7 +802,7 @@ remain configured in Vite. Removing the unnecessary option resolves the editor's
 
 ### Flipping Connect header spacing (2026-10-22 WIB)
 
-The team row sits higher above the card frame. The Giliran marker has a visible
+The team row sits higher above the card frame. The Your Turn marker has a visible
 gap below its team panel and clearance above the frame. The preview countdown
 sits above the team row with its own gap. The old turn marker embedded in the
 reference artwork is covered so only the live marker appears. Team panel size, colors and card

@@ -1,3 +1,4 @@
+import { englishText } from '../../services/english'
 import { QuestionPresentation } from './QuestionPresentation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -54,14 +55,14 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
     if (questions.length > 0 && questions.every((question) => checked[question.id] !== undefined)) onComplete?.()
   }, [questions, checked, onComplete])
 
-  function submit(index: number) {
+  function submit(index: number, manualCorrect?: boolean) {
     const question = questions[index]
     if (!question || checkedQuestionIds.current.has(question.id)) return
     checkedQuestionIds.current.add(question.id)
     setAttempts((previous) => ({ ...previous, [question.id]: attempts[question.id] ?? '' }))
     setChecked((previous) => ({
       ...previous,
-      [question.id]: checkEmojiAnswer(question, attempts[question.id] ?? ''),
+      [question.id]: manualCorrect ?? checkEmojiAnswer(question, attempts[question.id] ?? ''),
     }))
   }
 
@@ -116,7 +117,7 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
             question={{ id: current.id, number: currentIndex + 1, prompt: current.emojis.join(' '),
               hint: current.hint, eliminates: true, grade: () => 0 }}
             counter={`Question ${currentIndex + 1} of ${questions.length}`}
-            seconds={remaining} status={answered ? current.answer : '—'} />
+            seconds={remaining} status={answered ? englishText(current.answer) : '—'} />
 
           <div className="row-form">
             <input
@@ -136,15 +137,17 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
             <button type="button" disabled={answered || !(attempts[current?.id ?? ''] ?? '').trim()} onClick={() => submit(currentIndex)}>
               Decode
             </button>
+            <button type="button" disabled={answered || remaining === 0} onClick={() => submit(currentIndex, true)}>Right Answer (+10)</button>
+            <button type="button" disabled={answered || remaining === 0} onClick={() => submit(currentIndex, false)}>Wrong Answer (-10)</button>
           </div>
 
           {answered && (
             <p className={checked[current.id] ? 'alert alert--ok' : 'alert alert--error'}>
               {checked[current.id]
-                ? `Correct — ${current.answer}`
+                ? `Correct — ${englishText(current.answer)}`
                 : timedOut
-                  ? `Time ran out. The answer was ${current.answer}.`
-                  : `Not this time. The answer was ${current.answer}.`}
+                  ? `Time ran out. The answer was ${englishText(current.answer)}.`
+                  : `Not this time. The answer was ${englishText(current.answer)}.`}
             </p>
           )}
 
@@ -182,7 +185,7 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
                   onClick={() => goToQuestion(index)}
                 >
                   <span aria-hidden="true" className="emoji-chip__glyphs">
-                    {question.emojis.join('')}
+                    {englishText(question.emojis.join(''))}
                   </span>
                   <span className="emoji-chip__index">{index + 1}</span>
                 </button>

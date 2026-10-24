@@ -1,3 +1,4 @@
+import { englishText } from '../../services/english'
 import { openPublicDisplay } from '../../services/publicWindow'
 import { refreshDatabaseFromStorage } from '../../db/sequelize-provider'
 import { useEffect, useState } from 'react'
@@ -84,7 +85,7 @@ export function GameView() {
   const completeSolo = () => {
     void publishPublicDisplay('scoreboard', challengeId).then(() => {
       navigate(displayPath({ stage: 'scoreboard', challengeId }, true))
-    }).catch((cause: unknown) => setCompletionError(cause instanceof Error ? cause.message : String(cause)))
+    }).catch((cause: unknown) => setCompletionError(englishText(cause instanceof Error ? cause.message : String(cause))))
   }
 
   const endSharedRun = () => {

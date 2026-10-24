@@ -1,9 +1,10 @@
+import { prepareToothPress } from './support/challengeAnswer'
 import { expect, test } from '@playwright/test'
 
 const flipping = '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463'
 const jaw = 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8'
 
-test('Flipping Connect locks at 15 seconds, survives reload, and grants a new team a fresh timed attempt', async ({ page, context }) => {
+test('Flipping Connect locks at 20 seconds, survives reload, and grants a new team a fresh timed attempt', async ({ page, context }) => {
   await page.goto(`/admin/play/word-assembly/${flipping}`)
   await expect(page.getByRole('checkbox', { name: 'Biru', exact: true })).toBeVisible()
   const time = new Date()
@@ -13,16 +14,24 @@ test('Flipping Connect locks at 15 seconds, survives reload, and grants a new te
   const opened = context.waitForEvent('page')
   await page.getByRole('button', { name: 'Start team run (2)' }).click()
   const projector = await opened
+  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
   await expect(projector.getByRole('timer', { name: 'Cards preview countdown' })).toHaveText(/5s/)
   await page.clock.runFor(5000)
-  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('15s')
-  await page.locator('.tile').first().click()
-  await page.clock.runFor(14999)
+  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
+  await page.locator('.tile[data-pair="word-1"]').nth(0).click()
+  await page.locator('.tile[data-pair="word-1"]').nth(1).click()
+  await expect(page.getByLabel('Challenge scores')).toContainText('Biru: 15')
+  await page.locator('.tile[data-pair="word-2"]').first().click()
+  await page.locator('.tile[data-pair="word-3"]').first().click()
+  await page.clock.runFor(600)
+  await expect(page.getByLabel('Challenge scores')).toContainText('Biru: 15')
+  await page.clock.runFor(19399)
   await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('1s')
   await page.clock.runFor(1)
   const current = await page.locator('.flipping-presentation__team-button[aria-pressed="true"]').getAttribute('aria-label')
   for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
   expect(await page.locator('.tile:enabled').count()).toBe(0)
+  await expect(page.getByLabel('Challenge scores')).toContainText('Biru: 15')
   await page.reload()
   await projector.reload()
   await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
@@ -30,13 +39,14 @@ test('Flipping Connect locks at 15 seconds, survives reload, and grants a new te
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: current!, exact: true }).click()
   await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
   await page.locator('.flipping-presentation__team-button[aria-pressed="false"]').click()
+  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
   await expect(projector.getByRole('timer', { name: 'Cards preview countdown' })).toContainText('5s')
   await page.clock.runFor(5000)
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('15s')
+  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
   await expect(page.locator('.tile').first()).toBeEnabled()
   await page.clock.runFor(7000)
   await page.reload()
-  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('8s')
+  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('13s')
 })
 
 test('Jaw of Risk admin selects multiple hidden biting teeth that persist across bites and reloads', async ({ page, context }) => {
@@ -53,23 +63,31 @@ test('Jaw of Risk admin selects multiple hidden biting teeth that persist across
   const projector = await context.newPage()
   await projector.goto(`/play/jaws-of-risk/${jaw}`)
   await expect(projector.getByRole('group', { name: 'Biting teeth', exact: true })).toHaveCount(0)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 3', exact: true }).click()
-  await expect(projector.getByRole('status')).toHaveText('Safe! Choose another tooth.')
+  await expect(projector.locator('.crocodile-stage__status')).toHaveText('Safe! Press the next tooth.')
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 2', exact: true }).click()
-  await expect(projector.getByRole('status')).toContainText('CHOMP!')
+  await expect(projector.locator('.crocodile-stage__status')).toContainText('CHOMP!')
   await expect(page.getByRole('button', { name: 'Apply biting teeth', exact: true })).toBeDisabled()
   await page.clock.runFor(4440)
-  await expect(projector.getByRole('status')).toHaveText('Which tooth will bite?')
+  await expect(projector.locator('.crocodile-stage__status')).toHaveText('Which tooth will bite?')
   // The first press after the mouth opens must work, with no extra delay or retry.
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 3', exact: true }).click({ timeout: 1000 })
-  await expect(projector.getByRole('status')).toHaveText('Safe! Choose another tooth.')
+  await expect(projector.locator('.crocodile-stage__status')).toHaveText('Safe! Press the next tooth.')
   await page.reload()
   await expect(settings).toContainText('Current mode: Selected teeth 2, 5')
   for (const tooth of [2, 5]) await expect(settings.getByRole('checkbox', { name: `Biting tooth ${tooth}`, exact: true })).toBeChecked()
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 5', exact: true }).click()
-  await expect(projector.getByRole('status')).toContainText('CHOMP!')
+  await expect(projector.locator('.crocodile-stage__status')).toContainText('CHOMP!')
   await projector.reload()
-  await expect(projector.getByRole('status')).toContainText('CHOMP!')
+  await expect(projector.locator('.crocodile-stage__status')).toContainText('CHOMP!')
   await page.clock.runFor(4440)
   await expect(page.getByRole('button', { name: 'Use random tooth', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: 'Use random tooth', exact: true }).click()

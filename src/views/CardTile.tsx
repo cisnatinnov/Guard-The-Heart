@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { cardImageFor, cardTitleFor } from '../data/card-pool'
 import type { CardEffect, CardType } from '../models'
 
@@ -14,12 +15,13 @@ export function CardTile({ name, type, effect, effect_action, icon, variant = 'r
   const rarity = type.toLowerCase()
   const image = cardImageFor(name)
   const title = cardTitleFor(name, type)
-  const description = `${type} ${title} (${effect}): ${effect_action}`
+  const description = `${type} ${title} (${effect}): ${englishText(effect_action)}`
 
   if (image) {
     return (
       <figure className={`card-art card-art--${variant}`} title={description}>
         <img src={encodeURI(image)} alt={description} loading="lazy" />
+        <figcaption className={`card-art__english-rule${englishText(effect_action).length > 100 ? ' is-long' : ''}`}>{englishText(effect_action)}</figcaption>
       </figure>
     )
   }
@@ -45,7 +47,7 @@ export function CardTile({ name, type, effect, effect_action, icon, variant = 'r
       <h4 className="reveal-card__name">{title}</h4>
       <p className="reveal-card__action">
         <span className="reveal-card__effect">{effect}</span>
-        {effect_action}
+        {englishText(effect_action)}
       </p>
     </article>
   )

@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useChallenges } from '../hooks/useChallenges'
@@ -60,7 +61,7 @@ export function ChallengeView() {
                               await publishPublicDisplay(gameId === 'word-assembly' ? 'flipping-connect' : 'jaws-of-risk', challenge.id)
                             }
                             navigate(`${playBase}/${gameId}/${challenge.id}`)
-                          } catch (cause) { setPlayError(cause instanceof Error ? cause.message : String(cause)) }
+                          } catch (cause) { setPlayError(englishText(cause instanceof Error ? cause.message : String(cause))) }
                         }}>
                           Play
                         </button>

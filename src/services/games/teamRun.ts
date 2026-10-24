@@ -19,12 +19,15 @@ export interface TeamRun {
 }
 
 export interface ChallengeRun {
+  runId?: string
+  manualScoreOnly?: boolean
   manualTeamSelection?: boolean
   matchingOnly?: boolean
   /** Initial all-card preview ends at this shared absolute time. */
   matchingPreviewDeadline?: number
-  /** Matching locks at this shared deadline, after the preview plus 15 seconds. */
+  /** Matching locks at this shared deadline, after the preview plus 20 seconds. */
   matchingDeadline?: number
+  matchingAnswerId?: string
   /** Brief shared display of both unmatched cards before automatic closing. */
   matchingCloseDeadline?: number
   matchingBoard?: WordAssemblyState
@@ -70,8 +73,8 @@ export function applyPassedAnswer(run: ChallengeRun, fromTeam: string, toTeam: s
 }
 
 function scorePassedAnswer(run: ChallengeRun, fromTeam: string, toTeam: string, correct: boolean): ChallengeRun {
-  const fromPoints = correct ? -10 : -5
-  const toPoints = correct ? 5 : -5
+  const fromPoints = 0
+  const toPoints = correct ? 10 : -10
   const updated = run.runs.map((entry) => {
     if (entry.team === fromTeam) return { ...entry, score: entry.score + fromPoints,
       answered: entry.answered + (run.matchingBoard ? 0 : 1),
@@ -116,6 +119,7 @@ export function startChallengeRun(input: {
   if (input.pointsPerQuestion < 0) throw new Error('Points cannot be negative')
 
   return {
+    runId: crypto.randomUUID(),
     challenge: input.challenge,
     questionIndex: 0,
     nextTeamIndex: 0,
@@ -377,7 +381,7 @@ export function selectMatchingTeam(run: ChallengeRun, teamId: string): Challenge
     matchingBoard, questionIndex:0, questionResolved:false, attemptedTeams:[], matchingPhase:'matching',
     matchedByTeam:undefined, matchingTeamIndex:undefined, passedByTeam:undefined,
     matchingPreviewDeadline:Date.now() + MATCHING_PREVIEW_SECONDS * 1000,
-    matchingDeadline:Date.now() + (MATCHING_PREVIEW_SECONDS + MATCHING_ATTEMPT_SECONDS) * 1000,
+    matchingDeadline:Date.now() + (MATCHING_PREVIEW_SECONDS + MATCHING_ATTEMPT_SECONDS) * 1000, matchingAnswerId:undefined,
     matchingCloseDeadline:undefined,
     matchingTurn:(run.matchingTurn ?? 0)+1,
     turnDeadline:undefined }

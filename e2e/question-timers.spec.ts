@@ -23,11 +23,12 @@ test('Image Decode solo questions expire once at 15 seconds and reset for the ne
   await expect(timer).toHaveText('15s')
 })
 
-test('Jaw of Risk has no question timer or team scoring controls on either screen', async ({page}) => {
+test('Jaw of Risk has host verdict controls on admin and a read-only public display', async ({page}) => {
   for (const prefix of ['/admin','']) {
     await page.goto(`${prefix}/play/jaws-of-risk/${CHALLENGE_GAMES[2].challengeId}`)
     await expect(page.getByRole('region',{name:'Crocodile bite toy'})).toBeVisible()
     await expect(page.getByRole('button',{name:/^Tooth \d+$/})).toHaveCount(14)
     await expect(page.locator('.qa-stage__timer, .run-panel__teams, .run-panel__answers')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Wrong Answer (-10)', exact: true })).toHaveCount(prefix ? 1 : 0)
   }
 })

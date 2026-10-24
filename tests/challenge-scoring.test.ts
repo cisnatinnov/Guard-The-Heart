@@ -79,7 +79,7 @@ describe('challenge scoring persistence', () => {
         } else {
           run = await ChallengeRunController.pass({ gameId, run: initial, fromTeamId: alpha.id, toTeamId: beta.id, answer: correct ? correctAnswer(gameId) : 'wrong' })
         }
-        expect(run.runs.map((entry) => entry.score)).toEqual(correct ? [-10, 5] : [-5, -5])
+        expect(run.runs.map((entry) => entry.score)).toEqual(correct ? [0, 10] : [0, -10])
         await assertSaved(run)
       })
     }

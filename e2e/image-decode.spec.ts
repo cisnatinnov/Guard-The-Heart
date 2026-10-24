@@ -21,14 +21,14 @@ test('Image Decode advances after a wrong answer and after time runs out', async
   await expect(page.locator('.alert--error')).toContainText('Not this time')
   await expect(score).toHaveText('-10/110')
 
-  await expect(page.locator('.qa-stage__answer')).toContainText('Rekening')
+  await expect(page.locator('.qa-stage__answer')).toContainText('Account')
   await expect(page.locator('.qa-stage__heading span')).toBeHidden()
   await expect(page.locator('.qa-stage__timer strong')).toBeVisible()
   await expect(page.locator('.qa-stage__timer strong')).toHaveText('15s')
   await expect(page.getByRole('timer', { name: /seconds remaining/ })).toBeVisible()
   await page.screenshot({ path: 'test-results/image-decode-question.png', fullPage: true })
   await page.getByRole('button', { name: 'Next →' }).click()
-  await expect(page.locator('.qa-stage__hint')).toHaveText('1 Kata')
+  await expect(page.locator('.qa-stage__hint')).toHaveText('1 Word')
   await expect(page.locator('.qa-stage__heading span')).toBeHidden()
   await expect(answerInput).toBeEnabled()
   await answerInput.fill('SLIK')
@@ -55,7 +55,7 @@ test('Image Decode advances after a wrong answer and after time runs out', async
   await page.screenshot({ path: 'test-results/image-decode-mobile.png', fullPage: true })
 })
 
-test('a passed Image Decode timeout applies the wrong-answer penalty to both teams', async ({ page, context }) => {
+test('a passed Image Decode timeout deducts 10 from the answering team', async ({ page, context }) => {
   await page.goto('/admin')
   for (const name of ['Timeout Alpha', 'Timeout Beta']) {
     await page.getByRole('textbox', { name: 'New team name' }).fill(name)
@@ -76,5 +76,5 @@ test('a passed Image Decode timeout applies the wrong-answer penalty to both tea
   await page.clock.runFor(16_000)
   await expect(page.locator('.run-panel__title')).toContainText('question 2 of 11')
   const scores = page.locator('.run-panel__answers tbody tr td:last-child')
-  await expect(scores).toHaveText(['-5', '-5'])
+  await expect(scores).toHaveText(['0', '-10'])
 })

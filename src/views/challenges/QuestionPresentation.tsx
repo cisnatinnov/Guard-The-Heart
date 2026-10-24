@@ -1,3 +1,4 @@
+import { englishText } from '../../services/english'
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import { challengeGameInfo, type ChallengeGameId } from '../../services/games'
 import type { ChallengeQuestion } from '../../services/games/challengeQuestions'
@@ -44,10 +45,10 @@ export function QuestionPresentation({ gameId, question, counter, seconds, statu
     <header className="qa-stage__header">
       <img className="qa-stage__logo" src="/Logo_Game-5.png" alt="Guard the Heart" />
       <div className="qa-stage__heading">
-        <h1>{gameId === 'emoji-decode' && question ? question.prompt : game.title}</h1>
+        <h1>{gameId === 'emoji-decode' && question ? englishText(question.prompt) : game.title}</h1>
         <span>{counter}</span>
       </div>
-      {gameId === 'emoji-decode' && question && <p className="qa-stage__hint">{question.hint}</p>}
+      {gameId === 'emoji-decode' && question && <p className="qa-stage__hint">{englishText(question.hint)}</p>}
       <div className="qa-stage__timer" role="timer" aria-label={seconds === undefined ? 'Time remaining' : `${seconds} seconds remaining`}>
         <span aria-hidden="true">⏱</span><strong>{seconds === undefined ? reference ? '' : '—' : `${seconds}s`}</strong>
       </div>
@@ -57,9 +58,9 @@ export function QuestionPresentation({ gameId, question, counter, seconds, statu
       <div className={`qa-stage__question${gameId === 'emoji-decode' ? ' qa-stage__question--image' : ''}`}>
         {question ? gameId === 'emoji-decode'
           ? <img src={`/image-decode/questions/decode-${String(question.number).padStart(2, '0')}.webp`} alt={`Visual clue for question ${question.number}`} />
-          : <h2 ref={questionRef}>{question.prompt}</h2> : <p role="status">{status ?? 'Menunggu tantangan dimulai…'}</p>}
+          : <h2 ref={questionRef}>{englishText(question.prompt)}</h2> : <p role="status">{status ?? 'Waiting for the challenge to start…'}</p>}
       </div>
-      <h2 className="qa-stage__answer-label">JAWABAN</h2>
+      <h2 className="qa-stage__answer-label">ANSWER</h2>
       <div className="qa-stage__answer">
         {question?.options?.length ? <ol className="qa-stage__options" aria-label="Answer choices">
           {question.options.map((option, index) => <li key={option}><b>{String.fromCharCode(65 + index)}</b><span>{option}</span></li>)}

@@ -21,6 +21,7 @@ import {
 } from '../services/games/teamRun'
 import { MATCHING_PREVIEW_SECONDS, MATCHING_ATTEMPT_SECONDS } from '../services/games/wordAssembly'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
+import { recordChallengeAnswer, recordMatchingPair } from '../services/challengeAnswers'
 
 const MAX_CHALLENGE_POINT = 999
 
@@ -100,7 +101,10 @@ export class ChallengeRunController {
   }
 
   static async flipMatchingOnly(run: ChallengeRun, cardId: string): Promise<ChallengeRun> {
-    return flipRunCard(run, cardId)
+    if (!run.matchingAnswerId) return run
+    const next = flipRunCard(run, cardId)
+    if (next.questionIndex > run.questionIndex) await recordMatchingPair(run.matchingAnswerId, next.questionIndex)
+    return next
   }
 
   static finishMatchingTransition(run: ChallengeRun): ChallengeRun {
@@ -125,10 +129,12 @@ export class ChallengeRunController {
     teamId: string
     answer: string
     timedOut?: boolean
+    manualCorrect?: boolean
   }): Promise<{ run: ChallengeRun; result: TeamAnswerResult }> {
     const team = await ChallengeRunController.teamName(input.teamId)
     const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
-    const graded = gradeQuestion(question, input.timedOut ? '' : input.answer)
+    const graded = input.manualCorrect === undefined ? gradeQuestion(question, input.timedOut ? '' : input.answer)
+      : { correct: input.manualCorrect, bitten: false }
     const applied = applyAnswer(input.run, input.teamId, {
       points: graded.correct ? 10 : -10,
       correct: graded.correct,
@@ -156,7 +162,13 @@ export class ChallengeRunController {
     let recordedScore: number | null = null
     let error: string | null = null
     try {
-      recordedScore = await ChallengeRunController.recordScore(
+      if (input.manualCorrect !== undefined || input.run.manualScoreOnly) {
+        await recordChallengeAnswer({ id: `${input.run.runId ?? input.run.challenge}:${input.run.questionIndex}:${input.teamId}`, challenge: input.run.challenge, team: input.teamId, correct: graded.correct })
+        const saved = (await ChallengePointController.listByChallenge(input.run.challenge)).find((entry) => entry.team === input.teamId)
+        recordedScore = saved?.score ?? applied.team.score
+        applied.team.score = recordedScore
+        applied.run = { ...applied.run, manualScoreOnly: true, runs: applied.run.runs.map((entry) => entry.team === input.teamId ? { ...entry, score: recordedScore! } : entry) }
+      } else recordedScore = await ChallengeRunController.recordScore(
         input.run.challenge,
         input.teamId,
         applied.team.score
@@ -189,10 +201,15 @@ export class ChallengeRunController {
   }
 
   /** Grades a question thrown by the current team to a selected opponent. */
-  static async pass(input: { gameId: ChallengeGameId; run: ChallengeRun; fromTeamId: string; toTeamId: string; answer: string }): Promise<ChallengeRun> {
+  static async pass(input: { gameId: ChallengeGameId; run: ChallengeRun; fromTeamId: string; toTeamId: string; answer: string; manualCorrect?: boolean }): Promise<ChallengeRun> {
     const question = ChallengeRunController.currentQuestion(input.gameId, input.run)
-    const correct = gradeQuestion(question, input.answer).correct
+    const correct = input.manualCorrect ?? gradeQuestion(question, input.answer).correct
     const run = applyPassedAnswer(input.run, input.fromTeamId, input.toTeamId, correct)
+    if (input.manualCorrect !== undefined || input.run.manualScoreOnly) {
+      await recordChallengeAnswer({ id: `${run.runId ?? run.challenge}:${input.run.questionIndex}:${input.toTeamId}`, challenge: run.challenge, team: input.toTeamId, correct })
+      const saved = (await ChallengePointController.listByChallenge(run.challenge)).find((entry) => entry.team === input.toTeamId)
+      return { ...run, manualScoreOnly: true, runs: run.runs.map((entry) => entry.team === input.toTeamId ? { ...entry, score: saved?.score ?? entry.score } : entry) }
+    }
     for (const entry of run.runs) {
       const previous = input.run.runs.find((item) => item.team === entry.team)
       if (entry.score !== previous?.score) await ChallengeRunController.recordScore(run.challenge, entry.team, entry.score)
@@ -224,7 +241,7 @@ export class ChallengeRunController {
 
   /** Puts the run on the scoreboard for every team, including those still on zero. */
   static async syncAll(run: ChallengeRun): Promise<void> {
-    if (run.matchingOnly) return
+    if (run.matchingOnly || run.manualScoreOnly) return
     const challenge = await ChallengeController.getById(run.challenge)
     if (!challenge) throw new Error('Related challenge was not found')
     if (run.runs.length > MAX_ENTRIES_PER_CHALLENGE) {

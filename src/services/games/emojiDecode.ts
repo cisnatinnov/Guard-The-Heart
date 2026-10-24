@@ -1,6 +1,7 @@
 import raw from '../../data/emoji-decode.json'
 import reference from '../../data/reference-question-bank.json'
 import { getGameQuestions } from '../gameQuestionCache'
+import { englishText } from '../english'
 
 export interface EmojiDecodeQuestion {
   id: string
@@ -51,7 +52,7 @@ export function normalizeEmojiAnswer(value: string): string {
 export function checkEmojiAnswer(question: EmojiDecodeQuestion, guess: string): boolean {
   const normalizedGuess = normalizeEmojiAnswer(guess)
   if (normalizedGuess.length === 0) return false
-  return normalizedGuess === normalizeEmojiAnswer(question.answer)
+  return normalizedGuess === normalizeEmojiAnswer(question.answer) || normalizedGuess === normalizeEmojiAnswer(englishText(question.answer))
 }
 
 export interface EmojiDecodeAttempt {

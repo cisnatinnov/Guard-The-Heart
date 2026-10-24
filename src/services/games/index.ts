@@ -35,8 +35,8 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
       'Flip two cards at a time and match identical pictures. There are no questions.',
-      'Choose the active team in Urutan Main or by clicking its name here. The turn is shared with Timer. Each team has 15 seconds after the preview; time up locks the cards.',
-      'The selected team keeps its turn until the admin chooses another team. This matching activity does not award or deduct points.',
+      'Choose the active team in Turn Order or by clicking its name here. The turn is shared with Timer. Each team has 15 seconds after the preview; time up locks the cards.',
+      'The selected team keeps its turn until the admin chooses another team. Host verdicts add 10 for a right answer or deduct 10 for a wrong answer from the raw challenge score.',
       'Match all ten pairs to complete the challenge.',
     ],
     challengeId: WORD_ASSEMBLY_CHALLENGE_ID,
@@ -46,6 +46,8 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
     title: 'Challenge 3 - Jaw of Risk',
     tagline: 'Press a tooth, take a chance. Will the crocodile bite?',
     rules: [
+      'Right Answer adds 10 to the answering team and lets them choose an opponent to press one tooth. Wrong Answer deducts 10 and makes the answering team press.',
+      'A bite deducts 5 from the pressing team. Each answer allows exactly one press; scores persist across reloads.',
       'Take turns pressing one of the crocodile’s teeth. The admin can choose one or more hidden biting teeth.',
       'Safe teeth stay pressed until the crocodile bites.',
       'After a bite, the mouth opens automatically. Admin-selected biting teeth stay configured; random mode chooses a different tooth.',

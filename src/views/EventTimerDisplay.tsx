@@ -30,7 +30,7 @@ export function EventTimerDisplay({ admin = false }: { admin?: boolean }) {
           onClick={() => publishEventTimer({ ...readEventTimer(), activeTeamId: team.id })}>
           <TeamGPBadge name={team.name} colour={team.colour} gp={team.total_gp}/>
         </button> : <span className="event-timer__team-name"><TeamGPBadge name={team.name} colour={team.colour} gp={team.total_gp}/></span>}
-        {team.id === timer.activeTeamId && <span className="event-timer__turn">Giliran</span>}
+        {team.id === timer.activeTeamId && <span className="event-timer__turn">Your Turn</span>}
       </div>)}
       {teams.length === 0 && <p className="event-timer__empty">No active teams</p>}
     </div>

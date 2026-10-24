@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { rankGuardPointStandings } from '../services/rankRules'
 import { useCallback, useEffect, useState } from 'react'
 import { ScoreboardController, type ScoreboardEntry } from '../controllers/ScoreboardController'
@@ -35,7 +36,7 @@ export function ScoreboardTotalAdminView() {
       setCardCounts(cards)
       setError(null)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setLoading(false)
     }
@@ -65,7 +66,7 @@ export function ScoreboardTotalAdminView() {
       await flushDatabase()
       setNotice('Offline copy saved.')
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     }
     await load(() => ScoreboardController.recalculate())
     setBusy(false)

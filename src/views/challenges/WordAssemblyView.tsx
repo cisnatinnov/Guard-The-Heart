@@ -79,7 +79,7 @@ export function WordAssemblyView({ onComplete }: { onComplete?: () => void } = {
     </div>
     <p className="muted">Match a pair first to unlock its question. Each question allows two answer attempts within 15 seconds.</p>
     {unlocked && question ? <>
-      <QuestionPresentation gameId="word-assembly" question={question} seconds={remaining} counter={`Soal ${question.number} / ${questions.length}`} />
+      <QuestionPresentation gameId="word-assembly" question={question} seconds={remaining} counter={`Question ${question.number} / ${questions.length}`} />
       <form className="match-question" onSubmit={(event) => {
         event.preventDefault()
         if (finished || remaining === 0 || !answer) return

@@ -8,15 +8,15 @@ const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
   { path: '/admin/challenges', label: 'Challenges' },
   { path: '/admin/presentation', label: 'Main Presentation' },
-  { path: '/admin/turn-order', label: 'Urutan Main' },
+  { path: '/admin/turn-order', label: 'Turn Order' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },
   { path: '/admin/heart-of-awareness', label: 'Heart of Awareness' },
   { path: '/admin/podium', label: 'Podium' },
-  { path: '/admin/gp-transactions', label: 'Transaksi GP' },
+  { path: '/admin/gp-transactions', label: 'GP Transactions' },
   { path: '/admin/rewards', label: 'Rewards' },
   { path: '/admin/tactical', label: 'Tactical Phase' },
-  { path: '/admin/gigarisk', label: 'Serangan GigaRisk' },
+  { path: '/admin/gigarisk', label: 'GigaRisk Attack' },
   { path: '/admin/timer', label: 'Timer' },
 ] as const
 

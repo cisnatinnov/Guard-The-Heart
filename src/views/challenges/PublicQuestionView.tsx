@@ -33,9 +33,9 @@ export function PublicQuestionView({ gameId, run }: { gameId: ChallengeGameId; r
 
   const remaining = matching || run?.turnDeadline !== undefined ? sharedRemaining : question && duration !== undefined
     ? timer.attempt === attempt ? timer.remaining : duration : undefined
-  const counter = run && !complete ? `Soal ${run.questionIndex + 1} / ${run.questionCount}${team ? ` · ${teamName(team.team)}` : ''}${matching ? unlocked ? run.matchingPhase === 'choice' ? ' · Choose who answers' : ` · Answer attempts: ${run.answerAttempts ?? 0}/2` : ' · Match a pair' : ''}` : undefined
+  const counter = run && !complete ? `Question ${run.questionIndex + 1} / ${run.questionCount}${team ? ` · ${teamName(team.team)}` : ''}${matching ? unlocked ? run.matchingPhase === 'choice' ? ' · Choose who answers' : ` · Answer attempts: ${run.answerAttempts ?? 0}/2` : ' · Match a pair' : ''}` : undefined
   return <QuestionPresentation gameId={gameId} question={question} counter={counter} seconds={remaining}
-    status={complete ? 'Seluruh soal telah selesai!' : question && team ? `Menunggu jawaban ${teamName(team.team)}…` : undefined}>
+    status={complete ? 'All questions are complete!' : question && team ? `Waiting for an answer from ${teamName(team.team)}…` : undefined}>
     {run && !complete && !unlocked && run.matchingBoard ? <>
       <p className="matching-instruction">{team ? teamName(team.team) : 'Team'} matches a pair before answering · 20 seconds</p>
       <MatchingCards board={run.matchingBoard} />

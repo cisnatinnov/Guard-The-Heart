@@ -404,3 +404,9 @@
   .team-card__status { grid-column: 1 / -1; margin-bottom: 4px; }
   .app--admin .team-card__actions button { padding-inline: 8px; }
 }
+
+.card-art { position:relative;container-type:inline-size; }
+.card-art__english-rule { position:absolute;left:10%;top:80%;width:80%;height:13%;display:grid;place-items:center;padding:1cqw;box-sizing:border-box;overflow:hidden;background:#fcf2df;color:#101a2a;text-align:center;font:700 5cqw/1.1 Arial,sans-serif; }
+.card-art__english-rule.is-long { font-size:3.8cqw; }
+
+.qa-stage--slide-reference .qa-stage__answer-label { visibility:visible;display:grid;position:absolute;left:38%;top:67%;width:24%;height:6%;background:#a6332d;font:700 2.8cqw/1 Arial,sans-serif;color:#fff; }

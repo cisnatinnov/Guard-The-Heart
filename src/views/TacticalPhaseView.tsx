@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { AnimatedTeamGP } from './AnimatedTeamGP'
 import { cardGPPreview } from '../services/cardGPPreview'
 import { resolvedCardEffects } from '../services/cardEffectSummary'
@@ -21,7 +22,7 @@ import { CardEffectAnimation } from './CardEffectAnimation'
 import '../styles/tactical.css'
 
 function TacticalCard({ card }: { card: TeamCard }) {
-  return <CardTile name={card.name} type={card.type} effect={card.effect} effect_action={card.effect_action} icon={card.icon} />
+  return <CardTile name={card.name} type={card.type} effect={card.effect} effect_action={englishText(card.effect_action)} icon={card.icon} />
 }
 
 export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: boolean; reveal?: boolean }) {
@@ -88,7 +89,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     try {
       await commitTacticalAssignment(id, inputs, next, fortuneSelection)
       setActionError(null)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally { setBusy(false) }
   }
   useEffect(() => {
@@ -101,7 +102,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     try {
       void saveChoices(assignTacticalCard(availablePhase(), inputs, teamId, cardId, targetId, slot))
       setActionError(null)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
   function dropCard(event: React.DragEvent, targetId: string) {
     event.preventDefault()
@@ -114,7 +115,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
         if (value.teamId !== targetId) throw new Error('Choose a card earned by this team')
         if (!readTacticalPhase(id).choices[targetId]?.cards.includes(value.cardId)) void select(targetId, value.cardId)
       }
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
   async function attack() {
     if (!id || busy || loading || teamsLoading) return
@@ -130,7 +131,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       await attackTacticalPhaseOnce(id, inputs, (result) => recordGigaRiskGP(id, result))
       await publishPublicDisplay('card-reveal', id)
       setActionError(null)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally { setBusy(false) }
   }
   async function selectChallenge(nextId: string) {
@@ -138,12 +139,12 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       await publishPublicDisplay('tactical', nextId)
       navigate(`/admin/tactical/${nextId}`)
       setActionError(null)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
   async function select(teamId: string, cardId: string) {
     try {
       if (busy) return
-      if (deferredRewards.has(cardId)) throw new Error('Kartu Fortune Draw tersedia untuk challenge berikutnya.')
+      if (deferredRewards.has(cardId)) throw new Error('Fortune Draw cards are available next challenge.')
       const team = teams.find((entry) => entry.id === teamId)
       let next = chooseTacticalCard(availablePhase(), teamId, cardId, team?.cards.filter((card) => !usedCards.has(card.id)).map((card) => card.id) ?? [])
       const card = team?.cards.find((entry) => entry.id === cardId)
@@ -155,7 +156,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
         next.choices[teamId].fortune = { ...next.choices[teamId].fortune, [cardId]: { options, rulesVersion:2 } }
       }
       await saveChoices(next)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally { setBusy(false) }
   }
   async function display(showReveal: boolean) {
@@ -172,7 +173,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       if (showReveal && !resolution) await commitTacticalAssignment(id,inputs,readTacticalPhase(id),undefined,true)
       await publishPublicDisplay(showReveal ? 'card-reveal' : 'tactical', id)
       setActionError(null)
-    } catch (cause) { setActionError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally {setBusy(false)}
   }
   if (admin) return <section className="view tactical-admin">
@@ -194,20 +195,20 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
     <div className="admin-toolbar">
       <label className="field"><span>Challenge</span><select value={id} onChange={(event) => void selectChallenge(event.target.value)}>{challenges.map((challenge) => <option key={challenge.id} value={challenge.id}>{challenge.name}</option>)}</select></label>
       <button className="ghost" disabled={busy} onClick={() => void display(false)}>{phase.revealed ? 'Return to Tactical Phase' : 'Show Tactical Phase'}</button><button disabled={!id || !teams.length || busy} onClick={() => void display(true)}>{phase.revealed || resolution ? 'Show Card Reveal' : 'Card Reveal'}</button>
-      <button disabled={!id || !allTeams.length || loading || teamsLoading || busy || !!resolution} onClick={() => void attack()}>{resolution ? 'Serangan selesai' : busy ? 'Memproses serangan…' : 'Serang semua tim −2 GP'}</button>
+      <button disabled={!id || !allTeams.length || loading || teamsLoading || busy || !!resolution} onClick={() => void attack()}>{resolution ? 'Attack complete' : busy ? 'Processing attack…' : 'Attack all teams −2 GP'}</button>
     </div>
     {(actionError || error || teamError) && <p className="alert alert--error" role="alert">{actionError || error || teamError}</p>}
-    {phase.cardsRevealed && !resolution && <p className="alert alert--info">Card Reveal selesai. Kartu dan target sudah dikunci. Pilih hadiah Fortune Draw yang belum dibuka, lalu lanjutkan serangan GigaRisk.</p>}
+    {phase.cardsRevealed && !resolution && <p className="alert alert--info">Card Reveal is complete. Cards and targets are locked. Choose any pending Fortune Draw rewards, then continue with the GigaRisk attack.</p>}
       {!resolution && revealedCards.some(({ card }) => isFortuneCard(card)) && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.filter(({ card }) => isFortuneCard(card)).map(({ team, card }) => { const offer = phase.choices[team.id]?.fortune?.[card.id]; const validOffer = !!offer && hasDistinctFortuneEffects(offer.options); return <article key={card.id}>
-      <div><strong>Tim {team.name.replace(/^tim\s+/i, '')} · {card.name}</strong><p>{card.effect_action}</p></div>
+      <div><strong>Team {team.name.replace(/^tim\s+/i, '')} · {card.name}</strong><p>{englishText(card.effect_action)}</p></div>
       {isFortuneCard(card) && <fieldset className="fortune-choices" disabled={busy || loading || teamsLoading || !!resolution}>
-        <legend>{validOffer ? `Pilih 1 dari ${offer.options.length} kartu` : 'Fortune Draw'} · tersedia untuk challenge berikutnya</legend>
+        <legend>{validOffer ? `Choose 1 of ${offer.options.length} cards` : 'Fortune Draw'} · available next challenge</legend>
         {validOffer && <label className="fortune-public-mode"><input type="checkbox" checked={offer.publicClosed !== false} onChange={(event) => void saveChoices(readTacticalPhase(id),{teamId:team.id,cardId:card.id,publicClosed:event.target.checked})} />Public view: closed cards</label>}
-        {!validOffer && <p role="status">{busy ? 'Memuat pilihan dengan efek berbeda…' : 'Tawaran lama berisi efek duplikat. Coba lagi untuk memuat pilihan yang tersedia.'}</p>}
-        {!validOffer && <button type="button" onClick={() => void saveChoices(readTacticalPhase(id), { teamId: team.id, cardId: card.id, selected: offer?.selected })}>Coba lagi pilihan Fortune Draw</button>}
+        {!validOffer && <p role="status">{busy ? 'Loading options with distinct effects…' : 'This older offer contains duplicate effects. Retry to load the available options.'}</p>}
+        {!validOffer && <button type="button" onClick={() => void saveChoices(readTacticalPhase(id), { teamId: team.id, cardId: card.id, selected: offer?.selected })}>Retry Fortune Draw options</button>}
         {validOffer && offer.options.length < 3 && <p role="status">Hanya {offer.options.length} efek berbeda yang tersedia dan memenuhi batas rank. Efek yang sama tidak ditawarkan ulang.</p>}
         <div>{validOffer && offer.options.map((option, index) => <button type="button" key={option.id}
-          disabled={!!offer.selected} aria-label={`Pilih Fortune Draw ${team.name} opsi ${index + 1}`} aria-pressed={offer.selected === option.id}
+          disabled={!!offer.selected} aria-label={`Choose Fortune Draw ${team.name} option ${index + 1}`} aria-pressed={offer.selected === option.id}
           onClick={() => {
             const current = readTacticalPhase(id)
             if (busy || current.resolution || current.strike) return
@@ -221,7 +222,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
 
     </article>})}</div>}
     {availableTeams.map((team) => <article key={team.id} className={`tactical-admin__team tactical-colour--${teamColour(team) ?? 'neutral'}`}>
-      <header className="tactical-admin__team-header"><h3>Tim {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{resolution ? 'Serangan selesai' : phase.choices[team.id]?.skipped ? 'SKIP' : `${playedIds(team.id).length}/2 selected`}</span></header>
+      <header className="tactical-admin__team-header"><h3>Team {team.name} · {resolution?.teams.find((entry) => entry.teamId === team.id)?.finalGP ?? team.gp} GP</h3><span className="badge">{resolution ? 'Attack complete' : phase.choices[team.id]?.skipped ? 'SKIP' : `${playedIds(team.id).length}/2 selected`}</span></header>
       <div className="tactical-admin__body"><div><h4>Owned cards · {team.cards.length}</h4>
       <div className="tactical-admin__history">{Array.from(new Set(team.cards.map((card) => card.challenge_point))).map((entryId) => <section key={entryId} className="tactical-admin__card-group">
         <h5>{team.cardChallenges[entryId ?? '']?.name ?? 'Other earned cards'}{team.cardChallenges[entryId ?? '']?.id === id && <span className="badge">Current challenge</span>}</h5>
@@ -242,7 +243,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       <button className="ghost" disabled={locked} onClick={() => void saveChoices({ ...phase, choices: { ...phase.choices, [team.id]: { ...phase.choices[team.id], cards: [], skipped: true } } })}>Skip {team.name}</button></div></div>
       {!resolution && selectedCardsFor(team.id).some((card) => cardTargetCount(card) > 0) && <div className="tactical-admin__targeting" aria-label={`Target assignments for ${team.name}`}>
         {selectedCardsFor(team.id).filter((card) => cardTargetCount(card) > 0).map((card) => <section className="tactical-admin__target-card" key={card.id} aria-label={`Targets for ${card.name} owned by ${team.name}`}>
-          <h4>{card.name}</h4><p>{card.effect_action}</p>
+          <h4>{card.name}</h4><p>{englishText(card.effect_action)}</p>
       {Array.from({ length: cardTargetCount(card) }, (_, slot) => <fieldset className="tactical-targets" key={`direct-${slot}`} disabled={locked}>
         <legend>{isProtectCard(card) ? `Protect team · ${team.name} (owner) is always protected` : 'Steal from team'}{cardTargetCount(card) === 2 ? ` ${slot + 1}${slot === 1 ? ' (optional)' : ''}` : ''}</legend>
         <div>{allTeams.filter((target) => isProtectCard(card) || target.id !== team.id).map((target) => <button type="button" key={target.id}
@@ -267,8 +268,8 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       const visible = reveal && (phase.revealed || !!resolution)
       const result = team ? resolution?.teams.find((entry) => entry.teamId === team.id) : undefined
       return <article key={team?.id ?? index} className={`tactical-stage__team tactical-colour--${(team ? teamColour(team) : null) ?? 'neutral'}`} style={{ '--slot': index } as CSSProperties} aria-label={team?.name ?? 'Empty team'}>
-        <h2>Tim {team?.name.replace(/^tim\s+/i, '') ?? '—'}</h2><AnimatedTeamGP key={`${id}:${team?.id}:${hoveredLog?.card.id ?? 'idle'}:${resolution?.resolvedAt ?? 'pending'}`} value={visible ? result?.finalGP ?? team?.gp ?? 0 : team?.gp ?? 0} preview={visible && team ? gpPreviews[team.id] : undefined} />
-        {reveal && <p className="tactical-stage__caption">Kartu yang dipakai</p>}
+        <h2>Team {team?.name.replace(/^tim\s+/i, '') ?? '—'}</h2><AnimatedTeamGP key={`${id}:${team?.id}:${hoveredLog?.card.id ?? 'idle'}:${resolution?.resolvedAt ?? 'pending'}`} value={visible ? result?.finalGP ?? team?.gp ?? 0 : team?.gp ?? 0} preview={visible && team ? gpPreviews[team.id] : undefined} />
+        {reveal && <p className="tactical-stage__caption">Played cards</p>}
         {!reveal && <div className="tactical-stage__collection" aria-label={`Owned cards for ${team?.name ?? 'empty team'}`}>{Array.from({ length: Math.max(8, availableCards.length) }, (_, slot) => {
           const card = availableCards[slot]
           return <div className="tactical-stage__slot" key={card?.id ?? slot} aria-label={card ? `${card.name} · Available` : undefined}>
@@ -289,14 +290,14 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
             {card && visible && isFortuneCard(card) && choice?.fortune?.[card.id]?.options.length && <button className="fortune-reveal-open" type="button" onClick={() => setFortunePreview({ challengeId: id, cardId: card.id })}>Fortune Draw choices</button>}
           </div>
         })}</div>
-        <p className={`tactical-stage__status ${choice?.skipped ? 'is-skipped' : cards.length ? 'is-ready' : ''}`}>{reveal ? visible ? cards.length ? `Pakai ${cards.length} Kartu` : 'SKIP' : 'Menunggu Card Reveal' : resolution ? 'Serangan selesai' : choice?.skipped ? 'SKIP' : cards.length ? `✓ ${cards.length} Kartu siap` : 'Memilih...'}</p>
+        <p className={`tactical-stage__status ${choice?.skipped ? 'is-skipped' : cards.length ? 'is-ready' : ''}`}>{reveal ? visible ? cards.length ? `Play ${cards.length} Cards` : 'SKIP' : 'Waiting for Card Reveal' : resolution ? 'Attack complete' : choice?.skipped ? 'SKIP' : cards.length ? `✓ ${cards.length} Cards ready` : 'Choosing...'}</p>
         {visible && resolution && <div className="tactical-stage__effects" aria-label="Resolved card effects">
           {cards.map((card) => <p className="card-effect-outcome is-positive" key={card.id} data-card-id={card.id}>{cardTitleFor(card.name, card.type).replace(/ Card$/i, '')}</p>)}
         </div>}
       </article>
     })}</div>
-    <div className="tactical-stage__footer">{reveal ? phase.revealed || resolution ? 'Card Reveal selesai' : 'Menunggu admin membuka kartu' : 'Maksimal 2 kartu per Tactical Phase'}</div>
-    {reveal && <div className="tactical-stage__log" data-card-id={currentLog?.card.id}>{(phase.revealed || resolution) ? currentLog ? <><span className="tactical-stage__log-count">{activeLogIndex + 1}/{revealedCards.length}</span><strong>{cardTitleFor(currentLog.card.name, currentLog.card.type).replace(/ Card$/i, '')}</strong><span>{resolution || phase.assignment?.revealApplied ? `${currentLog.team.name.replace(/^tim\s+/i, '')}: ${currentLogEffects.join(' · ')}` : `${currentLog.team.name.replace(/^tim\s+/i, '')} memilih ${cardTitleFor(currentLog.card.name, currentLog.card.type)}`}</span></> : 'Semua tim memilih SKIP' : 'Kartu belum dibuka'}</div>}
+    <div className="tactical-stage__footer">{reveal ? phase.revealed || resolution ? 'Card Reveal complete' : 'Waiting for admin to reveal cards' : 'At most 2 cards per Tactical Phase'}</div>
+    {reveal && <div className="tactical-stage__log" data-card-id={currentLog?.card.id}>{(phase.revealed || resolution) ? currentLog ? <><span className="tactical-stage__log-count">{activeLogIndex + 1}/{revealedCards.length}</span><strong>{cardTitleFor(currentLog.card.name, currentLog.card.type).replace(/ Card$/i, '')}</strong><span>{resolution || phase.assignment?.revealApplied ? `${currentLog.team.name.replace(/^tim\s+/i, '')}: ${currentLogEffects.map(englishText).join(' · ')}` : `${currentLog.team.name.replace(/^tim\s+/i, '')} selects ${cardTitleFor(currentLog.card.name, currentLog.card.type)}`}</span></> : 'All teams chose SKIP' : 'Cards have not been revealed'}</div>}
     {activeFortune && fortuneOffer && <FortuneReveal teamName={activeFortune.team.name} offer={fortuneOffer} selectedId={fortuneSelected} busy={busy || !!resolution} onChoose={(selected) => void saveChoices(readTacticalPhase(id),{teamId:activeFortune.team.id,cardId:activeFortune.card.id,selected})} onClose={() => {
       setDismissedFortunes((current) => [...current, `${id}:${activeFortune.card.id}`])
       setFortunePreview(null)

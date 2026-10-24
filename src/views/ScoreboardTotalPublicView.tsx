@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { rankGuardPointStandings } from '../services/rankRules'
 import { useCallback, useEffect, useState } from 'react'
 import { ScoreboardController, type ScoreboardEntry } from '../controllers/ScoreboardController'
@@ -31,7 +32,7 @@ export function ScoreboardTotalPublicView() {
       setCardCounts(cards)
       setError(null)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setLoading(false)
     }

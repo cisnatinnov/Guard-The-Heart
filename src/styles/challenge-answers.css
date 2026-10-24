@@ -1,0 +1,9 @@
+.challenge-answer-controls { margin:12px 0; padding:16px; border:1px solid var(--border,#b99255); border-radius:12px; background:var(--surface,#fff8e5); color:var(--text,#302015); }
+.challenge-answer-controls__scores { display:flex; flex-wrap:wrap; gap:8px 20px; }
+.challenge-answer-controls fieldset { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-top:12px; }
+.challenge-answer-controls label { display:grid; gap:6px; min-width:0; }
+.challenge-answer-controls select { max-width:100%; }
+@media(max-width:600px) { .challenge-answer-controls fieldset > * { width:100%; } }
+
+.app--public .challenge-answer-controls { position:fixed;bottom:0;left:0;width:100%;z-index:8;margin:0;padding:4px 12px;max-height:10dvh;overflow:auto;box-sizing:border-box;font-size:clamp(9px,1.1vw,16px); }
+.app--public .challenge-answer-controls p { margin:2px 0; }

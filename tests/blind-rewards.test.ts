@@ -17,22 +17,22 @@ async function fixture() {
  const offer=(await BlindReward.findByPk(blindRewardId(challenge.id,team.id)))!
  return {challenge,team,entry,offer,options:JSON.parse(offer.options) as BlindOption[]}
 }
-it('reserves exactly two Normal designs plus one Zonk and excludes them from automatic assignment',async()=>{
+it('reserves three distinct random cards and excludes them from automatic assignment',async()=>{
  const {challenge,team,options}=await fixture()
  expect(options).toHaveLength(3)
- expect(options.filter((card)=>card.zonk)).toHaveLength(1)
- expect(options.filter((card)=>!card.zonk).every((card)=>card.type==='Normal')).toBe(true)
- expect(new Set(options.filter((card)=>!card.zonk).map((card)=>card.name.replace(/ #\d+$/,''))).size).toBe(2)
+ expect(options.filter((card)=>card.zonk)).toHaveLength(0)
+ expect(options.every((card)=>!!card.id)).toBe(true)
+ expect(new Set(options.filter((card)=>!card.zonk).map((card)=>card.name.replace(/ #\d+$/,''))).size).toBe(3)
  expect(await getAvailableDrawnCards(challenge.id)).toHaveLength(0)
- await expect(assignCardToTeam(options.find((card)=>!card.zonk)!.id,team.id)).rejects.toThrow('kartu tertutup')
+ await expect(assignCardToTeam(options.find((card)=>!card.zonk)!.id,team.id)).rejects.toThrow('three random cards')
 })
-it.each([true,false])('selects once and releases unchosen physical cards (Zonk=%s)',async(zonk)=>{
+it.each([0,1,2])('selects any option once and releases unchosen physical cards (index=%s)',async(index)=>{
  const {challenge,team,options,offer}=await fixture()
- const selected=options.find((card)=>!!card.zonk===zonk)!
+ const selected=options[index]
  await chooseRankFiveReward(challenge.id,team.id,selected.id)
  expect((await offer.reload()).selected).toBe(selected.id)
- expect(await TeamCard.count({where:{team:team.id}})).toBe(zonk?0:1)
- expect(await Card.count({where:{challenge:challenge.id}})).toBe(zonk?0:1)
+ expect(await TeamCard.count({where:{team:team.id}})).toBe(1)
+ expect(await Card.count({where:{challenge:challenge.id}})).toBe(1)
  await expect(chooseRankFiveReward(challenge.id,team.id,options.find((card)=>card.id!==selected.id)!.id)).rejects.toThrow('sudah dipilih')
 })
 it('backfills an unfinished drawn round once, while preserving completed rounds',async()=>{
@@ -52,13 +52,13 @@ it('backfills an unfinished drawn round once, while preserving completed rounds'
  expect(await BlindReward.count({where:{challenge:challenge.id}})).toBe(1)
 })
 
-it('rechecks that the selected physical rank 5 reward is Normal before awarding it',async()=>{
+it('allows a Rare card from the random offer',async()=>{
  const {challenge,team,offer,options}=await fixture()
  const selected=options.find((card)=>!card.zonk)!
  const physical=(await Card.findByPk(selected.id))!
  await physical.update({type:'Rare'})
- await expect(chooseRankFiveReward(challenge.id,team.id,selected.id)).rejects.toThrow('1 kartu Normal atau False Hope')
- expect((await offer.reload()).selected).toBeNull()
- expect(await TeamCard.count({where:{team:team.id}})).toBe(0)
+ await chooseRankFiveReward(challenge.id,team.id,selected.id)
+ expect((await offer.reload()).selected).toBe(selected.id)
+ expect((await TeamCard.findOne({where:{team:team.id}}))?.type).toBe('Rare')
  await physical.update({type:'Normal'})
 })

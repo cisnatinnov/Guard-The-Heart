@@ -59,9 +59,9 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
 
   return <section className="flipping-presentation" aria-label="Flipping Connect matching board">
     <img className="flipping-presentation__art" src="/ui/flipping-slide-03-reference.png" alt="" />
-    {previewing && <div className="flipping-presentation__close-timer" role="timer" aria-label="Cards preview countdown">Hafalkan kartu: {Math.min(MATCHING_PREVIEW_SECONDS, previewRemaining!)}s</div>}
+    {previewing && <div className="flipping-presentation__close-timer" role="timer" aria-label="Cards preview countdown">Memorize the cards: {Math.min(MATCHING_PREVIEW_SECONDS, previewRemaining!)}s</div>}
     {run && !previewing && !complete && <div className={`flipping-presentation__attempt-timer${expired ? ' is-expired' : ''}`} role="timer" aria-label="Matching time remaining">
-      {expired ? "Time's up!" : `${Math.min(MATCHING_ATTEMPT_SECONDS, remaining ?? MATCHING_ATTEMPT_SECONDS)}s`}
+      {!run.matchingAnswerId ? "Right Answer required" : expired ? "Time's up!" : `${Math.min(MATCHING_ATTEMPT_SECONDS, remaining ?? MATCHING_ATTEMPT_SECONDS)}s`}
     </div>}
     <ol className="flipping-presentation__teams" aria-label="Select the active team">
       {Array.from({ length: 5 }, (_, slot) => {
@@ -69,7 +69,7 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
         const entry = run?.runs.find((entry) => entry.team === teamId)
         const active = !!teamId && !complete && teamId === activeTeamId
         return <li key={teamId ?? slot} className={`team-colour--${teamId ? teamColour(teamId) ?? 'neutral' : 'neutral'}`} aria-hidden={!teamId || undefined} aria-current={active ? 'step' : undefined}>
-          {entry && onChooseTeam ? <button className="flipping-presentation__team-button" type="button" aria-label={teamName(entry.team)} title={teamName(entry.team)} aria-pressed={active} disabled={teamSelectionDisabled || previewing} onClick={() => onChooseTeam(entry.team)}><span className="flipping-presentation__team-name">{teamName(entry.team)}</span><span className="flipping-presentation__team-gp">{teamGP(entry.team) ?? '—'} GP</span></button> : <div className="flipping-presentation__team-info"><span className="flipping-presentation__team-name" title={teamId ? teamName(teamId) : undefined}>{teamId ? teamName(teamId) : run ? '—' : ['Tim Pink', 'Tim Merah', 'Tim Biru', 'Tim Hijau', 'Tim Kuning'][slot]}</span>{teamId && <span className="flipping-presentation__team-gp">{teamGP(teamId) ?? '—'} GP</span>}</div>}{active && <span className="flipping-presentation__turn">Giliran</span>}
+          {entry && onChooseTeam ? <button className="flipping-presentation__team-button" type="button" aria-label={teamName(entry.team)} title={teamName(entry.team)} aria-pressed={active} disabled={teamSelectionDisabled || previewing} onClick={() => onChooseTeam(entry.team)}><span className="flipping-presentation__team-name">{teamName(entry.team)}</span><span className="flipping-presentation__team-gp">{teamGP(entry.team) ?? '—'} GP</span></button> : <div className="flipping-presentation__team-info"><span className="flipping-presentation__team-name" title={teamId ? teamName(teamId) : undefined}>{teamId ? teamName(teamId) : run ? '—' : ['Team Yellow', 'Team Red', 'Team Blue', 'Team Pink', 'Team Green'][slot]}</span>{teamId && <span className="flipping-presentation__team-gp">{teamGP(teamId) ?? '—'} GP</span>}</div>}{active && <span className="flipping-presentation__turn">Your Turn</span>}
         </li>
       })}
     </ol>
@@ -78,6 +78,6 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
       <b>{pop === 'opened' ? 'Card opened' : pop === 'closed' ? 'Card closed' : pop === 'match' ? 'Match!' : 'Mismatch!'}</b>
     </div>}
     {complete && <p className="flipping-presentation__complete">All pairs matched!</p>}
-    {!board && <p className="sr-only" role="status">Menunggu tantangan dimulai…</p>}
+    {!board && <p className="sr-only" role="status">Waiting for the challenge to start…</p>}
   </section>
 }

@@ -7,6 +7,7 @@ import { competitionRanks, rankGuardPointStandings, rewardsForRank, MAX_TOTAL_CA
 interface RankedRow {
   id: string
   score: number
+  raw_score_only?: boolean
 }
 
 /**
@@ -16,7 +17,7 @@ interface RankedRow {
 export async function rerankChallenge(challengeId: string): Promise<void> {
   const entries = await ChallengePoint.findAll({
     where: { challenge: challengeId },
-    attributes: ['id', 'score'],
+    attributes: ['id', 'score', 'raw_score_only'],
     order: [['score', 'DESC']],
   })
 
@@ -26,7 +27,7 @@ export async function rerankChallenge(challengeId: string): Promise<void> {
     const rank = ranks[index]
     // Ties can push a team past 5th place, where the blueprint awards nothing.
     const rewards = rank <= 5 ? rewardsForRank(rank) : { guard_power: 0, challenge_point: 0 }
-    await ChallengePoint.update({ rank, guard_power: rewards.guard_power, challenge_point: rewards.challenge_point }, { where: { id: entry.id } })
+    await ChallengePoint.update({ rank, raw_score_only: false, guard_power: rewards.guard_power, challenge_point: rewards.challenge_point }, { where: { id: entry.id } })
   }
 }
 

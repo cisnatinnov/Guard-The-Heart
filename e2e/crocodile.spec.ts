@@ -1,3 +1,4 @@
+import { prepareToothPress } from './support/challengeAnswer'
 import { test, expect } from '@playwright/test'
 
 const challengeId = 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8'
@@ -20,22 +21,27 @@ test('Jaw of Risk is only a toy and synchronizes bites and new teeth to the publ
     localStorage.setItem(key, JSON.stringify({ bitingTooth: 0, pressed: [], reopenAt: null }))
     window.dispatchEvent(new Event(key))
   }, challengeId)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 2', exact: true }).click()
   await expect(publicPage.getByRole('button', { name: 'Tooth 2', exact: true })).toBeDisabled()
   await expect(publicPage.getByRole('button', { name: 'Tooth 2', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await page.screenshot({ path: 'test-results/crocodile-admin.png' })
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 1', exact: true }).click()
-  await expect(publicPage.getByRole('status')).toHaveText('CHOMP! Watch your fingers!')
+  await expect(publicPage.locator('.crocodile-stage__status')).toHaveText('CHOMP! Watch your fingers!')
   await expect(page.getByRole('button', { name: 'Tooth 3', exact: true })).toBeDisabled()
   await expect(publicPage.locator('.crocodile__bite')).toHaveAttribute('src', /gigarisk-bite\.webp#/)
-  await expect(publicPage.getByRole('status')).toHaveText('CHOMP! Watch your fingers!')
-  await expect(publicPage.getByRole('status')).toHaveText('Which tooth will bite?', { timeout: 8000 })
+  await expect(publicPage.locator('.crocodile-stage__status')).toHaveText('CHOMP! Watch your fingers!')
+  await expect(publicPage.locator('.crocodile-stage__status')).toHaveText('Which tooth will bite?', { timeout: 8000 })
+  await prepareToothPress(page)
   await expect(page.getByRole('button', { name: 'Tooth 1', exact: true })).toBeEnabled()
   const nextTooth = await page.evaluate((id) => JSON.parse(localStorage.getItem(`guard-the-heart-crocodile:${id}`)!).bitingTooth as number, challengeId)
   expect(nextTooth).not.toBe(0)
   await publicPage.reload()
   await expect(publicPage.getByRole('button', { name: 'Tooth 2', exact: true })).toBeDisabled()
-  await expect(publicPage.getByRole('status')).toBeInViewport({ ratio: 1 })
+  await expect(publicPage.locator('.crocodile-stage__status')).toBeInViewport({ ratio: 1 })
   await publicPage.screenshot({ path: 'test-results/crocodile-public.png' })
 })
 
@@ -64,6 +70,7 @@ test('Play reuses a public view opened separately, including after admin reload'
 test('reference teeth align with the dragon and remain usable at desktop and phone sizes', async ({ page }) => {
   for (const view of ['admin', 'public']) {
     await page.goto(`${view === 'admin' ? '/admin' : ''}/play/jaws-of-risk/${challengeId}`)
+    if (view === 'admin') await prepareToothPress(page)
     for (const size of [{ width:1280, height:720 }, { width:390, height:844 }]) {
       await page.setViewportSize(size)
       const stage = page.getByLabel('Crocodile bite toy')
@@ -118,20 +125,30 @@ test('supplied hand cursors and sounds respond to pointer and keyboard presses',
     Object.assign(window, { playedSounds: played })
     HTMLMediaElement.prototype.play = function () { played.push(this.getAttribute('data-sound') ?? ''); return Promise.resolve() }
   }, challengeId)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 1', exact: true }).hover()
   await expect(page.locator('.crocodile__hand')).toHaveAttribute('src', /Tangan - Pencet Gigi Kiri\.png$/)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 1', exact: true }).click()
   await expect(publicPage.locator('.crocodile__hand')).toHaveAttribute('src', /Tangan - Pencet Gigi Kiri\.png$/)
   await expect(publicPage.locator('.crocodile__hand')).toHaveCount(0)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 14', exact: true }).hover()
   await expect(page.locator('.crocodile__hand')).toHaveAttribute('src', /Tangan - Pencet Gigi Kanan\.png$/)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 14', exact: true }).press('Enter')
   await expect(publicPage.locator('.crocodile__hand')).toHaveAttribute('src', /Tangan - Pencet Gigi Kanan\.png$/)
+  await prepareToothPress(page)
+
   await page.getByRole('button', { name: 'Tooth 7', exact: true }).click()
   await expect(page.locator('.crocodile__bite')).toBeVisible()
   expect(await page.evaluate(() => (window as unknown as { playedSounds: string[] }).playedSounds)).toEqual(expect.arrayContaining(['hover', 'click', 'safe', 'bite']))
   await page.screenshot({ path:'test-results/jaw-bite-hand.png' })
-  await expect(page.getByRole('status')).toHaveText('Which tooth will bite?', { timeout:8000 })
+  await expect(page.locator('.crocodile-stage__status')).toHaveText('Which tooth will bite?', { timeout:8000 })
   await expect(page.locator('.crocodile__bite')).toHaveCount(0)
 })
 
@@ -152,6 +169,7 @@ test('public teeth cannot change the round and mirror admin hover at different s
   expect(await snapshot()).toBe(before)
   await expect(projector.locator('.crocodile__hand')).toHaveCount(0)
   for (const tooth of [1, 14]) {
+    await prepareToothPress(page)
     await page.getByRole('button', { name:`Tooth ${tooth}`, exact:true }).hover()
     await expect(projector.locator('.crocodile__hand')).toHaveAttribute('src', tooth === 1 ? /Gigi Kiri\.png$/ : /Gigi Kanan\.png$/)
     await expect(projector.getByRole('button', { name:`Tooth ${tooth}`, exact:true })).toHaveClass(/is-hovered/)
@@ -162,6 +180,7 @@ test('public teeth cannot change the round and mirror admin hover at different s
     await expect(projector.locator('.is-hovered')).toHaveCount(0)
   }
   // A display opened while the admin is already hovering requests its current hand.
+  await prepareToothPress(page)
   await page.getByRole('button', { name:'Tooth 2', exact:true }).hover()
   await projector.reload()
   await expect(projector.locator('.crocodile__hand')).toHaveAttribute('src', /Gigi Kiri\.png$/)
@@ -174,6 +193,7 @@ test('hover synchronization falls back to storage events and clears on admin blu
   await page.goto(`/admin/play/jaws-of-risk/${challengeId}`)
   const projector = await context.newPage()
   await projector.goto(`/play/jaws-of-risk/${challengeId}`)
+  await prepareToothPress(page)
   await page.getByRole('button', { name:'Tooth 14', exact:true }).hover()
   await expect(projector.locator('.crocodile__hand')).toHaveAttribute('src', /Gigi Kanan\.png$/)
   await expect(projector.getByRole('button', { name:'Tooth 14', exact:true })).toHaveClass(/is-hovered/)
@@ -200,13 +220,15 @@ test('a second bite responds immediately and its optimized animation works offli
   await context.setOffline(true)
   await projector.reload()
   for (let attempt = 0; attempt < 2; attempt++) {
+    await prepareToothPress(page)
+
     await page.getByRole('button', { name: 'Tooth 1', exact: true }).click({ timeout: 1000 })
     for (const screen of [page, projector]) {
-      await expect(screen.getByRole('status')).toContainText('CHOMP!')
+      await expect(screen.locator('.crocodile-stage__status')).toContainText('CHOMP!')
       await expect(screen.locator('.crocodile__bite')).toHaveAttribute('src', /gigarisk-bite\.webp#/)
       await expect.poll(() => screen.locator('.crocodile__bite').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1280)
     }
     await page.clock.runFor(4440)
-    for (const screen of [page, projector]) await expect(screen.getByRole('status')).toHaveText('Which tooth will bite?')
+    for (const screen of [page, projector]) await expect(screen.locator('.crocodile-stage__status')).toHaveText('Which tooth will bite?')
   }
 })

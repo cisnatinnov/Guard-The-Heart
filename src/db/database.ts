@@ -56,6 +56,14 @@ export function initializeAppDatabase(): Promise<void> {
         for (const entry of await ChallengePoint.findAll()) await entry.update({ score:entry.challenge_point })
       }
       await ensureCardActionColumns(sequelize)
+      const scoreColumns = await sequelize.getQueryInterface().describeTable('challenge_point')
+      if (!('raw_score_only' in scoreColumns)) await sequelize.getQueryInterface().addColumn('challenge_point', 'raw_score_only', { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false })
+      const answerColumns = await sequelize.getQueryInterface().describeTable('challenge_answer')
+      for (const [name, definition] of Object.entries({
+        press_count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+        matching_deadline: { type: DataTypes.BIGINT, allowNull: true },
+        matching_pairs: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
+      })) if (!(name in answerColumns)) await sequelize.getQueryInterface().addColumn('challenge_answer', name, definition)
       await ensureChallengeDrawColumn(sequelize)
       await ensureCardChallengePointColumn(sequelize)
       await ensureTeamCardChallengePointColumn(sequelize)

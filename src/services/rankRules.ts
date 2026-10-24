@@ -3,11 +3,11 @@
  *
  * | rank | challenge_point | guard_power |
  * | ---- | --------------- | ----------- |
- * | 1    | +10             | +3          |
- * | 2    | +8              | +2          |
- * | 3    | +6              | +2          |
- * | 4    | +4              | +1          |
- * | 5    | +2              | +1          |
+ * | 1    | +3              | +3          |
+ * | 2    | +2              | +2          |
+ * | 3    | +1              | +1          |
+ * | 4    | +1              | +1          |
+ * | 5    | +1              | +1          |
  */
 export const MAX_ENTRIES_PER_CHALLENGE = 5
 export const MIN_RANK = 1
@@ -39,11 +39,11 @@ export interface RankRewards {
 }
 
 const REWARDS_BY_RANK: Record<number, RankRewards> = {
-  1: { challenge_point: 10, guard_power: 3, cards: 3 },
-  2: { challenge_point: 8, guard_power: 2, cards: 2 },
-  3: { challenge_point: 6, guard_power: 2, cards: 2 },
-  4: { challenge_point: 4, guard_power: 1, cards: 1 },
-  5: { challenge_point: 2, guard_power: 1, cards: 1 },
+  1: { challenge_point: 3, guard_power: 3, cards: 3 },
+  2: { challenge_point: 2, guard_power: 2, cards: 2 },
+  3: { challenge_point: 1, guard_power: 1, cards: 2 },
+  4: { challenge_point: 1, guard_power: 1, cards: 1 },
+  5: { challenge_point: 1, guard_power: 1, cards: 1 },
 }
 
 /** GP first, earned challenge points second. Equal values share a dense rank. */

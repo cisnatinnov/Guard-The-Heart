@@ -1,8 +1,12 @@
+import { useChallengeAnswers } from '../../hooks/useChallengeAnswers'
+import { englishText } from '../../services/english'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { CROCODILE_TEETH, createCrocodileRound, configureCrocodileTeeth, nextCrocodileRound, pressCrocodileTooth, type CrocodileRound } from '../../services/games/crocodile'
 import '../../styles/crocodile.css'
 import { useCrocodileHover } from './useCrocodileHover'
 import { useRunCountdown } from './useRunCountdown'
+import { ChallengeAnswerControls } from './ChallengeAnswerControls'
+import { settleChallengeTooth } from '../../services/challengeAnswers'
 
 const ASSET_ROOT = '/ui/jaw-of-risk/'
 const BITE_ANIMATION = `${ASSET_ROOT}gigarisk-bite.webp`
@@ -30,6 +34,10 @@ function PressHand({ tooth, x, y, pressedAt }: { tooth: number; x: number; y: nu
 
 export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   const canControl = window.location.pathname.startsWith('/admin/')
+  const answerState = useChallengeAnswers(challengeId)
+  const pressing = useRef(false)
+  const [scoreBusy, setScoreBusy] = useState(false)
+  const [scoreError, setScoreError] = useState<string | null>(null)
   const stage = useRef<HTMLElement>(null)
   const [pointerHand, setPointerHand] = useCrocodileHover(challengeId, canControl)
   function moveHand(event: PointerEvent<HTMLButtonElement>, tooth: number) {
@@ -90,15 +98,24 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round.reopenAt, storageKey])
 
-  function pressTooth(tooth: number, keyboard: boolean) {
-    if (!canControl) return
+  async function pressTooth(tooth: number, keyboard: boolean) {
+    if (!canControl || pressing.current || !answerState.pending) return
     const current = read() ?? round
     const next = pressCrocodileTooth(current, tooth)
     if (next === current) return
-    setPointerHand(null)
-    if (keyboard) playSound('click')
-    playSound(next.reopenAt === null ? 'safe' : 'bite')
-    publish(next)
+    pressing.current = true
+    setScoreBusy(true)
+    setScoreError(null)
+    try {
+      const result = await settleChallengeTooth(answerState.pending.id, next.reopenAt !== null, answerState.pending.press_count)
+      if (!result.applied) { await answerState.refresh(); return }
+      setPointerHand(null)
+      if (keyboard) playSound('click')
+      playSound(next.reopenAt === null ? 'safe' : 'bite')
+      publish(next)
+      await answerState.refresh()
+    } catch (cause) { setScoreError(englishText(cause instanceof Error ? cause.message : String(cause))) }
+    finally { pressing.current = false; setScoreBusy(false) }
   }
   const reopenRemaining = useRunCountdown(round.reopenAt ?? undefined)
   const expiredBite = round.reopenAt !== null && reopenRemaining === 0
@@ -111,7 +128,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       const current = read() ?? round
       publish(configureCrocodileTeeth(current.reopenAt !== null && Date.now() >= current.reopenAt ? nextCrocodileRound(current) : current, selectedTeeth))
       setConfigurationError(null)
-    } catch (cause) { setConfigurationError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setConfigurationError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
   // Coordinates share the supplied 1920 x 1080 background's coordinate system.
   const toothRoots = [
@@ -124,6 +141,8 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   const lastTooth = round.pressed.at(-1)
   const handRoot = lastTooth === undefined ? null : toothRoots[lastTooth]
   return <>
+    <ChallengeAnswerControls challengeId={challengeId} jaw canControl={canControl} state={answerState} disabled={biting || scoreBusy} />
+    {scoreError && <p className="alert alert--error">{scoreError}</p>}
     {canControl && <fieldset className="crocodile-settings" disabled={biting}>
       <legend>Biting teeth</legend>
       <p>Choose one or more teeth, then apply to reset the mouth. Selected teeth keep biting in later rounds until changed.</p>
@@ -136,7 +155,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       <p>Current mode: {round.bitingTeeth ? `Selected teeth ${round.bitingTeeth.map((tooth) => tooth + 1).join(', ')}` : 'Random tooth'}</p>
       {configurationError && <p className="alert alert--error">{configurationError}</p>}
     </fieldset>}
-    <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy">
+    <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy" aria-busy={scoreBusy}>
     <link rel="preload" as="image" href={BITE_ANIMATION} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kiri.png`} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kanan.png`} />
@@ -153,13 +172,13 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
             className={`crocodile__tooth${pressed ? ' is-pressed' : ''}${pointerHand?.tooth === tooth && !biting && !pressed ? ' is-hovered' : ''}`}
             style={{ left: `${x / 19.2}%`, top: `${y / 10.8}%`, width: `${(right - left) * scale / 19.2}%`, aspectRatio: `${right - left} / ${bottom - top}` }}
             aria-label={`Tooth ${tooth + 1}`} aria-pressed={pressed}
-            disabled={!canControl || biting || pressed}
+            disabled={!canControl || biting || pressed || scoreBusy || !answerState.pending}
             onPointerEnter={(event) => { moveHand(event, tooth); playSound('hover') }}
             onPointerMove={(event) => moveHand(event, tooth)}
             onPointerLeave={() => setPointerHand(null)}
             onFocus={(event) => { if (event.currentTarget.matches(':focus-visible')) playSound('hover') }}
             onPointerDown={() => playSound('click')}
-            onClick={(event) => pressTooth(tooth, event.detail === 0)}>
+            onClick={(event) => void pressTooth(tooth, event.detail === 0)}>
             <svg viewBox={`${left} ${top} ${right - left} ${bottom - top}`} aria-hidden="true">
               <image href={`/ui/jaw-of-risk/${pressed ? `Gigi-Pencet/Gigi-Pencet_${number}` : `Gigi-Utuh/Gigi-Full_${number}`}.png`} width="600" height="600" />
             </svg>
@@ -170,7 +189,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       {pointerHand && !biting && !round.pressed.includes(pointerHand.tooth) && <HandCursor {...pointerHand} />}
       {!pointerHand && handRoot && lastTooth !== undefined && typeof round.lastPressedAt === 'number' && <PressHand key={round.lastPressedAt} tooth={lastTooth} x={handRoot[0]} y={handRoot[1] - 100} pressedAt={round.lastPressedAt} />}
     </div>
-    <p className="crocodile-stage__status" role="status" aria-live="polite">{biting ? 'CHOMP! Watch your fingers!' : round.pressed.length ? 'Safe! Choose another tooth.' : 'Which tooth will bite?'}</p>
+    <p className="crocodile-stage__status" role="status" aria-live="polite">{biting ? 'CHOMP! Watch your fingers!' : round.pressed.length ? answerState.pending ? 'Safe! Press the next tooth.' : 'Safe! Record the next answer.' : 'Which tooth will bite?'}</p>
   </section>
   </>
 }

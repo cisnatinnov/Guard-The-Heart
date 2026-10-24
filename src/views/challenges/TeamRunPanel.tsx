@@ -1,3 +1,4 @@
+import { englishText } from '../../services/english'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ChallengeRunController, type TeamAnswerResult } from '../../controllers/ChallengeRunController'
 import { useTeams } from '../../hooks/useTeams'
@@ -102,7 +103,7 @@ export function TeamRunPanel({
     setBusy(true)
     setRun(updated)
     void Promise.resolve(onUpdateRun(updated)).catch((cause: unknown) => {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     }).finally(() => setBusy(false))
   }, [canControl, busy, run, matchedDelay, handoffDelay, remaining, onUpdateRun])
 
@@ -151,7 +152,7 @@ export function TeamRunPanel({
       void ChallengeRunController.finishMatchingTurn(run, true).then(async (updated) => {
         setRun(updated)
         await onUpdateRun(updated)
-      }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
+      }).catch((cause: unknown) => setError(englishText(cause instanceof Error ? cause.message : String(cause))))
         .finally(() => setBusy(false))
       return
     }
@@ -166,7 +167,7 @@ export function TeamRunPanel({
         setRun(updated)
         await onUpdateRun(updated)
         setResults([])
-      }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
+      }).catch((cause: unknown) => setError(englishText(cause instanceof Error ? cause.message : String(cause))))
         .finally(() => setBusy(false))
     }, 900)
     return () => window.clearTimeout(timeout)
@@ -180,7 +181,7 @@ export function TeamRunPanel({
       setRun(updated)
       await onUpdateRun(updated)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setBusy(false)
     }
@@ -196,7 +197,7 @@ export function TeamRunPanel({
       setResults([])
       await onUpdateRun(updated)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setBusy(false)
     }
@@ -233,7 +234,7 @@ export function TeamRunPanel({
       timeoutAttemptKey.current = null
       setError(null)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     }
   }
 
@@ -247,9 +248,9 @@ export function TeamRunPanel({
     setError(null)
   }
 
-  async function submitAnswers(event: FormEvent) {
-    event.preventDefault()
-    if (!run || !unlocked || choosingAnswerTeam || graded || busy || (!timerExpired && !answerOwnerAnswer.trim())) return
+  async function submitAnswers(event?: FormEvent, manualCorrect?: boolean) {
+    event?.preventDefault()
+    if (!run || !unlocked || choosingAnswerTeam || graded || busy || (manualCorrect === undefined && !timerExpired && !answerOwnerAnswer.trim())) return
     setBusy(true)
     setError(null)
     try {
@@ -257,7 +258,7 @@ export function TeamRunPanel({
       if (!currentTurnTeam) return
       const submittedAnswer = timedOut ? '' : answerOwnerAnswer
       if (!matching && answerMode === 'pass' && opponentId) {
-        const passed = await ChallengeRunController.pass({ gameId, run, fromTeamId: currentTurnTeam.team, toTeamId: opponentId, answer: submittedAnswer })
+        const passed = await ChallengeRunController.pass({ gameId, run, fromTeamId: currentTurnTeam.team, toTeamId: opponentId, answer: submittedAnswer, manualCorrect })
         setAnswers({})
         setResults([])
         setAnswerMode('self')
@@ -278,6 +279,7 @@ export function TeamRunPanel({
         teamId: currentTurnTeam.team,
         answer: submittedAnswer,
         timedOut,
+        manualCorrect,
       })
       if (outcome.result.error) throw new Error(outcome.result.error)
       setResults([outcome.result])
@@ -303,7 +305,7 @@ export function TeamRunPanel({
       setAnswerMode('self')
       setOpponentId('')
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setBusy(false)
     }
@@ -332,7 +334,7 @@ export function TeamRunPanel({
               Team run · question {question.number} of {run.questionCount}
             </h3>
 
-            {unlocked && <p className="muted">{question.hint}</p>}
+            {unlocked && <p className="muted">{englishText(question.hint)}</p>}
             <p className="muted">
               {currentTurnTeam
               ? matching && !unlocked ? matchedDelay ? `Pair matched. The question unlocks in ${remaining} seconds.` : `${teamName(currentTurnTeam.team)} matches the cards now.` : handoffDelay ? `Next team gets a chance in ${remaining} seconds.` : choosingAnswerTeam ? `${teamName(currentTurnTeam.team)} chooses who will answer.` : `${teamName(currentTurnTeam.team)} answers this question.`
@@ -340,6 +342,10 @@ export function TeamRunPanel({
             </p>
           </div>
           {canControl && <div className="run-panel__actions">
+            {!graded && gameId === 'emoji-decode' && <>
+              <button type="button" disabled={busy || !currentTurnTeam || timerExpired || (answerMode === 'pass' && !opponentId)} onClick={() => void submitAnswers(undefined, true)}>Right Answer (+10)</button>
+              <button type="button" disabled={busy || !currentTurnTeam || timerExpired || (answerMode === 'pass' && !opponentId)} onClick={() => void submitAnswers(undefined, false)}>Wrong Answer (-10)</button>
+            </>}
             <button type="button" className="ghost" onClick={end}>
               End run
             </button>
@@ -348,7 +354,7 @@ export function TeamRunPanel({
 
         {error && <p className="alert alert--error">{error}</p>}
         {unlocked && <QuestionPresentation gameId={gameId} question={question}
-          counter={`Soal ${question.number} / ${run.questionCount}${currentTurnTeam ? ` · ${teamName(currentTurnTeam.team)}` : ''}`}
+          counter={`Question ${question.number} / ${run.questionCount}${currentTurnTeam ? ` · ${teamName(currentTurnTeam.team)}` : ''}`}
           seconds={hasTimer ? remaining : undefined} />}
 
 

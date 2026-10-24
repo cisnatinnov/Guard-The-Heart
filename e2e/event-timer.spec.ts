@@ -31,7 +31,7 @@ test('standalone timer configuration, pause, reset and expiry synchronize with p
   await expect(projector.locator('.event-timer__teams button')).toHaveCount(0)
   await expect(projector.locator('.event-timer__label')).toHaveText('Challenge 3 - Jaw of Risk')
   await expect(projector.locator('.event-timer__team[aria-current="step"]')).toContainText('Biru')
-  await expect(projector.getByText('Giliran', { exact: true })).toBeVisible()
+  await expect(projector.getByText('Your Turn', { exact: true })).toBeVisible()
   await page.getByRole('spinbutton', { name: 'Minutes' }).fill('0')
   await page.getByRole('spinbutton', { name: 'Seconds' }).fill('15')
   await page.getByRole('button', { name: 'Set timer', exact: true }).click()

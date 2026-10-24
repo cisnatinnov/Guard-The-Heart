@@ -1,3 +1,5 @@
+import { englishText } from '../services/english'
+import { finalizeChallengeScores } from '../services/challengeAnswers'
 import { PublicRankingBoard } from './PublicRankingBoard'
 import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
@@ -51,7 +53,7 @@ export function ChallengePointAdminView() {
       }
       setError(null)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     }
   }, [])
 
@@ -68,7 +70,7 @@ export function ChallengePointAdminView() {
       await load(activeId)
       setError(null)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setBusy(false)
     }
@@ -97,7 +99,7 @@ export function ChallengePointAdminView() {
   function handleSelectChallenge(challengeId: string) {
     setEditingId(null)
     setForm(EMPTY_FORM)
-    void publishPublicDisplay('scoreboard', challengeId).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
+    void publishPublicDisplay('scoreboard', challengeId).catch((cause: unknown) => setError(englishText(cause instanceof Error ? cause.message : String(cause))))
     navigate(`/admin/scoreboard/${challengeId}`)
   }
 
@@ -129,7 +131,7 @@ export function ChallengePointAdminView() {
       setIsDrawn(true)
       await load(activeId)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setCheckingDraw(false)
     }
@@ -138,6 +140,7 @@ export function ChallengePointAdminView() {
   async function claimRewards() {
     if (!activeId) return
     await run(async () => {
+      await finalizeChallengeScores(activeId)
       if (isFull && !(await CardController.isChallengeCardsDrawn(activeId))) {
         await CardController.drawBonusCards(activeId)
       }

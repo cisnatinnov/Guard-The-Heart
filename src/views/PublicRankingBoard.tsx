@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { TeamPill } from './TeamPill'
 import { TeamGPBadge } from './TeamGPBadge'
 import { CARD_BACK_IMAGE } from '../data/card-pool'
@@ -30,13 +31,13 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
     <h1 className="sr-only">{final ? 'Leaderboard' : 'Scoreboard'}</h1>
     {!final && <div className="ranking-challenge">{challenge ?? 'Scoreboard'}</div>}
     {final ? <div className="ranking-leader-panel"><table className="ranking-table" aria-label="Team leaderboard">
-      <thead><tr>{['Rank','Nama Tim','GP Awal','Serangan GigaRisk','Efek Kartu','GP Akhir','Sisa Kartu'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+      <thead><tr>{['Rank','Team','Starting GP','GigaRisk Attack','Card Effects','Final GP','Cards Left'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
       <tbody>{page.map((row) => <tr key={row.id} className={row.status === 'inactive' || row.guardPower === 0 ? 'is-out' : ''}>
         <td><img className="ranking-medal" src={`/ui/Icon%20rank/Icon-Rank_${Math.min(5, row.rank)}.png`} alt={`Rank ${row.rank}`} /></td>
         <td><div className="ranking-team-name"><TeamPill name={row.team} colour={row.colour} />{(row.status === 'inactive' || row.guardPower === 0) && <small className="out-label">OUT</small>}</div></td>
         <td><GPMark /><strong>{number.format(row.initialGP ?? row.guardPower ?? 0)}</strong></td>
         <td className="ranking-damage">{(row.gigaRisk ?? 0) > 0 ? '+' : ''}{row.gigaRisk ?? 0}</td>
-        <td className={`ranking-effects${(row.effects?.length ?? 0)>4 ? ' ranking-effects--dense' : ''}`} title={row.effects?.join('\n')}><div className="ranking-effect-list">{row.effects?.length ? row.effects.map((effect, i) => <div className={effect.startsWith('+') || effect.startsWith('Fortune Draw:') ? 'positive' : 'negative'} key={i}>{effect}</div>) : <span>—</span>}</div></td>
+        <td className={`ranking-effects${(row.effects?.length ?? 0)>4 ? ' ranking-effects--dense' : ''}`} title={row.effects?.map(englishText).join('\n')}><div className="ranking-effect-list">{row.effects?.length ? row.effects.map((effect, i) => <div className={effect.startsWith('+') || effect.startsWith('Fortune Draw:') ? 'positive' : 'negative'} key={i}>{englishText(effect)}</div>) : <span>—</span>}</div></td>
         <td><GPMark /><strong>{number.format(row.guardPower ?? 0)}</strong></td>
         <td><img className="ranking-card" src={encodeURI(CARD_BACK_IMAGE)} alt="" /><strong>{row.remainingCards ?? 0}</strong></td>
       </tr>)}</tbody>

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { challengeOne, seedCards, readDatabase } from './support/cardFixture'
 import { expectRewardContentsWithinFrame } from './support/layoutBounds'
 
-test('shared team panels show current GP separately from rewards and leave room for Giliran', async ({ page, context }) => {
+test('shared team panels show current GP separately from rewards and leave room for Your Turn', async ({ page, context }) => {
   await seedCards(page, challengeOne)
   await page.goto(`/admin/scoreboard/${challengeOne}`)
   await expect.poll(async () => {
@@ -16,7 +16,7 @@ test('shared team panels show current GP separately from rewards and leave room 
   await reward.goto(`/rewards/${challengeOne}`)
   const row = reward.locator('.reward-stage__row[aria-label="Biru"]')
   await expect(row.locator('.team-gp-badge')).toHaveAttribute('aria-label', `Biru: ${gp} GP`)
-  await expect(row.locator('.reward-stage__bonus')).toHaveText('Hadiah +3 GP')
+  await expect(row.locator('.reward-stage__bonus')).toHaveText('Reward +3 GP')
   const scoreboard = await context.newPage()
   await scoreboard.goto(`/scoreboard/${challengeOne}`)
   await expect(scoreboard.locator('.team-gp-badge').filter({ hasText: 'Biru' })).toHaveAttribute('aria-label', `Biru: ${gp} GP`)

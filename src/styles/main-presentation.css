@@ -33,3 +33,26 @@
   .presentation-controls__actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; gap:10px; }
   .app--admin .presentation-controls__actions button { padding:10px 8px; white-space:normal; }
 }
+
+.main-presentation-stage,.main-presentation-thumbnails__art { position:relative; container-type:inline-size; }
+.english-slide-copy { position:absolute; inset:0; pointer-events:none; color:#641d09; font:700 1.9cqw/1.25 Arial,sans-serif; text-align:center; }
+.english-slide-copy h2,.english-slide-copy h3,.english-slide-copy p { margin:0; position:absolute; display:grid; place-content:center; padding:.4cqw; box-sizing:border-box; }
+.english-slide-copy h2 { background:linear-gradient(#b31e09,#830a00); color:#fff0b4; font-size:3.6cqw; }
+.english-slide-copy--goals h2 { left:28%;top:12%;width:44%;height:9%; }
+.english-slide-copy--goals p { top:69%;width:20.4%;height:13%;background:linear-gradient(#ffebc8,#fff0cc);font-size:1.9cqw; }
+.english-slide-copy--gp h2 { left:26%;top:6.8%;width:47%;height:15.5%;font-size:3.1cqw; }
+.english-slide-copy--gp p { background:#fff3df;text-align:left; }
+.english-slide-copy--gp h3 { background:#ad1a06;color:#fff0b4;font-size:2.2cqw; }
+.english-gp-label { left:26%;top:28%;width:22%;height:5%; }
+.english-gp-body { left:27.5%;top:36%;width:35%;height:14%; }
+.english-gp-task { left:26%;top:54%;width:15%;height:4%; }
+.english-gp-task-body { left:27%;top:60.5%;width:40%;height:12.5%; }
+.english-slide-copy .english-gp-start { left:34%;top:75%;width:35.5%;height:4.8%;background:#00727c;color:white;font-size:1.6cqw;display:block;text-align:center; }
+.english-gp-warning { left:24%;top:82.5%;width:15%;height:4%; }
+.english-slide-copy .english-gp-warning-body { left:24%;top:87%;width:44%;height:10%;background:#920b0c;color:#fff1d1;font-size:1.6cqw; }
+.english-slide-copy--rules h2 { left:36%;top:34%;width:36%;height:7.5%; }
+.english-slide-copy--rules > div { position:absolute;top:44%;height:52%;width:47%;left:2.5%;border:.15cqw solid #c57820;border-radius:1cqw;background:#fff0d4;padding:1cqw;box-sizing:border-box; }
+.english-slide-copy--rules > div:last-child { left:50%; }
+.english-slide-copy--rules h3,.english-slide-copy--rules p { position:static;padding:1cqw; }
+.english-slide-copy--rules h3 { font-size:2.4cqw; }
+.english-rule-clue { font-size:4cqw; }

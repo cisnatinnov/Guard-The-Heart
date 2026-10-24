@@ -10,7 +10,7 @@ test('score rewards and GP/CP tie-break agree between leaderboard and podium',as
   await expect(page.locator('.board__row')).toHaveCount(index+1)
  }
  const last=page.locator('.board__row').filter({hasText:'Hijau'})
- await expect(last).toContainText('60 score · 2 CP · 1 GP')
+ await expect(last).toContainText('60 score · 1 CP · 1 GP')
  const gp=page.getByRole('list',{name:'Current team GP'})
  await expect(gp.getByRole('listitem')).toHaveCount(5)
  await expect(gp.getByRole('listitem',{name:'Merah: 8 GP',exact:true})).toBeVisible()
@@ -23,14 +23,14 @@ test('score rewards and GP/CP tie-break agree between leaderboard and podium',as
  await expect(page.getByRole('columnheader')).toHaveCount(7)
  await expect(page.locator('.ranking-cp')).toHaveCount(0)
  await page.screenshot({path:'test-results/leaderboard-cp.png'})
- for(const [index,name] of ['Merah','Biru','Kuning','Pink','Hijau'].entries()){
+ for(const [index,name] of ['Merah','Biru','Hijau','Kuning','Pink'].entries()){
   await expect(rows.nth(index)).toContainText(`${name}`)
-  await expect(rows.nth(index).getByAltText(`Rank ${index+1}`)).toBeVisible()
+  await expect(rows.nth(index).getByAltText(`Rank ${Math.min(index+1,3)}`)).toBeVisible()
  }
  await page.goto('/podium')
  await expect(page.locator('.podium-winner--1')).toHaveAttribute('aria-label','Rank 1: Merah, 8 GP')
  await expect(page.locator('.podium-winner--2')).toHaveAttribute('aria-label','Rank 2: Biru, 7 GP')
- await expect(page.locator('.podium-winner--3')).toHaveAttribute('aria-label','Rank 3: Kuning, 7 GP')
+ await expect(page.locator('.podium-winner--3')).toHaveAttribute('aria-label','Rank 3: Hijau, 6 GP')
  for (let slot=1;slot<=3;slot++) {
   await expect(page.locator(`.podium-winner--${slot} .podium-rank`)).toHaveAttribute('src', `/ui/Icon%20rank/Icon-Rank_${slot}.png`)
   await expect(page.locator(`.podium-winner--${slot} .podium-rank`)).toHaveAttribute('alt', `Rank ${slot}`)

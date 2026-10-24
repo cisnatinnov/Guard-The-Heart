@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
 
-test('Urutan Main has its own window and drives Flipping Connect and Timer turns', async ({ page, context }) => {
+test('Turn Order has its own window and drives Flipping Connect and Timer turns', async ({ page, context }) => {
   await page.goto('/admin')
   const openingOrder = page.waitForEvent('popup')
-  await page.getByRole('link', { name: 'Urutan Main', exact: true }).click()
+  await page.getByRole('link', { name: 'Turn Order', exact: true }).click()
   const order = await openingOrder
   await expect(order).toHaveURL(/\/turn-order$/)
   await page.locator('.turn-order-item').getByRole('button', { name: 'Kuning', exact: true }).click()
@@ -44,12 +44,12 @@ test('Urutan Main has its own window and drives Flipping Connect and Timer turns
   await expect(timer.locator('.event-timer__team[aria-current]')).toContainText('Kuning')
 
   const count = context.pages().length
-  await manager.getByRole('link', { name: 'Urutan Main', exact: true }).click()
+  await manager.getByRole('link', { name: 'Turn Order', exact: true }).click()
   expect(context.pages()).toHaveLength(count)
   await expect(game).toHaveURL(/\/play\/word-assembly\//)
   await order.close()
   const reopening = manager.waitForEvent('popup')
-  await manager.getByRole('link', { name: 'Urutan Main', exact: true }).click()
+  await manager.getByRole('link', { name: 'Turn Order', exact: true }).click()
   const replacement = await reopening
   await expect(replacement).toHaveURL(/\/turn-order$/)
   await expect(replacement.locator('.turn-order-item[aria-current]')).toContainText('Kuning')
@@ -130,7 +130,7 @@ test('features open one public window, keep admin active, reuse it and reopen af
   expect(context.pages()).toHaveLength(2)
   await page.goto('/admin')
 
-  for (const [label, path] of [['Scoreboard', 'scoreboard'], ['Podium', 'podium'], ['Rewards', 'rewards'], ['Tactical Phase', 'tactical'], ['Serangan GigaRisk', 'gigarisk']]) {
+  for (const [label, path] of [['Scoreboard', 'scoreboard'], ['Podium', 'podium'], ['Rewards', 'rewards'], ['Tactical Phase', 'tactical'], ['GigaRisk Attack', 'gigarisk']]) {
     await page.getByRole('link', { name: label, exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/admin/${path}$`))
     await expect(projector).toHaveURL(new RegExp(`/${path}$`))

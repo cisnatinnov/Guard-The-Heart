@@ -8,6 +8,14 @@ let initializePromise: Promise<Sequelize> | null = null
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 let databaseDirty = false
 let saveQueue: Promise<void> = Promise.resolve()
+let protectedMutations = 0
+
+/** Keep late cross-tab refreshes from replacing SQLite during a scored action. */
+export async function withDatabaseMutation<T>(operation: () => Promise<T>): Promise<T> {
+  protectedMutations++
+  try { return await operation() }
+  finally { protectedMutations-- }
+}
 
 const SAVE_DEBOUNCE_MS = 150
 
@@ -96,10 +104,10 @@ export async function flushDatabase(): Promise<void> {
 /** Replace this tab's in-memory SQLite contents with the latest saved copy. */
 export async function refreshDatabaseFromStorage(): Promise<void> {
   // A late public-window notification must not discard local uncommitted writes.
-  if (databaseDirty) return
+  if (databaseDirty || protectedMutations > 0) return
   await saveQueue
   const [persisted] = await Promise.all([loadDatabaseBytes()])
-  if (!persisted?.length || !engineInstance || databaseDirty) return
+  if (!persisted?.length || !engineInstance || databaseDirty || protectedMutations > 0) return
   if (saveTimer) {
     clearTimeout(saveTimer)
     saveTimer = null

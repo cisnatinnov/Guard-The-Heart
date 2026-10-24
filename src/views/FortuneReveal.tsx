@@ -1,6 +1,7 @@
 import { hasDistinctFortuneEffects, type FortuneChoice } from '../services/tacticalPhase'
 import { CARD_BACK_IMAGE, cardTitleFor } from '../data/card-pool'
 import { CardTile } from './CardTile'
+import { englishText } from '../services/english'
 
 export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, busy = false }: {
   teamName:string; offer:FortuneChoice; selectedId?:string; onClose:()=>void; onChoose?:(id:string)=>void; busy?:boolean
@@ -9,7 +10,7 @@ export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, 
   const selected = options.find((option) => option.id === selectedId)
   const closed = offer.publicClosed !== false
   return <aside className="fortune-reveal" aria-label={`Fortune Draw · ${teamName}`}>
-    <header><h2>Tim {teamName.replace(/^tim\s+/i, '')} · Fortune Draw</h2><button type="button" onClick={onClose}>Back to Card Reveal</button></header>
+    <header><h2>Team {teamName.replace(/^tim\s+/i, '')} · Fortune Draw</h2><button type="button" onClick={onClose}>Back to Card Reveal</button></header>
     <div className="fortune-reveal__body">
       <div className="fortune-reveal__options" style={{gridTemplateColumns:`repeat(${Math.max(1,options.length)},minmax(0,1fr))`}} aria-label="Fortune Draw options">
         {!options.length && <p role="status">Waiting for the admin to refresh the Fortune Draw choices.</p>}
@@ -21,7 +22,7 @@ export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, 
         </button>)}
       </div>
       <div className="fortune-reveal__effect" aria-live="polite"><h3>{selected ? cardTitleFor(selected.name,selected.type) : closed ? 'Choose one closed card' : 'Choose one card'}</h3>
-        <p>{selected ? selected.effect_action : 'Click one card to choose your reward. The choice is final.'}</p>
+        <p>{selected ? englishText(selected.effect_action) : 'Click one card to choose your reward. The choice is final.'}</p>
         {selected && <p className="fortune-reveal__timing">Added to this team’s collection for the next challenge. This effect does not activate in the current attack.</p>}
       </div>
     </div>

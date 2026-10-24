@@ -52,7 +52,7 @@ test('effect animations follow revealed cards and GigaRisk shows final GP only a
   await page.getByRole('button', { name: 'Card Reveal', exact: true }).click()
   await expect(projector.locator('.tactical-stage__log strong')).toHaveText(/^(Protect|Heal|Shield|Swallow)$/)
   const phaseBeforeHover = await projector.evaluate((id) => localStorage.getItem(`guard-the-heart-tactical:${id}`), id)
-  const teamGP = (name: string) => projector.locator('.tactical-stage__team').filter({ has: projector.getByRole('heading', { name: `Tim ${name}`, exact: true }) }).locator('.tactical-stage__gp')
+  const teamGP = (name: string) => projector.locator('.tactical-stage__team').filter({ has: projector.getByRole('heading', { name: `Team ${name}`, exact: true }) }).locator('.tactical-stage__gp')
   for (const [team, , cardId] of cards) {
     await projector.locator(`.tactical-stage__played-card[data-card-id="${cardId}"]`).hover()
     await expect(projector.locator('.tactical-stage__log strong')).toHaveText(cardId[0].toUpperCase() + cardId.slice(1))
@@ -74,8 +74,8 @@ test('effect animations follow revealed cards and GigaRisk shows final GP only a
   await projector.screenshot({ path: 'test-results/card-effect-animations.png', animations: 'disabled' })
   await projector.emulateMedia({ reducedMotion: 'reduce' })
   await expect(projector.locator('.card-effect-animation i').first()).toHaveCSS('animation-name', 'none')
-  await page.getByRole('button', { name: 'Serang semua tim −2 GP', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Serangan selesai', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Attack all teams −2 GP', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Attack complete', exact: true })).toBeDisabled()
   await projector.locator('.tactical-stage__played-card[data-card-id="heal"]').focus()
   await expect(teamGP('Pink')).toHaveAttribute('data-gp-from', '3')
   await expect(teamGP('Pink')).toHaveAttribute('data-gp-to', '5')
@@ -87,7 +87,7 @@ test('effect animations follow revealed cards and GigaRisk shows final GP only a
     await expect(projector.getByLabel(`GP after attack ${name}`, { exact: true }).locator('strong')).toHaveText(gp)
     await expect(projector.getByLabel(`Attack outcome ${name}`, { exact: true })).toHaveText(impact)
   }
-  await expect(projector.getByLabel('Efek kartu Pink', { exact: true })).toContainText('+2 Heal')
+  await expect(projector.getByLabel('Card effects Pink', { exact: true })).toContainText('+2 Heal')
   await expect(projector.locator('.giga-arrow, .giga-health')).toHaveCount(0)
   await expect(projector.locator('img.gp-shield-icon')).toHaveCount(5)
   await expect(projector.locator('.giga-impact.giga-burst')).toHaveCount(5)

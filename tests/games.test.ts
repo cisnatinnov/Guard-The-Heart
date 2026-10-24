@@ -173,7 +173,7 @@ describe('team challenge turns', () => {
     expect(run.turnDeadline).toBe(deadline)
     expect(run.runs.map((entry) => entry.score)).toEqual([0, 0, 0])
     run = applyAnswer(run, 'gamma', { points: 10, correct: true }).run
-    expect(run.runs.map((entry) => entry.score)).toEqual([-10, 0, 5])
+    expect(run.runs.map((entry) => entry.score)).toEqual([0, 0, 10])
     run = beginNextQuestion(run)
     expect(teamForQuestion(run)?.team).toBe('beta')
     expect(run.matchingPhase).toBe('matching')
@@ -205,7 +205,7 @@ describe('team challenge turns', () => {
     run = chooseMatchingAnswerTeam(run, 'gamma')
     run = applyAnswer(run, 'gamma', { points: -10, correct: false }).run
     run = applyAnswer(run, 'gamma', { points: -10, correct: false }).run
-    expect(run.runs.map((entry) => entry.score)).toEqual([-5, 0, -5])
+    expect(run.runs.map((entry) => entry.score)).toEqual([0, 0, -10])
     expect(run.matchingPhase).toBe('handoff-delay')
     run = finishMatchingDelay(run)
     expect(teamForQuestion(run)?.team).toBe('alpha')
@@ -242,7 +242,7 @@ describe('team challenge turns', () => {
   it('scores self answers and passed answers using the challenge rules', () => {
     let run = startChallengeRun({ challenge: 'challenge-id', teams: ['alpha', 'beta'], questionCount: 1, pointsPerQuestion: 10 })
     run = applyPassedAnswer(run, 'alpha', 'beta', true)
-    expect(run.runs.map((entry) => entry.score)).toEqual([-10, 5])
+    expect(run.runs.map((entry) => entry.score)).toEqual([0, 10])
     expect(run.questionResolved).toBe(true)
   })
 

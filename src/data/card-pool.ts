@@ -1,4 +1,5 @@
 import type { CardEffect, CardType } from '../models'
+import { englishText } from '../services/english'
 
 interface CardPoolDefinition {
   name: string
@@ -156,7 +157,7 @@ export function cardImageFor(name: string): string | null {
 
 /** Display the renamed action in old snapshots without changing ledger amounts. */
 export function cardEffectLabel(effect: string): string {
-  return effect.replace(/Reflect/g, 'Swallow').replace(/Swallow \(2 × 2 GP\)/g, 'Swallow')
+  return englishText(effect.replace(/Reflect/g, 'Swallow').replace(/Swallow \(2 × 2 GP\)/g, 'Swallow'))
 }
 
 /** Numbered inventory copies of the same rarity/design share one identity. */

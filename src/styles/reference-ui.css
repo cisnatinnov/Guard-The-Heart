@@ -147,3 +147,8 @@
 .awareness-score strong { font:700 5.5cqw/1 Arial,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:-.2cqw; }
 
 .awareness-gp-icon { position:absolute; top:31%; left:10%; width:35%; height:54%; }
+
+.english-turn-order-title,.english-giga-title { position:absolute;left:32%;top:8%;width:36%;height:12%;display:grid;place-items:center;margin:0;background:linear-gradient(#ae1605,#7c0c03);color:#fff0ba;font:700 3.6cqw/1 Arial,sans-serif; }
+.english-turn-order-title { left:35%;top:9%;width:30%;height:7.5%; }
+.english-giga-title { left:33.5%;top:13.7%;width:33%;height:7.5%; }
+.english-giga-subtitle { position:absolute;left:35%;top:24%;width:30%;height:4%;display:grid;place-items:center;margin:0;background:#a40800;color:#fff;font:700 2cqw/1 Arial,sans-serif; }

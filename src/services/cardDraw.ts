@@ -390,12 +390,12 @@ async function ensureRewardRecipient(card: Card, teamId: string): Promise<void> 
   const recipient = card.challenge_point ? await ChallengePoint.findByPk(card.challenge_point)
     : card.challenge ? await ChallengePoint.findOne({where:{challenge:card.challenge,team:teamId}}) : null
   if (recipient && recipient.team !== teamId) throw new Error('This reward was drawn for another team.')
-  if (recipient && recipient.rank >= 4 && card.type !== 'Normal') throw new Error('Rank 4 dan 5 hanya dapat menerima kartu Normal.')
-  if (recipient?.rank === 5) throw new Error('Rank 5: pilih satu kartu tertutup di Reward Claim; hasilnya Normal atau False Hope.')
+  if (recipient && recipient.rank === 4 && card.type !== 'Normal') throw new Error('Rank 4 can only receive Normal cards.')
+  if (recipient?.rank === 5) throw new Error('Rank 5: choose one of three random cards in Reward Claim.')
 }
 
 async function assignUniqueCardToTeam(cardId: string, teamId: string): Promise<TeamCard> {
-  if ((await pendingBlindCardIds()).has(cardId)) throw new Error('Rank 5: pilih kartu tertutup di Reward Claim terlebih dahulu.')
+  if ((await pendingBlindCardIds()).has(cardId)) throw new Error('Rank 5: choose one of three random cards in Reward Claim first.')
   const card = await Card.findByPk(cardId)
   if (!card) throw new Error('Card not found')
   if (!card.challenge) throw new Error('Card is not from a challenge pool')
@@ -437,7 +437,7 @@ export async function replaceTeamCard(teamId: string, oldTeamCardId: string, new
 }
 
 async function replaceUniqueTeamCard(teamId: string, oldTeamCardId: string, newCardId: string): Promise<TeamCard> {
-  if ((await pendingBlindCardIds()).has(newCardId)) throw new Error('Rank 5: pilih kartu tertutup di Reward Claim terlebih dahulu.')
+  if ((await pendingBlindCardIds()).has(newCardId)) throw new Error('Rank 5: choose one of three random cards in Reward Claim first.')
   const team = await Team.findByPk(teamId)
   if (!team) throw new Error('Team not found')
 

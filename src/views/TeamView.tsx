@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { TeamController } from '../controllers/TeamController'
 import { useTeams } from '../hooks/useTeams'
@@ -44,7 +45,7 @@ export function TeamView() {
       await reload()
       setActionError(null)
     } catch (cause) {
-      setActionError(cause instanceof Error ? cause.message : String(cause))
+      setActionError(englishText(cause instanceof Error ? cause.message : String(cause)))
     } finally {
       setBusy(false)
     }

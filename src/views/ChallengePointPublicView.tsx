@@ -1,3 +1,4 @@
+import { englishText } from '../services/english'
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ChallengePointController } from '../controllers/ChallengePointController'
@@ -30,7 +31,7 @@ export function ChallengePointPublicView({ challengeName }: { challengeName?: st
       setEntriesByChallenge((current) => ({ ...current, [challengeId]: rows }))
       setError(null)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(englishText(cause instanceof Error ? cause.message : String(cause)))
     }
   }, [])
 

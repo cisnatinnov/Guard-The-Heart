@@ -1,8 +1,10 @@
+import { englishText } from '../services/english'
 import { useEffect, useRef, useState } from 'react'
 import { MAIN_SLIDES, readMainSlide, selectMainSlide, subscribeMainSlide } from '../services/mainPresentation'
 import { publishPublicDisplay } from '../services/publicDisplay'
 import { ChallengePointPublicView } from './ChallengePointPublicView'
 import '../styles/main-presentation.css'
+import { MainEnglishCopy } from './MainEnglishCopy'
 
 export function MainPresentationView({ admin = false }: { admin?: boolean }) {
   const [index, setIndex] = useState(readMainSlide)
@@ -24,14 +26,14 @@ export function MainPresentationView({ admin = false }: { admin?: boolean }) {
   const slide = MAIN_SLIDES[index]
   async function show() {
     try { await publishPublicDisplay('presentation', ''); setError(null) }
-    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
+    catch (cause) { setError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
   async function fullscreen() {
     try {
       if (document.fullscreenElement) await document.exitFullscreen()
       else await stage.current?.requestFullscreen()
       setError(null)
-    } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
+    } catch (cause) { setError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
   return <section className={admin ? 'view main-presentation-admin' : 'main-presentation-public'}>
     {admin && <>
@@ -55,10 +57,11 @@ export function MainPresentationView({ admin = false }: { admin?: boolean }) {
     <div ref={stage} className={`main-presentation-stage${slide.kind === 'scoreboard' ? ' main-presentation-stage--scoreboard' : ''}`} aria-label="Main Presentation">
       {slide.kind === 'image' ? <img src={`/ui/main-presentation/${slide.file}`} alt={slide.title} />
         : <ChallengePointPublicView challengeName={slide.challengeName} />}
+      {slide.kind === 'image' && <MainEnglishCopy index={index} />}
       <p className="sr-only" aria-live="polite">Slide {index + 1} of {MAIN_SLIDES.length}: {slide.title}</p>
     </div>
     {admin && <nav className="main-presentation-thumbnails" aria-label="Presentation slides">{MAIN_SLIDES.map((entry, i) => <button type="button" key={entry.title} aria-current={i === index ? 'step' : undefined} aria-label={`Slide ${i + 1}: ${entry.title}`} onClick={() => selectMainSlide(i)}>
-      <div className="main-presentation-thumbnails__art"><img src={entry.kind === 'image' ? `/ui/main-presentation/${entry.file}` : '/ui/Page_Score_Board.jpeg'} alt="" loading="lazy" />{entry.kind === 'scoreboard' && <small>Live scoreboard</small>}</div>
+      <div className="main-presentation-thumbnails__art"><img src={entry.kind === 'image' ? `/ui/main-presentation/${entry.file}` : '/ui/Page_Score_Board.jpeg'} alt="" loading="lazy" />{entry.kind === 'image' && <MainEnglishCopy index={i} />}{entry.kind === 'scoreboard' && <small>Live scoreboard</small>}</div>
       <span>{i + 1}. {entry.title}</span>
     </button>)}</nav>}
   </section>

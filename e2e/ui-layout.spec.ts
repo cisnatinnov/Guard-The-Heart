@@ -6,7 +6,7 @@ for (const width of [1366, 1280, 768, 390]) {
     const height = width === 1366 ? 600 : width === 390 ? 844 : 800
     await page.setViewportSize({ width, height })
     await page.goto('/admin/gp-transactions')
-    await expect(page.getByRole('table', { name: 'Transaksi GP' })).toBeVisible()
+    await expect(page.getByRole('table', { name: 'GP Transactions' })).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true)
     for (const route of ['/admin', '/admin/gp-transactions', '/admin/challenges', '/admin/presentation', '/admin/podium', '/admin/heart-of-awareness', '/admin/turn-order', '/admin/gigarisk', '/podium', '/heart-of-awareness', '/turn-order', '/gigarisk', '/admin/scoreboard', '/admin/leaderboard', '/admin/rewards', '/admin/tactical', '/admin/timer', '/timer', '/admin/play/word-assembly', '/admin/play/emoji-decode', '/admin/play/jaws-of-risk', '/', '/scoreboard', '/leaderboard', '/rewards', '/tactical', '/card-reveal', '/play/emoji-decode', '/play/jaws-of-risk', '/play/word-assembly']) {
       await page.goto(route)

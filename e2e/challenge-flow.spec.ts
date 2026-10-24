@@ -30,7 +30,7 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as con
       await projector.clock.pauseAt(new Date(time))
       await projector.reload()
       await expect(projector.locator('.qa-stage__timer')).toContainText('10s')
-      await expect(projector.locator('.qa-stage__hint')).toHaveText('1 Kata')
+      await expect(projector.locator('.qa-stage__hint')).toHaveText('1 Word')
       await projector.screenshot({ path: 'test-results/image-decode-public.png' })
     }
     for (let number = 1; number <= count; number++) {
@@ -130,5 +130,5 @@ test('wrong answers still pass to the next team and early End run cancels both s
   await expect(page.locator('.run-panel__title')).toContainText('question 2 of 11')
   await page.getByRole('button', { name: 'End run', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Start team run (2)' })).toBeVisible()
-  await expect(projector.getByRole('status').filter({ hasText: 'Menunggu tantangan dimulai' })).toBeVisible()
+  await expect(projector.getByRole('status').filter({ hasText: 'Waiting for the challenge to start' })).toBeVisible()
 })

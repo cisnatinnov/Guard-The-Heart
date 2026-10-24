@@ -41,9 +41,24 @@ export class ChallengePoint extends Model {
   declare rank: number
   declare challenge_point: number
   declare score: number
+  declare raw_score_only: boolean
   declare guard_power: number
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
+}
+
+/** A host verdict and its optional tooth presses and matching bonus. */
+export class ChallengeAnswer extends Model {
+  declare id: string
+  declare challenge: string
+  declare team: string
+  declare correct: boolean
+  declare pressing_team: string | null
+  declare settled: boolean
+  declare bitten: boolean | null
+  declare press_count: number
+  declare matching_deadline: number | null
+  declare matching_pairs: string
 }
 
 export class Scoreboard extends Model {
@@ -118,6 +133,18 @@ let modelsDefined = false
 
 export function defineModels(sequelize: Sequelize): void {
   if (modelsDefined) return
+  ChallengeAnswer.init({
+    id: { type: DataTypes.STRING, primaryKey: true },
+    challenge: { type: DataTypes.STRING, allowNull: false },
+    team: { type: DataTypes.STRING, allowNull: false },
+    correct: { type: DataTypes.BOOLEAN, allowNull: false },
+    pressing_team: { type: DataTypes.STRING, allowNull: true },
+    settled: { type: DataTypes.BOOLEAN, allowNull: false },
+    bitten: { type: DataTypes.BOOLEAN, allowNull: true },
+    press_count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    matching_deadline: { type: DataTypes.BIGINT, allowNull: true },
+    matching_pairs: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
+  }, { sequelize, modelName: 'challenge_answer', tableName: 'challenge_answer', timestamps: true })
   BlindReward.init({
     id: {type:DataTypes.STRING,primaryKey:true},
     challenge: {type:DataTypes.STRING,allowNull:false},
@@ -182,6 +209,7 @@ export function defineModels(sequelize: Sequelize): void {
 
   ChallengePoint.init(
     {
+      raw_score_only: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
       id: {
         type: DataTypes.UUID,
         primaryKey: true,

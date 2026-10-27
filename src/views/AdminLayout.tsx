@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useDatabase } from '../hooks/useDatabase'
 import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME, publicFeatureForAdmin } from '../services/publicWindow'
 import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
+import { GAME_CHARACTERS } from '../data/characters'
 
 const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
@@ -16,7 +17,7 @@ const ADMIN_NAV = [
   { path: '/admin/gp-transactions', label: 'GP Transactions' },
   { path: '/admin/rewards', label: 'Rewards' },
   { path: '/admin/tactical', label: 'Tactical Phase' },
-  { path: '/admin/gigarisk', label: 'GigaRisk Attack' },
+  { path: '/admin/gigarisk', label: 'Gilgamesh Attack' },
   { path: '/admin/timer', label: 'Timer' },
 ] as const
 
@@ -53,30 +54,22 @@ export function AdminLayout() {
         <div className="app__header-top">
           <div className="app__brand">
             <Link to="/admin" className="app__logo-link">
-              <img className="app__logo" src="/Logo_Game-5.png" alt="Guard The Heart logo" />
+              <img className="app__logo" src="/fight-the-dragon-logo.png" alt="Fight the Dragon logo" />
               <div>
-                <h1>Guard The Heart</h1>
+                <h1>Fight the Dragon</h1>
                 <p className="app__tagline">Challenge and Scoreboard Tracker</p>
               </div>
             </Link>
           </div>
-          <div className="app__characters" role="group" aria-label="Meet the guardians">
-            <figure className="app__character">
-              <img src="/gardian-male.png" alt="Male guardian in teal and orange gear" />
-              <figcaption>Guardimon Male</figcaption>
-            </figure>
-            <figure className="app__character app__character--mascot">
-              <img src="/gardimon.png" alt="Gardimon, the orange guardian mascot" />
-              <figcaption>Guardimon</figcaption>
-            </figure>
-            <figure className="app__character">
-              <img src="/gardian-female.png" alt="Female guardian in teal and orange gear" />
-              <figcaption>Guardimon Female</figcaption>
-            </figure>
+          <div className="app__characters" role="group" aria-label="Meet the Fight the Dragon heroes">
+            {GAME_CHARACTERS.map((character) => <figure key={character.id} className={`app__character${character.id === 'spark' ? ' app__character--mascot' : ''}`}>
+              <img src={character.image} alt={character.description} />
+              <figcaption>{character.name}</figcaption>
+            </figure>)}
           </div>
           <figure className="app__risk-card">
-            <img src="/gigarisk-portrait.jpg" alt="Giga Risk, a black dragon with purple flames" />
-            <figcaption>Giga Risk</figcaption>
+            <img src="/characters/gilgamesh.png" alt="Gilgamesh, a silver and cobalt dragon with crystal horns" />
+            <figcaption>Gilgamesh</figcaption>
           </figure>
         </div>
         <nav className="tabs tabs--admin" aria-label="Admin views">

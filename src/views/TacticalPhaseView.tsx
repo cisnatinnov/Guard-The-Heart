@@ -126,10 +126,10 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       publishTacticalPhase(id, current)
       validateTacticalAttack(inputs, current)
       if (!current.assignment?.revealApplied) await commitTacticalAssignment(id,inputs,current,undefined,true)
-      openPublicDisplay(`/card-reveal/${encodeURIComponent(id)}`)
+      openPublicDisplay(`/gigarisk/${encodeURIComponent(id)}`)
       setBusy(true)
       await attackTacticalPhaseOnce(id, inputs, (result) => recordGigaRiskGP(id, result))
-      await publishPublicDisplay('card-reveal', id)
+      await publishPublicDisplay('gigarisk', id)
       setActionError(null)
     } catch (cause) { setActionError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally { setBusy(false) }
@@ -185,7 +185,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
         <ul>
           <li><strong>On attack:</strong> Heal, Thief, Reverse and Gardian Unity change GP once on Card Reveal. Selecting or retargeting cards does not change GP. Fortune Draw grants the chosen card for another challenge.</li>
           <li><strong>After damage:</strong> Gardian Unity and Protect prevent damage. Shield reduces damage to −1 GP. Swallow prevents damage and adds +4 GP. Second Chance revives automatically once at 0 GP.</li>
-          <li><strong>Shield:</strong> Blocks damage when GigaRisk attacks.</li>
+          <li><strong>Shield:</strong> Blocks damage when Gilgamesh attacks.</li>
           <li><strong>Protect target:</strong> Select the card, then choose its owner or another team in the owner's panel; or drag it onto that team’s selection.</li>
           <li><strong>Thief target:</strong> Select the card, then choose an opponent in the owner's panel; or drag it onto an opponent’s selection. Epic Thief accepts one or two different opponents.</li>
           <li><strong>Second Chance:</strong> Passive card; cannot be selected. It activates automatically after damage at 0 GP and is consumed only once.</li>
@@ -198,7 +198,7 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       <button disabled={!id || !allTeams.length || loading || teamsLoading || busy || !!resolution} onClick={() => void attack()}>{resolution ? 'Attack complete' : busy ? 'Processing attack…' : 'Attack all teams −2 GP'}</button>
     </div>
     {(actionError || error || teamError) && <p className="alert alert--error" role="alert">{actionError || error || teamError}</p>}
-    {phase.cardsRevealed && !resolution && <p className="alert alert--info">Card Reveal is complete. Cards and targets are locked. Choose any pending Fortune Draw rewards, then continue with the GigaRisk attack.</p>}
+    {phase.cardsRevealed && !resolution && <p className="alert alert--info">Card Reveal is complete. Cards and targets are locked. Choose any pending Fortune Draw rewards, then continue with the Gilgamesh attack.</p>}
       {!resolution && revealedCards.some(({ card }) => isFortuneCard(card)) && <div className="giga-card-actions" aria-label="Selected tactical card actions">{revealedCards.filter(({ card }) => isFortuneCard(card)).map(({ team, card }) => { const offer = phase.choices[team.id]?.fortune?.[card.id]; const validOffer = !!offer && hasDistinctFortuneEffects(offer.options); return <article key={card.id}>
       <div><strong>Team {team.name.replace(/^tim\s+/i, '')} · {card.name}</strong><p>{englishText(card.effect_action)}</p></div>
       {isFortuneCard(card) && <fieldset className="fortune-choices" disabled={busy || loading || teamsLoading || !!resolution}>

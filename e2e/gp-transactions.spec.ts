@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('GigaRisk records GP transactions and preserves balances after reload', async ({ page }) => {
+test('Gilgamesh records GP transactions and preserves balances after reload', async ({ page }) => {
   const id = '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10'
   await page.goto(`/admin/tactical/${id}`)
   await page.getByRole('button', { name: 'Attack all teams −2 GP', exact: true }).click()
@@ -15,15 +15,16 @@ test('GigaRisk records GP transactions and preserves balances after reload', asy
   await expect(page.getByRole('button', { name: 'Attack complete', exact: true })).toBeDisabled()
   await page.goto(`/admin/gigarisk/${id}`)
   await expect(page.locator('.giga-stage')).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Gilgamesh attack animation' })).toHaveCount(0, { timeout: 9000 })
   await expect(page.locator('.app__main button')).toHaveCount(0)
   await expect(page.locator('.app__main select')).toHaveCount(0)
   await expect(page.locator('.giga-card-actions')).toHaveCount(0)
   await page.goto('/admin/gp-transactions')
   const ledger = page.getByRole('table', { name: 'GP Transactions' })
-  await expect(ledger.locator('tbody tr').filter({ hasText: 'GigaRisk Attack' })).toHaveCount(5)
+  await expect(ledger.locator('tbody tr').filter({ hasText: 'Gilgamesh Attack' })).toHaveCount(5)
   await expect(ledger).toContainText('−2 GP')
   await page.reload()
-  await expect(ledger.locator('tbody tr').filter({ hasText: 'GigaRisk Attack' })).toHaveCount(5)
+  await expect(ledger.locator('tbody tr').filter({ hasText: 'Gilgamesh Attack' })).toHaveCount(5)
   await page.goto(`/card-reveal/${id}`)
   await expect(page.locator('.tactical-stage__gp').filter({ hasText: '3 GP' })).toHaveCount(5)
   await page.screenshot({ path: 'test-results/card-reveal-after-attack.png' })

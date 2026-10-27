@@ -39,10 +39,10 @@ const TEXT: Record<string, string> = {
   'Selesaikan challenge terlebih dahulu atau isi Tactical Phase dengan kartu yang dipilih.':'Complete the challenge first or choose cards in Tactical Phase.',
 };
 export function englishText(value: string): string {
-  if (TEXT[value]) return TEXT[value]
+  if (TEXT[value]) return TEXT[value].replace(/Giga\s?Risk|Gilgamensh/gi, 'Gilgamesh')
   return value.replace(/^Pilih tim( target| lawan) untuk /, 'Choose a team for ').replace(/ \(dua tim yang berbeda\)/g, ' (two different teams)')
     .replace(/Dicuri dari /g, 'Stolen from ').replace(/Dicuri oleh /g, 'Stolen by ').replace(/Reverse oleh /g, 'Reverse by ')
     .replace(/Perubahan hadiah GP:/g, 'GP reward adjustment:').replace(/Rekalkulasi hadiah GP challenge/g, 'Challenge GP reward recalculation')
     .replace(/Saldo awal tim/g, 'Team opening balance').replace(/Saldo awal dari data sebelumnya/g, 'Imported opening balance')
-    .replace(/Kartu menunggu serangan GigaRisk/g, 'Cards awaiting GigaRisk attack').replace(/Serangan GigaRisk/g, 'GigaRisk attack')
+    .replace(/Kartu menunggu serangan GigaRisk/g, 'Cards awaiting GigaRisk attack').replace(/Serangan GigaRisk/g, 'Gilgamesh attack').replace(/Giga\s?Risk|Gilgamensh/gi, 'Gilgamesh')
 }

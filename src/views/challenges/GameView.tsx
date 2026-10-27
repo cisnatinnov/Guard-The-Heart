@@ -99,7 +99,7 @@ export function GameView() {
     <section className={`view view--game view--game-${game.id} ${isAdmin ? 'game-stage--admin' : 'game-stage--public'}`}>
       <div className="game-stage__chrome">
         <header className="game-stage__header">
-          <img className="game-stage__logo" src="/Logo_Game-5.png" alt="Guard the Heart" />
+          <img className="game-stage__logo" src="/fight-the-dragon-logo.png" alt="Fight the Dragon" />
           <div className="game-stage__challenge-name">{game.title}</div>
           <div className="game-stage__counter">Challenge</div>
         </header>

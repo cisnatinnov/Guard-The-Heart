@@ -162,7 +162,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
     {Object.entries(SOUNDS).map(([name, file]) => <audio key={name} data-sound={name} ref={(element) => { if (element) sounds.current[name as keyof typeof SOUNDS] = element }} src={`${ASSET_ROOT}Sound/${file}`} preload="auto" />)}
     <p className="crocodile-stage__instruction">{canControl ? 'Press a tooth. Take a chance.' : 'Watch closely. The dragon may bite'}</p>
     <div className="crocodile" aria-label={biting ? 'Crocodile bites!' : 'Crocodile mouth open'}>
-      <img className="crocodile__base-art" src="/ui/jaw-of-risk/CH-3_Background-Polos.png" alt="GigaRisk head" />
+      <img className="crocodile__base-art" src="/ui/jaw-of-risk/CH-3_Background-Polos.png" alt="Gilgamesh head" />
       <div className="crocodile__teeth" role="group" aria-label="Lower jaw teeth">
         {toothRoots.map(([x, y, scale], tooth) => {
           const pressed = !expiredBite && round.pressed.includes(tooth)

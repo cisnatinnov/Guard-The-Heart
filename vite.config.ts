@@ -16,14 +16,12 @@ export default defineConfig(({ mode }) => {
         // and swaps in new builds automatically once deployed.
         registerType: 'autoUpdate',
         injectRegister: false,
-        includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'Logo_Game-5.png'],
+        includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'fight-the-dragon-logo.png'],
         workbox: isDev
           ? { globPatterns: [], cleanupOutdatedCaches: true }
           : {
-              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,pptx,ico,woff,woff2,ttf,wasm,mp3}'],
-              // These supplied design/Q&A reference decks are large source files,
-              // not playable app assets; leave them out of the offline precache.
-              globIgnores: ['**/ui/*.pptx', '**/ui/jaw-of-risk/GIF-Gigarisk Gigit.gif'],
+              // The active PPTX download remains online; application art/sounds are cached.
+              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico,woff,woff2,ttf,wasm,mp3}'],
               cleanupOutdatedCaches: true,
               clientsClaim: true,
               skipWaiting: true,
@@ -33,25 +31,20 @@ export default defineConfig(({ mode }) => {
             },
       manifest: {
         id: '/',
-        name: 'Guard The Heart',
-        short_name: 'GuardHeart',
+        name: 'Fight the Dragon',
+        short_name: 'FightDragon',
         description: 'Offline-first challenge and scoreboard tracker backed by SQLite.',
         start_url: '/',
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        theme_color: '#027479',
-        background_color: '#fff4e6',
+        theme_color: '#17243f',
+        background_color: '#f1f4fa',
         categories: ['games', 'utilities'],
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
-          {
-            src: 'maskable-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
+          { src: 'maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       devOptions: {

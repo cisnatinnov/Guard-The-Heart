@@ -14,8 +14,8 @@ test('Jaw of Risk is only a toy and synchronizes bites and new teeth to the publ
   await expect(page.getByRole('button', { name: /^Tooth \d+$/ })).toHaveCount(14)
   await expect(page.getByText('Start team run', { exact: false })).toHaveCount(0)
   await expect(page.getByRole('timer')).toHaveCount(0)
-  await expect(publicPage.getByRole('img', { name:'GigaRisk head' })).toBeVisible()
-  await expect(publicPage.getByRole('img', { name:'GigaRisk head' })).toHaveAttribute('src', '/ui/jaw-of-risk/CH-3_Background-Polos.png')
+  await expect(publicPage.getByRole('img', { name:'Gilgamesh head' })).toBeVisible()
+  await expect(publicPage.getByRole('img', { name:'Gilgamesh head' })).toHaveAttribute('src', '/ui/jaw-of-risk/CH-3_Background-Polos.png')
   await page.evaluate((id) => {
     const key = `guard-the-heart-crocodile:${id}`
     localStorage.setItem(key, JSON.stringify({ bitingTooth: 0, pressed: [], reopenAt: null }))

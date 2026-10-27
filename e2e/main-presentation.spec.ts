@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('main presentation projects all supplied slides, persists selection and reuses the public window', async ({ page, context }) => {
+test('main presentation projects all native scenes, persists selection and reuses the public window', async ({ page, context }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/admin')
@@ -11,11 +11,10 @@ test('main presentation projects all supplied slides, persists selection and reu
   await expect(page).toHaveURL(/\/admin\/presentation$/)
   await expect(projector).toHaveURL(/:\d+\/$/)
   await expect(page.getByRole('button', { name: 'Previous slide', exact: true })).toBeDisabled()
-  const files = ['slide-01.png', 'slide-02.png', 'slide-03.png', 'slide-05-art.png', 'slide-06.png', 'slide-07.png']
-  for (const [i, file] of files.entries()) {
+  for (const i of [0, 1, 2, 3, 4, 5]) {
     await page.getByLabel('Presentation slide', { exact: true }).selectOption(String(i))
-    await expect(projector.locator('.main-presentation-stage img')).toHaveAttribute('src', `/ui/main-presentation/${file}`)
-    await expect.poll(() => projector.locator('.main-presentation-stage img').evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+    await expect(projector.locator('.main-presentation-stage')).toHaveAttribute('data-slide', String(i))
+    await expect.poll(() => projector.locator('.main-presentation-stage img').evaluateAll((images) => images.every((image) => (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
   }
   await expect(page.getByRole('button', { name: 'Next slide', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: 'Next slide', exact: true }).click()
@@ -27,22 +26,34 @@ test('main presentation projects all supplied slides, persists selection and reu
   await projector.reload()
   await expect(projector.getByRole('region', { name: 'Score Board', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Previous slide', exact: true }).click()
-  await expect(projector.locator('.main-presentation-stage > img')).toHaveAttribute('src', '/ui/main-presentation/slide-07.png')
+  await expect(projector.locator('.main-presentation-stage')).toHaveAttribute('data-slide', '5')
   const controls = page.locator('.presentation-controls__navigation')
   const heights = await controls.locator('button, select').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height))
   expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(1)
   await page.locator('.presentation-controls').screenshot({ path: 'test-results/presentation-controls.png' })
   await page.getByRole('heading', { name: 'Main Presentation', exact: true }).click()
   await page.keyboard.press('Home')
-  await expect(projector.locator('.main-presentation-stage img')).toHaveAttribute('src', '/ui/main-presentation/slide-01.png')
+  await expect(projector.locator('.main-presentation-stage')).toHaveAttribute('data-slide', '0')
   await page.keyboard.press('ArrowRight')
-  await expect(projector.locator('.main-presentation-stage img')).toHaveAttribute('src', '/ui/main-presentation/slide-02.png')
+  await expect(projector.locator('.main-presentation-stage')).toHaveAttribute('data-slide', '1')
   await projector.setViewportSize({ width: 1280, height: 720 })
   await projector.screenshot({ path: 'test-results/main-presentation-public.png' })
   expect(await projector.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true)
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await expect(page.locator('.main-presentation-thumbnails button > span').first()).toHaveCSS('color', 'rgb(76, 45, 32)')
+  const contrast = await page.locator('.main-presentation-thumbnails button > span').first().evaluate(label => {
+    const luminance = (color: string) => {
+      const values = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(value => {
+        const channel = value / 255
+        return channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4
+      })
+      return .2126 * values[0] + .7152 * values[1] + .0722 * values[2]
+    }
+    const foreground = luminance(getComputedStyle(label).color)
+    const background = luminance(getComputedStyle(label.closest('button')!).backgroundColor)
+    return (Math.max(foreground, background) + .05) / (Math.min(foreground, background) + .05)
+  })
+  expect(contrast).toBeGreaterThanOrEqual(4.5)
   await page.screenshot({ path: 'test-results/main-presentation-admin-mobile.png', fullPage: true })
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.getByRole('link', { name: 'Leaderboard', exact: true }).click()
@@ -58,7 +69,7 @@ test('invalid saved slide falls back to the opening slide', async ({ page }) => 
   await page.addInitScript(() => localStorage.setItem('guard-the-heart-main-presentation', '999'))
   await page.goto('/presentation')
   await expect(page).toHaveURL(/:\d+\/$/)
-  await expect(page.locator('.main-presentation-stage img')).toHaveAttribute('src', '/ui/main-presentation/slide-01.png')
+  await expect(page.locator('.fight-opening__logo')).toHaveAttribute('src', '/fight-the-dragon-logo.png')
 })
 
 test('Scoreboard is the seventh slide and updates live while the public display stays at home', async ({ page, context }) => {

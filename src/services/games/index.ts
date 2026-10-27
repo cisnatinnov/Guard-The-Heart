@@ -35,7 +35,7 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
       'Flip two cards at a time and match identical pictures. There are no questions.',
-      'Choose the active team in Turn Order or by clicking its name here. The turn is shared with Timer. Each team has 15 seconds after the preview; time up locks the cards.',
+      'A right answer unlocks a fresh board: memorize cards for 5 seconds, then match pairs for 20 seconds. Each pair earns +5 raw score; time up locks the cards.',
       'The selected team keeps its turn until the admin chooses another team. Host verdicts add 10 for a right answer or deduct 10 for a wrong answer from the raw challenge score.',
       'Match all ten pairs to complete the challenge.',
     ],
@@ -44,9 +44,9 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   {
     id: 'jaws-of-risk',
     title: 'Challenge 3 - Jaw of Risk',
-    tagline: 'Press a tooth, take a chance. Will the crocodile bite?',
+    tagline: 'Press a tooth, take a chance. Will Gilgamesh bite?',
     rules: [
-      'Right Answer adds 10 to the answering team and lets them choose an opponent to press one tooth. Wrong Answer deducts 10 and makes the answering team press.',
+      'Right Answer adds 10 and assigns an opponent to press at least two teeth. Wrong Answer deducts 10 and assigns the answering team. Each bite deducts 5 more raw score.',
       'A bite deducts 5 from the pressing team. Each answer allows exactly one press; scores persist across reloads.',
       'Take turns pressing one of the crocodile’s teeth. The admin can choose one or more hidden biting teeth.',
       'Safe teeth stay pressed until the crocodile bites.',

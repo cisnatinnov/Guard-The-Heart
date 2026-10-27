@@ -1,10 +1,10 @@
 export const MAIN_SLIDES = [
-  { kind: 'image', file: 'slide-01.png', title: 'Guard the Heart' },
-  { kind: 'image', file: 'slide-02.png', title: 'Game Goals' },
-  { kind: 'image', file: 'slide-03.png', title: 'What is Guard Power (GP)?' },
-  { kind: 'image', file: 'slide-05-art.png', title: 'GigaRisk' },
-  { kind: 'image', file: 'slide-06.png', title: 'Challenge 1 — Image Decode' },
-  { kind: 'image', file: 'slide-07.png', title: 'Image Decode — How to Play' },
+  { kind: 'scene', title: 'Fight the Dragon' },
+  { kind: 'scene', title: 'Game Goals' },
+  { kind: 'scene', title: 'What is Guard Power (GP)?' },
+  { kind: 'scene', title: 'Gilgamesh' },
+  { kind: 'scene', title: 'Challenge 1 — Image Decode' },
+  { kind: 'scene', title: 'Image Decode — How to Play' },
   { kind: 'scoreboard', title: 'Scoreboard', challengeName: 'Challenge 1 - Image Decode' },
 ] as const
 

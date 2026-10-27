@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import initSqlJs from 'sql.js'
 import { resolve } from 'node:path'
 
-test('effect animations follow revealed cards and GigaRisk shows final GP only after attack', async ({ page, context }) => {
+test('effect animations follow revealed cards and Gilgamesh shows final GP only after attack', async ({ page, context }) => {
   const id = '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10'
   await page.goto(`/admin/tactical/${id}`)
   await expect(page.getByRole('button', { name: 'Skip Biru', exact: true })).toBeVisible()
@@ -74,8 +74,25 @@ test('effect animations follow revealed cards and GigaRisk shows final GP only a
   await projector.screenshot({ path: 'test-results/card-effect-animations.png', animations: 'disabled' })
   await projector.emulateMedia({ reducedMotion: 'reduce' })
   await expect(projector.locator('.card-effect-animation i').first()).toHaveCSS('animation-name', 'none')
+  await projector.emulateMedia({ reducedMotion: 'no-preference' })
   await page.getByRole('button', { name: 'Attack all teams −2 GP', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Attack complete', exact: true })).toBeDisabled()
+  await expect(projector).toHaveURL(new RegExp(`/gigarisk/${id}$`))
+  const scene = projector.getByRole('region', { name: 'Gilgamesh attack animation' })
+  await expect(scene).toBeVisible()
+  await expect(scene.locator('img')).toHaveCSS('animation-name', 'dragon-lunge')
+  await projector.screenshot({ path: 'test-results/gilgamesh-attack-scene.png' })
+  await projector.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(scene.locator('img')).toHaveCSS('animation-name', 'none')
+  await projector.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(scene).toHaveCount(0, { timeout: 9000 })
+  for (const [name, gp] of [['Merah', '5'], ['Biru', '5'], ['Kuning', '5'], ['Pink', '7'], ['Hijau', '5']]) {
+    await expect(projector.getByLabel(`GP before attack ${name}`, { exact: true }).locator('strong')).toHaveText(gp)
+  }
+  await expect(projector.locator('.giga-burst--defense')).toHaveCount(4)
+  await expect(projector.locator('.giga-defense-effect').first()).toHaveCSS('background-color', 'rgb(22, 108, 221)')
+  await projector.screenshot({ path: 'test-results/gilgamesh-before-after.png' })
+  await page.getByRole('button', { name: 'Show Card Reveal', exact: true }).click()
   await projector.locator('.tactical-stage__played-card[data-card-id="heal"]').focus()
   await expect(teamGP('Pink')).toHaveAttribute('data-gp-from', '3')
   await expect(teamGP('Pink')).toHaveAttribute('data-gp-to', '5')

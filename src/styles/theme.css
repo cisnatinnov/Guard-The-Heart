@@ -1,0 +1,55 @@
+/* Cast palette: navy armor, silver plates, violet cloth, cyan crystals and gold trim. */
+:root {
+  --bg:#f1f4fa; --surface:#fff; --surface-2:#e9eef8; --border:#ccd6e8;
+  --text:#19263e; --muted:#53627a; --accent:#4264bc; --accent-strong:#3453a1;
+  --accent-soft:rgb(78 104 190 / 12%); --ok:#146757; --danger:#a52b3d;
+  --danger-soft:rgb(165 43 61 / 10%); --color-tosca:#187393; --color-skin:#c99069;
+  --skin-wash:rgb(201 144 105 / 10%);
+}
+body { background:linear-gradient(160deg,#15223d 0,#293356 230px,#edf1f8 570px); color:var(--text); }
+.app--admin { --bg:#f1f4fa; --surface:#fff; --surface-2:#e9eef8; --border:#ccd6e8; --text:#19263e; --muted:#53627a; --accent-strong:#3453a1; --accent-soft:rgb(78 104 190 / 12%); background:transparent; }
+.app--admin .app__header { background:linear-gradient(130deg,#17243f,#2a3153); border-color:#506184; box-shadow:0 12px 36px #0b142629; }
+.app--admin .app__brand h1 { color:#f6f8ff; letter-spacing:-.025em; }
+.app--admin .app__tagline { color:#c2cee3; }
+.app--admin .app__characters { background:#101c32; border:1px solid #405575; gap:8px; }
+.app--admin .app__character,.app--admin .app__character--mascot { width:84px; background:transparent; border-color:transparent; }
+.app--admin .app__character img { height:94px; background:transparent; }
+.app--admin .app__character figcaption { color:#edf4ff; font-size:11px; line-height:1.3; }
+.app--admin .app__risk-card { aspect-ratio:auto; background:#14213b; border:1px solid #627baf; }
+.app--admin .app__risk-card img { height:110px; object-fit:contain; background:transparent; }
+.app--admin .app__risk-card figcaption { position:static; background:#34467a; color:#fff; }
+.tabs--admin { border-color:#475879; }
+.tabs--admin .tab { color:#e1e9f7; background:#223250; border-color:#526482; }
+.tabs--admin .tab:hover { color:#fff; background:#34467a; border-color:#7ccde4; }
+.tabs--admin .tab.tab--active { color:#fff; background:#405cad; border-color:#9ce2f1; }
+.app--admin .view__header h2 { color:#19263e; }
+.app--admin .card,.app--admin .panel,.app--admin .presentation-controls { background:#fff; border-color:#ccd6e8; box-shadow:0 5px 18px #16294a0a; }
+.app--admin input:not([type=checkbox]):not([type=radio]),.app--admin select { background:#fff; color:#19263e; border-color:#a9b9d2; }
+.app--admin button.ghost { background:#f2f5fc; border-color:#b9c7df; color:#24365a; }
+.app--admin .deck-link { color:#254680; background:#e8eefb; border-color:#b1c3e4; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #1686a3; outline-offset:3px; }
+.app__footer { color:#53627a; }
+.app.app--public { background:#101a30; }
+.reference-art,.tactical-stage__art,.reward-stage__art,.flipping-presentation__art,.event-timer-stage > img { filter:saturate(.3) brightness(.76); }
+.reference-stage,.tactical-stage,.reward-stage,.flipping-presentation,.event-timer-stage { background:#17243f; }
+.english-turn-order-title,.english-giga-title,.english-giga-subtitle { background:linear-gradient(#344c83,#24345b); color:#f3f7ff; border:1px solid #7d9abf; border-radius:.6cqw; }
+.turn-order-shuffle { background:linear-gradient(#86bde4,#4264bc); color:#101f37; border-color:#b2d8eb; }
+.turn-order-turn,.event-timer__turn { background:#4054a0; color:#fff; border-color:#95d8eb; }
+.event-timer-stage .event-timer__label { background:#283b68; border-color:#9bb4dc; }
+.team-gp-badge { background:linear-gradient(#233552,#17243f); border-color:#7e98bd; }
+.team-gp-badge__value { color:#f4f8ff; }
+.fight-brand-corner { background:#17243f; border:1px solid #51688f; border-radius:.7cqw; }
+:is(.reference-stage,.reference-ranking,.tactical-stage,.event-timer-stage,.flipping-presentation,.crocodile-stage,.reward-stage,.podium-stage,.main-presentation-stage,.main-presentation-thumbnails__art)::after { background-color:#17243f; }
+.giga-stage { background:radial-gradient(ellipse at 85% 0,#493f76,transparent 55%),linear-gradient(140deg,#172c49,#101a30); }
+.gilgamesh-board-dragon { position:absolute; right:0; top:1%; width:31%; height:28%; object-fit:contain; opacity:.9; }
+.giga-challenge { color:#dce7fa; }
+.giga-stage .giga-panel { background:#17243f; }
+.giga-stage .giga-row { border-color:#8b9fbe; background:#f7f9fd; }
+.giga-row .giga-effects { border-color:#ccd6e8; }
+.giga-before,.giga-stage .giga-gp::before { color:#465674; }
+.giga-gp,.giga-stage .giga-gp strong { color:#233e6d; }
+.giga-waiting { color:#53627a; }
+.tactical-stage__log { background:#eaf0fa; color:#213654; border-color:#8ba3c6; }
+.main-presentation-thumbnails button { background:#f5f7fc; border-color:#aebed8; color:#263957; }
+.main-presentation-thumbnails button[aria-current] { border-color:#4463bb; box-shadow:0 0 0 2px #4463bb; }
+.app--admin .main-presentation-thumbnails button > span { color:#263957; }

@@ -54,14 +54,13 @@ export function MainPresentationView({ admin = false }: { admin?: boolean }) {
       </div>
       {error && <p className="alert alert--error" role="alert">{error}</p>}
     </>}
-    <div ref={stage} className={`main-presentation-stage${slide.kind === 'scoreboard' ? ' main-presentation-stage--scoreboard' : ''}`} aria-label="Main Presentation">
-      {slide.kind === 'image' ? <img src={`/ui/main-presentation/${slide.file}`} alt={slide.title} />
+    <div ref={stage} data-slide={index} className={`main-presentation-stage${slide.kind === 'scoreboard' ? ' main-presentation-stage--scoreboard' : ''}`} aria-label="Main Presentation">
+      {slide.kind === 'scene' ? <MainEnglishCopy index={index} />
         : <ChallengePointPublicView challengeName={slide.challengeName} />}
-      {slide.kind === 'image' && <MainEnglishCopy index={index} />}
       <p className="sr-only" aria-live="polite">Slide {index + 1} of {MAIN_SLIDES.length}: {slide.title}</p>
     </div>
     {admin && <nav className="main-presentation-thumbnails" aria-label="Presentation slides">{MAIN_SLIDES.map((entry, i) => <button type="button" key={entry.title} aria-current={i === index ? 'step' : undefined} aria-label={`Slide ${i + 1}: ${entry.title}`} onClick={() => selectMainSlide(i)}>
-      <div className="main-presentation-thumbnails__art"><img src={entry.kind === 'image' ? `/ui/main-presentation/${entry.file}` : '/ui/Page_Score_Board.jpeg'} alt="" loading="lazy" />{entry.kind === 'image' && <MainEnglishCopy index={i} />}{entry.kind === 'scoreboard' && <small>Live scoreboard</small>}</div>
+      <div className="main-presentation-thumbnails__art">{entry.kind === 'scene' ? <MainEnglishCopy index={i} /> : <><img src="/ui/Page_Score_Board.jpeg" alt="" loading="lazy" /><small>Live scoreboard</small></>}</div>
       <span>{i + 1}. {entry.title}</span>
     </button>)}</nav>}
   </section>

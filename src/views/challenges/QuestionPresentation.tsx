@@ -43,7 +43,7 @@ export function QuestionPresentation({ gameId, question, counter, seconds, statu
       backgroundImage: reference ? `url("/ui/${gameId === 'emoji-decode' ? 'Image_Decode' : 'Match-Card'}-question-background.png")` : 'url("/ui/match-card/arena.png")',
     }}>
     <header className="qa-stage__header">
-      <img className="qa-stage__logo" src="/Logo_Game-5.png" alt="Guard the Heart" />
+      <img className="qa-stage__logo" src="/fight-the-dragon-logo.png" alt="Fight the Dragon" />
       <div className="qa-stage__heading">
         <h1>{gameId === 'emoji-decode' && question ? englishText(question.prompt) : game.title}</h1>
         <span>{counter}</span>

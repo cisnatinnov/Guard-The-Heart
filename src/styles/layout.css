@@ -1,12 +1,12 @@
 /* Shared spacing and proportions for the application and public artwork. */
 .app--admin {
-  --bg: #fff9f2;
+  --bg: #f6f7fb;
   --surface: #fff;
-  --surface-2: #fff8ee;
-  --border: #e6d9c8;
+  --surface-2: #f3f5fa;
+  --border: #c8d1e6;
   --text: #263639;
   --muted: #586a6d;
-  --accent-strong: #a9470c;
+  --accent-strong: #244591;
   --danger: #be392a;
   --danger-soft: rgb(190 57 42 / 10%);
   --accent-soft: rgb(244 130 32 / 12%);
@@ -15,7 +15,7 @@
   gap: 24px;
   color: var(--text);
   color-scheme: light;
-  background: #fff9f2;
+  background: #f6f7fb;
   min-height: 100dvh;
 }
 .app--admin .app__header {
@@ -37,7 +37,7 @@
 .app--admin .app__logo { width: 80px; height: 80px; }
 .app--admin .app__brand h1 { font-size: clamp(20px, 2vw, 26px); line-height: 1.2; }
 .app--admin .app__tagline { margin-top: 6px; line-height: 1.4; }
-.app--admin .app__characters { gap: 6px; padding: 6px; background: #fff6e8; border-radius: 14px; }
+.app--admin .app__characters { gap: 6px; padding: 6px; background: #eff2f8; border-radius: 14px; }
 .app--admin .app__character,
 .app--admin .app__character--mascot { width: 72px; border-radius: 10px; }
 .app--admin .app__character img,
@@ -84,27 +84,15 @@
 .app--admin .alert { margin: 0; padding: 14px 16px; line-height: 1.5; }
 .app--admin .alert--error { color: #8e271d; }
 .app--admin .alert--info { color: #165d59; }
-.app--admin .board-panel { padding: 52px 20px 20px; color: #263639; }
-.board-banner { width: min(90%, 36rem); min-width: 0; }
-.board-banner__title { line-height: 1.2; }
-.board-banner__sub { margin-top: 4px; letter-spacing: 0.06em; }
 .app--admin .board__row { grid-template-columns: 56px minmax(0, 1fr) auto 80px; gap: 16px; padding: 10px 14px; font-size: 16px; }
-.app--admin .board__actions { flex-wrap: wrap; justify-content: flex-end; }
-.app--admin .board__points { font-size: 22px; }
 .app--admin .leaderboard { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 16px; align-items: stretch; }
-.app--admin .leaderboard__card { padding: 20px 12px; gap: 10px; }
-.app--admin .leaderboard__team { min-height: 3.9em; display: grid; place-items: center; line-height: 1.3; letter-spacing: 0; }
-.app--admin .leaderboard__scores { margin-top: auto; width: 100%; }
-.app--admin .leaderboard__score { align-items: center; gap: 8px; }
-.app--admin .leaderboard__score-name { overflow-wrap: anywhere; }
 .app--admin .run-panel { padding: 24px; gap: 20px; }
 .app--admin .run-panel__header { align-items: flex-start; }
-.app--admin .run-panel__prompt { max-width: 75ch; font-size: 18px; line-height: 1.5; }
 .app--admin .run-panel .muted { line-height: 1.5; }
 .app--admin .run-panel th,
 .app--admin .run-panel td { padding: 14px 16px; vertical-align: middle; }
 .app--admin .run-panel__answers table { min-width: 640px; }
-.app--admin .game-stage__intro h2 { color: #7e3510; text-shadow: none; }
+.app--admin .game-stage__intro h2 { color: #283b66; text-shadow: none; }
 .app--admin .game-stage__intro .view__hint,
 .app--admin .rule-list { color: var(--muted); }
 .app--admin .game__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -131,7 +119,7 @@
 .qa-stage__heading { min-width: 0; }
 .qa-stage__heading h1 { font-size: 2.2cqw; }
 .qa-stage__question h2 { font-size: 2.6cqw; line-height: 1.35; overflow-wrap: anywhere; text-wrap: pretty; }
-.qa-stage__answer { scrollbar-width: thin; scrollbar-color: #db8d38 transparent; }
+.qa-stage__answer { scrollbar-width: thin; scrollbar-color: #2e57b8 transparent; }
 .qa-stage__options { align-items: start; font-size: 1.4cqw; line-height: 1.25; }
 
 .qa-stage--emoji-decode .qa-stage__logo { display: none; }
@@ -145,7 +133,7 @@
 .qa-stage--emoji-decode .qa-stage__heading span { display: none; }
 .qa-stage--emoji-decode .qa-stage__hint {
   left: 43%; top: -14%; width: 27%; height: 141%; padding: 0;
-  justify-content: center; color: #26180d; font-size: 2.4cqw; font-weight: 400; text-align: center;
+  justify-content: center; color: #0f1524; font-size: 2.4cqw; font-weight: 400; text-align: center;
 }
 .qa-stage--emoji-decode .qa-stage__timer {
   left: 67%; top: 28%; width: 30%; height: 60%; z-index: 2;
@@ -156,10 +144,6 @@
 }
 .qa-stage--emoji-decode .qa-stage__timer > span { font-size: 4.8cqw; line-height: 1; }
 .qa-stage--emoji-decode .qa-stage__timer strong { display: block; }
-.public-ranking__team { text-overflow: ellipsis; }
-.public-ranking--leaderboard .public-ranking__team { display: block; align-content: center; font-size: 1.65cqw !important; }
-.public-ranking--scoreboard .public-ranking__team { display: block; align-content: center; }
-.public-ranking__challenge { padding-inline: 8px; font-size: 1.8cqw; }
 
 @media (max-width: 1024px) {
   .app--admin .app__header-top { grid-template-columns: minmax(0, 1fr) auto; gap: 16px; }
@@ -175,7 +159,6 @@
   .app--admin .app__logo { width: 64px; height: 64px; }
   .tabs--admin { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .tabs--admin .tab { padding-inline: 8px; width: 100%; }
-  .tabs--admin .tab--public-link { margin: 0; }
   .app--admin .card { padding: 16px; }
   .app--admin .card-pool .stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .app--admin .card-pool .stat { min-width: 0; padding: 12px 10px; }
@@ -186,17 +169,8 @@
   .app--admin .row-form > .field { max-width: none; }
   .app--admin .grid-form { grid-template-columns: 1fr; padding: 16px; }
   .app--admin .team-list-toolbar { grid-template-columns: 1fr; padding: 16px; }
-  .app--admin .board-panel { padding: 60px 12px 16px; border-radius: 16px; }
-  .app--admin .board-banner { width: 90%; min-width: 0; max-width: 90%; padding: 8px 12px; }
-  .app--admin .board-banner__title { font-size: 18px; }
   .app--admin .board__row { grid-template-columns: 44px minmax(0, 1fr) 64px; gap: 10px; padding: 12px 10px; }
-  .app--admin .board__actions { grid-column: 1 / -1; grid-row: 2; justify-content: stretch; }
-  .app--admin .board__actions button { flex: 1; }
-  .app--admin .board__points { grid-column: 3; grid-row: 1; }
-  .app--admin .rank-badge { max-width: 44px; }
   .app--admin .leaderboard { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .app--admin .leaderboard__card { padding-inline: 8px; }
-  .app--admin .leaderboard__team { font-size: 14px; }
   .app--admin .run-panel { padding: 16px; }
   .app--admin .run-panel__header { flex-direction: column; }
   .app--admin .run-panel__answers .table-wrap { margin: 0; }
@@ -223,9 +197,9 @@
   .qa-stage__question {
     position: static; width: 100%; min-height: 300px; height: auto;
     flex: 1; padding: 24px 16px; overflow: visible;
-    border: 4px solid #f7830b; border-radius: 16px;
-    background: linear-gradient(#fffdf0, #f4d49c);
-    box-shadow: inset 0 0 0 2px #ffc458;
+    border: 4px solid #2e57b8; border-radius: 16px;
+    background: linear-gradient(#f4f6fb, #b0bfe0);
+    box-shadow: inset 0 0 0 2px #7997de;
   }
   .qa-stage__question h2 { font-size: 22px; line-height: 1.4; }
   .qa-stage__question p { font-size: 20px; }
@@ -233,15 +207,15 @@
   .qa-stage__answer-label {
     position: static; width: 170px; height: 36px; align-self: center;
     margin: -34px 0 -28px; z-index: 1;
-    border: 3px solid #ffbd30; background: #a7311a;
+    border: 3px solid #2e57b8; background: #a7311a;
     clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
     font-size: 15px;
   }
   .qa-stage__answer {
     position: static; width: 100%; height: auto; min-height: 120px;
     padding: 32px 16px 20px; overflow: visible;
-    border: 4px solid #f7830b; border-radius: 16px;
-    background: linear-gradient(#fffdf0, #f4d49c); font-size: 16px;
+    border: 4px solid #2e57b8; border-radius: 16px;
+    background: linear-gradient(#f4f6fb, #b0bfe0); font-size: 16px;
   }
   .qa-stage__options { grid-template-columns: 1fr; gap: 12px; font-size: 16px; line-height: 1.45; }
 }
@@ -255,14 +229,14 @@
   .qa-stage--emoji-decode .qa-stage__logo { width: 48px; height: 56px; }
   .qa-stage--emoji-decode .qa-stage__heading {
     width: 100%; height: auto; min-height: 64px; padding: 8px;
-    background: linear-gradient(#fff8df, #ffc175); clip-path: none; border-radius: 8px;
+    background: linear-gradient(#e8ecf6, #91a9e3); clip-path: none; border-radius: 8px;
   }
   .qa-stage--emoji-decode .qa-stage__heading h1 { font-size: 18px; }
   .qa-stage--emoji-decode .qa-stage__heading span { font-size: 11px; }
   .qa-stage__hint {
     position: static; grid-row: 2; grid-column: 2 / 4;
     width: auto; height: auto; padding: 6px 10px; font-size: 16px;
-    background: #a9470c; border-radius: 8px;
+    background: #244591; border-radius: 8px;
   }
   .qa-stage--emoji-decode .qa-stage__timer {
     grid-row: 1; grid-column: 3; width: 64px; height: 56px;
@@ -304,7 +278,6 @@
 
 .matching-only .qa-stage { width: 100%; }
 .matching-only__header { display: flex; justify-content: space-between; align-items: center; }
-.matching-only__solo { display: grid; gap: 1rem; margin-top: 1rem; }
 
 /* Consistent admin controls and responsive content spacing. */
 .app--admin .app__main { min-width: 0; flex: 1; }
@@ -325,14 +298,14 @@
 .app--admin .matching-only > .view__hint { margin-block: 12px 20px; }
 .app--admin .matching-only .run-panel__teams { margin: 0; }
 .app--admin .matching-only .run-panel__actions { margin-block: 16px; }
-.app--admin .tactical-admin__team { margin: 0; padding: 20px; border: 1px solid var(--border); border-left: 5px solid var(--pill, #e5d3b8); border-radius: 16px; background: var(--surface); }
+.app--admin .tactical-admin__team { margin: 0; padding: 20px; border: 1px solid var(--border); border-left: 5px solid var(--pill, #bac6e3); border-radius: 16px; background: var(--surface); }
 .app--admin .tactical-admin__team-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
 .app--admin .tactical-admin__team-header h3 { margin: 0; font-size: 17px; }
 .app--admin .tactical-admin__body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; padding-top: 16px; }
 .app--admin .tactical-admin__body > div { min-width: 0; }
 .app--admin .tactical-admin__body h4 { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
 .app--admin .tactical-admin__cards { margin: 0; gap: 10px; align-items: flex-start; min-height: 150px; }
-.app--admin .tactical-admin__cards button,.app--admin .tactical-admin__selection button { flex: 0 0 96px; width: 96px; min-height: 0; padding: 3px; border-radius: 8px; line-height: 0; background: #fff5e7; }
+.app--admin .tactical-admin__cards button,.app--admin .tactical-admin__selection button { flex: 0 0 96px; width: 96px; min-height: 0; padding: 3px; border-radius: 8px; line-height: 0; background: #eef1f8; }
 .app--admin .tactical-admin__cards button[aria-pressed=true] { border-color: #027479; box-shadow: 0 0 0 2px #027479; }
 .app--admin .tactical-admin__cards button:disabled,.app--admin .tactical-admin__selection button:disabled { opacity: 1; }
 .app--admin .tactical-admin__cards p { margin: 0; padding: 18px; width: 100%; color: var(--muted); border-radius: 10px; background: var(--surface-2); }
@@ -341,7 +314,6 @@
 .app--admin .tactical-admin__selection:has(button) { border-color: #027479; }
 .app--admin .tactical-admin__body > div > .ghost { width: 100%; }
 @media (max-width: 680px) {
-  .tabs--admin .tab--public-link { grid-column: 1 / -1; }
   .app--admin .admin-toolbar { padding: 12px; }
   .app--admin .admin-toolbar .field { flex-basis: 100%; max-width: none; }
   .app--admin .admin-toolbar button { flex: 1 1 140px; }
@@ -354,10 +326,10 @@
   .app--admin .event-timer-controls__form button { grid-column: 1 / -1; }
   .app--admin .event-timer-controls__actions button { flex: 1 1 100px; }
 }
-.gp-ledger-wrap { max-width:100%; overflow:auto; border:1px solid #e0cda9; border-radius:12px; background:#fffcf3; }
-.gp-ledger { width:100%; min-width:850px; border-collapse:collapse; color:#492c20; }
+.gp-ledger-wrap { max-width:100%; overflow:auto; border:1px solid #a9b9e0; border-radius:12px; background:#f6f8fc; }
+.gp-ledger { width:100%; min-width:850px; border-collapse:collapse; color:#202c49; }
 .gp-ledger th { padding:12px; background:#8d3029; color:#fff; text-transform:none; text-align:left; white-space:nowrap; }
-.gp-ledger td { padding:10px 12px; border-bottom:1px solid #ebdcc4; background:transparent; font-size:14px; vertical-align:top; }
+.gp-ledger td { padding:10px 12px; border-bottom:1px solid #c7d1e8; background:transparent; font-size:14px; vertical-align:top; }
 .gp-ledger td:nth-child(5),.gp-ledger td:nth-child(6),.gp-ledger td:nth-child(7) { text-align:right; font-weight:700; }
 .gp-ledger .is-negative { color:#ad2e27; }
 .gp-ledger .is-positive { color:#07785f; }
@@ -406,7 +378,7 @@
 }
 
 .card-art { position:relative;container-type:inline-size; }
-.card-art__english-rule { position:absolute;left:10%;top:80%;width:80%;height:13%;display:grid;place-items:center;padding:1cqw;box-sizing:border-box;overflow:hidden;background:#fcf2df;color:#101a2a;text-align:center;font:700 5cqw/1.1 Arial,sans-serif; }
+.card-art__english-rule { position:absolute;left:10%;top:80%;width:80%;height:13%;display:grid;place-items:center;padding:1cqw;box-sizing:border-box;overflow:hidden;background:#e6eaf5;color:#101a2a;text-align:center;font:700 5cqw/1.1 Arial,sans-serif; }
 .card-art__english-rule.is-long { font-size:3.8cqw; }
 
 .qa-stage--slide-reference .qa-stage__answer-label { visibility:visible;display:grid;position:absolute;left:38%;top:67%;width:24%;height:6%;background:#a6332d;font:700 2.8cqw/1 Arial,sans-serif;color:#fff; }

@@ -91,6 +91,7 @@ test('public tactical cards are face-up, used cards disappear from both inventor
   for (const button of await red.locator('.tactical-admin__cards button').all()) await expect(button).toBeDisabled()
   await page.getByRole('button', { name: 'Attack all teams −2 GP', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Attack complete', exact: true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Show Card Reveal', exact: true }).click()
   await expect(projector).toHaveURL(new RegExp(`/card-reveal/${id}$`))
   await expect(projector.locator('.tactical-stage--resolved .card-art')).toHaveCount(2)
   await expect(projector.locator('.tactical-stage--resolved .card-art').first()).toHaveCSS('animation-name', 'tactical-card-use')

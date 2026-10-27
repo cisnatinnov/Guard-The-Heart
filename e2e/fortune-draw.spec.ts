@@ -41,5 +41,6 @@ for (const [challengeId,count] of [[challengeOne,3],['d5e8b317-4c62-49af-8b03-2f
  await projector.screenshot({path:`test-results/fortune-${count}-closed-public.png`,animations:'disabled'})
  await page.getByRole('button',{name:'Attack all teams −2 GP',exact:true}).click()
  await expect(page.getByRole('button',{name:'Attack complete',exact:true})).toBeDisabled()
+ await page.getByRole('button', { name: 'Show Card Reveal', exact: true }).click()
  await expect(projector.locator('.tactical-stage__team').filter({hasText:'Team Biru'}).locator('.tactical-stage__gp')).toHaveText('6 GP')
 })

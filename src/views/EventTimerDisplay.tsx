@@ -21,7 +21,7 @@ export function EventTimerDisplay({ admin = false }: { admin?: boolean }) {
   const remaining = timerRemaining(timer, now)
   const display = `${String(Math.floor(remaining / 60)).padStart(2, '0')}:${String(remaining % 60).padStart(2, '0')}`
   return <article className="event-timer-stage" aria-label="Event countdown timer">
-    <img src="/ui/presentation-timer-clean.png" alt="Guard the Heart fantasy arena with a stopwatch" />
+    <img src="/ui/presentation-timer-clean.png" alt="Fight the Dragon fantasy arena with a stopwatch" />
     <div className="event-timer__digits" role="timer" aria-label="Time remaining">{display}</div>
     <h2 className="event-timer__label">{timer.label}</h2>
     <div className="event-timer__teams" role="list" aria-label="Team turns">

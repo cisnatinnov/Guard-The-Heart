@@ -130,7 +130,7 @@ test('features open one public window, keep admin active, reuse it and reopen af
   expect(context.pages()).toHaveLength(2)
   await page.goto('/admin')
 
-  for (const [label, path] of [['Scoreboard', 'scoreboard'], ['Podium', 'podium'], ['Rewards', 'rewards'], ['Tactical Phase', 'tactical'], ['GigaRisk Attack', 'gigarisk']]) {
+  for (const [label, path] of [['Scoreboard', 'scoreboard'], ['Podium', 'podium'], ['Rewards', 'rewards'], ['Tactical Phase', 'tactical'], ['Gilgamesh Attack', 'gigarisk']]) {
     await page.getByRole('link', { name: label, exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/admin/${path}$`))
     await expect(projector).toHaveURL(new RegExp(`/${path}$`))

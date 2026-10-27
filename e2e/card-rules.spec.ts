@@ -86,6 +86,7 @@ test('Card Reveal applies GP once, locks passive Second Chance, then revives onl
  await expect(blue.locator('.tactical-stage__gp')).toHaveText('11 GP')
  await page.getByRole('button',{name:'Attack all teams −2 GP',exact:true}).click()
  await expect(page.getByRole('button',{name:'Attack complete',exact:true})).toBeDisabled()
+ await page.getByRole('button', { name: 'Show Card Reveal', exact: true }).click()
  await expect(blue.locator('.tactical-stage__gp')).toHaveText('9 GP')
  await expect(green.locator('.tactical-stage__gp')).toHaveText('1 GP')
 })

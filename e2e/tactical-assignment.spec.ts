@@ -147,6 +147,7 @@ test('Protect and Thief support clicking and direct drops while keeping ownershi
   await expect(projector.locator('.tactical-stage__card-target')).toHaveCount(0)
   await page.getByRole('button', { name:'Attack all teams −2 GP', exact:true }).click()
   await expect(page.getByRole('button', { name:'Attack complete', exact:true })).toBeDisabled()
+  await page.getByRole('button', { name: 'Show Card Reveal', exact: true }).click()
   await expect(projector.locator('.tactical-stage__team').filter({hasText:'Team Merah'}).locator('.tactical-stage__gp')).toContainText('9 GP')
   await expect(projector.locator('.tactical-stage__team').filter({hasText:'Team Biru'}).locator('.tactical-stage__gp')).toContainText('3 GP')
   await expect(protectLabel).toHaveText('Protect: Biru')

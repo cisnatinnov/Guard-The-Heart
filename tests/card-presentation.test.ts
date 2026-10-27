@@ -1,6 +1,13 @@
 import { expect, it } from 'vitest'
 import { cardAnimation, gigaRiskImpact } from '../src/services/cardPresentation'
 import type { TacticalTeamResult } from '../src/services/tacticalPhase'
+import { englishText } from '../src/services/english'
+
+it.each(['Gilgamensh Attack', 'GigaRisk Attack', 'Gigarisk Attack', 'Gilgamesh Attack'])(
+  'normalizes the saved dragon label %s without changing GP text', (label) => {
+    expect(englishText(`${label} −2 GP`)).toBe('Gilgamesh Attack −2 GP')
+  },
+)
 
 it.each([
   ['Rare Heal Card #01', 'heal'], ['Normal Shield Card #01', 'shield'],

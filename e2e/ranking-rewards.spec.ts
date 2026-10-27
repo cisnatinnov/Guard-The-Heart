@@ -50,7 +50,7 @@ test('tied podium ranks use matching medals and plaques remain proportional on a
  const projector = await context.newPage()
  await projector.goto('/podium')
  for (const surface of [page,projector]) {
-  await expect(surface.locator('.podium-art')).toHaveAttribute('src','/ui/podium-no-gp.png')
+  await expect(surface.locator('.podium-art')).toHaveAttribute('src','/ui/match-card/arena.png')
   await expect(surface.locator('.podium-rank')).toHaveCount(3)
   await expect(surface.getByAltText('Rank 1', { exact:true })).toHaveCount(3)
   await expect(surface.locator('.podium-winner--1 .podium-prize')).toHaveText('Rp 999.999.999.999')

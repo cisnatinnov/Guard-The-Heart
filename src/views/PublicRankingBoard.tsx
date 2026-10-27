@@ -31,7 +31,7 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
     <h1 className="sr-only">{final ? 'Leaderboard' : 'Scoreboard'}</h1>
     {!final && <div className="ranking-challenge">{challenge ?? 'Scoreboard'}</div>}
     {final ? <div className="ranking-leader-panel"><table className="ranking-table" aria-label="Team leaderboard">
-      <thead><tr>{['Rank','Team','Starting GP','GigaRisk Attack','Card Effects','Final GP','Cards Left'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+      <thead><tr>{['Rank','Team','Starting GP','Gilgamesh Attack','Card Effects','Final GP','Cards Left'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
       <tbody>{page.map((row) => <tr key={row.id} className={row.status === 'inactive' || row.guardPower === 0 ? 'is-out' : ''}>
         <td><img className="ranking-medal" src={`/ui/Icon%20rank/Icon-Rank_${Math.min(5, row.rank)}.png`} alt={`Rank ${row.rank}`} /></td>
         <td><div className="ranking-team-name"><TeamPill name={row.team} colour={row.colour} />{(row.status === 'inactive' || row.guardPower === 0) && <small className="out-label">OUT</small>}</div></td>

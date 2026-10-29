@@ -53,7 +53,7 @@ test('Shuffle Order moves team names while numbered slots stay fixed and sync to
   const projector = await context.newPage()
   await projector.goto('/turn-order')
   await expect(projector.locator('.turn-order-item')).toHaveCount(5)
-  const publicShuffle = projector.getByRole('button', { name: 'Shuffle Order', exact: true })
+  const publicShuffle = projector.locator('.turn-order-shuffle')
   await expect(publicShuffle).toBeDisabled()
   await expect(projector.locator('.turn-order-item button:enabled')).toHaveCount(0)
   const saved = await projector.evaluate(() => localStorage.getItem('guard-the-heart-turn-order'))

@@ -1,7 +1,6 @@
-import { englishText } from '../../services/english'
 import { openPublicDisplay } from '../../services/publicWindow'
 import { refreshDatabaseFromStorage } from '../../db/sequelize-provider'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { ChallengeRunController } from '../../controllers/ChallengeRunController'
 import { displayPath, publishPublicDisplay } from '../../services/publicDisplay'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -10,28 +9,21 @@ import { useChallenges } from '../../hooks/useChallenges'
 import type { ChallengeRun } from '../../services/games/teamRun'
 import { publishSharedChallengeRun, useSharedChallengeRun } from '../../services/games/runSync'
 import { TeamRunPanel } from './TeamRunPanel'
-import { EmojiDecodeView } from './EmojiDecodeView'
+import { publishEventTimer, readEventTimer } from '../../services/eventTimer'
+import { teamForQuestion } from '../../services/games/teamRun'
 import { JawsOfRiskView } from './JawsOfRiskView'
 import { PublicQuestionView } from './PublicQuestionView'
 import { MatchingOnlyView } from './MatchingOnlyView'
-
-function GameScreen({ id, onComplete }: { id: ChallengeGameId; onComplete: () => void }) {
-  if (id === 'emoji-decode') return <EmojiDecodeView onComplete={onComplete} />
-  return null
-}
 
 /**
  * The playing screen for one built-in challenge. It is deliberately not a tab:
  * opened from a built-in challenge row. Completed runs open the scoreboard.
  *
- * A team run scores each team's answers straight onto the challenge scoreboard,
- * so while one is running the solo screen is hidden to avoid two scoring paths
- * on screen at once.
+ * A team run scores each team's submitted answers onto the challenge scoreboard.
  */
 export function GameView() {
   const params = useParams<{ gameId?: string; challengeId?: string }>()
   const navigate = useNavigate()
-  const [completionError, setCompletionError] = useState<string | null>(null)
   const { challenges } = useChallenges()
   
   const gameId = params.gameId as ChallengeGameId | undefined
@@ -61,6 +53,8 @@ export function GameView() {
 
   const publishRun = async (nextRun: ChallengeRun) => {
     if (!isAdmin) return
+    const active = teamForQuestion(nextRun)?.team
+    if (active) publishEventTimer({ ...readEventTimer(), activeTeamId: active })
     if (!nextRun.matchingOnly && ChallengeRunController.complete(nextRun)) {
       await ChallengeRunController.syncAll(nextRun)
       await publishPublicDisplay('scoreboard', challengeId)
@@ -80,12 +74,6 @@ export function GameView() {
     const publicPath = `/play/${game.id}/${challengeId}`
     // Omit popup sizing features so the browser opens a regular tab.
     openPublicDisplay(publicPath, true)
-  }
-
-  const completeSolo = () => {
-    void publishPublicDisplay('scoreboard', challengeId).then(() => {
-      navigate(displayPath({ stage: 'scoreboard', challengeId }, true))
-    }).catch((cause: unknown) => setCompletionError(englishText(cause instanceof Error ? cause.message : String(cause))))
   }
 
   const endSharedRun = () => {
@@ -122,7 +110,6 @@ export function GameView() {
 
           </div>
 
-          {completionError && <p className="alert alert--error">{completionError}</p>}
           <TeamRunPanel
             key={`${game.id}:${challengeId}`}
             gameId={game.id}
@@ -130,7 +117,6 @@ export function GameView() {
             sharedRun={run}
             canControl={isAdmin}
             running={run !== null}
-            showSolo={isAdmin}
             onStartRun={startSharedRun}
             onUpdateRun={publishRun}
             onEndRun={endSharedRun}
@@ -144,14 +130,7 @@ export function GameView() {
             </ol>
           )}
 
-          {isAdmin && !run && (
-            <details className="game-stage__solo">
-              <summary>Play solo instead</summary>
-              <div className="game-stage__solo-content">
-                <GameScreen id={gameId} onComplete={completeSolo} />
-              </div>
-            </details>
-          )}
+
         </main>
       </div>
     </section>

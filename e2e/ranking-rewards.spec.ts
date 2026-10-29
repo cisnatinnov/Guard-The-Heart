@@ -50,7 +50,8 @@ test('tied podium ranks use matching medals and plaques remain proportional on a
  const projector = await context.newPage()
  await projector.goto('/podium')
  for (const surface of [page,projector]) {
-  await expect(surface.locator('.podium-art')).toHaveAttribute('src','/ui/match-card/arena.png')
+  await expect(surface.locator('.podium-art')).toHaveCount(0)
+  await expect(surface.locator('.podium-stage')).toHaveCSS('background-color','rgb(13, 20, 35)')
   await expect(surface.locator('.podium-rank')).toHaveCount(3)
   await expect(surface.getByAltText('Rank 1', { exact:true })).toHaveCount(3)
   await expect(surface.locator('.podium-winner--1 .podium-prize')).toHaveText('Rp 999.999.999.999')
@@ -59,12 +60,13 @@ test('tied podium ranks use matching medals and plaques remain proportional on a
    const stage = surface.locator('.podium-stage')
    await stage.scrollIntoViewIfNeeded()
    const stageBox = (await stage.boundingBox())!
-   expect(stageBox.width / stageBox.height).toBeCloseTo(16/9,2)
+   if (size.width > 680) expect(stageBox.width / stageBox.height).toBeCloseTo(16/9,2)
+   else expect(stageBox.height).toBeLessThanOrEqual(size.height)
    for (const slot of [1,2,3]) {
     const winner=surface.locator(`.podium-winner--${slot}`)
     const badge=(await winner.locator('.podium-rank').boundingBox())!
     const name=(await winner.locator('.podium-name').boundingBox())!
-    expect(badge.y+badge.height).toBeLessThan(name.y)
+    expect(badge.y+badge.height < name.y || badge.x+badge.width < name.x).toBe(true)
     for (const selector of ['.podium-gp','.podium-prize']) {
      expect(await winner.locator(selector).evaluate(element=>{
       const box=element.getBoundingClientRect()

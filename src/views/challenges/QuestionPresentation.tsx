@@ -45,19 +45,19 @@ export function QuestionPresentation({ gameId, question, counter, seconds, statu
     <header className="qa-stage__header">
       <img className="qa-stage__logo" src="/fight-the-dragon-logo.png" alt="Fight the Dragon" />
       <div className="qa-stage__heading">
-        <h1>{gameId === 'emoji-decode' && question ? englishText(question.prompt) : game.title}</h1>
+        <h1>{gameId === 'emoji-decode' && question ? 'Image Decode' : game.title}</h1>
         <span>{counter}</span>
       </div>
       {gameId === 'emoji-decode' && question && <p className="qa-stage__hint">{englishText(question.hint)}</p>}
-      <div className="qa-stage__timer" role="timer" aria-label={seconds === undefined ? 'Time remaining' : `${seconds} seconds remaining`}>
+      {gameId === 'emoji-decode' && <div className="qa-stage__timer" role="timer" aria-label={seconds === undefined ? 'Time remaining' : `${seconds} seconds remaining`}>
         <span aria-hidden="true">⏱</span><strong>{seconds === undefined ? reference ? '' : '—' : `${seconds}s`}</strong>
-      </div>
+      </div>}
     </header>
     {children ? <div className="qa-stage__matching">{children}</div> : <>
       <div className="qa-stage__frame" aria-hidden="true" style={{ backgroundImage: 'url("/ui/match-card/frame.png")' }} />
       <div className={`qa-stage__question${gameId === 'emoji-decode' ? ' qa-stage__question--image' : ''}`}>
         {question ? gameId === 'emoji-decode'
-          ? <img src={`/image-decode/questions/decode-${String(question.number).padStart(2, '0')}.webp`} alt={`Visual clue for question ${question.number}`} />
+          ? <h2 ref={questionRef} className="workbook-emoji-clue">{question.prompt}</h2>
           : <h2 ref={questionRef}>{englishText(question.prompt)}</h2> : <p role="status">{status ?? 'Waiting for the challenge to start…'}</p>}
       </div>
       <h2 className="qa-stage__answer-label">ANSWER</h2>

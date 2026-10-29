@@ -18,9 +18,8 @@ export function HeartAwarenessView({ admin = false }: { admin?: boolean }) {
   const pages = Array.from({ length: Math.max(1, Math.ceil(ordered.length / 5)) }, (_, index) => ordered.slice(index * 5, index * 5 + 5))
   return <section className={admin ? 'view reference-feature-admin' : 'reference-feature-public'}>
     {admin && <header className="view__header"><h2>Heart of Awareness</h2><p className="view__hint">Live Guard Power for active teams.</p></header>}
-    {pages.map((page, index) => <section key={index} className="reference-stage awareness-stage" aria-label="Heart of Awareness">
-      <img className="reference-art" src="/ui/heart-of-awareness-no-gp.png" alt="" />
-      <h1 className="sr-only">Heart of Awareness</h1>
+    {pages.map((page, index) => <section key={index} className="reference-stage awareness-stage summary-stage" aria-label="Heart of Awareness">
+      <h1 className="summary-stage__title">Heart of Awareness</h1>
       <ol className="awareness-teams" aria-label="Current team GP">
         {Array.from({ length: 5 }, (_, slot) => {
           const team = page[slot]
@@ -28,7 +27,7 @@ export function HeartAwarenessView({ admin = false }: { admin?: boolean }) {
           return <li key={team?.id ?? slot} className="awareness-team" aria-label={team ? `${team.name}: ${gp} GP` : 'Empty team slot'}>
             <div className={`awareness-name${team && teamColour(team) === colours[slot] ? ' awareness-name--native' : ''}`}>{team ? <TeamPill name={team.name} colour={team.colour} /> : <span className="team-pill">—</span>}</div>
             <GPShield className="awareness-gp-icon" />
-            <div className="awareness-score"><strong style={{ fontSize: `${Math.min(5.5, 10 / number.format(gp).length)}cqw` }}>{team ? number.format(gp) : '—'}</strong></div>
+            <div className="awareness-score"><strong>{team ? number.format(gp) : '—'}</strong></div>
           </li>
         })}
       </ol>

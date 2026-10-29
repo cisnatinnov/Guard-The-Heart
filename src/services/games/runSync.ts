@@ -48,7 +48,7 @@ export function useSharedChallengeRun(gameId: ChallengeGameId, challengeId: stri
 
   useEffect(() => {
     const accept = (update: SharedChallengeRun) => {
-      if (update.gameId === gameId && update.challengeId === challengeId) setRun(update.run)
+      if (update.gameId === gameId && update.challengeId === challengeId) setRun(readSharedChallengeRun(gameId, challengeId))
     }
     const local = (event: Event) => accept((event as CustomEvent<SharedChallengeRun>).detail)
     const stored = (event: StorageEvent) => {

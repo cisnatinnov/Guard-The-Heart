@@ -1,3 +1,5 @@
+import { QuestionPicker } from './QuestionPicker'
+import { ChallengeTurnOrder } from './ChallengeTurnOrder'
 import { englishText } from '../../services/english'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ChallengeRunController, type TeamAnswerResult } from '../../controllers/ChallengeRunController'
@@ -16,6 +18,10 @@ import { MatchingCards } from './MatchingCards'
 import { QuestionPresentation } from './QuestionPresentation'
 import { RouletteOrder } from './RouletteOrder'
 import { useRunCountdown } from './useRunCountdown'
+import { useTurnOrder } from '../../hooks/useTurnOrder'
+import { useActiveTeam } from '../../hooks/useActiveTeam'
+import { orderTeams } from '../../services/turnOrder'
+import { readEventTimer, publishEventTimer } from '../../services/eventTimer'
 
 export interface TeamRunPanelProps {
   gameId: ChallengeGameId
@@ -24,15 +30,13 @@ export interface TeamRunPanelProps {
   canControl: boolean
   /** True while a team run is under way, which hides the solo screen. */
   running: boolean
-  /** True when the solo game screen is shown below the panel. */
-  showSolo: boolean
   onStartRun: (run: ChallengeRun) => void
   onUpdateRun: (run: ChallengeRun) => void | Promise<void>
   onEndRun: () => void
 }
 
 /**
- * Hosts the challenge either solo or as a team run. In a team run, selected
+ * Hosts the challenge as a team run. In a team run, selected
  * teams take turns answering one question at a time and each score is saved as
  * it is earned.
  */
@@ -42,13 +46,15 @@ export function TeamRunPanel({
   sharedRun,
   canControl,
   running,
-  showSolo,
   onStartRun,
   onUpdateRun,
   onEndRun,
 }: TeamRunPanelProps) {
   const { teams } = useTeams()
+  const turnOrder = useTurnOrder()
+  const activeTeamId = useActiveTeam()
   const [run, setRun] = useState<ChallengeRun | null>(null)
+  const [questionIds, setQuestionIds] = useState(() => challengeQuestionsFor(gameId).questions.slice(0, 10).map((question) => question.id))
   const [chosen, setChosen] = useState<string[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [results, setResults] = useState<TeamAnswerResult[]>([])
@@ -94,7 +100,7 @@ export function TeamRunPanel({
         : timerDuration ?? 0
   const answerOwnerId = !matching && answerMode === 'pass' && opponentId ? opponentId : currentTurnTeam?.team
   const answerOwnerAnswer = answerOwnerId ? answers[answerOwnerId] ?? '' : ''
-  const timerExpired = hasTimer && remaining === 0
+  const timerExpired = gameId !== 'emoji-decode' && hasTimer && remaining === 0
 
   useEffect(() => {
     if (!canControl || busy || !run || (!matchedDelay && !handoffDelay) || remaining !== 0) return
@@ -131,6 +137,7 @@ export function TeamRunPanel({
 
   useEffect(() => {
     if (
+      gameId === 'emoji-decode' ||
       !running ||
       !canControl ||
       matchedDelay ||
@@ -157,7 +164,7 @@ export function TeamRunPanel({
       return
     }
     answersFormRef.current?.requestSubmit()
-  }, [running, canControl, matching, unlocked, matchedDelay, handoffDelay, run, onUpdateRun, attemptKey, hasTimer, remaining, graded, busy, timer.attemptKey])
+  }, [gameId, running, canControl, matching, unlocked, matchedDelay, handoffDelay, run, onUpdateRun, attemptKey, hasTimer, remaining, graded, busy, timer.attemptKey])
 
   useEffect(() => {
     if (!canControl || busy || run?.matchingPhase !== 'matching' || !run.matchingBoard || run.matchingBoard.revealed.length !== 2 || unlocked) return
@@ -172,6 +179,15 @@ export function TeamRunPanel({
     }, 900)
     return () => window.clearTimeout(timeout)
   }, [canControl, busy, unlocked, run, onUpdateRun])
+
+  useEffect(() => {
+    if (!canControl || !running || !run || busy || graded || matching || !activeTeamId) return
+    const index = run.runs.findIndex((entry) => entry.team === activeTeamId)
+    if (index < 0 || index === run.nextTeamIndex || run.attemptedTeams.includes(activeTeamId)) return
+    const next = { ...run, nextTeamIndex: index, turnDeadline: Date.now() + (run.secondsPerTurn ?? 15) * 1000 }
+    setRun(next)
+    void Promise.resolve(onUpdateRun(next)).catch((cause: unknown) => setError(String(cause)))
+  }, [activeTeamId, canControl, running, run, busy, graded, matching, onUpdateRun])
 
   async function flipCard(cardId: string) {
     if (!run || busy || !canControl) return
@@ -217,13 +233,11 @@ export function TeamRunPanel({
 
   function begin() {
     try {
-      // Roulette-style draw: randomize the turn order for each new run.
-      const rouletteOrder = [...chosen]
-      for (let index = rouletteOrder.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(Math.random() * (index + 1))
-        ;[rouletteOrder[index], rouletteOrder[swapIndex]] = [rouletteOrder[swapIndex], rouletteOrder[index]]
-      }
-      const started = ChallengeRunController.start({ gameId, challengeId, teamIds: rouletteOrder })
+      const ordered = orderTeams(teams.filter((team) => chosen.includes(team.id)), turnOrder)
+      const started = ChallengeRunController.start({ gameId, challengeId, teamIds: ordered.map((team) => team.id), questionIds })
+      const selectedIndex = started.runs.findIndex((team) => team.team === activeTeamId)
+      if (selectedIndex >= 0) started.nextTeamIndex = selectedIndex
+      publishEventTimer({ ...readEventTimer(), activeTeamId: started.runs[started.nextTeamIndex]?.team ?? null })
       setRun(started)
       onStartRun(started)
       setAnswers({})
@@ -328,10 +342,15 @@ export function TeamRunPanel({
   if (running && run && question) {
     return (
       <section className="run-panel">
+        <ChallengeTurnOrder teamIds={run.runs.map((entry) => entry.team)} disabled={busy} onShuffle={(ids) => {
+          const reordered = { ...run, runs: ids.map((id) => run.runs.find((entry) => entry.team === id)!), nextTeamIndex: 0 }
+          setRun(reordered)
+          void Promise.resolve(onUpdateRun(reordered)).catch((cause: unknown) => setError(String(cause)))
+        }} />
         <header className="run-panel__header">
           <div>
             <h3 className="run-panel__title">
-              Team run · question {question.number} of {run.questionCount}
+              Team run · question {run.questionIndex + 1} of {run.questionCount}
             </h3>
 
             {unlocked && <p className="muted">{englishText(question.hint)}</p>}
@@ -342,10 +361,6 @@ export function TeamRunPanel({
             </p>
           </div>
           {canControl && <div className="run-panel__actions">
-            {!graded && gameId === 'emoji-decode' && <>
-              <button type="button" disabled={busy || !currentTurnTeam || timerExpired || (answerMode === 'pass' && !opponentId)} onClick={() => void submitAnswers(undefined, true)}>Right Answer (+10)</button>
-              <button type="button" disabled={busy || !currentTurnTeam || timerExpired || (answerMode === 'pass' && !opponentId)} onClick={() => void submitAnswers(undefined, false)}>Wrong Answer (-10)</button>
-            </>}
             <button type="button" className="ghost" onClick={end}>
               End run
             </button>
@@ -353,8 +368,9 @@ export function TeamRunPanel({
         </header>
 
         {error && <p className="alert alert--error">{error}</p>}
+        {gameId === 'emoji-decode' && remaining === 0 && !graded && <p role="status" className="alert alert--info">Reminder: 15 seconds have passed. Answers remain open.</p>}
         {unlocked && <QuestionPresentation gameId={gameId} question={question}
-          counter={`Question ${question.number} / ${run.questionCount}${currentTurnTeam ? ` · ${teamName(currentTurnTeam.team)}` : ''}`}
+          counter={`Question ${run.questionIndex + 1} / ${run.questionCount}${currentTurnTeam ? ` · ${teamName(currentTurnTeam.team)}` : ''}`}
           seconds={hasTimer ? remaining : undefined} />}
 
 
@@ -475,7 +491,7 @@ export function TeamRunPanel({
                           <select
                             value={answers[entry.team] ?? ''}
                             aria-label={`${teamName(entry.team)} answer`}
-                            disabled={!canControl || answerOwnerId !== entry.team || out || graded || busy || (hasTimer && remaining === 0)}
+                            disabled={!canControl || answerOwnerId !== entry.team || out || graded || busy || timerExpired}
                             onChange={(event) => setAnswers((current) => ({ ...current, [entry.team]: event.target.value }))}
                           >
                             <option value="">{isAnswering ? 'Choose an answer' : 'Waiting for this team'}</option>
@@ -488,7 +504,7 @@ export function TeamRunPanel({
                             maxLength={80}
                             aria-label={`${teamName(entry.team)} answer`}
                             placeholder={isAnswering ? 'Type the answer' : result ? 'Answered this question' : "Waiting for this team's turn"}
-                            disabled={!canControl || answerOwnerId !== entry.team || out || graded || busy || (hasTimer && remaining === 0)}
+                            disabled={!canControl || answerOwnerId !== entry.team || out || graded || busy || timerExpired}
                             onChange={(event) => setAnswers((current) => ({ ...current, [entry.team]: event.target.value }))}
                           />
                         )}
@@ -546,11 +562,13 @@ export function TeamRunPanel({
       <h3 className="run-panel__title">Play this challenge with teams</h3>
       <p className="muted">
         {matching
-          ? 'Choose the participating teams. Roulette draws their matching order. A mismatch or a 20-second matching timeout moves to the next team. Match a pair, then answer yourself or give the question to another team. Each answering team has 15 seconds and two attempts.'
-          : 'Choose the participating teams. One team answers at a time. A wrong answer or timeout gives the next team in the roulette order a chance to answer the same question.'}
+          ? 'Choose the participating teams. Turn Order controls the active team. A mismatch or a 20-second matching timeout moves to the next team. Match a pair, then answer yourself or give the question to another team. Each answering team has 15 seconds and two attempts.'
+          : 'Choose the participating teams. One team answers at a time. Turn Order controls the active team. A wrong answer gives the next team a chance. The 15-second timer is a reminder only.'}
         {' '}Each team's score is saved straight to the challenge scoreboard.
       </p>
 
+      <ChallengeTurnOrder />
+      <QuestionPicker questions={questions} selected={questionIds} onChange={setQuestionIds} />
       <fieldset className="run-panel__teams">
         <legend>Teams taking turns in this challenge</legend>
         {teams.length === 0 && <p className="muted">Create a team first.</p>}
@@ -566,18 +584,17 @@ export function TeamRunPanel({
           </label>
         ))}
         <p className="muted">
-          Up to {MAX_ENTRIES_PER_CHALLENGE} teams can be scored. Starting the run randomly draws their roulette turn order.
+          Up to {MAX_ENTRIES_PER_CHALLENGE} teams can be scored. The turn order above determines who plays first.
         </p>
       </fieldset>
 
       {error && <p className="alert alert--error">{error}</p>}
 
       <div className="run-panel__actions">
-        <button type="button" disabled={chosen.length === 0} onClick={begin}>
+        <button type="button" disabled={chosen.length === 0 || questionIds.length === 0} onClick={begin}>
           Start team run{chosen.length > 0 ? ` (${chosen.length})` : ''}
         </button>
       </div>
-      {showSolo && <p className="muted">Or play solo below and record the score afterwards.</p>}
     </div>
   )
 }

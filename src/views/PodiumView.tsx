@@ -25,7 +25,7 @@ export function PodiumView({admin=false}:{admin?:boolean}) {
   return <section className={admin?'view podium-admin':'podium-public'}>
     {admin&&<><header className="view__header"><h2>Podium</h2><p className="view__hint">Top three teams by GP, then CP. Equal totals share a rank.</p></header><div className="admin-toolbar">{prizes.map((prize,index)=><label className="field" key={index}><span>Prize position {index+1} (Rp)</span><input type="number" min="0" inputMode="numeric" value={prize} onChange={event=>savePrize(index,event.target.value)}/></label>)}</div></>}
     {(error||teamError)&&<p className="alert alert--error">{error??teamError}</p>}
-    <section className="podium-stage" aria-label="Podium ranked by GP"><img className="podium-art" src="/ui/match-card/arena.png" alt="Fantasy arena for the Fight the Dragon podium"/><h1 className="sr-only">Podium</h1>
+    <section className="podium-stage summary-stage" aria-label="Podium ranked by GP"><h1 className="summary-stage__title">Podium</h1>
       <GameCharacters className="podium-characters" />
       {[1,2,3].map((slot) => <div key={slot} className={`podium-plinth podium-plinth--${slot}`} aria-hidden="true"><i /><b /><em /></div>)}
       {[0,1,2].map(slot=>{

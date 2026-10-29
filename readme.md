@@ -41,11 +41,21 @@ dragon. The opponent **Gilgamesh** now has silver/navy armor, cyan crystal horns
 and violet wings. Current character PNGs are in `public/characters/`; identities
 are defined in `src/data/characters.ts`. Gilgamesh appears in the header,
 presentation introduction, attack scene and attack-board header. Jaw of Risk
-retains its specialized mouth/teeth animation and hit geometry as playable assets.
+uses a new silver/navy Gilgamesh jaw illustration, a matching closed-jaw bite frame (`public/ui/jaw-of-risk/gilgamesh-bite.png`), CSS snap animation and the existing fourteen-tooth hit geometry.
 
 The logo is `public/fight-the-dragon-logo.png`. Character images were created
 with the built-in image-generation tool; exact prompts are in
 [public/characters/prompts.json](./public/characters/prompts.json).
+
+Each challenge offers a question picker with a maximum of 10 questions (the first
+10 are selected by default). The host can choose 1–10 questions from the bank.
+Image Decode runs keep the selected question IDs in shared run state, while the
+other Q&A screens synchronize the selection and question position with the public
+screen. Submit a typed answer or selected option for automatic grading; manual
+Right/Wrong buttons and solo play are removed. Each workbook question scores once
+per answering team. Turn Order controls appear inside each challenge and the
+standalone Turn Order page remains available. Main Presentation is accessible by
+its route but is no longer listed in the admin menu.
 
 Main Presentation consists of six native scenes and a seventh live scoreboard.
 The opening, goals, GP rules, Gilgamesh introduction, Image Decode introduction
@@ -61,7 +71,7 @@ Selection synchronizes to the shared public display and survives reload.
    cannot be deleted; teams can be deactivated and reactivated manually.
 2. Open **Turn Order**. **Shuffle Order** changes the order; **Reset order** restores
    Kuning, Merah, Biru, Pink, Hijau. Both choose the first team. Clicking a team
-   changes **Your Turn** without reshuffling. Timer and Flipping Connect share it.
+   changes **Your Turn** without reshuffling. All challenges follow this active team. Image Decode starts in the saved order.
 3. Open **Challenges** and choose **Play**. Record host verdicts or enter/correct
    raw scores on **Scoreboard**. Each challenge has at most five team entries.
 4. **Claim Rewards** opens the reward board and draws cards once after all five
@@ -88,14 +98,14 @@ Selection synchronizes to the shared public display and survives reload.
 
 | Challenge | Controls and timing |
 | --- | --- |
-| Image Decode | Eleven banking-term clues; 15 seconds per question; Right Answer +10, Wrong Answer or timeout −10. A passed question affects only the answering team. |
-| Flipping Connect | Right Answer +10 unlocks a fresh board with a 5-second preview and 20-second matching attempt. Each distinct matched pair earns +5. Wrong Answer −10 grants no matching attempt; mismatches/timeouts deduct nothing. Changing teams ends the current bonus attempt. |
+| Image Decode | 69 workbook emoji clues. The 15-second timer is a reminder; answers stay open and expiry never changes scores. Correct +10, wrong -10. |
+| Flipping Connect | 71 workbook quiz questions. Right Answer +10 unlocks a board with a 5-second preview and no response deadline. Each distinct matched pair earns +5. Wrong Answer -10 grants no matching attempt. Changing teams ends the current bonus attempt. |
 | Jaw of Risk | Right Answer +10 assigns a selected active opponent; Wrong Answer −10 assigns the answering team. The assigned team must press two teeth. Each bite deducts 5 more raw score; safe presses add no penalty. |
 
 Scores range from −999 to 999. Host verdicts, matched pairs and tooth presses
 persist with duplicate-submission protection. Pending tooth assignments survive
 reload. A first-press bite does not waive the second press; wait for reopening.
-Only admin scores or presses teeth; public displays mirror the saved state.
+The host records verdicts and configures biting teeth. Both host and public screens can press teeth after a verdict unlocks them; shared locks and persisted press counts prevent duplicate penalties.
 
 Raw-score changes rerank every team in the challenge and adjust CP/GP rewards
 without replaying combat. The scoreboard lists all teams alphabetically until
@@ -136,6 +146,10 @@ Fortune awards a card rather than GP. Heal/Thief/Reverse/Unity reveal effects ar
 not repeated by the attack. Completed choices and effects remain historical.
 **Show Card Reveal** returns to played-card history after the attack.
 
+## Admin workspace
+
+The admin uses a compact character header, grouped sidebar navigation and a quiet light background. On phones, navigation becomes a horizontally scrollable row. The Teams page shows total/active/inactive counts, keeps GP rules in expandable help, and separates adding a team from filtering the list. Team colours and gameplay controls keep their existing meaning. Admin styling is isolated in `src/styles/admin.css`.
+
 ## Routes and public displays
 
 `:challengeId?` is optional. Old `/gigarisk` URLs and `guard-the-heart` storage
@@ -175,11 +189,13 @@ are no longer shipped merely as references.
 Retained artwork is used by active scoreboards, rewards, timer, matching cards,
 question clues, rank/GP icons or the Jaw of Risk toy. Dynamic card-face, tooth and
 hand paths are retained. Legacy False Hope art remains readable for old saved
-rank-five offers. The Image Decode PPTX is retained because **Deck** downloads it;
-this 30 MB download is excluded from offline precaching. Application art, sounds
-and the optimized bite WebP are precached. The app must be opened online once
+rank-five offers. The legacy Image Decode PPTX is excluded from offline precaching. Application art, sounds
+and the current Gilgamesh jaw artwork are precached. The app must be opened online once
 before offline use. Question content lives in `src/data/reference-question-bank.json`
-and `src/data/emoji-decode.json`; edit the canonical data directly.
+from the three current sheets in `Bank Soal Game 5.xlsx`. Import updates with `scripts/import-question-bank.py <workbook-path>` using Python with openpyxl. The importer preserves source rows, clues, answer keys, and educational explanations.
+
+The header theme switch saves a light/dark preference across reloads and windows.
+Dark is the default. Grouped navigation wraps on narrow screens without clipping.
 
 SQLite bytes live in IndexedDB (`guard-the-heart` / `sqlite` / `database`).
 localStorage holds tactical archives, runs, turns, timers, presentation state,
@@ -189,6 +205,8 @@ scores, cards, GP and historical attacks, including missing archived team IDs.
 
 For implementation details, see [blueprint.md](./blueprint.md).
 
+Public Flipping Connect cards are clickable during the unlocked matching window. Host and public moves share a lock and read the latest saved board before scoring; mismatches also close when only the public screen remains open. Team selection, verdicts and run controls remain host-only.
+
 ## Verification
 
 Verified on **2026-10-27 (WIB)**:
@@ -196,12 +214,13 @@ Verified on **2026-10-27 (WIB)**:
 | Check | Result |
 | --- | --- |
 | Unit/database suite | 285 passed across 26 files |
-| Browser regression coverage | All 75 scenarios verified: 74 passed in the full run; after restoring Kuning's identity tint, all 11 focused checks passed |
+| Browser regression coverage | All 77 scenarios verified: 76 passed in the full run; after correcting a new test assertion, all 20 focused checks passed on the final build |
 | TypeScript and production/PWA build | Passed through the fresh browser build-and-preview workflow |
 | ESLint | Passed |
-| Static asset references | 49 literal runtime paths checked; no missing assets |
+| Admin UI refresh | 11 focused browser checks passed; final viewport sweep passed at 1366, 1280, 768 and 390 px |
+| Static asset references | 29 literal runtime paths checked; no missing assets; both Gilgamesh jaw frames confirmed in the offline precache |
 | Markdown | Both tracked files checked for local links, anchors and balanced fences |
-| Visual review | Admin header, native slides, new Gilgamesh scene and before/after board reviewed |
+| Visual review | New Gilgamesh open/closed jaw frames, tooth alignment and public status/score spacing reviewed |
 
 
 Checks cover asset loading, readable contrast,

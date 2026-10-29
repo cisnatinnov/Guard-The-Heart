@@ -19,6 +19,7 @@ export interface TeamRun {
 }
 
 export interface ChallengeRun {
+  questionIds?: string[]
   runId?: string
   manualScoreOnly?: boolean
   manualTeamSelection?: boolean
@@ -293,7 +294,7 @@ export function questionWasClean(run: ChallengeRun): boolean {
 
 /** Matching progress is part of the shared run, including public spectators. */
 export function flipRunCard(run: ChallengeRun, cardId: string): ChallengeRun {
-  if (run.matchingOnly && (Date.now() < (run.matchingPreviewDeadline ?? 0) || Date.now() >= (run.matchingDeadline ?? Infinity))) return run
+  if (run.matchingOnly && (Date.now() < (run.matchingPreviewDeadline ?? 0))) return run
   if (!run.matchingBoard || run.questionResolved || isRunComplete(run) ||
       (run.matchingPhase !== undefined && run.matchingPhase !== 'matching') || isMatchingQuestionUnlocked(run) ||
       (!run.matchingOnly && run.turnDeadline !== undefined && Date.now() >= run.turnDeadline)) return run

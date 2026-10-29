@@ -1,21 +1,31 @@
+import { WorkbookQuiz } from './WorkbookQuiz'
 import { useChallengeAnswers } from '../../hooks/useChallengeAnswers'
 import { englishText } from '../../services/english'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import { CROCODILE_TEETH, createCrocodileRound, configureCrocodileTeeth, nextCrocodileRound, pressCrocodileTooth, type CrocodileRound } from '../../services/games/crocodile'
+import { CROCODILE_BITE_MS, CROCODILE_TEETH, createCrocodileRound, configureCrocodileTeeth, nextCrocodileRound, pressCrocodileTooth, type CrocodileRound } from '../../services/games/crocodile'
 import '../../styles/crocodile.css'
 import { useCrocodileHover } from './useCrocodileHover'
 import { useRunCountdown } from './useRunCountdown'
 import { ChallengeAnswerControls } from './ChallengeAnswerControls'
 import { settleChallengeTooth } from '../../services/challengeAnswers'
+import { withPlayLock } from '../../services/games/playLock'
 
 const ASSET_ROOT = '/ui/jaw-of-risk/'
-const BITE_ANIMATION = `${ASSET_ROOT}gigarisk-bite.webp`
+const DRAGON_JAW = `${ASSET_ROOT}gilgamesh-jaw.png`
+const DRAGON_BITE = `${ASSET_ROOT}gilgamesh-bite.png`
 const SOUNDS = {
   hover: 'CH-3_Sound_Belum Click.mp3',
   click: 'CH-3_Sound_Click.mp3',
   safe: 'CH-3_Sound_Click-Aman.mp3',
   bite: 'CH-3_Sound_Click-Tergigit.mp3',
 } as const
+
+function DragonBite({ reopenAt }: { reopenAt: number }) {
+  const [delay] = useState(() => Math.min(0, reopenAt - Date.now() - CROCODILE_BITE_MS))
+  return <div className="crocodile__bite" aria-hidden="true" style={{ animationDelay: `${delay}ms` }}>
+    <img className="crocodile__snap" src={DRAGON_BITE} alt="" draggable={false} />
+  </div>
+}
 
 function HandCursor({ tooth, x, y }: { tooth: number; x: number; y: number }) {
   const side = tooth < CROCODILE_TEETH / 2 ? 'Kiri' : 'Kanan'
@@ -47,7 +57,6 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   }
   const sounds = useRef<Partial<Record<keyof typeof SOUNDS, HTMLAudioElement>>>({})
   function playSound(name: keyof typeof SOUNDS) {
-    if (!canControl) return
     const audio = sounds.current[name]
     if (!audio) return
     if (name === 'click') {
@@ -99,20 +108,23 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   }, [round.reopenAt, storageKey])
 
   async function pressTooth(tooth: number, keyboard: boolean) {
-    if (!canControl || pressing.current || !answerState.pending) return
-    const current = read() ?? round
-    const next = pressCrocodileTooth(current, tooth)
-    if (next === current) return
+    if (pressing.current || !answerState.pending) return
+    const pending = answerState.pending
     pressing.current = true
     setScoreBusy(true)
     setScoreError(null)
     try {
-      const result = await settleChallengeTooth(answerState.pending.id, next.reopenAt !== null, answerState.pending.press_count)
-      if (!result.applied) { await answerState.refresh(); return }
-      setPointerHand(null)
-      if (keyboard) playSound('click')
-      playSound(next.reopenAt === null ? 'safe' : 'bite')
-      publish(next)
+      await withPlayLock(`jaw:${challengeId}`, async () => {
+        const current = read() ?? round
+        const next = pressCrocodileTooth(current, tooth)
+        if (next === current) return
+        const result = await settleChallengeTooth(pending.id, next.reopenAt !== null, pending.press_count)
+        if (!result.applied) return
+        setPointerHand(null)
+        if (keyboard) playSound('click')
+        playSound(next.reopenAt === null ? 'safe' : 'bite')
+        publish(next)
+      })
       await answerState.refresh()
     } catch (cause) { setScoreError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally { pressing.current = false; setScoreBusy(false) }
@@ -141,9 +153,10 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   const lastTooth = round.pressed.at(-1)
   const handRoot = lastTooth === undefined ? null : toothRoots[lastTooth]
   return <>
+    <WorkbookQuiz challengeId={challengeId} gameKey="jaws-of-risk" canControl={canControl} locked={!!answerState.pending} />
     <ChallengeAnswerControls challengeId={challengeId} jaw canControl={canControl} state={answerState} disabled={biting || scoreBusy} />
     {scoreError && <p className="alert alert--error">{scoreError}</p>}
-    {canControl && <fieldset className="crocodile-settings" disabled={biting}>
+    {canControl && <fieldset className="crocodile-settings" disabled={biting || scoreBusy}>
       <legend>Biting teeth</legend>
       <p>Choose one or more teeth, then apply to reset the mouth. Selected teeth keep biting in later rounds until changed.</p>
       <div className="crocodile-settings__teeth">{Array.from({ length: CROCODILE_TEETH }, (_, tooth) => <label key={tooth}>
@@ -156,13 +169,14 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       {configurationError && <p className="alert alert--error">{configurationError}</p>}
     </fieldset>}
     <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy" aria-busy={scoreBusy}>
-    <link rel="preload" as="image" href={BITE_ANIMATION} />
+    <link rel="preload" as="image" href={DRAGON_JAW} />
+    <link rel="preload" as="image" href={DRAGON_BITE} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kiri.png`} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kanan.png`} />
     {Object.entries(SOUNDS).map(([name, file]) => <audio key={name} data-sound={name} ref={(element) => { if (element) sounds.current[name as keyof typeof SOUNDS] = element }} src={`${ASSET_ROOT}Sound/${file}`} preload="auto" />)}
-    <p className="crocodile-stage__instruction">{canControl ? 'Press a tooth. Take a chance.' : 'Watch closely. The dragon may bite'}</p>
+    <p className="crocodile-stage__instruction">Press a tooth. Take a chance.</p>
     <div className="crocodile" aria-label={biting ? 'Crocodile bites!' : 'Crocodile mouth open'}>
-      <img className="crocodile__base-art" src="/ui/jaw-of-risk/CH-3_Background-Polos.png" alt="Gilgamesh head" />
+      <img className="crocodile__base-art" src={DRAGON_JAW} alt="Gilgamesh head" />
       <div className="crocodile__teeth" role="group" aria-label="Lower jaw teeth">
         {toothRoots.map(([x, y, scale], tooth) => {
           const pressed = !expiredBite && round.pressed.includes(tooth)
@@ -172,7 +186,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
             className={`crocodile__tooth${pressed ? ' is-pressed' : ''}${pointerHand?.tooth === tooth && !biting && !pressed ? ' is-hovered' : ''}`}
             style={{ left: `${x / 19.2}%`, top: `${y / 10.8}%`, width: `${(right - left) * scale / 19.2}%`, aspectRatio: `${right - left} / ${bottom - top}` }}
             aria-label={`Tooth ${tooth + 1}`} aria-pressed={pressed}
-            disabled={!canControl || biting || pressed || scoreBusy || !answerState.pending}
+            disabled={biting || pressed || scoreBusy || !answerState.pending}
             onPointerEnter={(event) => { moveHand(event, tooth); playSound('hover') }}
             onPointerMove={(event) => moveHand(event, tooth)}
             onPointerLeave={() => setPointerHand(null)}
@@ -185,7 +199,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
           </button>
         })}
       </div>
-      {biting && <img key={round.reopenAt} className="crocodile__bite" src={`${BITE_ANIMATION}#${round.reopenAt}`} alt="" aria-hidden="true" draggable={false} />}
+      {biting && round.reopenAt !== null && <DragonBite key={round.reopenAt} reopenAt={round.reopenAt} />}
       {pointerHand && !biting && !round.pressed.includes(pointerHand.tooth) && <HandCursor {...pointerHand} />}
       {!pointerHand && handRoot && lastTooth !== undefined && typeof round.lastPressedAt === 'number' && <PressHand key={round.lastPressedAt} tooth={lastTooth} x={handRoot[0]} y={handRoot[1] - 100} pressedAt={round.lastPressedAt} />}
     </div>

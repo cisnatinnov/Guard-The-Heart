@@ -34,20 +34,12 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
   useEffect(() => {
     const questionId = current?.id
     if (answered || !questionId) return
+    const deadline = Date.now() + remainingRef.current * 1000
     const timer = window.setInterval(() => {
       if (timerQuestionId.current !== questionId) return
-      if (remainingRef.current <= 1) {
-        if (checkedQuestionIds.current.has(questionId)) return
-        checkedQuestionIds.current.add(questionId)
-        remainingRef.current = 0
-        setRemaining(0)
-        setChecked((previous) => ({ ...previous, [questionId]: false }))
-        setTimedOutQuestions((previous) => ({ ...previous, [questionId]: true }))
-        return
-      }
-      remainingRef.current -= 1
+      remainingRef.current = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
       setRemaining(remainingRef.current)
-    }, 1000)
+    }, 250)
     return () => window.clearInterval(timer)
   }, [answered, current?.id])
 
@@ -119,6 +111,7 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
             counter={`Question ${currentIndex + 1} of ${questions.length}`}
             seconds={remaining} status={answered ? englishText(current.answer) : '—'} />
 
+          {remaining === 0 && !answered && <p role="status" className="alert alert--info">Reminder: 15 seconds have passed. You can still answer.</p>}
           <div className="row-form">
             <input
               type="text"
@@ -137,8 +130,8 @@ export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}
             <button type="button" disabled={answered || !(attempts[current?.id ?? ''] ?? '').trim()} onClick={() => submit(currentIndex)}>
               Decode
             </button>
-            <button type="button" disabled={answered || remaining === 0} onClick={() => submit(currentIndex, true)}>Right Answer (+10)</button>
-            <button type="button" disabled={answered || remaining === 0} onClick={() => submit(currentIndex, false)}>Wrong Answer (-10)</button>
+            <button type="button" disabled={answered} onClick={() => submit(currentIndex, true)}>Right Answer (+10)</button>
+            <button type="button" disabled={answered} onClick={() => submit(currentIndex, false)}>Wrong Answer (-10)</button>
           </div>
 
           {answered && (

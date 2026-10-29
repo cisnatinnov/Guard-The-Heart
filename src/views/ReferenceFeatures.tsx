@@ -32,6 +32,7 @@ export function TurnOrderView({ admin = false }: { admin?: boolean }) {
     {admin && <div className="admin-toolbar"><button className="ghost" onClick={reset}>Reset order</button><p>Click a team name to choose whose turn it is. Shuffle Order shuffles the play order.</p></div>}
     <section className="reference-stage turn-order-stage" aria-label="Turn Order"><img className="reference-art" src="/ui/visual-guide-slide-01.png" alt="" /><h1 className="english-turn-order-title">Turn Order</h1>
       <div className="turn-order-panel"><ol className="turn-order-list">{ordered.map((team, slot) => <li key={team.id} className={`turn-order-item turn-order-item--${slot+1}`} aria-current={timer.activeTeamId === team.id ? 'step' : undefined}><span className="turn-order-number">{slot + 1}</span><button type="button" aria-pressed={timer.activeTeamId === team.id} disabled={!admin} onClick={() => { if (admin) publishEventTimer({ ...readEventTimer(), activeTeamId: team.id }) }}><TeamPill name={team.name} colour={team.colour} /></button>{timer.activeTeamId === team.id && <span className="turn-order-turn">Your Turn</span>}</li>)}</ol></div>
+      {!ordered.length && <p className="reference-status" role="status">Waiting for active teams.</p>}
       <button className="turn-order-shuffle" disabled={!admin || !candidates.length} onClick={shuffle}>Shuffle Order</button>
     </section>
   </section>

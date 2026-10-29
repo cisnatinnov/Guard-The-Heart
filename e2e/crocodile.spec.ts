@@ -15,7 +15,7 @@ test('Jaw of Risk is only a toy and synchronizes bites and new teeth to the publ
   await expect(page.getByText('Start team run', { exact: false })).toHaveCount(0)
   await expect(page.getByRole('timer')).toHaveCount(0)
   await expect(publicPage.getByRole('img', { name:'Gilgamesh head' })).toBeVisible()
-  await expect(publicPage.getByRole('img', { name:'Gilgamesh head' })).toHaveAttribute('src', '/ui/jaw-of-risk/CH-3_Background-Polos.png')
+  await expect(publicPage.getByRole('img', { name:'Gilgamesh head' })).toHaveAttribute('src', '/ui/jaw-of-risk/gilgamesh-jaw.png')
   await page.evaluate((id) => {
     const key = `guard-the-heart-crocodile:${id}`
     localStorage.setItem(key, JSON.stringify({ bitingTooth: 0, pressed: [], reopenAt: null }))
@@ -32,7 +32,7 @@ test('Jaw of Risk is only a toy and synchronizes bites and new teeth to the publ
   await page.getByRole('button', { name: 'Tooth 1', exact: true }).click()
   await expect(publicPage.locator('.crocodile-stage__status')).toHaveText('CHOMP! Watch your fingers!')
   await expect(page.getByRole('button', { name: 'Tooth 3', exact: true })).toBeDisabled()
-  await expect(publicPage.locator('.crocodile__bite')).toHaveAttribute('src', /gigarisk-bite\.webp#/)
+  await expect(publicPage.locator('.crocodile__snap')).toHaveCount(1)
   await expect(publicPage.locator('.crocodile-stage__status')).toHaveText('CHOMP! Watch your fingers!')
   await expect(publicPage.locator('.crocodile-stage__status')).toHaveText('Which tooth will bite?', { timeout: 8000 })
   await prepareToothPress(page)
@@ -40,7 +40,7 @@ test('Jaw of Risk is only a toy and synchronizes bites and new teeth to the publ
   const nextTooth = await page.evaluate((id) => JSON.parse(localStorage.getItem(`guard-the-heart-crocodile:${id}`)!).bitingTooth as number, challengeId)
   expect(nextTooth).not.toBe(0)
   await publicPage.reload()
-  await expect(publicPage.getByRole('button', { name: 'Tooth 2', exact: true })).toBeDisabled()
+  await expect(publicPage.getByRole('button', { name: 'Tooth 2', exact: true })).toBeEnabled()
   await expect(publicPage.locator('.crocodile-stage__status')).toBeInViewport({ ratio: 1 })
   await publicPage.screenshot({ path: 'test-results/crocodile-public.png' })
 })
@@ -77,15 +77,20 @@ test('reference teeth align with the dragon and remain usable at desktop and pho
       await expect(stage).toBeVisible()
       await expect(stage.getByRole('heading')).toHaveCount(0)
       await expect(stage.locator('img[src="/Logo_Game-5.png"]')).toHaveCount(0)
-      if (view === 'public') await expect(stage.locator('.crocodile-stage__instruction')).toHaveText('Watch closely. The dragon may bite')
+      if (view === 'public') await expect(stage.locator('.crocodile-stage__instruction')).toHaveText('Press a tooth. Take a chance.')
       const stageBox = (await stage.boundingBox())!
       expect(stageBox.width / stageBox.height).toBeCloseTo(16 / 9, 1)
+      if (view === 'public') {
+        const status = (await stage.locator('.crocodile-stage__status').boundingBox())!
+        const scores = (await page.getByLabel('Challenge scoring').boundingBox())!
+        expect(status.y + status.height).toBeLessThanOrEqual(scores.y)
+      }
       for (let tooth = 1; tooth <= 14; tooth++) {
         const button = page.getByRole('button', { name:`Tooth ${tooth}`, exact:true })
         await expect(button).toBeVisible()
         await button.hover()
-        await expect(button).toHaveCSS('cursor', view === 'admin' ? 'none' : 'default')
-        if (view === 'public') await expect(button).toBeDisabled()
+        await expect(button).toHaveCSS('cursor', view === 'admin' ? 'none' : 'pointer')
+        if (view === 'public') await expect(button).toBeEnabled()
         const box = (await button.boundingBox())!
         expect(box.x).toBeGreaterThan(stageBox.x)
         expect(box.y + box.height).toBeLessThan(stageBox.y + stageBox.height)
@@ -152,7 +157,7 @@ test('supplied hand cursors and sounds respond to pointer and keyboard presses',
   await expect(page.locator('.crocodile__bite')).toHaveCount(0)
 })
 
-test('public teeth cannot change the round and mirror admin hover at different screen sizes', async ({ page, context }) => {
+test('public teeth wait for a host verdict and mirror admin hover at different screen sizes', async ({ page, context }) => {
   await page.goto(`/admin/play/jaws-of-risk/${challengeId}`)
   await page.setViewportSize({ width:1280, height:720 })
   const projector = await context.newPage({ viewport:{ width:960, height:540 } })
@@ -225,8 +230,9 @@ test('a second bite responds immediately and its optimized animation works offli
     await page.getByRole('button', { name: 'Tooth 1', exact: true }).click({ timeout: 1000 })
     for (const screen of [page, projector]) {
       await expect(screen.locator('.crocodile-stage__status')).toContainText('CHOMP!')
-      await expect(screen.locator('.crocodile__bite')).toHaveAttribute('src', /gigarisk-bite\.webp#/)
-      await expect.poll(() => screen.locator('.crocodile__bite').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1280)
+      await expect(screen.locator('.crocodile__snap')).toHaveCount(1)
+      await expect.poll(() => screen.locator('.crocodile__snap').first().evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(1000)
+      await expect(screen.locator('.crocodile__snap')).toHaveCSS('animation-name', 'gilgamesh-jaw-snap')
     }
     await page.clock.runFor(4440)
     for (const screen of [page, projector]) await expect(screen.locator('.crocodile-stage__status')).toHaveText('Which tooth will bite?')

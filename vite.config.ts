@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
               clientsClaim: true,
               skipWaiting: true,
               navigateFallback: 'index.html',
-              // The optimized bite WebP is included in the ordinary offline precache.
+              // Runtime artwork is included in the ordinary offline precache.
               maximumFileSizeToCacheInBytes: 16 * 1024 * 1024,
             },
       manifest: {

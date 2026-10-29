@@ -1,3 +1,4 @@
+import { submitQuizAnswer } from './support/challengeAnswer'
 import { test, expect } from '@playwright/test'
 
 test('Turn Order has its own window and drives Flipping Connect and Timer turns', async ({ page, context }) => {
@@ -37,7 +38,9 @@ test('Turn Order has its own window and drives Flipping Connect and Timer turns'
   // Switching during preview waits for it to finish, then starts the selected team's preview.
   await page.clock.runFor(5000)
   await expect(page.locator('.matching-only__header')).toContainText('Biru')
-  await expect(page.getByRole('timer', { name: 'Cards preview countdown' })).toContainText('5s')
+  await expect(page.getByRole('timer')).toHaveCount(0)
+  await submitQuizAnswer(page, true)
+  await expect(page.locator('.tile--revealed')).toHaveCount(20)
   await page.clock.runFor(5000)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: 'Kuning', exact: true }).click()
   await expect(order.locator('.turn-order-item[aria-current]')).toContainText('Kuning')

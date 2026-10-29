@@ -1,9 +1,9 @@
 :root {
-  --team-merah:#ff2424;
-  --team-biru:#43b3ff;
-  --team-kuning:#ffd039;
-  --team-hijau:#5aff7d;
-  --team-pink:#ff1585;
+  --team-merah:#dea0a4;
+  --team-biru:#94bbdc;
+  --team-kuning:#dcc784;
+  --team-hijau:#99c5ac;
+  --team-pink:#d5a5bf;
 }
 .team-colour--merah { --team-color:var(--team-merah); }
 .team-colour--biru { --team-color:var(--team-biru); }

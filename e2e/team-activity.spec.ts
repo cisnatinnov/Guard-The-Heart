@@ -38,7 +38,7 @@ test('inactive teams stay on both leaderboards as OUT and reactivate live', asyn
  const team = rows.filter({ hasText: 'Merah' })
  await expect(rows).toHaveCount(5)
  await expect(team.locator('.out-label')).toHaveText('OUT')
- await expect(team).toHaveCSS('opacity', '0.55')
+ await expect(team).toHaveCSS('opacity', '1')
  await publicPage.reload()
  await expect(publicTeam.locator('.out-label')).toHaveText('OUT')
  await page.goto('/admin')
@@ -76,7 +76,7 @@ test('three skipped attacks eliminate teams, preserve reveal history and persist
  await projector.reload()
  await expect(projector.locator('.giga-row.is-out')).toHaveCount(5)
  await page.goto('/admin/turn-order')
- await expect(page.getByRole('button',{name:'Shuffle Order',exact:true})).toBeDisabled()
+ await expect(page.locator('.turn-order-shuffle')).toBeDisabled()
  for (const route of ['/admin/leaderboard', '/leaderboard']) {
   await page.goto(route)
   await expect(page.locator('.ranking-table tbody tr.is-out')).toHaveCount(5)

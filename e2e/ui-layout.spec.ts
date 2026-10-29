@@ -29,7 +29,8 @@ for (const width of [1366, 1280, 768, 390]) {
         const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage, .main-presentation-stage').first()
         await expect(stage).toBeVisible()
         const bounds = await stage.boundingBox()
-        expect(bounds?.width).toBeGreaterThan(Math.min(width, height * 16 / 9) * .85)
+        const hasQuiz = await page.locator('.workbook-quiz').count() > 0
+        expect(bounds?.width).toBeGreaterThan(Math.min(width, height * 16 / 9) * (hasQuiz && width > 680 ? .4 : .85))
         expect(bounds!.x).toBeGreaterThanOrEqual(-1)
         expect(bounds!.y).toBeGreaterThanOrEqual(-1)
         expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width + 1)

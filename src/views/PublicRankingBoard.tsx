@@ -26,9 +26,8 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
     : [...rows, ...guardPoints.filter((team) => !rows.some((row) => row.team === team.team))
       .map((team) => ({ ...team, points: 0, rank: 0, pendingScore: true }))].sort(byName)
   const pages = Array.from({ length: Math.max(1, Math.ceil(displayRows.length / 5)) }, (_, index) => displayRows.slice(index * 5, index * 5 + 5))
-  return <div className="public-ranking-pages">{pages.map((page, index) => <section key={index} className={`public-ranking reference-ranking reference-ranking--${variant}`} aria-label={final ? 'Final leaderboard' : 'Score Board'}>
-    <img className="reference-art" src={final ? '/ui/visual-guide-slide-09.png' : '/ui/Page_Score_Board.jpeg'} alt="" />
-    <h1 className="sr-only">{final ? 'Leaderboard' : 'Scoreboard'}</h1>
+  return <div className="public-ranking-pages">{pages.map((page, index) => <section key={index} className={`public-ranking reference-ranking summary-stage reference-ranking--${variant}`} aria-label={final ? 'Final leaderboard' : 'Score Board'}>
+    <h1 className="summary-stage__title">{final ? 'Leaderboard' : 'Scoreboard'}</h1>
     {!final && <div className="ranking-challenge">{challenge ?? 'Scoreboard'}</div>}
     {final ? <div className="ranking-leader-panel"><table className="ranking-table" aria-label="Team leaderboard">
       <thead><tr>{['Rank','Team','Starting GP','Gilgamesh Attack','Card Effects','Final GP','Cards Left'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>

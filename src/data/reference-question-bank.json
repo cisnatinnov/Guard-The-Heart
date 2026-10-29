@@ -2,124 +2,969 @@
   "imageDecode": [
     {
       "number": 1,
-      "prompt": "Nasabah",
-      "answer": "Rekening",
-      "options": [],
-      "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 3,
-      "answerSlide": 4
-    },
-    {
-      "number": 2,
-      "prompt": "Dokumen",
-      "answer": "SLIK",
-      "options": [],
-      "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 5,
-      "answerSlide": 6
-    },
-    {
-      "number": 3,
-      "prompt": "Dana",
+      "prompt": "🧬+ ISIH + 🛏️ur",
       "answer": "Selisih Kas",
       "options": [],
       "kind": "decode",
-      "hint": "2 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 7,
-      "answerSlide": 8
+      "hint": "2 Kata, Perbedaan Uang",
+      "explanation": "Selisih kas terjadi ketika jumlah uang fisik berbeda dengan catatan transaksi. Jika terjadi selisih, segera hitung ulang, lakukan rekonsiliasi, dan laporkan ke PUK/Atasan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 3,
+      "location": "Kantor Pusat",
+      "division": "RIM"
+    },
+    {
+      "number": 2,
+      "prompt": "S + 👅",
+      "answer": "SLIK",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Laporan",
+      "explanation": "SLIK memuat informasi debitur yang digunakan dalam proses layanan perbankan. Pastikan data yang dilaporkan selalu akurat dan diperbarui sesuai ketentuan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 4,
+      "location": "Kantor Pusat",
+      "division": "COM"
+    },
+    {
+      "number": 3,
+      "prompt": "👑 + 4️⃣",
+      "answer": "raja ampat",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 kata, pulau",
+      "explanation": "Raja Ampat berada di Papua Barat Daya dan terkenal dengan kekayaan biota laut serta pemandangan bawah lautnya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 5,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
     },
     {
       "number": 4,
-      "prompt": "Kepercayaan",
-      "answer": "Amanah",
+      "prompt": "🧥(ini gambar jas) + 🌧️",
+      "answer": "Jas Hujan",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 9,
-      "answerSlide": 10
+      "hint": "2 Kata, Pelindung saat hujan",
+      "explanation": "Jas hujan membantu melindungi tubuh saat berkendara dalam kondisi hujan. Jangan lupa gunakan jas hujan dan helm agar perjalanan tetap aman.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 6,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 5,
-      "prompt": "Peraturan",
-      "answer": "Regulasi",
+      "prompt": "🆔 + 💳",
+      "answer": "ID Card",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 11,
-      "answerSlide": 12
+      "hint": "2 Kata, Identitas Karyawan",
+      "explanation": "ID Card digunakan sebagai identitas karyawan sekaligus kontrol akses ke area kerja. Gunakan sesuai ketentuan dan jangan dipinjamkan kepada orang lain.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 7,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 6,
-      "prompt": "Nasabah",
-      "answer": "Tunggakan",
+      "prompt": "🐟 (F = PH) + 💍(R) (bahasa Inggris)",
+      "answer": "Phishing",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 13,
-      "answerSlide": 14
+      "hint": "1 Kata, Ancaman Siber",
+      "explanation": "Phishing merupakan upaya penipuan untuk memperoleh data melalui pesan, tautan, atau situs palsu. Waspadai pesan mencurigakan dan segera laporkan jika menemukan indikasi phishing.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 8,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 7,
-      "prompt": "AI",
-      "answer": "Siber",
+      "prompt": "2️⃣ FA",
+      "answer": "2FA",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 15,
-      "answerSlide": 16
+      "hint": "1 Kata, Verifikasi Tambahan",
+      "explanation": "2FA menambahkan lapisan verifikasi untuk melindungi akun dari akses tidak sah. Aktifkan 2FA agar keamanan akunmu semakin kuat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 9,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 8,
-      "prompt": "Akun",
-      "answer": "Password",
+      "prompt": "🚪 + 👨 + T",
+      "answer": "Dormant",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 17,
-      "answerSlide": 18
+      "hint": "1 Kata, Status rekening",
+      "explanation": "Rekening dormant adalah rekening yang sudah tidak aktif dalam jangka waktu tertentu. Lakukan monitoring dan verifikasi sesuai prosedur Bank.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 10,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 9,
-      "prompt": "Informasi",
-      "answer": "Data Pribadi",
+      "prompt": "A + 👁️(T = N) + H",
+      "answer": "Amanah",
       "options": [],
       "kind": "decode",
-      "hint": "2 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 19,
-      "answerSlide": 20
+      "hint": "1 Kata, Sikap Terpercaya",
+      "explanation": "Amanah berarti menjaga kepercayaan dan menjalankan tanggung jawab dengan jujur. Terapkan sikap amanah dalam mengelola dana dan informasi nasabah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 11,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 10,
-      "prompt": "Prinsip",
-      "answer": "Syariah",
+      "prompt": "🥺❤️ + 🛞",
+      "answer": "kangen band",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 21,
-      "answerSlide": 22
+      "hint": "2 Kata, grup band indonesia",
+      "explanation": "Kangen Band merupakan grup musik Indonesia asal Lampung yang populer dengan lagu-lagu bernuansa pop Melayu.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 12,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
     },
     {
       "number": 11,
-      "prompt": "KDO",
-      "answer": "Lapor",
+      "prompt": "🐜(ini gambar semut) + I + S + ♨️",
+      "answer": "Anti Suap",
       "options": [],
       "kind": "decode",
-      "hint": "1 Kata",
-      "sourceDeck": "Image_Decode.pptx",
-      "sourceSlide": 23,
-      "answerSlide": 24
+      "hint": "2 Kata, Perilaku Menolak",
+      "explanation": "Anti suap berarti menolak pemberian atau imbalan yang dapat memengaruhi keputusan. Tolak dan segera laporkan setiap indikasi suap.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 13,
+      "location": "Kantor Pusat",
+      "division": "AFM"
+    },
+    {
+      "number": 12,
+      "prompt": "📒 + 👜 (T = K)",
+      "answer": "Buku Kas",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Catatan Keuangan",
+      "explanation": "Buku kas digunakan untuk mencatat setiap penerimaan dan pengeluaran uang. Pastikan pencatatan dilakukan dengan rapi dan akurat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 14,
+      "location": "Kantor Pusat",
+      "division": "RIM"
+    },
+    {
+      "number": 13,
+      "prompt": "Te + 🐲 +⚡️",
+      "answer": "Tenaga Listrik",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Sumber Energi",
+      "explanation": "Tenaga listrik digunakan untuk mendukung berbagai perangkat dan aktivitas kerja. Gunakan peralatan listrik dengan aman untuk mencegah kecelakaan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 15,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 14,
+      "prompt": "🐓 (O = A) + 🌐",
+      "answer": "JagaOnline",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Media pelaporan Fraud",
+      "explanation": "JagaOnline merupakan kanal pelaporan indikasi fraud di BTPNS. Jika menemukan dugaan fraud, segera laporkan melalui kanal yang tersedia.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 16,
+      "location": "Kantor Pusat",
+      "division": "AFM"
+    },
+    {
+      "number": 15,
+      "prompt": "🍚(gambar nasi) (I = A) + 🌊🏠 (ini gamabr air bah banjir)",
+      "answer": "Nasabah",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pengguna Layanan",
+      "explanation": "Nasabah adalah pihak yang menggunakan produk dan layanan Bank. Pastikan hak, identitas, dan data nasabah selalu terlindungi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 17,
+      "location": "Kantor Pusat",
+      "division": "COM"
+    },
+    {
+      "number": 16,
+      "prompt": "🌊 + 🎭(ini gambar topeng)",
+      "answer": "Deepfake",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Manipulasi Digital",
+      "explanation": "Deepfake adalah salah satu bentuk social engineering yang berbentuk manipulasi gambar, suara, atau video berbasis AI. ​",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 18,
+      "location": "Kantor Pusat",
+      "division": "CIS"
+    },
+    {
+      "number": 17,
+      "prompt": "💊",
+      "answer": "Tablet",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 kata, Perangkat Kerja",
+      "explanation": "Tablet digunakan untuk mendukung aktivitas operasional dan layanan. Jaga akses, data, dan kredensial yang tersimpan di dalamnya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 19,
+      "location": "Kantor Pusat",
+      "division": "RIM"
+    },
+    {
+      "number": 18,
+      "prompt": "👤(ilustrasi bayangan) + AI",
+      "answer": "Shadow AI",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Penggunaan AI",
+      "explanation": "Shadow AI adalah penggunaan layanan AI tanpa persetujuan resmi perusahaan. Hindari memasukkan data rahasia ke layanan AI yang tidak disetujui.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 20,
+      "location": "Kantor Pusat",
+      "division": "CIS"
+    },
+    {
+      "number": 19,
+      "prompt": "👎🏻(gambar K.O) + 😺",
+      "answer": "Komeng",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pelawak Indonesia",
+      "explanation": "Komeng dikenal sebagai komedian Indonesia yang sangat ikonik dengan jargonnya \"Uhuy!. Namanya kian melejit di awal tahun 2000-an saat memandu program komedi legendaris hingga saat ini.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 21,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 20,
+      "prompt": "Pe + 👸(ratu) + 🏃‍♂️‍➡️(run in english)",
+      "answer": "Peraturan",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Ketentuan",
+      "explanation": "Peraturan menjadi pedoman dalam menjalankan aktivitas kerja. Pahami dan patuhi aturan yang berlaku agar pekerjaan tetap sesuai ketentuan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 22,
+      "location": "Kantor Pusat",
+      "division": "COM"
+    },
+    {
+      "number": 21,
+      "prompt": "🪈(peluit) + 🌬️(blower)",
+      "answer": "Whistleblower",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pelapor Dugaan Fraud",
+      "explanation": "Whistleblower adalah pihak yang melaporkan dugaan pelanggaran dengan itikad baik. Jangan ragu melaporkan indikasi pelanggaran melalui kanal resmi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 23,
+      "location": "Kantor Pusat",
+      "division": "AFM"
+    },
+    {
+      "number": 22,
+      "prompt": "🍜 + 3️⃣+ Si",
+      "answer": "Mitigasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pengendalian",
+      "explanation": "Mitigasi dilakukan untuk mengurangi kemungkinan atau dampak suatu risiko. Terapkan langkah mitigasi yang sesuai agar risiko tetap terkendali.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 24,
+      "location": "Kantor Pusat",
+      "division": "RIM"
+    },
+    {
+      "number": 23,
+      "prompt": "✍️ (I → U)",
+      "answer": "tulus",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 kata, penyanyi indonesia",
+      "explanation": "Tulus adalah penyanyi dan penulis lagu Indonesia yang dikenal lewat lagu-lagu seperti Monokrom dan Hati-Hati di Jalan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 25,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 24,
+      "prompt": "⛏️(ini gambar paku) (P) + (SU)✉️",
+      "answer": "Akurat",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Tepat",
+      "explanation": "Informasi yang akurat sesuai dengan kondisi dan sumber pendukung yang tersedia. Selalu lakukan pengecekan ulang sebelum input atau pelaporan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 26,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 25,
+      "prompt": "🍰 + 🤏",
+      "answer": "Kue Cubit",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, makanan",
+      "explanation": "Kue cubit adalah jajanan populer Indonesia yang biasanya dibuat dalam ukuran kecil dan sering diberi berbagai topping.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 27,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 26,
+      "prompt": "🆘 + i + (gambar alis) + 🍚(gambar nasi) (N)",
+      "answer": "Sosialisasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Penyampaian Informasi",
+      "explanation": "Sosialisasi membantu menyampaikan aturan, kebijakan, atau prosedur agar lebih mudah dipahami. Ikuti sosialisasi dengan aktif agar dapat diterapkan dalam pekerjaan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 28,
+      "location": "",
+      "division": ""
+    },
+    {
+      "number": 27,
+      "prompt": "🆓(S) + FI + 👔 (ini gambar dasi) (d=k)",
+      "answer": "Gratifikasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pemberian terkait Jabatan",
+      "explanation": "Gratifikasi merupakan pemberian yang berkaitan dengan jabatan atau pelaksanaan tugas. Kenali ketentuannya dan laporkan sesuai aturan yang berlaku.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 29,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 28,
+      "prompt": "🏠⬇️ + 🧍🏻‍♀️↔️🧍🏻‍♂️ + R + 🚨⚠️",
+      "answer": "Insider Threat",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Ancaman",
+      "explanation": "Insider threat adalah ancaman dari pihak internal karena kelalaian atau penyalahgunaan akses. Gunakan akses sesuai kewenangan dan laporkan aktivitas mencurigakan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 30,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 29,
+      "prompt": "🛏️KA + A +🐊 U",
+      "answer": "Surabaya",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Nama Kota",
+      "explanation": "Surabaya merupakan ibu kota Provinsi Jawa Timur yang terletak di bagian timur Pulau Jawa, Indonesia. Kota ini dikenal dengan julukan Kota Pahlawan karena memiliki peran penting dalam perjuangan kemerdekaan Indonesia,",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 31,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 30,
+      "prompt": "RE + 🧂(ini gambar gula) + 🐌 (Put)",
+      "answer": "Regulasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Aturan",
+      "explanation": "Regulasi merupakan aturan yang menjadi acuan dalam menjalankan kegiatan. Selalu ikuti perubahan dan terapkan ketentuan terbaru dalam pekerjaan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 32,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 31,
+      "prompt": "🧚🏻(ini gambar peri) (P=V) + FI + 🪑(ini gambar kursi) (ur=a)",
+      "answer": "Verifikasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pemeriksaan",
+      "explanation": "Verifikasi dilakukan untuk memastikan informasi sesuai dengan sumber pendukungnya. Lakukan verifikasi dengan teliti sebelum data atau transaksi disetujui.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 33,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 32,
+      "prompt": "🫡 + 🛞(ini gambar ban) + 🦴(LANG)",
+      "answer": "SiapBantu",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Media Pelaporan",
+      "explanation": "SiapBantu merupakan media pelaporan insiden siber di Bank. Segera laporkan aktivitas mencurigakan agar dapat ditindaklanjuti dengan cepat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 34,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 33,
+      "prompt": "🐢+ 8️⃣(DEL)",
+      "answer": "Penyuapan",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pemberian memengaruhi",
+      "explanation": "Penyuapan terjadi ketika pemberian atau janji digunakan untuk memengaruhi suatu keputusan. Tolak dan segera laporkan setiap indikasi penyuapan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 35,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 34,
+      "prompt": "🐱(gambar karakter tom) + π",
+      "answer": "Tompi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 kata, penyanyi indonesia",
+      "explanation": "Selain dikenal sebagai penyanyi, Tompi juga berprofesi sebagai dokter. Dua profesi sekaligus!",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 36,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 35,
+      "prompt": "🗝️+ 🎃 (gambar labu) (bu) + YAR",
+      "answer": "Kunci Layar",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Pengamanan Perangkat",
+      "explanation": "Kunci layar membantu mencegah orang lain mengakses perangkat saat ditinggalkan. Biasakan mengunci layar agar data dan informasi kerja tetap aman.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 37,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 36,
+      "prompt": "💡(ini lampu) (M) (U = O) + 🚰(gambar keran) (ke)",
+      "answer": "Laporan",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Hasil Pencatatan",
+      "explanation": "Laporan menyajikan informasi yang digunakan untuk pemantauan dan pengambilan keputusan. Pastikan laporan disusun secara akurat dan dapat dipertanggungjawabkan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 38,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 37,
+      "prompt": "KE + 🚗💥 + AN",
+      "answer": "Kecelakaan",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Kejadian",
+      "explanation": "Kecelakaan dapat terjadi akibat kondisi tidak aman atau kelalaian saat bekerja. Tetap waspada dan patuhi prosedur keselamatan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 39,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 38,
+      "prompt": "👤 + 📊 (ini gambar tabel) (E = I) + I + 👜",
+      "answer": "Akuntabilitas",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Tanggung Jawab",
+      "explanation": "Akuntabilitas berarti mampu mempertanggungjawabkan keputusan dan pekerjaan yang dilakukan. Pastikan setiap tindakan didukung pencatatan yang jelas.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 40,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 39,
+      "prompt": "💵 + 🙂",
+      "answer": "Uang Muka",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Pembayaran Awal",
+      "explanation": "Uang muka merupakan pembayaran awal sebelum suatu transaksi diselesaikan. Pastikan nominal dan bukti pembayarannya dicatat dengan benar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 41,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 40,
+      "prompt": "⏳(ini gambar pasir) + 🗡️(gambar pedang) (bahasa inggris)",
+      "answer": "Password",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Rahasia",
+      "explanation": "Password digunakan untuk melindungi akses ke akun. Gunakan password yang kuat dan jangan membagikannya kepada orang lain.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 42,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 41,
+      "prompt": "❌ (ah) + DO +🧯(ini korek api) Ko + 🤕 P",
+      "answer": "Saldo Rekening",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Informasi Keuangan Nasabah",
+      "explanation": "Saldo rekening menunjukkan jumlah dana yang tercatat dalam rekening nasabah. Jaga kerahasiaannya dan akses hanya sesuai kewenangan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 43,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 42,
+      "prompt": "🛤️(gambar rel) (L) + PU + 🚕(gambar taksi) (K)",
+      "answer": "Reputasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Nama baik",
+      "explanation": "Reputasi mencerminkan kepercayaan terhadap seseorang maupun perusahaan. Jaga reputasi Bank dengan bekerja sesuai aturan dan menjaga integritas.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 44,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 43,
+      "prompt": "🍂⬇️ + ⏰",
+      "answer": "Jatuh Tempo",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Batas Waktu",
+      "explanation": "Jatuh tempo adalah batas waktu suatu kewajiban harus diselesaikan. Perhatikan tanggalnya agar tidak menimbulkan keterlambatan atau tunggakan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 45,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 44,
+      "prompt": "🅿️ + ✅ + An",
+      "answer": "Pelunasan",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Kewajiban",
+      "explanation": "Pelunasan menunjukkan bahwa seluruh kewajiban pembayaran telah diselesaikan. Pastikan status pelunasan dicatat dengan benar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 46,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 45,
+      "prompt": "KE + 🏠💦(ilustrasi dinding/atap bocor) + AN +  📁 (tampilakn excel data nasabah)",
+      "answer": "Kebocoran Data",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Risiko Keamanan Informasi",
+      "explanation": "Kebocoran data terjadi ketika informasi diakses atau tersebar kepada pihak yang tidak berwenang. Jaga akses dan segera laporkan setiap indikasi kebocoran.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 47,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 46,
+      "prompt": "⬆️ + 📌 👁️+ 📌",
+      "answer": "Upin Ipin",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Kembar botak serial animasi",
+      "explanation": "Upin dan Ipin adalah karakter saudara kembar dari serial animasi Malaysia yang pertama kali tayang pada 2007.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 48,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 47,
+      "prompt": "🧹 + 🖥️(ini ilustrasi meja) (bahasa inggris)",
+      "answer": "Clean Desk",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Perlindungan data",
+      "explanation": "Clean Desk membantu menjaga dokumen dan informasi penting tetap aman di area kerja. Simpan dokumen dengan rapi dan jangan biarkan informasi sensitif terbuka.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 49,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 48,
+      "prompt": "Be + 🛞 + 🧑🏻‍💻💼",
+      "answer": "Beban Kerja",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Tanggung Jawab Pekerjaan",
+      "explanation": "Beban kerja adalah tugas dan tanggung jawab yang perlu diselesaikan dalam periode tertentu. Atur prioritas dan komunikasikan kendala agar pekerjaan tetap terkendali.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 50,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 49,
+      "prompt": "🔵(blue) + 🦷(tooth)",
+      "answer": "Bluetooth",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Koneksi nirkabel jarak dekat",
+      "explanation": "Bluetooth digunakan untuk menghubungkan perangkat tanpa kabel dalam jarak dekat, misalnya HP dengan headset atau speaker.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 51,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 50,
+      "prompt": "🚿(ilustrasi mencuci) + 💵",
+      "answer": "Pencucian Uang",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Penyembunyian Dana",
+      "explanation": "Pencucian uang adalah upaya menyamarkan asal-usul dana hasil kejahatan. Waspadai transaksi mencurigakan dan segera laporkan sesuai prosedur.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 52,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 51,
+      "prompt": "🆔 + en + 🔔(NO) (ilustrasi notifikasi)",
+      "answer": "Identifikasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Mengenali Nasabah",
+      "explanation": "Identifikasi dilakukan untuk mengenali dan memastikan identitas nasabah. Pastikan prosesnya dilakukan dengan teliti berdasarkan informasi yang tersedia.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 53,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 52,
+      "prompt": "🧑‍💼 + 🔛 + AL",
+      "answer": "Profesional",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Sikap Kerja",
+      "explanation": "Sikap profesional terlihat dari cara menjalankan pekerjaan secara bertanggung jawab dan sesuai etika. Tunjukkan profesionalisme melalui ketelitian, kejujuran, dan kepatuhan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 54,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 53,
+      "prompt": "🍞 + 🔥",
+      "answer": "Roti Bakar",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Nama Makanan",
+      "explanation": "Siapa yang tidak mengenal roti bakar! salah satu makanan populer yang dibuat dengan memanggang roti hingga permukaannya kecokelatan dan menghasilkan aroma yang khas. Di Indonesia, roti bakar sering disajikan dengan berbagai pilihan isian dan menariknya, proses pemanggangan membuat tekstur roti menjadi lebih renyah di luar,",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 55,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 54,
+      "prompt": "🔪 + “AN” + 🏷️💵",
+      "answer": "Potongan Harga",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Pengurangan Harga",
+      "explanation": "Potongan harga adalah pengurangan dari harga awal sesuai ketentuan tertentu. Pastikan setiap potongan diberikan dan dicatat dengan jelas.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 56,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 55,
+      "prompt": "BU + 🔋 + KE +🫡 + AN",
+      "answer": "Budaya Kepatuhan",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Kebiasaan taat aturan",
+      "explanation": "Budaya kepatuhan berarti membiasakan diri memahami dan menjalankan aturan dalam pekerjaan. Jadikan kepatuhan sebagai bagian dari kebiasaan sehari-hari.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 57,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 56,
+      "prompt": "💵 + (ilustrasi masak) (A=U)",
+      "answer": "Kas Masuk",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Penerimaan Uang",
+      "explanation": "Kas masuk adalah penerimaan uang dari transaksi atau kegiatan operasional. Pastikan setiap penerimaan dicatat secara akurat dan didukung bukti transaksi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 58,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 57,
+      "prompt": "📸 + 💬",
+      "answer": "Media Sosial",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Platform",
+      "explanation": "Media sosial memudahkan kita berkomunikasi dan berbagi informasi. Gunakan secara bijak dan jangan membagikan informasi internal atau data nasabah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 59,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 58,
+      "prompt": "📌 + ⬆️ + 💵 💵 💵",
+      "answer": "Mark Up Anggaran",
+      "options": [],
+      "kind": "decode",
+      "hint": "3 Kata, penggelembungan uang",
+      "explanation": "Mark up anggaran adalah tindakan menaikkan nilai anggaran secara tidak wajar untuk memperoleh keuntungan tertentu. Pastikan anggaran disusun secara jujur dan sesuai kebutuhan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 60,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 59,
+      "prompt": "📥 + 🫖🍵 (gambar teh) H+ gri + 🎒",
+      "answer": "Integritas",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, jujur dalam tindakan",
+      "explanation": "Integritas berarti tetap jujur dan melakukan hal yang benar meskipun tidak ada yang mengawasi. Jaga integritas dengan menolak penyimpangan dan mematuhi aturan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 61,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 60,
+      "prompt": "👉😊(poke) + 📅🌙(Mon)",
+      "answer": "Pokemon",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pikachu berasal dari sini",
+      "explanation": "Pikachu adalah salah satu Pokémon paling ikonik dan dikenal sebagai Pokémon bertipe listrik.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 62,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 61,
+      "prompt": "🧴(lem) + ☝️J + 🔩(ilustrasi besi)",
+      "answer": "Lemari Besi",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Tempat menyimpan uang",
+      "explanation": "Lemari besi digunakan untuk menyimpan uang, dokumen penting, atau barang berharga dengan lebih aman. Pastikan aksesnya dibatasi dan mengikuti prosedur.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 63,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 62,
+      "prompt": "💻 + 🧚‍♀️E + ♾️ (simbol abadi) A",
+      "answer": "Laptop Pribadi",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Perangkat",
+      "explanation": "Laptop pribadi bukan merupakan perangkat resmi perusahaan. Hindari menggunakannya untuk menyimpan atau mengakses informasi rahasia tanpa persetujuan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 64,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 63,
+      "prompt": "🍯 HONEY (H → M) + 🧺🧼 (laundry)",
+      "answer": "Money Laundering",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Penyembunyikan asal dana",
+      "explanation": "Money laundering adalah tindakan menyamarkan asal-usul uang hasil kejahatan. Waspadai transaksi mencurigakan dan laporkan sesuai prosedur.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 65,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 64,
+      "prompt": "🩴 DAL + K + 🪮(ini gambar sisir) (SIR)",
+      "answer": "Sanksi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Dampak sebuah pelanggaran",
+      "explanation": "Sanksi merupakan konsekuensi atas tindakan yang melanggar aturan. Hindari pelanggaran dengan memahami dan menjalankan ketentuan yang berlaku.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 66,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 65,
+      "prompt": "u + 🐺 Igala +🪪(ilustrasi kartu nama)",
+      "answer": "Username",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, identitas login",
+      "explanation": "Username digunakan sebagai identitas saat mengakses sistem atau aplikasi. Jaga informasi login dan jangan meminjamkan akun kepada orang lain.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 67,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 66,
+      "prompt": "💥(bam) + 👩(bu)",
+      "answer": "Bambu",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Tanaman rumput",
+      "explanation": "Bambu sebenarnya termasuk keluarga rumput, bukan pohon, dan beberapa jenisnya dapat tumbuh sangat cepat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 68,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 67,
+      "prompt": "🧨(Korek) + 🍚 Na",
+      "answer": "Koreksi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, perbaikan ketika salah",
+      "explanation": "Koreksi dilakukan untuk memperbaiki kesalahan pada data atau laporan. Segera lakukan perbaikan agar informasi tetap akurat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 69,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 68,
+      "prompt": "🦧 Utan + ⬇️🏠",
+      "answer": "Orang Dalam",
+      "options": [],
+      "kind": "decode",
+      "hint": "2 Kata, Pihak internal",
+      "explanation": "Orang dalam adalah pihak internal yang memiliki akses atau kewenangan tertentu di perusahaan. Gunakan akses dengan bertanggung jawab dan laporkan setiap penyalahgunaan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 70,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 69,
+      "prompt": "✅ + 👔(dasi)",
+      "answer": "Validasi",
+      "options": [],
+      "kind": "decode",
+      "hint": "1 Kata, Pemeriksaan",
+      "explanation": "Validasi dilakukan untuk memastikan data atau informasi sudah benar dan sesuai sumber. Lakukan validasi sebelum data digunakan lebih lanjut.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Emoji Decode New (yang dipake)",
+      "sourceRow": 71,
+      "location": "Wisma MMS",
+      "division": "RIM"
     }
   ],
   "matchCard": [
@@ -134,11 +979,13 @@
         "Tekan Approve lalu ganti password besok"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 3,
-      "answerSlide": 4,
-      "answerLetter": "A"
+      "hint": "Password & 2FA",
+      "explanation": "notifikasi login yang tidak kamu lakukan harus ditolak agar akses tidak sah tidak disetujui, lalu segera dilaporkan sebagai aktivitas mencurigakan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 4,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 2,
@@ -151,15 +998,17 @@
         "Alamat pengirim dan tujuan tautan sebelum bertindak"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 5,
-      "answerSlide": 6,
-      "answerLetter": "D"
+      "hint": "Phishing",
+      "explanation": "alamat pengirim dan tujuan tautan perlu dicek lebih dulu karena phishing sering memakai identitas dan tautan yang menyerupai pihak resmi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 5,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 3,
-      "prompt": "Di Teams, akun yang mengaku CEO dengan kamera mati meminta kamu segera memproses pembayaran dan merahasiakannya dari tim. Apa langkah pertama yang paling tepat?",
+      "prompt": "Di Teams, akun yang mengaku CEO dengan kamera dimatikan meminta kamu segera memproses pembayaran dan merahasiakannya dari tim. Apa langkah pertama yang paling tepat?",
       "answer": "Verifikasi permintaan melalui kanal resmi lain sebelum melakukan apa pun",
       "options": [
         "Langsung memproses karena permintaan dari pimpinan",
@@ -168,11 +1017,13 @@
         "Meminta rekan lain yang memprosesnya"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 7,
-      "answerSlide": 8,
-      "answerLetter": "B"
+      "hint": "Social Engineering",
+      "explanation": "permintaan mendesak dari akun yang mengaku pimpinan harus diverifikasi melalui kanal resmi lain untuk memastikan identitas dan instruksinya benar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 6,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 4,
@@ -185,11 +1036,13 @@
         "Meminta nasabah mengirim foto KTP lewat chat pribadi"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 9,
-      "answerSlide": 10,
-      "answerLetter": "A"
+      "hint": "Patuhi Aturan",
+      "explanation": "formulir dan KTP perlu tersedia agar perubahan data nasabah dapat diverifikasi berdasarkan dokumen yang sah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 7,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 5,
@@ -202,11 +1055,13 @@
         "Identitas dan data nasabah sudah diverifikasi dan terkini"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 11,
-      "answerSlide": 12,
-      "answerLetter": "D"
+      "hint": "Patuhi Aturan",
+      "explanation": "sebelum rekening dormant diaktifkan kembali, identitas dan data nasabah perlu dipastikan benar serta sudah diperbarui.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 8,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 6,
@@ -219,11 +1074,13 @@
         "Menunggu sampai nasabah mengajukan komplain"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 13,
-      "answerSlide": 14,
-      "answerLetter": "B"
+      "hint": "Pelaporan SLIK ke OJK",
+      "explanation": "data SLIK yang salah harus dikoreksi dan pelaporannya diperbarui agar informasi yang diterima OJK kembali akurat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 9,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 7,
@@ -232,15 +1089,17 @@
       "options": [
         "Setelah kerugian benar-benar terjadi",
         "Menunggu akhir bulan agar dicatat sekaligus",
-        "Membalas chat dan meminta foto sebagai bukti",
+        "Tidak perlu dicatat jika nominalnya kecil",
         "Segera setelah diketahui, meskipun dampaknya belum terlihat"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 15,
-      "answerSlide": 16,
-      "answerLetter": "D"
+      "hint": "Incident Report",
+      "explanation": "kejadian berpotensi risiko sebaiknya segera dicatat di ORMS walaupun belum menimbulkan kerugian agar dapat dipantau dan dicegah terulang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 10,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 8,
@@ -253,11 +1112,13 @@
         "Keterlambatan pelaporan ke OJK"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 17,
-      "answerSlide": 18,
-      "answerLetter": "B"
+      "hint": "Selisih Kas & Rekonsiliasi",
+      "explanation": "uang yang bercampur dan transaksi yang belum dicatat membuat proses rekonsiliasi sulit sehingga selisih kas lebih mudah terjadi dan sulit ditelusuri.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 11,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 9,
@@ -270,11 +1131,13 @@
         "Risiko Reputasi"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 19,
-      "answerSlide": 20,
-      "answerLetter": "A"
+      "hint": "Kesalahan Input Data",
+      "explanation": "kesalahan input pada proses internal termasuk Risiko Operasional karena muncul dari kegagalan atau kesalahan dalam proses kerja.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 12,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 10,
@@ -287,11 +1150,13 @@
         "Menyimpannya dulu sampai akhir tahun"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 21,
-      "answerSlide": 22,
-      "answerLetter": "B"
+      "hint": "Gratifikasi & Conflict of Interest",
+      "explanation": "hampers dari vendor setelah kontrak tetap dapat menimbulkan konflik kepentingan, sehingga perlu ditolak atau dikembalikan dan dilaporkan sesuai ketentuan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 13,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 11,
@@ -304,11 +1169,13 @@
         "Mengubah salah satu nominal agar sama"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 23,
-      "answerSlide": 24,
-      "answerLetter": "C"
+      "hint": "Manipulasi Dokumen",
+      "explanation": "perbedaan nominal pada invoice perlu dihentikan dan diverifikasi lebih dulu agar pembayaran tidak dilakukan berdasarkan dokumen yang tidak valid.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 14,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 12,
@@ -321,11 +1188,13 @@
         "JagaOnline"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 25,
-      "answerSlide": 26,
-      "answerLetter": "D"
+      "hint": "Pelaporan Fraud/JagaOnline",
+      "explanation": "JagaOnline merupakan media resmi yang digunakan untuk melaporkan indikasi atau kejadian fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 15,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 13,
@@ -338,11 +1207,13 @@
         "Agar mendapat fasilitas kantin"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 27,
-      "answerSlide": 28,
-      "answerLetter": "A"
+      "hint": "Keamanan Fisik ID Card",
+      "explanation": "ID Card membantu mengenali identitas dan hak akses sehingga orang yang tidak berwenang lebih mudah terdeteksi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 16,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 14,
@@ -355,11 +1226,13 @@
         "Email pribadi rekan"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 29,
-      "answerSlide": 30,
-      "answerLetter": "A"
+      "hint": "Pelaporan Risiko Cyber",
+      "explanation": "SiapBantu digunakan untuk melaporkan insiden siber, termasuk gejala mencurigakan setelah mengklik tautan yang tidak dikenal.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 17,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 15,
@@ -367,16 +1240,18 @@
       "answer": "SOP yang sudah tidak berlaku bukan acuan resmi, sehingga berisiko tidak patuh",
       "options": [
         "SOP lama biasanya lebih rumit",
-        "SOP lama boleh dipakai sampai akhir tahun",
+        "SOP baru hanya berlaku untuk tim tertentu",
         "SOP yang sudah tidak berlaku bukan acuan resmi, sehingga berisiko tidak patuh",
-        "SOP baru hanya berlaku untuk tim tertentu"
+        "SOP lama boleh dipakai sampai akhir tahun"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 31,
-      "answerSlide": 32,
-      "answerLetter": "C"
+      "hint": "Update Regulasi & Kepatuhan",
+      "explanation": "SOP lama yang sudah tidak berlaku bukan lagi acuan resmi, sehingga penggunaannya dapat membuat proses tidak sesuai ketentuan terbaru.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 18,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 16,
@@ -389,11 +1264,13 @@
         "Risiko pasar"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 33,
-      "answerSlide": 34,
-      "answerLetter": "C"
+      "hint": "Indikasi Fraud",
+      "explanation": "menyetujui pembayaran ke vendor fiktif demi keuntungan pribadi merupakan kecurangan yang disengaja dan termasuk fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 19,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 17,
@@ -406,11 +1283,13 @@
         "Penyesuaian anggaran yang wajar"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 35,
-      "answerSlide": 36,
-      "answerLetter": "C"
+      "hint": "Indikasi Fraud & Bypass Control",
+      "explanation": "memecah pembelian untuk menghindari level persetujuan menunjukkan upaya menghindari kontrol dan dapat menjadi indikasi fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 20,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 18,
@@ -423,11 +1302,13 @@
         "Dokumen diproses tanpa otorisasi yang sah dan berpotensi menimbulkan keputusan yang tidak valid"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 37,
-      "answerSlide": 38,
-      "answerLetter": "D"
+      "hint": "Kepatuhan Proses & Otorisasi",
+      "explanation": "dokumen tanpa approval lengkap berarti belum memiliki otorisasi yang sah sehingga keputusan atau proses lanjutannya berisiko tidak valid.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 21,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 19,
@@ -440,11 +1321,13 @@
         "Bumi"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 39,
-      "answerSlide": 40,
-      "answerLetter": "B"
+      "hint": "",
+      "explanation": "Merkurius adalah planet dengan orbit paling dekat terhadap Matahari.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 22,
+      "location": "Kantor Pusat",
+      "division": "RANDOM (UMUM)"
     },
     {
       "number": 20,
@@ -453,18 +1336,77 @@
       "options": [
         "Utang",
         "Bayangan",
-        "Mars",
+        "Api",
         "Lubang"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 41,
-      "answerSlide": 42,
-      "answerLetter": "D"
+      "hint": "",
+      "explanation": "lubang akan semakin besar ketika semakin banyak bagian tanah atau material yang diambil darinya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 23,
+      "location": "Kantor Pusat",
+      "division": "RANDOM (UMUM)"
     },
     {
       "number": 21,
+      "prompt": "Air membeku pada suhu berapa derajat Celsius?",
+      "answer": "0°C",
+      "options": [
+        "0°C",
+        "10°C",
+        "50°C",
+        "100°C"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Pada tekanan normal, air berubah menjadi es pada suhu sekitar 0°C.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 24,
+      "location": "Kantor Pusat",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 22,
+      "prompt": "Hewan tercepat di darat adalah?",
+      "answer": "Cheetah",
+      "options": [
+        "Singa",
+        "Cheetah",
+        "Kuda",
+        "Harimau"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Cheetah mampu mencapai kecepatan hingga 110–112 km/jam dan dapat berakselerasi dari 0 hingga 100 km/jam dalam waktu sekitar 3 detik jarak pendek untuk mengejar mangsa.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 25,
+      "location": "Kantor Pusat",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 23,
+      "prompt": "Kalau ada 12 bulan dalam setahun, berapa bulan yang punya 28 hari?",
+      "answer": "12",
+      "options": [
+        "1",
+        "2",
+        "12",
+        "6"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Semua bulan punya minimal 28 hari.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 26,
+      "location": "Kantor Pusat",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 24,
       "prompt": "Nasabah prioritas memberi amplop kepada karyawan setelah proses layanan selesai dan berkata, “ini hanya sekadar tanda terima kasih.” Respon yang paling tepat adalah?",
       "answer": "Tolak secara sopan karena merupakan gratifikasi",
       "options": [
@@ -474,135 +1416,1025 @@
         "Terima lalu bagikan kepada tim"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Match-Card.pptx",
-      "sourceSlide": 43,
-      "answerSlide": 44,
-      "answerLetter": "C"
+      "hint": "Integritas",
+      "explanation": "amplop dari nasabah tetap termasuk gratifikasi yang dapat memengaruhi objektivitas, sehingga harus ditolak secara sopan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 27,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 25,
+      "prompt": "Jika kamu melihat seorang tamu masuk ke area backoffice tanpa mengisi buku tamu/menggunakan id card resmi. Risiko apa yang paling mungkin terjadi?",
+      "answer": "Risiko Cyber - Keamanan Fisik",
+      "options": [
+        "Risiko Cyber - Keamanan Fisik",
+        "Risiko Operasional",
+        "Risiko Kantor",
+        "Risiko Likuiditas"
+      ],
+      "kind": "choice",
+      "hint": "Kategori Risiko",
+      "explanation": "tamu tanpa pencatatan dan identitas resmi dapat mengakses area terbatas tanpa otorisasi sehingga menimbulkan risiko keamanan fisik.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 28,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 26,
+      "prompt": "Ada selisih kas namun dibiarkan karena dianggap nominalnya kecil dan tidak material, Siapa yang menjadi sumber risikonya?",
+      "answer": "Petugas yang menangani kas dan tidak menindaklanjuti adanya selisih",
+      "options": [
+        "Nasabah yang melakukan transaksi terakhir",
+        "Petugas yang menangani kas dan tidak menindaklanjuti adanya selisih",
+        "Sistem antrean cabang",
+        "Vendor penyedia perangkat"
+      ],
+      "kind": "choice",
+      "hint": "Selisih Kas & Rekonsiliasi",
+      "explanation": "sumber risikonya adalah petugas yang mengetahui selisih kas tetapi tidak menindaklanjutinya sehingga masalah dapat berlanjut atau membesar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 29,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 27,
+      "prompt": "Saat jam istirahat, dokumen nasabah masih terbuka dan terlihat di meja layanan dan kamu sebagai pegawai bank melihat hal tersebut. Apa tindakan pertama yang harus dilakukan?",
+      "answer": "Mengamankan dokumen",
+      "options": [
+        "Membalik dokumen agar tulisan tidak terlihat",
+        "Membiarkannya",
+        "Mengamankan dokumen",
+        "Memotretnya sebagai bukti"
+      ],
+      "kind": "choice",
+      "hint": "Perlindungan Data Pribadi",
+      "explanation": "dokumen nasabah harus segera diamankan agar tidak terlihat atau diakses oleh pihak yang tidak berkepentingan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 30,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 28,
+      "prompt": "Proses yang membantu Bank mengenali identitas, pekerjaan, dan profil nasabah disebut?",
+      "answer": "Customer Due Diligence (CDD/KYC)",
+      "options": [
+        "Business Continuity Plan",
+        "Customer Due Diligence (CDD/KYC)",
+        "Incident Report",
+        "Rekonsiliasi"
+      ],
+      "kind": "choice",
+      "hint": "CDD/KYC",
+      "explanation": "Customer Due Diligence (CDD) atau KYC digunakan untuk mengenali dan memahami identitas, pekerjaan, serta profil nasabah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 31,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 29,
+      "prompt": "Notifikasi login mencurigakan dari domain yang tidak terverifikasi, biasanya disebut apakah kejadian ini?",
+      "answer": "Phishing",
+      "options": [
+        "Tailgating",
+        "Phishing",
+        "Rekonsiliasi",
+        "Gratifikasi"
+      ],
+      "kind": "choice",
+      "hint": "Phishing",
+      "explanation": "phishing adalah upaya penipuan melalui pesan atau tautan palsu untuk mencuri informasi atau akses pengguna.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 32,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 30,
+      "prompt": "Seorang karyawan menerima hadiah dari pihak yang sedang mengikuti proses pemilihan vendor. Risiko yang paling tepat adalah?",
+      "answer": "Fraud / Conflict of Interest",
+      "options": [
+        "Risiko pembiayaan",
+        "Risiko teknologi",
+        "Fraud / Conflict of Interest",
+        "Risiko likuiditas"
+      ],
+      "kind": "choice",
+      "hint": "Gratifikasi & Conflict of Interest",
+      "explanation": "hadiah dari pihak yang sedang mengikuti pemilihan vendor dapat memengaruhi independensi keputusan dan menimbulkan conflict of interest.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 33,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 31,
+      "prompt": "Kamu ingin melakukan backup file kerja yang berisi data rahasia, dimana seharusnya disimpan?",
+      "answer": "Media resmi perusahaan",
+      "options": [
+        "Cloud pribadi",
+        "Chat pribadi",
+        "Media resmi perusahaan",
+        "Flashdisk pribadi"
+      ],
+      "kind": "choice",
+      "hint": "Perlindungan & Penyimpanan Informasi",
+      "explanation": "file rahasia harus dibackup di media resmi perusahaan agar kontrol keamanan dan akses tetap terjaga.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 34,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 32,
+      "prompt": "Dokumen yang berisi ringkasan informasi produk, manfaat, biaya, risiko, serta hak dan kewajiban nasabah adalah?",
+      "answer": "RIPLAY",
+      "options": [
+        "Formulir CDD",
+        "Laporan SLIK",
+        "RIPLAY",
+        "ORMS"
+      ],
+      "kind": "choice",
+      "hint": "Pengenalan Produk Bank",
+      "explanation": "RIPLAY merangkum informasi utama produk, termasuk manfaat, biaya, risiko, serta hak dan kewajiban nasabah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 35,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 33,
+      "prompt": "Data pekerjaan nasabah berubah tetapi data lama masih tersimpan. Mengapa data tersebut perlu segera diperbarui?",
+      "answer": "Agar profil nasabah dan pelaporan terkait tetap akurat",
+      "options": [
+        "Agar formulir terlihat lengkap",
+        "Agar nasabah tidak perlu datang lagi",
+        "Agar data lama otomatis terhapus",
+        "Agar profil nasabah dan pelaporan terkait tetap akurat"
+      ],
+      "kind": "choice",
+      "hint": "Akurasi Data Nasabah",
+      "explanation": "perubahan pekerjaan perlu segera diperbarui agar profil nasabah dan pelaporan yang menggunakan data tersebut tetap akurat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 36,
+      "location": "Kantor Cabang",
+      "division": "COM + RIM"
+    },
+    {
+      "number": 34,
+      "prompt": "Nasabah sudah setuju secara lisan terhadap jenis pembiayaan yang akan dipilih, Apakah informasi biaya boleh disingkat atau tidak dijelaskan lengkap?",
+      "answer": "Tidak, informasi biaya tetap harus dijelaskan secara transparan dan lengkap",
+      "options": [
+        "Boleh, karena nasabah sudah setuju",
+        "Boleh jika biaya dianggap kecil",
+        "Boleh untuk nasabah lama",
+        "Tidak, informasi biaya tetap harus dijelaskan secara transparan dan lengkap"
+      ],
+      "kind": "choice",
+      "hint": "RIPLAY & Transparansi Produk",
+      "explanation": "persetujuan lisan tidak menghapus kewajiban transparansi; biaya tetap harus dijelaskan lengkap agar nasabah memahami kewajibannya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 37,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 35,
+      "prompt": "Benda apa yang perlu dilakukan pengecekan pertama kali ketika mendapat kunjungan dari orang yang mengaku dari kantor pusat?",
+      "answer": "ID Card / identitas resmi",
+      "options": [
+        "Laptop yang dibawa",
+        "ID Card / identitas resmi",
+        "Tas kerja",
+        "Handphone"
+      ],
+      "kind": "choice",
+      "hint": "Keamanan Fisik ID Card",
+      "explanation": "ID Card atau identitas resmi perlu diperiksa untuk memastikan orang yang mengaku dari kantor pusat benar-benar pihak yang berwenang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 38,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 36,
+      "prompt": "Nasabah bertanya mengenai biaya sebelum menyetujui produk. Apa yang wajib dilakukan petugas?",
+      "answer": "Menjelaskan informasi dan biaya secara transparan sesuai ketentuan",
+      "options": [
+        "Meminta nasabah menyetujui produk terlebih dahulu",
+        "Menjelaskan hanya biaya utama",
+        "Menjelaskan informasi dan biaya secara transparan sesuai ketentuan",
+        "Meminta nasabah membaca sendiri setelah transaksi"
+      ],
+      "kind": "choice",
+      "hint": "RIPLAY & Transparansi Produk",
+      "explanation": "petugas wajib menjelaskan biaya secara transparan agar nasabah dapat mengambil keputusan berdasarkan informasi yang lengkap.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 39,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 37,
+      "prompt": "Petugas menemukan nama nasabah sama tetapi tanggal lahir berbeda antara sistem dan dokumen. Apa tindakan terbaik yang harus dilakukan?",
+      "answer": "Verifikasi perbedaan data sebelum proses dilanjutkan",
+      "options": [
+        "Verifikasi perbedaan data sebelum proses dilanjutkan",
+        "Gunakan data yang ada di sistem",
+        "Gunakan data pada dokumen tanpa pengecekan",
+        "Pilih tanggal lahir yang paling baru"
+      ],
+      "kind": "choice",
+      "hint": "Verifikasi Data/Dokumen",
+      "explanation": "perbedaan tanggal lahir harus diverifikasi sebelum proses dilanjutkan agar identitas dan data nasabah tidak salah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 40,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 38,
+      "prompt": "Nasabah memiliki transaksi yang jauh berbeda dari profil yang tercatat. Apa langkah yang paling tepat?",
+      "answer": "Melakukan penelaahan dan verifikasi lebih lanjut",
+      "options": [
+        "Langsung menutup rekening nasabah",
+        "Melakukan penelaahan dan verifikasi lebih lanjut",
+        "Menganggapnya normal karena nasabah lama",
+        "Mengubah profil nasabah agar sesuai dengan transaksi"
+      ],
+      "kind": "choice",
+      "hint": "Kepatuhan & Tata Kelola",
+      "explanation": "transaksi yang tidak sesuai profil nasabah perlu ditelaah dan diverifikasi lebih lanjut untuk memahami sumber serta kewajarannya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 41,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 39,
+      "prompt": "Terjadi insiden operasional di cabang yang perlu dicatat melalui media pelaporan risiko Bank. Media yang digunakan adalah?",
+      "answer": "ORMS",
+      "options": [
+        "SiapBantu",
+        "JagaOnline",
+        "ORMS",
+        "Email pribadi"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan Kejadian Risiko",
+      "explanation": "ORMS merupakan media pelaporan Bank untuk mencatat dan menindaklanjuti insiden risiko operasional.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 42,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 40,
+      "prompt": "Tanggal pada dokumen sengaja diubah agar terlihat sesuai target. Tindakan tersebut termasuk?",
+      "answer": "Manipulasi dokumen",
+      "options": [
+        "Rekonsiliasi dokumen",
+        "Koreksi administratif",
+        "Manipulasi dokumen",
+        "Pembaruan data"
+      ],
+      "kind": "choice",
+      "hint": "Manipulasi Dokumen",
+      "explanation": "mengubah tanggal dokumen agar terlihat sesuai target berarti mengubah fakta dan termasuk manipulasi dokumen.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 43,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 41,
+      "prompt": "Ada selisih kas dan petugas menutupnya dengan uang pribadi supaya terlihat balance. Apa masalah utamanya?",
+      "answer": "Selisih sebenarnya menjadi tersembunyi dan akar masalah tidak diketahui",
+      "options": [
+        "Tidak ada masalah selama kas kembali balance",
+        "Proses closing menjadi lebih cepat",
+        "Selisih sebenarnya menjadi tersembunyi dan akar masalah tidak diketahui",
+        "Jumlah kas menjadi lebih aman"
+      ],
+      "kind": "choice",
+      "hint": "Potensi Fraud",
+      "explanation": "menutup selisih dengan uang pribadi membuat kondisi sebenarnya tersembunyi sehingga penyebab selisih tidak dapat ditelusuri.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 44,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 42,
+      "prompt": "Aku punya kunci tapi tidak punya pintu, punya tombol tapi tidak bisa dibuka. Aku apa?",
+      "answer": "Piano",
+      "options": [
+        "Gembok",
+        "Piano",
+        "Brankas",
+        "Lemari"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Piano memiliki banyak kunci dan tombol, tetapi tidak memiliki pintu yang dapat dibuka.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 45,
+      "location": "Kantor Cabang",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 43,
+      "prompt": "Ibu kota dari Australia adalah?",
+      "answer": "Canberra",
+      "options": [
+        "Canberra",
+        "Sydney",
+        "Melbourne",
+        "Menara SMBC"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Canberra adalah ibu kota Australia, bukan Sydney atau Melbourne.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 46,
+      "location": "Kantor Cabang",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 44,
+      "prompt": "Ketika lomba lari kalau kamu menyalip pelari yang ada di posisi kedua, sekarang kamu ada di posisi?",
+      "answer": "Kedua",
+      "options": [
+        "Pertama",
+        "Keempat",
+        "Ketiga",
+        "Kedua"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Kamu cuma mengambil posisi orang yang barusan kamu salip jadi tetap berada di posisi kedua sedangkan posisi pertama masih ada di depanmu!",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 47,
+      "location": "Kantor Cabang",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 45,
+      "prompt": "Kamu punya 5 apel, lalu mengambil 2 apel. Jadi sekarang kamu punya berapa apel?",
+      "answer": "2",
+      "options": [
+        "3",
+        "2",
+        "5",
+        "7"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Yang kamu punya adalah apel yang kamu ambil. Jangan buru-buru menghitung sisa",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 48,
+      "location": "Kantor Cabang",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 46,
+      "prompt": "Teka-teki: Aku punya banyak lubang tapi tetap bisa menahan air. Siapakah aku?",
+      "answer": "Spons",
+      "options": [
+        "Saringan",
+        "Keranjang",
+        "Jaring",
+        "Spons"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 49,
+      "location": "Kantor Cabang",
+      "division": "RANDOM (UMUM)"
+    },
+    {
+      "number": 47,
+      "prompt": "Dokumen kerja yang sudah tidak diperlukan dipilah dan dimusnahkan sesuai ketentuan. Tindakan ini termasuk prinsip 5R yang mana?",
+      "answer": "Ringkas",
+      "options": [
+        "Ringkas",
+        "Rapi",
+        "Rawat",
+        "Rajin"
+      ],
+      "kind": "choice",
+      "hint": "Keamanan Fisik/5R",
+      "explanation": "menyingkirkan atau memusnahkan dokumen yang sudah tidak diperlukan termasuk Ringkas karena mengurangi barang yang tidak perlu.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 50,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 48,
+      "prompt": "Video, gambar, atau suara yang dimanipulasi menggunakan AI sehingga menyerupai orang asli disebut?",
+      "answer": "Deepfake",
+      "options": [
+        "Malware",
+        "Deepfake",
+        "Smishing",
+        "Ransomware"
+      ],
+      "kind": "choice",
+      "hint": "Social Engineering",
+      "explanation": "Deepfake adalah konten gambar, video, atau suara yang dimanipulasi dengan AI agar menyerupai orang asli.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 51,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 49,
+      "prompt": "Media yang digunakan untuk mencatat atau melaporkan insiden risiko operasional disebut?",
+      "answer": "ORMS",
+      "options": [
+        "SiapBantu",
+        "Jaga Online",
+        "ORMS",
+        "CDD"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan Kejadian Risiko",
+      "explanation": "ORMS digunakan sebagai media untuk mencatat atau melaporkan kejadian risiko operasional.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 52,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 50,
+      "prompt": "CO akan berkendara saat hujan menuju PRS. Persiapan yang paling tepat adalah?",
+      "answer": "Lihat cuaca, cek kendaraan, dan siapkan perlengkapan perjalanan seperti jas hujan",
+      "options": [
+        "Langsung berangkat karena jaraknya dekat",
+        "Lihat cuaca, cek kendaraan, dan siapkan perlengkapan perjalanan seperti jas hujan",
+        "Cukup membawa payung",
+        "Menunda pemeriksaan kendaraan sampai perjalanan selesai"
+      ],
+      "kind": "choice",
+      "hint": "Kecelakaan Kerja",
+      "explanation": "mengecek cuaca, kondisi kendaraan, dan perlengkapan perjalanan membantu mengurangi risiko keselamatan saat berkendara ke PRS.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 53,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 51,
+      "prompt": "CO melihat keterlambatan pembayaran nasabah mulai berulang, Apa yang harus dilakukan?",
+      "answer": "Lakukan tindak lanjut dan pemantauan sesuai ketentuan yang berlaku",
+      "options": [
+        "Tunggu sampai tunggakan menjadi besar",
+        "Abaikan karena nasabah sebelumnya lancar",
+        "Lakukan tindak lanjut dan pemantauan sesuai ketentuan yang berlaku",
+        "Ubah tanggal pembayaran agar terlihat tepat waktu"
+      ],
+      "kind": "choice",
+      "hint": "Nasabah Menunggak",
+      "explanation": "keterlambatan yang berulang perlu segera ditindaklanjuti dan dipantau agar risiko pembiayaan tidak semakin membesar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 54,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 52,
+      "prompt": "Ancaman keamanan yang berasal dari orang di dalam organisasi yang memiliki akses resmi disebut?",
+      "answer": "Insider Threat",
+      "options": [
+        "External Threat",
+        "Insider Threat",
+        "Smishing",
+        "Data Recovery"
+      ],
+      "kind": "choice",
+      "hint": "Insider Threat",
+      "explanation": "Insider Threat berasal dari orang dalam yang memiliki akses resmi tetapi dapat menyalahgunakan atau membahayakan akses tersebut.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 55,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 53,
+      "prompt": "Satu angka salah dimasukkan ke dalam laporan. Apa tindakan yang paling tepat sebelum laporan digunakan?",
+      "answer": "Verifikasi sumber data dan koreksi angka yang salah",
+      "options": [
+        "Biarkan jika perbedaannya kecil",
+        "Verifikasi sumber data dan koreksi angka yang salah",
+        "Sesuaikan angka lain agar total terlihat sama",
+        "Hapus seluruh laporan"
+      ],
+      "kind": "choice",
+      "hint": "Kesalahan Input/Verifikasi Data",
+      "explanation": "angka yang salah perlu diverifikasi ke sumber data dan dikoreksi agar laporan tidak digunakan dengan informasi yang keliru.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 56,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 54,
+      "prompt": "Seorang CO baru akan mulai bertugas di Wisma. Apa yang sebaiknya dilakukan terlebih dahulu agar memahami tugas dan ketentuan yang harus dijalankan?",
+      "answer": "Mempelajari SOP/Peraturan Internal yang berlaku dan mengikuti briefing atau arahan dari atasan",
+      "options": [
+        "Mempelajari SOP/Peraturan Internal yang berlaku dan mengikuti briefing atau arahan dari atasan",
+        "Mengikuti cara kerja CO yang paling senior tanpa melihat ketentuan",
+        "Langsung turun bertugas agar belajar dari pengalaman",
+        "Menunggu sampai menemukan kendala baru bertanya"
+      ],
+      "kind": "choice",
+      "hint": "Update Regulasi & Kepatuhan",
+      "explanation": "CO baru perlu mempelajari SOP dan arahan atasan agar memahami tugas serta ketentuan yang berlaku sebelum mulai bekerja.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 57,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 55,
+      "prompt": "Uang setoran nasabah dipakai sementara untuk kebutuhan pribadi. Risiko yang paling tepat adalah?",
+      "answer": "Fraud / penyalahgunaan dana nasabah",
+      "options": [
+        "Risiko Keamanan Siber",
+        "Fraud / penyalahgunaan dana nasabah",
+        "Risiko Pasar",
+        "Risiko Likuiditas"
+      ],
+      "kind": "choice",
+      "hint": "Penyalahgunaan Dana/Fraud",
+      "explanation": "menggunakan uang setoran nasabah untuk kepentingan pribadi merupakan penyalahgunaan dana dan termasuk indikasi fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 58,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 56,
+      "prompt": "CO mengetahui nominal transaksi yang diinput salah, lalu sengaja mengubah angka lain agar laporan terlihat sesuai. Tindakan tersebut termasuk?",
+      "answer": "Manipulasi data / fraud",
+      "options": [
+        "Rekonsiliasi",
+        "Pemutakhiran data",
+        "Manipulasi data / fraud",
+        "Verifikasi"
+      ],
+      "kind": "choice",
+      "hint": "Integritas & Manipulasi Data",
+      "explanation": "sengaja mengubah angka lain agar laporan terlihat sesuai berarti memanipulasi data dan termasuk tindakan fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 59,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 57,
+      "prompt": "CO akan keluar sebentar dari ruang penyimpanan uang kas wisma. Apa tindakan yang paling tepat?",
+      "answer": "Mengunci brankas dan ruangan, walaupun hanya keluar sebentar",
+      "options": [
+        "Membiarkan terbuka karena hanya sebentar",
+        "Menitipkan kunci kepada nasabah yang sedang menunggu",
+        "Menutup pintu saja tanpa dikunci",
+        "Mengunci brankas dan ruangan, walaupun hanya keluar sebentar"
+      ],
+      "kind": "choice",
+      "hint": "Pengamanan/Penyimpanan Uang",
+      "explanation": "Brankas dan ruangan harus tetap dikunci meski ditinggal sebentar agar uang kas tidak mudah diakses pihak yang tidak berwenang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 60,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 58,
+      "prompt": "Saat menerima setoran, CO mendapati satu lembar uang yang dicurigai palsu. Apa tindakan pertama yang paling tepat?",
+      "answer": "Memisahkannya dan segera melaporkan ke PUK",
+      "options": [
+        "Mencampurnya dengan uang lain agar tidak terlihat",
+        "Mengembalikannya ke nasabah tanpa pencatatan",
+        "Menyimpannya di jok motor",
+        "Memisahkannya dan segera melaporkan ke PUK"
+      ],
+      "kind": "choice",
+      "hint": "Uang Palsu",
+      "explanation": "uang yang dicurigai palsu perlu dipisahkan terlebih dahulu agar tidak tercampur, lalu segera dilaporkan kepada pihak yang berwenang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 61,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 59,
+      "prompt": "Sebelum berangkat ke PRS, CO selalu memakai helm dan mengecek rem motor. Tindakan ini termasuk upaya apa dalam pengelolaan risiko?",
+      "answer": "Mitigasi, yaitu mengurangi kemungkinan atau dampak risiko",
+      "options": [
+        "Menghindari seluruh risiko perjalanan",
+        "Mitigasi, yaitu mengurangi kemungkinan atau dampak risiko",
+        "Memindahkan risiko ke pihak lain",
+        "Mengabaikan risiko karena rute dekat"
+      ],
+      "kind": "choice",
+      "hint": "Kecelakaan Kerja",
+      "explanation": "memakai helm dan mengecek rem merupakan mitigasi karena tindakan tersebut mengurangi kemungkinan maupun dampak risiko perjalanan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 62,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 60,
+      "prompt": "Seorang nasabah menyampaikan keluhan kepada CO karena saldo tabungannya terlihat tidak sesuai. Apa tindakan yang paling tepat?",
+      "answer": "Menindaklanjuti sesuai prosedur dan mencatatnya sebagai keluhan nasabah",
+      "options": [
+        "Menjanjikan koreksi tanpa pengecekan terlebih dahulu",
+        "Menyarankan nasabah menyelesaikannya sendiri",
+        "Menindaklanjuti sesuai prosedur dan mencatatnya sebagai keluhan nasabah",
+        "Mengabaikan jika selisihnya kecil"
+      ],
+      "kind": "choice",
+      "hint": "Penanganan Keluhan dan Akurasi/Rekonsiliasi Data",
+      "explanation": "keluhan selisih saldo perlu dicatat dan ditindaklanjuti sesuai prosedur agar masalah dapat ditelusuri dan diselesaikan dengan benar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 63,
+      "location": "Wisma MMS",
+      "division": "COM + RIM"
+    },
+    {
+      "number": 61,
+      "prompt": "Saat menjelaskan produk kepada kelompok nasabah, CO perlu memastikan produk dan prosesnya tetap sesuai dengan dasar apa?",
+      "answer": "Prinsip syariah",
+      "options": [
+        "Target pencairan bulanan",
+        "Kebiasaan setempat",
+        "Preferensi nasabah",
+        "Prinsip syariah"
+      ],
+      "kind": "choice",
+      "hint": "Prinsip Syariah",
+      "explanation": "produk dan proses pembiayaan harus tetap mengikuti prinsip syariah sebagai dasar kepatuhan dalam layanan perbankan syariah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 64,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 62,
+      "prompt": "Beberapa CO belum memahami prosedur baru sehingga langkah kerja dilakukan dengan cara yang berbeda-beda. Kategori risiko yang paling tepat?",
+      "answer": "Risiko Kepatuhan",
+      "options": [
+        "Risiko Pasar",
+        "Risiko Likuiditas",
+        "Risiko Kepatuhan",
+        "Risiko Strategis"
+      ],
+      "kind": "choice",
+      "hint": "Update Regulasi & Kepatuhan",
+      "explanation": "prosedur baru yang tidak dipahami dapat menyebabkan pekerjaan tidak sesuai ketentuan sehingga termasuk Risiko Kepatuhan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 65,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 63,
+      "prompt": "CO menyimpan nomor telepon dan data pribadi nasabah di HP pribadi supaya mudah dihubungi. Apa yang paling tepat?",
+      "answer": "Menggunakan data nasabah hanya melalui perangkat dan sarana resmi",
+      "options": [
+        "Boleh, selama HP dikunci",
+        "Menggunakan data nasabah hanya melalui perangkat dan sarana resmi",
+        "Boleh, selama hanya dipakai untuk menghubungi nasabah",
+        "Boleh, kalau sudah memberi tahu sesama CO"
+      ],
+      "kind": "choice",
+      "hint": "PDP & Penggunaan Media/Perangkat Resmi",
+      "explanation": "data pribadi nasabah sebaiknya hanya digunakan melalui perangkat dan sarana resmi agar keamanan serta kontrol Bank tetap berlaku.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 66,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 64,
+      "prompt": "Seorang oknum di dalam organisasi sengaja berbuat curang demi keuntungan pribadi dan merugikan perusahaan. Tindakan ini disebut?",
+      "answer": "Fraud",
+      "options": [
+        "Kelalaian administrasi",
+        "Fraud",
+        "Kesalahan input",
+        "Risiko pasar"
+      ],
+      "kind": "choice",
+      "hint": "Indikasi Fraud",
+      "explanation": "kecurangan yang disengaja oleh orang dalam demi keuntungan pribadi dan merugikan perusahaan disebut fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 67,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 65,
+      "prompt": "CO mencurigai adanya indikasi fraud pada pekerjaan rekannya, tetapi belum memiliki bukti lengkap. Apa yang sebaiknya dilakukan?",
+      "answer": "Menyampaikan fakta atau indikasi melalui mekanisme pelaporan resmi tanpa perlu membuktikan sendiri",
+      "options": [
+        "Menunggu bukti lengkap sebelum bicara kepada siapa pun",
+        "Menegur dan menuduh rekan tersebut secara langsung",
+        "Membahasnya di grup chat antar-CO",
+        "Menyampaikan fakta atau indikasi melalui mekanisme pelaporan resmi tanpa perlu membuktikan sendiri"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan Fraud/JagaOnline",
+      "explanation": "indikasi fraud dapat disampaikan melalui mekanisme resmi berdasarkan fakta yang diketahui tanpa harus melakukan pembuktian sendiri.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 68,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 66,
+      "prompt": "Target pencairan CO bulan ini belum tercapai. Sikap yang paling sesuai dengan nilai integritas adalah?",
+      "answer": "Melaporkan data sesuai kondisi sebenarnya meskipun hasilnya belum sesuai harapan",
+      "options": [
+        "Melaporkan data sesuai kondisi sebenarnya meskipun hasilnya belum sesuai harapan",
+        "Menambah angka kunjungan agar target terlihat tercapai",
+        "Menunda pelaporan sampai target tercapai",
+        "Meminta rekan melaporkan kunjungannya sebagai tambahan"
+      ],
+      "kind": "choice",
+      "hint": "Integritas",
+      "explanation": "integritas berarti melaporkan kondisi sebenarnya meskipun target belum tercapai, bukan mengubah data agar hasil terlihat lebih baik.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 69,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 67,
+      "prompt": "Gunung tertinggi di dunia di atas permukaan laut adalah?",
+      "answer": "Everest",
+      "options": [
+        "Kilimanjaro",
+        "Fuji",
+        "Everest",
+        "Elbrus"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Everest adalah gunung tertinggi di dunia jika diukur dari permukaan laut, dengan ketinggian sekitar 8.849 meter.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 70,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 68,
+      "prompt": "Aku adalah ibu kota Malaysia. Siapakah aku?",
+      "answer": "Kuala Lumpur",
+      "options": [
+        "Johor Bahru",
+        "Kuala Lumpur",
+        "Penang",
+        "Malaka"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Kuala Lumpur adalah ibu kota Malaysia dan salah satu kota paling terkenal di negara tersebut. Ikon yang menjadi ciri khasnya adalah Menara Kembar Petronas.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 71,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 69,
+      "prompt": "Gas yang dibutuhkan manusia untuk bernapas adalah?",
+      "answer": "Oksigen",
+      "options": [
+        "Hidrogen",
+        "Karbon dioksida",
+        "Oksigen",
+        "Helium"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Oksigen dibutuhkan tubuh untuk membantu menghasilkan energi dari makanan dan menjaga organ tetap bekerja dengan baik. Jadi tanpa oksigen, tubuh tidak bisa berfungsi normal.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 72,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 70,
+      "prompt": "Apa yang naik ketika hujan turun?",
+      "answer": "Payung",
+      "options": [
+        "Payung",
+        "Air",
+        "Suhu",
+        "Awan"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 73,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 71,
+      "prompt": "Kalau hari ini Senin, 10 hari lagi hari apa?",
+      "answer": "Kamis",
+      "options": [
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "7 hari kembali ke Senin, tambah 3 hari jadi Kamis.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Quiz Flip Card (New)",
+      "sourceRow": 74,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
     }
   ],
   "jawsOfRisk": [
     {
       "number": 1,
-      "prompt": "Rekan mengunggah data nasabah ke platform AI gratis untuk membantu analisis. Risiko yang paling mungkin terjadi?",
-      "answer": "Informasi nasabah berada di luar kendali perusahaan",
+      "prompt": "Tim sedang mengejar deadline. Seorang staf menyalin data nasabah ke platform AI gratis untuk merangkum dokumen. Hasilnya cepat dan akurat. Apa keputusan yang paling tepat?",
+      "answer": "Hentikan penggunaan, amankan data, dan gunakan tools resmi sesuai ketentuan",
       "options": [
-        "Informasi nasabah berada di luar kendali perusahaan",
-        "Komputer menjadi lebih lambat",
-        "AI tidak dapat membaca data tersebut",
-        "Tidak ada risiko jika hasilnya akurat"
+        "Lanjutkan selama nama nasabah dihapus",
+        "Hentikan penggunaan, amankan data, dan gunakan tools resmi sesuai ketentuan",
+        "Lanjutkan karena hanya digunakan sekali",
+        "Minta staf lain mengecek hasil AI"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 3,
-      "answerSlide": 4,
-      "answerLetter": "A"
+      "hint": "Shadow AI",
+      "explanation": "Platform AI yang tidak resmi dapat membuat data Bank/nasabah berada di luar kendali. Gunakan hanya tools yang telah disetujui sesuai ketentuan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 3,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 2,
-      "prompt": "Tim menemukan kesalahan input data pada proses pembiayaan. Dampak yang paling umum terjadi?",
-      "answer": "Kesalahan analisis kelayakan nasabah",
+      "prompt": "Data penghasilan nasabah salah input Rp30 juta menjadi Rp300 juta dan baru diketahui sebelum keputusan pembiayaan. Apa tindakan paling tepat?",
+      "answer": "Koreksi data, verifikasi ke sumber, dan cek dampaknya pada analisis",
       "options": [
-        "Proses menjadi lebih cepat",
-        "Kesalahan analisis kelayakan nasabah",
-        "Biaya operasional berkurang",
-        "Kepuasan nasabah meningkat"
+        "Lanjutkan karena keputusan belum final",
+        "Koreksi data, verifikasi ke sumber, dan cek dampaknya pada analisis",
+        "Catat kesalahannya untuk diperbaiki setelah proses selesai",
+        "Ubah angkanya tanpa perlu dokumentasi"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 5,
-      "answerSlide": 6,
-      "answerLetter": "B"
+      "hint": "Kesalahan Input Data",
+      "explanation": "Salah input dapat mengubah hasil analisis. Data perlu dikoreksi dan diverifikasi kembali sebelum digunakan untuk mengambil keputusan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 4,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 3,
-      "prompt": "Rekan meminta tanggal pada dokumen dimundurkan agar terlihat sesuai target. Tindakan ini disebut?",
-      "answer": "Manipulasi dokumen",
+      "prompt": "Tim mengejar target akhir bulan. Seorang rekan mengusulkan memundurkan tanggal dokumen agar terlihat selesai tepat waktu. Apa respons paling tepat?",
+      "answer": "Tolak, gunakan tanggal sebenarnya, dan eskalasi jika ada tekanan",
       "options": [
-        "Pemutakhiran data",
-        "Rekonsiliasi",
-        "Manipulasi dokumen",
-        "Verifikasi dokumen"
+        "Tolak, gunakan tanggal sebenarnya, dan eskalasi jika ada tekanan",
+        "Setuju selama isi dokumen sudah benar",
+        "Ubah dulu lalu koreksi setelah target tercapai",
+        "Minta rekan lain yang mengubah tanggal"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 7,
-      "answerSlide": 8,
-      "answerLetter": "C"
+      "hint": "Manipulasi Dokumen",
+      "explanation": "Mengubah tanggal agar terlihat sesuai target termasuk manipulasi dokumen. Integritas berarti menjaga informasi tetap sesuai kondisi sebenarnya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 5,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 4,
-      "prompt": "Langkah pertama dalam proses Customer Due Diligence (CDD) adalah?",
-      "answer": "Memahami dan memverifikasi profil nasabah",
+      "prompt": "Tim akan memproses calon nasabah, tetapi data pekerjaan dan sumber penghasilannya belum lengkap. Karena dokumen lain sudah tersedia, proses ingin tetap dilanjutkan. Apa keputusan terbaik?",
+      "answer": "Lengkapi dan verifikasi data sesuai CDD sebelum proses dilanjutkan",
       "options": [
-        "Memantau transaksi secara berkala",
-        "Memahami dan memverifikasi profil nasabah",
-        "Menawarkan produk tambahan",
-        "Menutup rekening nasabah"
+        "Lanjutkan, data bisa dilengkapi nanti",
+        "Lengkapi dan verifikasi data sesuai CDD sebelum proses dilanjutkan",
+        "Gunakan informasi lisan tanpa verifikasi",
+        "Minta persetujuan informal agar proses tetap berjalan"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 9,
-      "answerSlide": 10,
-      "answerLetter": "B"
+      "hint": "Patuhi Aturan",
+      "explanation": "CDD membutuhkan informasi nasabah yang memadai dan terverifikasi. Data yang belum lengkap perlu diselesaikan sebelum proses dilanjutkan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 6,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 5,
-      "prompt": "Setelah berhenti beraktivitas karena menerima email mencurigakan, apa yang dilakukan sebelum melapor?",
-      "answer": "Menyimpan bukti seperti screenshot dan email asli",
+      "prompt": "Seorang staf menerima email mencurigakan, tidak mengklik apa pun, lalu langsung menghapus email karena merasa aman. Apa yang masih perlu diperbaiki?",
+      "answer": "Simpan bukti seperlunya dan laporkan melalui SiapBantu",
       "options": [
-        "Menghapus email agar tidak berbahaya",
-        "Menanyakan ke rekan apakah email itu berbahaya",
-        "Menyimpan bukti seperti screenshot dan email asli",
-        "Menunggu tanpa melakukan apa pun"
+        "Tidak ada, karena link belum diklik",
+        "Simpan bukti seperlunya dan laporkan melalui SiapBantu",
+        "Teruskan email ke rekan untuk memastikan",
+        "Tunggu sampai muncul dampak baru melapor"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 11,
-      "answerSlide": 12,
-      "answerLetter": "C"
+      "hint": "Incident Report",
+      "explanation": "Email mencurigakan tetap perlu dilaporkan meski belum diklik. Pelaporan membantu insiden ditindaklanjuti dan mencegah risiko yang sama ke pengguna lain.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 7,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
       "number": 6,
-      "prompt": "Karyawan menerima hadiah dari pihak yang sedang mengikuti proses pemilihan vendor. Kategori risikonya?",
-      "answer": "Fraud / Conflict of Interest",
+      "prompt": "KP menerima laporan selisih kas dari Wisma. Petugas langsung menyimpulkan “human error” tanpa mencocokkan catatan transaksi dan uang fisik. Apa yang seharusnya dilakukan?",
+      "answer": "Lakukan rekonsiliasi dan telusuri bukti sebelum menetapkan penyebab",
       "options": [
-        "Risiko Pasar",
-        "Risiko Likuiditas",
-        "Fraud / Conflict of Interest",
-        "Risiko Antrean"
+        "Terima kesimpulan karena selisih sudah diketahui",
+        "Tutup selisih agar laporan segera selesai",
+        "Tunggu sampai selisih terjadi lagi",
+        "Lakukan rekonsiliasi dan telusuri bukti sebelum menetapkan penyebab"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 13,
-      "answerSlide": 14,
-      "answerLetter": "C"
+      "hint": "Selisih Kas & Rekonsiliasi",
+      "explanation": "Penyebab risiko tidak boleh disimpulkan tanpa bukti. Rekonsiliasi membantu memastikan sumber selisih dan tindakan perbaikannya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 8,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
       "number": 7,
-      "prompt": "Tim menerima laporan selisih kas dari wisma. Penyebab yang paling tepat?",
-      "answer": "Salah hitung atau kurang teliti",
-      "options": [
-        "Lupa mengisi daya tablet",
-        "Salah hitung atau kurang teliti",
-        "Cuaca yang berubah-ubah",
-        "Jumlah nasabah yang sedikit"
-      ],
-      "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 15,
-      "answerSlide": 16,
-      "answerLetter": "B"
-    },
-    {
-      "number": 8,
       "prompt": "Karyawan menerima hadiah dari pihak yang sedang mengikuti proses pemilihan vendor. Kategori risikonya?",
       "answer": "Fraud / Conflict of Interest",
       "options": [
@@ -612,14 +2444,16 @@
         "Risiko Antrean"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 17,
-      "answerSlide": 18,
-      "answerLetter": "C"
+      "hint": "Integritas",
+      "explanation": "hadiah dari pihak yang sedang mengikuti pemilihan vendor dapat memengaruhi objektivitas dan menimbulkan conflict of interest.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 9,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
-      "number": 9,
+      "number": 8,
       "prompt": "Nasabah telah melunasi pembiayaan dan data pelunasan sudah terverifikasi. Status lunas di SLIK diperbarui paling lambat?",
       "answer": "3 hari kerja setelah tanggal pelunasan",
       "options": [
@@ -629,14 +2463,16 @@
         "Setelah nasabah menanyakannya"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 19,
-      "answerSlide": 20,
-      "answerLetter": "B"
+      "hint": "Pelaporan SLIK ke OJK",
+      "explanation": "status lunas harus diperbarui paling lambat 3 hari kerja agar informasi SLIK tetap akurat dan terkini.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 10,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
-      "number": 10,
+      "number": 9,
       "prompt": "Akses Core Banking termasuk klasifikasi informasi apa?",
       "answer": "Sangat Rahasia",
       "options": [
@@ -646,14 +2482,16 @@
         "Rahasia"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 21,
-      "answerSlide": 22,
-      "answerLetter": "C"
+      "hint": "Klasifikasi Informasi",
+      "explanation": "akses Core Banking memuat informasi dan fungsi yang sangat sensitif, sehingga diklasifikasikan sebagai Sangat Rahasia.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 11,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
-      "number": 11,
+      "number": 10,
       "prompt": "Tambahan atas pokok pinjaman yang memberatkan secara tidak adil dan dilarang dalam prinsip syariah disebut?",
       "answer": "Riba",
       "options": [
@@ -663,14 +2501,16 @@
         "Riba"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 23,
-      "answerSlide": 24,
-      "answerLetter": "D"
+      "hint": "Patuhi Prinsip Syariah",
+      "explanation": "Riba adalah tambahan atas pokok yang memberatkan secara tidak adil dan dilarang dalam prinsip syariah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 12,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
-      "number": 12,
+      "number": 11,
       "prompt": "Gabungan beberapa kata acak yang mudah diingat tetapi sulit ditebak, dan disarankan untuk akun kerja, disebut?",
       "answer": "Passphrase",
       "options": [
@@ -680,14 +2520,16 @@
         "PIN"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 25,
-      "answerSlide": 26,
-      "answerLetter": "A"
+      "hint": "Password & Kredensial Akun",
+      "explanation": "Passphrase adalah gabungan beberapa kata yang relatif mudah diingat tetapi lebih sulit ditebak dibanding password sederhana.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 13,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
-      "number": 13,
+      "number": 12,
       "prompt": "Banyak petugas menganggap kunci stang sudah cukup untuk mengamankan KDO. Mengapa?",
       "answer": "Sudah terbiasa dan merasa itu standar",
       "options": [
@@ -697,14 +2539,16 @@
         "Sudah terbiasa dan merasa itu standar"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 27,
-      "answerSlide": 28,
-      "answerLetter": "D"
+      "hint": "Kehilangan KDO",
+      "explanation": "kebiasaan dapat membuat petugas menganggap pengamanan yang kurang memadai sebagai hal normal, padahal risikonya tetap ada.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 14,
+      "location": "Kantor Pusat",
+      "division": "RIM"
     },
     {
-      "number": 14,
+      "number": 13,
       "prompt": "Tindakan kecurangan yang sengaja dilakukan oknum di dalam organisasi demi keuntungan pribadi disebut?",
       "answer": "Fraud",
       "options": [
@@ -714,31 +2558,35 @@
         "Rekonsiliasi"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 29,
-      "answerSlide": 30,
-      "answerLetter": "B"
+      "hint": "Indikasi Fraud",
+      "explanation": "Fraud adalah kecurangan yang dilakukan dengan sengaja untuk memperoleh keuntungan pribadi atau merugikan organisasi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 15,
+      "location": "Kantor Pusat",
+      "division": "AFM"
+    },
+    {
+      "number": 14,
+      "prompt": "Tim menemukan dua versi ketentuan internal di folder bersama dan salah satunya sudah tidak berlaku. Deadline pekerjaan hari ini. Apa langkah paling tepat?",
+      "answer": "Pastikan versi terbaru yang masih berlaku sebelum melanjutkan proses",
+      "options": [
+        "Gunakan versi yang paling familiar",
+        "Pastikan versi terbaru yang masih berlaku sebelum melanjutkan proses",
+        "Gabungkan isi kedua dokumen",
+        "Gunakan versi lama dulu lalu revisi setelah deadline"
+      ],
+      "kind": "choice",
+      "hint": "Update Regulasi & Kepatuhan",
+      "explanation": "Pekerjaan harus mengacu pada ketentuan yang masih berlaku. Verifikasi versi dokumen mencegah proses berjalan dengan aturan yang sudah tidak sesuai.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 16,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 15,
-      "prompt": "Tim masih memakai ketentuan internal yang sudah tidak berlaku. Risiko yang dapat terjadi?",
-      "answer": "Pekerjaan tidak sesuai ketentuan dan berpotensi risiko lebih besar",
-      "options": [
-        "Pekerjaan tidak sesuai ketentuan dan berpotensi risiko lebih besar",
-        "Proses kerja menjadi lebih cepat",
-        "Risiko otomatis hilang",
-        "Tidak ada dampak apa pun"
-      ],
-      "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 31,
-      "answerSlide": 32,
-      "answerLetter": "A"
-    },
-    {
-      "number": 16,
       "prompt": "Sebelum mengirim email berisi informasi sensitif, apa yang perlu dilakukan?",
       "answer": "Memeriksa ulang daftar penerima",
       "options": [
@@ -748,14 +2596,16 @@
         "Menambah penerima tambahan sebagai tembusan"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 33,
-      "answerSlide": 34,
-      "answerLetter": "A"
+      "hint": "Perlindungan Data Pribadi",
+      "explanation": "daftar penerima harus diperiksa ulang agar informasi sensitif tidak terkirim kepada pihak yang tidak berwenang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 17,
+      "location": "Kantor Pusat",
+      "division": "CIS"
     },
     {
-      "number": 17,
+      "number": 16,
       "prompt": "Mengecek ulang data sebelum submit termasuk bagian dari?",
       "answer": "Mitigasi risiko salah input",
       "options": [
@@ -765,11 +2615,32 @@
         "Mitigasi risiko salah input"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 35,
-      "answerSlide": 36,
-      "answerLetter": "D"
+      "hint": "Kesalahan Input Data",
+      "explanation": "pengecekan ulang sebelum submit membantu mencegah atau mengurangi kemungkinan salah input, sehingga termasuk tindakan mitigasi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 18,
+      "location": "Kantor Pusat",
+      "division": "RIM"
+    },
+    {
+      "number": 17,
+      "prompt": "Vendor yang baru menyelesaikan proyek mengirim hampers “sekadar terima kasih” ke rumah staf. Staf merasa aman karena proyek sudah selesai. Apa yang sebaiknya dilakukan?",
+      "answer": "Jangan langsung menerima/manfaatkan dan ikuti mekanisme pelaporan gratifikasi",
+      "options": [
+        "Terima karena proyek sudah selesai",
+        "Terima jika nilainya kecil",
+        "Jangan langsung menerima/manfaatkan dan ikuti mekanisme pelaporan gratifikasi",
+        "Bagikan hampers ke seluruh tim"
+      ],
+      "kind": "choice",
+      "hint": "Gratifikasi & Conflict of Interest",
+      "explanation": "Pemberian tetap dapat menimbulkan konflik kepentingan walaupun diberikan setelah proses selesai. Ikuti ketentuan dan mekanisme pelaporan yang berlaku.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 19,
+      "location": "Kantor Pusat",
+      "division": "AFM"
     },
     {
       "number": 18,
@@ -782,11 +2653,13 @@
         "Agar pekerjaan konsisten dan risiko kesalahan berkurang"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 37,
-      "answerSlide": 38,
-      "answerLetter": "D"
+      "hint": "Update Regulasi & Kepatuhan",
+      "explanation": "SOP menjadi acuan kerja agar proses dilakukan secara konsisten dan risiko kesalahan dapat ditekan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 20,
+      "location": "Kantor Pusat",
+      "division": "COM"
     },
     {
       "number": 19,
@@ -799,11 +2672,13 @@
         "60"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 39,
-      "answerSlide": 40,
-      "answerLetter": "D"
+      "hint": "",
+      "explanation": "15 × 4 = 60, jadi jawaban yang benar adalah 60.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 21,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
     },
     {
       "number": 20,
@@ -811,16 +2686,949 @@
       "answer": "Budi",
       "options": [
         "Rabu",
-        "Budi",
         "Daffa",
-        "D. Ayah"
+        "Budi",
+        "Ayah"
       ],
       "kind": "choice",
-      "hint": "Choose the best answer.",
-      "sourceDeck": "Jaw-of-risk.pptx",
-      "sourceSlide": 41,
-      "answerSlide": 42,
-      "answerLetter": "B"
+      "hint": "",
+      "explanation": "nama anak ketiga sudah disebut di awal kalimat, yaitu Budi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 22,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 21,
+      "prompt": "Hewan apa yang dikenal tidur sambil berdiri?",
+      "answer": "Kuda",
+      "options": [
+        "Kucing",
+        "Kuda",
+        "Kelinci",
+        "Panda"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Kuda bisa tidur sambil berdiri karena memiliki sistem anatomi khusus bernama stay apparatus yang mengunci sendi-sendi di kaki mereka.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 23,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 22,
+      "prompt": "Kalau hari ini Rabu, dua hari setelah besok adalah hari?",
+      "answer": "Sabtu",
+      "options": [
+        "Kamis",
+        "Jumat",
+        "Sabtu",
+        "Minggu"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Besok Kamis, dua hari setelahnya berarti Sabtu.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 24,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 23,
+      "prompt": "Apa yang ada tepat di tengah kata “Jakarta”?",
+      "answer": "A",
+      "options": [
+        "K",
+        "A",
+        "R",
+        "T"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Huruf tengah di kata Jakarta adalah \"A\"",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 25,
+      "location": "Kantor Pusat",
+      "division": "RANDOM"
+    },
+    {
+      "number": 24,
+      "prompt": "Pemberian yang dapat memengaruhi objektivitas seseorang dalam mengambil keputusan disebut?",
+      "answer": "Gratifikasi",
+      "options": [
+        "Rekonsiliasi",
+        "Gratifikasi",
+        "Tailgating",
+        "Verifikasi"
+      ],
+      "kind": "choice",
+      "hint": "Integritas",
+      "explanation": "gratifikasi adalah pemberian yang dapat menimbulkan konflik kepentingan atau memengaruhi objektivitas penerimanya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 26,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 25,
+      "prompt": "Supervisor meminta petugas mengubah keterangan transaksi agar terlihat sesuai target, dengan alasan nominalnya tidak berubah. Apa tindakan paling tepat?",
+      "answer": "Tolak perubahan yang tidak sesuai fakta dan eskalasi sesuai mekanisme",
+      "options": [
+        "Ubah karena nominal transaksi tetap sama",
+        "Tolak perubahan yang tidak sesuai fakta dan eskalasi sesuai mekanisme",
+        "Ubah sementara lalu kembalikan setelah review",
+        "Minta rekan lain yang melakukan perubahan"
+      ],
+      "kind": "choice",
+      "hint": "Integritas & Manipulasi Data",
+      "explanation": "Keterangan transaksi harus mencerminkan kondisi sebenarnya. Mengubah data demi target tetap merupakan manipulasi dan bertentangan dengan integritas.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 27,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 26,
+      "prompt": "Perlindungan tambahan yang biasa digunakan untuk mengamankan akun kerja adalah?",
+      "answer": "Multi-Factor Authentication (MFA)",
+      "options": [
+        "Password",
+        "Social Engineering",
+        "Multi-Factor Authentication (MFA)",
+        "Informasi Rahasia"
+      ],
+      "kind": "choice",
+      "hint": "MFA",
+      "explanation": "MFA menambah lapisan verifikasi selain password, sehingga akun lebih sulit diakses oleh pihak yang tidak berwenang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 28,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 27,
+      "prompt": "Petugas menemukan dua Peraturan Internal dengan ketentuan berbeda dan tidak yakin mana yang berlaku. Nasabah sudah menunggu. Apa langkah paling tepat?",
+      "answer": "Konfirmasi ketentuan yang berlaku melalui kanal/fungsi terkait sebelum melanjutkan",
+      "options": [
+        "Pilih file dengan tanggal paling baru",
+        "Konfirmasi ketentuan yang berlaku melalui kanal/fungsi terkait sebelum melanjutkan",
+        "Ikuti dokumen yang biasa digunakan rekan",
+        "Pilih ketentuan yang membuat proses paling cepat"
+      ],
+      "kind": "choice",
+      "hint": "Update Regulasi & Kepatuhan",
+      "explanation": "Jangan menebak versi aturan yang berlaku. Pastikan ketentuan yang digunakan valid agar proses tetap sesuai regulasi dan kebijakan Bank.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 29,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 28,
+      "prompt": "Nasabah lama melakukan transaksi tidak biasa dalam jumlah besar, sementara sumber dananya belum jelas. Karena sudah mengenal nasabah, petugas ingin langsung memproses. Apa yang seharusnya dilakukan?",
+      "answer": "Lakukan verifikasi/due diligence sesuai ketentuan APU-PPT dan minta dokumen pendukung bila diperlukan",
+      "options": [
+        "Langsung proses karena nasabah sudah lama",
+        "Lakukan verifikasi/due diligence sesuai ketentuan APU-PPT dan minta dokumen pendukung bila diperlukan",
+        "Pecah transaksi menjadi beberapa transaksi kecil",
+        "Cukup tanyakan sumber dana secara informal"
+      ],
+      "kind": "choice",
+      "hint": "APU-PPT",
+      "explanation": "Status sebagai nasabah lama tidak menghilangkan kewajiban verifikasi. Transaksi tidak biasa tetap perlu ditangani sesuai ketentuan APU-PPT.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 30,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 29,
+      "prompt": "Jika suatu proses atau produk tidak sesuai prinsip syariah, apa tindakan yang paling tepat?",
+      "answer": "Jangan lanjutkan sebelum dipastikan sesuai prinsip dan ketentuan syariah",
+      "options": [
+        "Tetap lanjut selama nasabah setuju",
+        "Tetap lanjut jika memberikan keuntungan",
+        "Jangan lanjutkan sebelum dipastikan sesuai prinsip dan ketentuan syariah",
+        "Ikuti kebiasaan sebelumnya"
+      ],
+      "kind": "choice",
+      "hint": "Prinsip Syariah",
+      "explanation": "proses tidak boleh diteruskan sebelum dipastikan sesuai prinsip dan ketentuan syariah agar tidak terjadi pelanggaran.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 31,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 30,
+      "prompt": "Motor KDO terparkir di depan cabang dan kuncinya masih tergantung karena petugas hanya masuk sebentar. Apa tindakan yang paling tepat?",
+      "answer": "Segera amankan kunci dan pastikan KDO dikunci sesuai ketentuan",
+      "options": [
+        "Biarkan karena area terpantau CCTV",
+        "Segera amankan kunci dan pastikan KDO dikunci sesuai ketentuan",
+        "Titipkan ke siapa saja yang berada dekat pintu",
+        "Tunggu sampai petugas kembali keluar"
+      ],
+      "kind": "choice",
+      "hint": "Kehilangan KDO",
+      "explanation": "KDO tetap perlu diamankan meski ditinggal sebentar. Kunci yang tertinggal meningkatkan risiko kehilangan atau penyalahgunaan kendaraan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 32,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 31,
+      "prompt": "Saat menghitung kas, satu lembar uang terlihat berbeda dan dicurigai palsu. Kepada siapa kamu harus melaporkannya?",
+      "answer": "Atasan/Kepala Cabang yang berwenang",
+      "options": [
+        "Nasabah lain yang sedang antre",
+        "Rekan kerja dari cabang lain",
+        "Atasan/Kepala Cabang yang berwenang",
+        "Grup chat pribadi"
+      ],
+      "kind": "choice",
+      "hint": "Uang Palsu",
+      "explanation": "uang yang dicurigai palsu perlu segera dilaporkan kepada atasan atau Kepala Cabang agar ditangani sesuai prosedur.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 33,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 32,
+      "prompt": "Saat closing, sistem mencatat Rp10 juta tetapi uang fisik hanya Rp9,9 juta. Petugas ingin menutup selisih Rp100 ribu dengan uang pribadi agar cepat selesai. Apa langkah yang tepat?",
+      "answer": "Rekonsiliasi, telusuri penyebab, dan laporkan sesuai mekanisme",
+      "options": [
+        "Tutup dengan uang pribadi karena selisihnya kecil",
+        "Rekonsiliasi, telusuri penyebab, dan laporkan sesuai mekanisme",
+        "Tutup dulu dengan uang pribadi lalu laporkan besok",
+        "Ubah catatan sistem agar sama dengan uang fisik"
+      ],
+      "kind": "choice",
+      "hint": "Selisih Kas & Rekonsiliasi",
+      "explanation": "Selisih kas harus ditelusuri, bukan ditutup dengan uang pribadi atau perubahan catatan. Rekonsiliasi membantu menemukan penyebab sebenarnya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 34,
+      "location": "Kantor Cabang",
+      "division": "RIM"
+    },
+    {
+      "number": 33,
+      "prompt": "Pegawai Bank salah memasukkan data nasabah, Dampak akibat kesalahan ini apa?",
+      "answer": "Informasi yang dilaporkan dalam SLIK menjadi tidak akurat",
+      "options": [
+        "Akun nasabah otomatis terkunci",
+        "Sistem kantor cabang menjadi offline",
+        "Informasi yang dilaporkan dalam SLIK menjadi tidak akurat",
+        "ID Card CO tidak dapat digunakan"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan SLIK ke OJK",
+      "explanation": "kesalahan data nasabah dapat terbawa ke pelaporan SLIK sehingga informasi yang dilaporkan menjadi tidak akurat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 35,
+      "location": "Kantor Cabang",
+      "division": "COM"
+    },
+    {
+      "number": 34,
+      "prompt": "Upaya memanipulasi seseorang agar memberikan informasi, akses, atau melakukan tindakan tertentu dengan memanfaatkan kepercayaan merupakan pengertian dari?",
+      "answer": "Social Engineering",
+      "options": [
+        "Tailgating",
+        "Social Engineering",
+        "Rekonsiliasi",
+        "Multi-Factor Authentication"
+      ],
+      "kind": "choice",
+      "hint": "Social Engineering",
+      "explanation": "social engineering memanfaatkan kepercayaan atau manipulasi psikologis agar korban memberikan informasi, akses, atau melakukan tindakan tertentu.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 36,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 35,
+      "prompt": "Petugas memakai uang nasabah untuk kebutuhan mendesak dan berniat mengembalikannya sore itu sebelum closing. Bagaimana menilai tindakan ini?",
+      "answer": "Tetap merupakan penyalahgunaan dana/fraud dan harus ditangani sesuai ketentuan",
+      "options": [
+        "Boleh jika dikembalikan di hari yang sama",
+        "Boleh jika nasabah tidak mengetahui",
+        "Tetap merupakan penyalahgunaan dana/fraud dan harus ditangani sesuai ketentuan",
+        "Baru menjadi masalah jika menimbulkan kerugian"
+      ],
+      "kind": "choice",
+      "hint": "Penyalahgunaan Dana/Fraud",
+      "explanation": "Uang nasabah tidak boleh digunakan untuk kepentingan pribadi, meskipun hanya sementara dan berniat dikembalikan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 37,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 36,
+      "prompt": "Kamu melihat indikasi fraud oleh rekan kerja. Media pelaporan yang paling tepat digunakan adalah?",
+      "answer": "Jaga Online",
+      "options": [
+        "ORMS",
+        "SiapBantu",
+        "Jaga Online",
+        "Grup WhatsApp kantor"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan Fraud/JagaOnline",
+      "explanation": "Jaga Online merupakan media resmi untuk menyampaikan laporan atau indikasi fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 38,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 37,
+      "prompt": "Petugas mengubah data nasabah agar hasilnya terlihat sesuai target. Tindakan tersebut paling tepat dikategorikan sebagai?",
+      "answer": "Manipulasi data / fraud",
+      "options": [
+        "Verifikasi data",
+        "Rekonsiliasi",
+        "Manipulasi data / fraud",
+        "Pemutakhiran data"
+      ],
+      "kind": "choice",
+      "hint": "Integritas & Manipulasi Data",
+      "explanation": "mengubah data agar terlihat sesuai target berarti memanipulasi informasi dan termasuk indikasi fraud.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 39,
+      "location": "Kantor Cabang",
+      "division": "AFM"
+    },
+    {
+      "number": 38,
+      "prompt": "Petugas terlanjur mengklik link dari email mencurigakan. Halaman meminta username dan password, tetapi belum ada data yang diisi. Apa langkah terbaik berikutnya?",
+      "answer": "Laporkan melalui SiapBantu dan ikuti arahan pengamanan",
+      "options": [
+        "Tutup halaman lalu lanjut bekerja seperti biasa",
+        "Hapus riwayat browser agar aman",
+        "Laporkan melalui SiapBantu dan ikuti arahan pengamanan",
+        "Teruskan link ke rekan untuk memastikan"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan Insiden Cyber",
+      "explanation": "Klik pada link mencurigakan tetap perlu dilaporkan walaupun kredensial belum diisi. Respons cepat membantu mencegah potensi insiden berkembang.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 40,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 39,
+      "prompt": "Data nasabah terbuka di meja layanan dan dapat terlihat oleh pengunjung lain. Prinsip apa dalam melindungi data tersebut yang perlu dijaga?",
+      "answer": "Akses hanya diberikan kepada pihak yang berkepentingan",
+      "options": [
+        "Data boleh dilihat selama tidak difoto",
+        "Akses hanya diberikan kepada pihak yang berkepentingan",
+        "Semua data harus dicetak",
+        "Data boleh dibagikan jika berada di kantor"
+      ],
+      "kind": "choice",
+      "hint": "Perlindungan Data Pribadi",
+      "explanation": "data nasabah hanya boleh diakses pihak yang berkepentingan agar kerahasiaan dan perlindungan informasi tetap terjaga.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 41,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 40,
+      "prompt": "Pegawai membuka pintu area terbatas. Orang di belakangnya ikut masuk sambil berkata “saya dari vendor”, tetapi tidak melakukan akses sendiri. Apa respons paling tepat?",
+      "answer": "Verifikasi identitas dan otorisasinya sebelum mengizinkan masuk",
+      "options": [
+        "Biarkan karena masuk bersama pegawai",
+        "Verifikasi identitas dan otorisasinya sebelum mengizinkan masuk",
+        "Tanyakan identitas setelah ia sudah berada di dalam",
+        "Minta isi buku tamu nanti setelah pekerjaan selesai"
+      ],
+      "kind": "choice",
+      "hint": "Keamanan Fisik ID Card",
+      "explanation": "Masuk mengikuti orang lain tanpa autentikasi merupakan celah keamanan fisik. Setiap orang tetap harus memiliki identitas dan otorisasi yang valid.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 42,
+      "location": "Kantor Cabang",
+      "division": "CIS"
+    },
+    {
+      "number": 41,
+      "prompt": "Saat membuka rekening, alamat pada formulir berbeda dengan dokumen identitas. Yang kamu lakukan adalah?",
+      "answer": "Konfirmasi dan verifikasi perbedaan data sebelum proses dilanjutkan",
+      "options": [
+        "Gunakan alamat pada formulir saja",
+        "Gunakan alamat pada identitas saja",
+        "Konfirmasi dan verifikasi perbedaan data sebelum proses dilanjutkan",
+        "Pilih alamat yang paling baru tanpa konfirmasi"
+      ],
+      "kind": "choice",
+      "hint": "Verifikasi Data/Dokumen",
+      "explanation": "perbedaan alamat harus dikonfirmasi dan diverifikasi terlebih dahulu agar data nasabah yang digunakan benar dan konsisten.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 43,
+      "location": "Kantor Cabang",
+      "division": "COM + RIM"
+    },
+    {
+      "number": 42,
+      "prompt": "Seperempat dari 100 adalah?",
+      "answer": "25",
+      "options": [
+        "20",
+        "25",
+        "40",
+        "50"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "seperempat dari 100 adalah 100 ÷ 4 = 25.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 44,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 43,
+      "prompt": "Ada 5 apel. Kamu mengambil 2 apel. Sekarang kamu punya berapa apel?",
+      "answer": "2",
+      "options": [
+        "3",
+        "2",
+        "5",
+        "7"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "kamu mengambil 2 apel, jadi jumlah apel yang kamu miliki adalah 2.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 45,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 44,
+      "prompt": "Kamu masuk ke ruangan gelap membawa 1 korek api. Ada lilin, kompor, dan lampu minyak. Apa yang dinyalakan lebih dulu?",
+      "answer": "Korek api",
+      "options": [
+        "Lilin",
+        "Kompor",
+        "Lampu minyak",
+        "Korek api"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Korek api dinyalakan lebih dulu karena menjadi sumber api untuk menyalakan lilin, kompor, atau lampu minyak",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 46,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 45,
+      "prompt": "Planet terbesar di Tata Surya adalah?",
+      "answer": "Jupiter",
+      "options": [
+        "Saturnus",
+        "Mars",
+        "Jupiter",
+        "Venus"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Jupiter adalah planet terbesar dan tertua di tata surya dengan ukuran yang mampu menampung sekitar 1.000 planet Bumi.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 47,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 46,
+      "prompt": "Mamalia paling besar yang hidup di bumi adalah?",
+      "answer": "Paus Biru",
+      "options": [
+        "Gajah",
+        "Hiu Paus",
+        "Paus Biru",
+        "Jerapah"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Paus biru dikenal sebagai mamalia terbesar di Bumi dengan berat mencapai 180 hingga 200 ton (sekitar 180.000–200.000 kg), dan mereka bertahan hidup di lautan dengan cara makan krill dalam jumlah raksasa menggunakan sistem balin (penyaring)",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 48,
+      "location": "Kantor Cabang",
+      "division": "RANDOM"
+    },
+    {
+      "number": 47,
+      "prompt": "CO menemukan satu lembar uang yang dicurigai palsu. Karena antrean panjang, uang itu dicampur kembali ke setoran agar proses cepat. Apa yang perlu diperbaiki?",
+      "answer": "Pisahkan uang, lakukan pemeriksaan awal, dan eskalasi sesuai prosedur",
+      "options": [
+        "Tidak ada, karena proses harus tetap cepat",
+        "Pisahkan uang, lakukan pemeriksaan awal, dan eskalasi sesuai prosedur",
+        "Simpan sendiri sampai akhir hari",
+        "Kembalikan diam-diam tanpa pencatatan"
+      ],
+      "kind": "choice",
+      "hint": "Integritas & Fraud Awareness",
+      "explanation": "Uang yang dicurigai palsu tidak boleh dicampur kembali. Pisahkan dan tindak lanjuti sesuai prosedur agar risiko tidak berpindah ke transaksi lain.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 49,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 48,
+      "prompt": "Nasabah yang biasanya lancar mulai menunggak dua periode berturut-turut. CO ingin menunggu satu periode lagi karena nasabah sudah lama dikenal. Apa tindakan yang lebih tepat?",
+      "answer": "Segera follow-up, identifikasi penyebab, dan catat/eskalasi sesuai ketentuan",
+      "options": [
+        "Tunggu satu periode lagi karena nasabah sudah lama",
+        "Segera follow-up, identifikasi penyebab, dan catat/eskalasi sesuai ketentuan",
+        "Bayarkan dulu agar status nasabah tetap lancar",
+        "Abaikan selama nasabah berjanji akan membayar"
+      ],
+      "kind": "choice",
+      "hint": "Nasabah Menunggak",
+      "explanation": "Keterlambatan berulang merupakan sinyal risiko pembiayaan. Follow-up lebih awal membantu memahami penyebab dan menentukan penanganan yang tepat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 50,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 49,
+      "prompt": "Ruangan atau lemari yang digunakan untuk menyimpan uang tunai operasional Wisma disebut?",
+      "answer": "Brankas / lemari besi",
+      "options": [
+        "Brankas / lemari besi",
+        "Loker pribadi",
+        "Rak dokumen",
+        "Lemari arsip biasa"
+      ],
+      "kind": "choice",
+      "hint": "Pengamanan/Penyimpanan Uang",
+      "explanation": "Brankas atau lemari besi digunakan untuk menyimpan uang tunai operasional secara lebih aman.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 51,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 50,
+      "prompt": "CO menyimpan foto identitas nasabah di HP pribadi agar mudah diakses saat kunjungan berikutnya. File tersebut tidak pernah dibagikan. Apa yang tetap perlu diperbaiki?",
+      "answer": "Hapus/pindahkan dari perangkat pribadi dan gunakan media resmi sesuai ketentuan",
+      "options": [
+        "Tidak ada karena file tidak dibagikan",
+        "Hapus/pindahkan dari perangkat pribadi dan gunakan media resmi sesuai ketentuan",
+        "Cukup tambahkan password pada HP",
+        "Sembunyikan file di folder khusus"
+      ],
+      "kind": "choice",
+      "hint": "PDP & Penggunaan Media/Perangkat Resmi",
+      "explanation": "Data nasabah tetap harus dikelola melalui media/perangkat resmi. Menyimpan di perangkat pribadi dapat meningkatkan risiko kebocoran atau kehilangan data.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 52,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 51,
+      "prompt": "Jika perlu mengakses data nasabah untuk pekerjaan, media yang paling tepat digunakan adalah?",
+      "answer": "Perangkat dan media resmi sesuai ketentuan Bank",
+      "options": [
+        "HP pribadi",
+        "Chat pribadi",
+        "Perangkat dan media resmi sesuai ketentuan Bank",
+        "Cloud pribadi"
+      ],
+      "kind": "choice",
+      "hint": "PDP & Penggunaan Media/Perangkat Resmi",
+      "explanation": "data nasabah harus diakses melalui perangkat dan media resmi agar pengamanan serta kontrol Bank tetap berlaku.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 53,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 52,
+      "prompt": "Dalam konteks keamanan fisik, 5R terdiri dari?",
+      "answer": "Ringkas, Rapi, Resik, Rawat, Rajin",
+      "options": [
+        "Ringkas, Rapi, Resik, Rawat, Rajin",
+        "Ringkas, Rekam, Review, Rawat, Rajin",
+        "Rapi, Respons, Risiko, Rawat, Rajin",
+        "Ringkas, Rapi, Respons, Recover, Review"
+      ],
+      "kind": "choice",
+      "hint": "Keamanan Fisik-5R",
+      "explanation": "5R terdiri dari Ringkas, Rapi, Resik, Rawat, dan Rajin sebagai prinsip menjaga lingkungan kerja tetap tertib dan aman.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 54,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 53,
+      "prompt": "Nasabah mengeluhkan adanya selisih saldo. Apa tindakan yang paling tepat?",
+      "answer": "Tindak lanjuti sesuai prosedur dan catat sebagai keluhan nasabah",
+      "options": [
+        "Abaikan jika nominalnya kecil",
+        "Tindak lanjuti sesuai prosedur dan catat sebagai keluhan nasabah",
+        "Minta nasabah menunggu tanpa pencatatan",
+        "Langsung mengubah saldo agar keluhan selesai"
+      ],
+      "kind": "choice",
+      "hint": "Penanganan Keluhan Nasabah",
+      "explanation": "keluhan selisih saldo perlu ditindaklanjuti sesuai prosedur dan dicatat agar dapat ditelusuri serta diselesaikan dengan benar.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 55,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 54,
+      "prompt": "Proses memastikan data atau kondisi sudah benar sebelum digunakan disebut?",
+      "answer": "Verifikasi",
+      "options": [
+        "Verifikasi",
+        "Gratifikasi",
+        "Tailgating",
+        "Phishing"
+      ],
+      "kind": "choice",
+      "hint": "Kesalahan Input/Verifikasi Data",
+      "explanation": "verifikasi adalah proses memastikan data atau kondisi sudah benar sebelum digunakan untuk proses berikutnya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 56,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 55,
+      "prompt": "Setelah pencairan selesai, nasabah memberi amplop sebagai tanda terima kasih dengan jumlah kecil. Tindakan yang tepat?",
+      "answer": "Menolak karena tetap tidak diperbolehkan",
+      "options": [
+        "Menerima karena jumlahnya kecil",
+        "Menolak karena tetap tidak diperbolehkan",
+        "Menerima lalu melaporkannya besok",
+        "Menerima dan membaginya ke rekan"
+      ],
+      "kind": "choice",
+      "hint": "Gratifikasi & Conflict of Interest",
+      "explanation": "nilai hadiah yang kecil tidak menghilangkan risikonya, sehingga pemberian tetap perlu ditolak sesuai ketentuan.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 57,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 56,
+      "prompt": "Hujan deras turun saat dalam perjalanan ke lokasi. Tindakan yang paling bijak?",
+      "answer": "Menepi di tempat aman sampai kondisi membaik",
+      "options": [
+        "Menepi di tempat aman sampai kondisi membaik",
+        "Memacu motor agar cepat sampai",
+        "Melepas jas hujan agar leluasa bergerak",
+        "Memotong jalur kendaraan lain"
+      ],
+      "kind": "choice",
+      "hint": "Kecelakaan Kerja",
+      "explanation": "menepi di tempat aman mengurangi risiko kecelakaan saat kondisi perjalanan tidak aman akibat hujan deras.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 58,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 57,
+      "prompt": "CO ingin mengunggah foto kegiatan di Wisma ke media sosial pribadi. Di belakangnya terlihat papan berisi nama dan nomor telepon nasabah. Apa yang harus dilakukan?",
+      "answer": "Pastikan informasi sensitif tidak terlihat atau terekam sebelum mengunggah",
+      "options": [
+        "Unggah karena informasi hanya terlihat di latar",
+        "Pastikan informasi sensitif tidak terlihat atau terekam sebelum mengunggah",
+        "Cukup hilangkan logo Bank dari foto",
+        "Unggah jika akun media sosial bersifat privat"
+      ],
+      "kind": "choice",
+      "hint": "Keamanan Media Sosial",
+      "explanation": "Foto kerja dapat tanpa sengaja mengekspos data nasabah. Periksa latar dan pastikan tidak ada informasi sensitif sebelum mengunggah ke media sosial.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 59,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 58,
+      "prompt": "CO baru akan mulai menawarkan pembiayaan ke nasabah, tetapi belum familiar dengan alur kerja dan informasi produk. Apa yang sebaiknya dilakukan sebelum mulai bertugas?",
+      "answer": "Pelajari SOP/ketentuan yang berlaku, RIPLAY, dan arahan kerja terlebih dahulu",
+      "options": [
+        "Ikuti cara CO senior tanpa membaca panduan",
+        "Pelajari SOP/ketentuan yang berlaku, RIPLAY, dan arahan kerja terlebih dahulu",
+        "Langsung bertugas agar belajar dari pengalaman",
+        "Tunggu sampai ada kendala baru bertanya"
+      ],
+      "kind": "choice",
+      "hint": "RIPLAY & Transparansi Produk",
+      "explanation": "Memahami SOP dan RIPLAY membantu CO menjalankan proses dengan benar serta menjelaskan informasi produk secara lengkap dan transparan kepada nasabah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 60,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 59,
+      "prompt": "CO melihat indikasi rekan menggunakan uang nasabah untuk kepentingan pribadi, tetapi belum punya bukti lengkap. Ia ragu melapor karena takut salah. Apa langkah paling tepat?",
+      "answer": "Laporkan indikasi melalui Jaga Online dan sampaikan fakta yang diketahui",
+      "options": [
+        "Diam sampai bukti benar-benar lengkap",
+        "Investigasi sendiri tanpa melibatkan pihak lain",
+        "Laporkan indikasi melalui Jaga Online dan sampaikan fakta yang diketahui",
+        "Ceritakan ke rekan lain untuk meminta pendapat"
+      ],
+      "kind": "choice",
+      "hint": "Pelaporan Fraud/JagaOnline",
+      "explanation": "Pelapor tidak perlu melakukan investigasi sendiri. Sampaikan indikasi dan fakta yang diketahui melalui kanal resmi agar dapat ditindaklanjuti dengan tepat.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 61,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 60,
+      "prompt": "Mengapa CO perlu mengenakan ID Card saat bertemu nasabah?",
+      "answer": "Membuktikan bahwa kita karyawan BTPNS yang sah",
+      "options": [
+        "Untuk keperluan absensi kantor",
+        "Sebagai catatan target kunjungan",
+        "Membuktikan bahwa kita karyawan BTPNS yang sah",
+        "Pengganti surat tugas atasan"
+      ],
+      "kind": "choice",
+      "hint": "Keamanan Fisik ID Card",
+      "explanation": "ID Card membantu nasabah memastikan bahwa CO yang ditemui adalah karyawan BTPNS yang sah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 62,
+      "location": "Wisma MMS",
+      "division": "CIS"
+    },
+    {
+      "number": 61,
+      "prompt": "Petugas menghitung bagi hasil nasabah. Mengapa ketelitian sangat wajib dilakukan?",
+      "answer": "Merupakan keadilan dan amanah atas hak milik orang lain",
+      "options": [
+        "Agar nasabah tidak berhenti menabung",
+        "Merupakan keadilan dan amanah atas hak milik orang lain",
+        "Agar laporan terlihat rapi",
+        "Agar atasan senang"
+      ],
+      "kind": "choice",
+      "hint": "Patuhi Prinsip Syariah",
+      "explanation": "ketelitian menjaga perhitungan bagi hasil tetap adil karena menyangkut hak nasabah yang harus dipenuhi dengan amanah.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 63,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 62,
+      "prompt": "Hasil kunjungan tidak sesuai harapan dan target. Sikap yang mencerminkan integritas?",
+      "answer": "Menyampaikan data sesuai kondisi sebenarnya",
+      "options": [
+        "Menyampaikan data sesuai kondisi sebenarnya",
+        "Menyesuaikan angka agar mencapai target",
+        "Menunda laporan sampai hasil membaik",
+        "Melaporkan hasil yang bagus saja"
+      ],
+      "kind": "choice",
+      "hint": "Integritas",
+      "explanation": "integritas berarti menyampaikan hasil sesuai kondisi sebenarnya, bukan mengubah data agar terlihat memenuhi target.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 64,
+      "location": "Wisma MMS",
+      "division": "AFM"
+    },
+    {
+      "number": 63,
+      "prompt": "Saat bertemu nasabah yang mulai menunggak, respons awal yang tepat?",
+      "answer": "Mendengar penyebab keterlambatan dengan sikap simpati",
+      "options": [
+        "Langsung menagih pembayaran",
+        "Mendengar penyebab keterlambatan dengan sikap simpati",
+        "Diam menunggu nasabah menghubungi kantor",
+        "Memberi peringatan tertulis"
+      ],
+      "kind": "choice",
+      "hint": "Nasabah Menunggak",
+      "explanation": "mendengarkan penyebab keterlambatan membantu memahami kondisi nasabah sebelum menentukan tindak lanjut yang sesuai.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 65,
+      "location": "Wisma MMS",
+      "division": "RIM"
+    },
+    {
+      "number": 64,
+      "prompt": "Saat kunjungan, nasabah memberi tahu bahwa alamat dan pekerjaannya sudah berubah, tetapi data lama masih tercatat. Apa langkah CO yang paling tepat?",
+      "answer": "Lakukan pemutakhiran dan verifikasi data sesuai proses CDD/KYC yang berlaku",
+      "options": [
+        "Biarkan sampai nasabah meminta perubahan secara khusus",
+        "Lakukan pemutakhiran dan verifikasi data sesuai proses CDD/KYC yang berlaku",
+        "Catat perubahan hanya di HP pribadi",
+        "Ubah alamat saja karena pekerjaan tidak terlalu penting"
+      ],
+      "kind": "choice",
+      "hint": "CDD/KYC",
+      "explanation": "Data nasabah perlu tetap akurat dan terkini. Perubahan informasi harus diproses dan diverifikasi sesuai ketentuan CDD/KYC.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 66,
+      "location": "Wisma MMS",
+      "division": "COM"
+    },
+    {
+      "number": 65,
+      "prompt": "Negara yang terkenal dengan Menara Eiffel adalah?",
+      "answer": "Prancis",
+      "options": [
+        "Italia",
+        "Prancis",
+        "Jepang",
+        "Inggris"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Prancis adalah negara yang sangat terkenal dengan Menara Eiffelnya, sebuah mahakarya besi ikonik setinggi lebih dari 300 meter yang awalnya dibangun hanya untuk pameran sementara namun sekarang menjadi ikon dunia.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 67,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 66,
+      "prompt": "Setengah dari 100 adalah?",
+      "answer": "50",
+      "options": [
+        "25",
+        "50",
+        "75",
+        "100"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Setengah berarti dibagi dua yang artinya setengah dari 100 adalah 50",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 68,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 67,
+      "prompt": "Hewan apa yang punya 8 kaki?",
+      "answer": "Laba-laba",
+      "options": [
+        "Kepiting",
+        "Laba-laba",
+        "Ulat Kaki Seribu",
+        "Semut"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Laba-laba punya 8 kaki dan termasuk kelompok arachnida, bukan serangga. Serangga umumnya hanya punya 6 kaki sedangkan laba-laba memiliki 4 pasang kaki (8 kaki total), dan 2 segmen tubuh.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 69,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 68,
+      "prompt": "Mana yang termasuk buah citrus?",
+      "answer": "Jeruk",
+      "options": [
+        "Jeruk",
+        "Pisang",
+        "Semangka",
+        "Apel"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Jeruk masuk keluarga citrus dan dikenal dengan rasa segar serta kandungan vitamin C-nya.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 70,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
+    },
+    {
+      "number": 69,
+      "prompt": "Teka Teki: Apa yang punya tangan tapi tidak bisa memegang?",
+      "answer": "Jam",
+      "options": [
+        "Robot",
+        "Jam",
+        "Boneka",
+        "Kursi"
+      ],
+      "kind": "choice",
+      "hint": "",
+      "explanation": "Jam punya ‘tangan’ atau jarum untuk menunjukkan waktu, tapi tentu saja tidak bisa memegang apa pun.",
+      "sourceWorkbook": "Bank Soal Game 5.xlsx",
+      "sourceSheet": "Rahang Risiko (New)",
+      "sourceRow": 71,
+      "location": "Wisma MMS",
+      "division": "RANDOM"
     }
   ]
 }

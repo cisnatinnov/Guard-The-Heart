@@ -9,6 +9,8 @@ export interface GameQuestionRecord {
   options: string[]
   kind: 'decode' | 'choice'
   hint: string
+  explanation?: string
+  sourceWorkbook?: string
   sourceDeck?: string
   sourceSlide?: number
   answerSlide?: number

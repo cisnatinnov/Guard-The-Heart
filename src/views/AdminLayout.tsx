@@ -1,5 +1,6 @@
+import { readTheme, saveTheme } from '../services/theme'
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDatabase } from '../hooks/useDatabase'
 import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME, publicFeatureForAdmin } from '../services/publicWindow'
 import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
@@ -8,7 +9,6 @@ import { GAME_CHARACTERS } from '../data/characters'
 const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
   { path: '/admin/challenges', label: 'Challenges' },
-  { path: '/admin/presentation', label: 'Main Presentation' },
   { path: '/admin/turn-order', label: 'Turn Order' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },
@@ -21,9 +21,23 @@ const ADMIN_NAV = [
   { path: '/admin/timer', label: 'Timer' },
 ] as const
 
+const ADMIN_GROUPS = [
+  { label: 'Event setup', paths: ['/admin', '/admin/challenges', '/admin/turn-order', '/admin/timer'] },
+  { label: 'Results', paths: [ '/admin/scoreboard', '/admin/leaderboard', '/admin/heart-of-awareness', '/admin/podium'] },
+  { label: 'Game management', paths: ['/admin/tactical', '/admin/gigarisk', '/admin/rewards', '/admin/gp-transactions'] },
+]
+
 export function AdminLayout() {
   const { status, error } = useDatabase()
   const location = useLocation()
+  const [theme, setTheme] = useState(readTheme)
+  useEffect(() => {
+    const syncTheme = (event: StorageEvent) => {
+      if (event.key === 'guard-the-heart-theme' || event.key === null) setTheme(readTheme())
+    }
+    window.addEventListener('storage', syncTheme)
+    return () => window.removeEventListener('storage', syncTheme)
+  }, [])
   useEffect(() => {
     if ([PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME].includes(window.name)) window.name = ''
   }, [])
@@ -67,13 +81,21 @@ export function AdminLayout() {
               <figcaption>{character.name}</figcaption>
             </figure>)}
           </div>
+          <button className="ghost theme-switch" aria-label="Dark theme" aria-pressed={theme === 'dark'} onClick={() => {
+            const next = theme === 'dark' ? 'light' : 'dark'
+            saveTheme(next)
+            setTheme(next)
+          }}>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</button>
           <figure className="app__risk-card">
             <img src="/characters/gilgamesh.png" alt="Gilgamesh, a silver and cobalt dragon with crystal horns" />
             <figcaption>Gilgamesh</figcaption>
           </figure>
         </div>
+      </header>
         <nav className="tabs tabs--admin" aria-label="Admin views">
-          {ADMIN_NAV.map((item) => (
+          {ADMIN_GROUPS.map((group) => <div className="admin-nav-group" key={group.label}>
+          <p className="admin-nav-group__title">{group.label}</p>
+          {ADMIN_NAV.filter((item) => group.paths.includes(item.path)).map((item) => (
             <Link
               key={item.path}
               to={publicFeatureForAdmin(item.path, location.pathname)
@@ -91,9 +113,8 @@ export function AdminLayout() {
               {item.label}
             </Link>
           ))}
-
+          </div>)}
         </nav>
-      </header>
 
       <main className="app__main">
         <Outlet />

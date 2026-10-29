@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { challengeOne, readDatabase, seedCards } from './support/cardFixture'
 
-const colours = { Merah: 'rgb(255, 36, 36)', Biru: 'rgb(67, 179, 255)', Kuning: 'rgb(255, 208, 57)', Hijau: 'rgb(90, 255, 125)', Pink: 'rgb(255, 21, 133)' }
+const colours = { Merah: 'rgb(222, 160, 164)', Biru: 'rgb(148, 187, 220)', Kuning: 'rgb(220, 199, 132)', Hijau: 'rgb(153, 197, 172)', Pink: 'rgb(213, 165, 191)' }
 
 test('renamed teams keep colours, scores, cards and GP across features, tabs and reloads', async ({ page, context }) => {
   await seedCards(page, challengeOne, [['Biru', 'Normal Heal Card #01']])

@@ -73,16 +73,24 @@ export function TeamView() {
   }
 
   return (
-    <section className="view">
+    <section className="view team-view">
       <header className="view__header">
         <h2>Teams</h2>
         <p className="view__hint">
-          Default teams keep their original background colours when renamed. Each team starts with{' '}
-          {BASE_TEAM_GUARD_POWER} GP and earns more from its challenge ranks. Teams deactivate at 0 GP after card effects resolve. You can also deactivate any team manually.
+          Manage team names and participation for your event.
         </p>
+        <div className="team-overview" aria-label="Team overview">
+          <span><strong>{teams.length}</strong> teams</span>
+          <span><i aria-hidden="true" /><strong>{teams.filter((team) => team.status === 'active').length}</strong> active</span>
+          <span><strong>{teams.filter((team) => team.status === 'inactive').length}</strong> inactive</span>
+        </div>
       </header>
 
-      <form className="row-form" onSubmit={handleCreate}>
+      <details className="team-rules"><summary>How team GP and status work</summary>
+        <p>Default teams keep their original colours when renamed. Each team starts with {BASE_TEAM_GUARD_POWER} GP and earns more from challenge ranks. Teams deactivate at 0 GP after card effects resolve. You can also deactivate teams manually.</p>
+      </details>
+
+      <form className="row-form team-create" onSubmit={handleCreate}>
         <input
           type="text"
           value={name}

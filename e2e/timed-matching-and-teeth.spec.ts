@@ -1,52 +1,26 @@
+import { submitQuizAnswer } from './support/challengeAnswer'
 import { prepareToothPress } from './support/challengeAnswer'
 import { expect, test } from '@playwright/test'
 
 const flipping = '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463'
 const jaw = 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8'
 
-test('Flipping Connect locks at 20 seconds, survives reload, and grants a new team a fresh timed attempt', async ({ page, context }) => {
+test('Flipping Connect stays open after the former deadline and reload', async ({ page }) => {
   await page.goto(`/admin/play/word-assembly/${flipping}`)
   await expect(page.getByRole('checkbox', { name: 'Biru', exact: true })).toBeVisible()
-  const time = new Date()
-  await page.clock.install({ time })
-  await page.clock.pauseAt(new Date(time.getTime() + 1000))
-  for (const name of ['Biru', 'Hijau']) await page.getByRole('checkbox', { name, exact: true }).check()
-  const opened = context.waitForEvent('page')
-  await page.getByRole('button', { name: 'Start team run (2)' }).click()
-  const projector = await opened
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
-  await expect(projector.getByRole('timer', { name: 'Cards preview countdown' })).toHaveText(/5s/)
-  await page.clock.runFor(5000)
-  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
+  await page.clock.install()
+  await page.getByRole('checkbox', { name: 'Biru', exact: true }).check()
+  await page.getByRole('button', { name: 'Start team run (1)' }).click()
+  await submitQuizAnswer(page, true)
+  await expect(page.locator('.tile').first()).toBeDisabled()
+  await page.clock.runFor(30000)
+  await expect(page.getByRole('timer')).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').nth(0).click()
   await page.locator('.tile[data-pair="word-1"]').nth(1).click()
   await expect(page.getByLabel('Challenge scores')).toContainText('Biru: 15')
-  await page.locator('.tile[data-pair="word-2"]').first().click()
-  await page.locator('.tile[data-pair="word-3"]').first().click()
-  await page.clock.runFor(600)
-  await expect(page.getByLabel('Challenge scores')).toContainText('Biru: 15')
-  await page.clock.runFor(19399)
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('1s')
-  await page.clock.runFor(1)
-  const current = await page.locator('.flipping-presentation__team-button[aria-pressed="true"]').getAttribute('aria-label')
-  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
-  expect(await page.locator('.tile:enabled').count()).toBe(0)
-  await expect(page.getByLabel('Challenge scores')).toContainText('Biru: 15')
   await page.reload()
-  await projector.reload()
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
-  await expect(projector.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
-  await page.locator('.flipping-presentation__teams').getByRole('button', { name: current!, exact: true }).click()
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText("Time's up!")
-  await page.locator('.flipping-presentation__team-button[aria-pressed="false"]').click()
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
-  await expect(projector.getByRole('timer', { name: 'Cards preview countdown' })).toContainText('5s')
-  await page.clock.runFor(5000)
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
-  await expect(page.locator('.tile').first()).toBeEnabled()
-  await page.clock.runFor(7000)
-  await page.reload()
-  for (const screen of [page, projector]) await expect(screen.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('13s')
+  await expect(page.locator('.tile[data-pair="word-2"]').first()).toBeEnabled()
+  await expect(page.getByRole('timer')).toHaveCount(0)
 })
 
 test('Jaw of Risk admin selects multiple hidden biting teeth that persist across bites and reloads', async ({ page, context }) => {

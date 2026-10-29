@@ -23,7 +23,7 @@ labels normalize old dragon spellings through `englishText`; storage keys,
 The current opponent asset is `public/characters/gilgamesh.png`, used in the
 admin portrait, presentation introduction, attack scene and attack board.
 Generation prompts are in [public/characters/prompts.json](./public/characters/prompts.json).
-Jaw of Risk retains its specialized playable mouth, tooth, hand and bite assets.
+Jaw of Risk uses `public/ui/jaw-of-risk/gilgamesh-jaw.png`, generated from the current Gilgamesh design. A matching `gilgamesh-bite.png` frame animates the jaw snapping shut for 4.44 seconds, with reduced-motion support. Existing tooth sprites and hand cursors keep their hit geometry.
 
 `theme.css` loads after shared styles and defines the cast palette: navy/cobalt
 armor, silver surfaces, violet cloth, cyan crystals and restrained gold trim.
@@ -43,14 +43,14 @@ modules/scripts. CSS cleanup removed 332 obsolete rules and 101 declarations
 superseded unconditionally by later rules. Dynamic class prefixes and dynamic
 card/tooth/hand filenames were retained. Vendor shims remain because Vite aliases
 resolve Sequelize's CommonJS dependencies to them. The retired solo matching
-component and its timer hook are gone; timed matching runs remain active.
+component and its timer hook are gone; matching runs remain active with a brief preview and no response deadline.
 
 `public/` contains current characters/icons, active card faces, image clues,
 matching art, gameplay backgrounds, sounds and the downloadable Image Decode
 PPTX. Unused source decks, duplicate screenshots, old character images, old
 video, unused matching variants and reference fonts were removed. The unused
 standalone deck generator and source-import/GIF-conversion scripts were removed;
-question JSON and the optimized runtime WebP remain canonical application inputs.
+question JSON remain canonical application inputs. The old dragon jaw and bite WebP have been removed.
 
 ## Database schema
 
@@ -147,20 +147,20 @@ compatibility art. Fortune gifts instead become usable next challenge.
 then reranks, recalculates totals, flushes and broadcasts. Duplicate answer IDs,
 matched pairs and press counts cannot apply the same score change twice.
 
-- Image Decode: eleven clues, 15-second question deadlines, +10 correct and −10
-  wrong/timeout. Passed questions affect the answering recipient only.
-- Flipping Connect: a right answer adds 10 and starts a fresh board with 5 seconds
-  of preview and 20 seconds of matching. Each unique pair adds 5 during the active
-  attempt. Wrong answers deduct 10 without unlocking a board. Mismatches/timeouts
-  have no extra deduction. Team changes end the current bonus and reshuffle.
+- Image Decode: 69 workbook clues, +10 correct and -10 wrong. A shared 15-second
+  reminder leaves scoring and answer controls open. Turn Order selects the active team.
+- Flipping Connect: 71 workbook quiz questions. A right answer adds 10 and starts
+  a fresh board with a 5-second preview and unlimited matching time. Each unique
+  pair adds 5. Wrong answers deduct 10 without unlocking a board. Team changes
+  end the current bonus and reshuffle.
 - Jaw of Risk: a right answer assigns a selected opponent and adds 10; a wrong
   answer deducts 10 and assigns self. Two presses are required; each bite deducts
   another 5 from the pressing team's raw score. Pending presses survive reload.
-  Admin alone scores, configures biting teeth and presses; public mirrors state.
+  The host records verdicts and configures biting teeth; both screens can press unlocked teeth. A shared gameplay lock serializes presses, and database press counts prevent duplicate penalties.
 
-Matching preview/attempt deadlines are absolute and saved. Mismatches briefly
+Matching preview deadlines are absolute and saved; there is no response deadline. Mismatches briefly
 show both faces before automatic closing. A background public window catches up
-without granting more time. The active team synchronizes through Turn Order,
+to the saved preview state. The active team synchronizes through Turn Order,
 Timer and matching panels. Test synchronization waits for a completed scored
 answer before comparing and reloading a freshly generated board.
 
@@ -201,24 +201,28 @@ Turn Order have separate named windows and notification channels. Admin reload
 reuses existing windows; closed windows can reopen. Public views cannot invoke
 admin scoring or change host turns/configuration.
 
-The PWA precaches runtime art, current characters, audio and the optimized bite
-WebP. The retained 30 MB Image Decode PPTX is an online download and is excluded
+The PWA precaches runtime art, current characters, audio and the current Gilgamesh jaw artwork. The retained 30 MB Image Decode PPTX is an online download and is excluded
 from precache patterns. Old source decks and the original large bite GIF are no
 longer packaged. Offline use requires a successful first online load.
 
+The admin shell is a two-column workspace: compact branding above a sticky grouped navigation sidebar and the active view. Below 680px, navigation becomes a horizontal scrolling row. `src/styles/admin.css` owns these admin-only presentation rules. The Teams view includes live participation counts and expandable GP guidance; CRUD, filters and pagination retain their existing behavior.
+
 ## Validation record
+
+Public Flipping Connect cards are clickable during the unlocked matching window. Shared gameplay locks serialize card moves across tabs, read the latest saved board and guard against replaced attempts. Both screens close mismatches; host controls remain separate.
 
 Verified on **2026-10-27 (WIB)**:
 
 | Check | Result |
 | --- | --- |
 | Unit/database suite | 285 passed across 26 files |
-| Browser regression coverage | All 75 scenarios verified: 74 passed in the full run; after restoring Kuning's identity tint, all 11 focused checks passed |
+| Browser regression coverage | All 77 scenarios verified: 76 passed in the full run; after correcting a new test assertion, all 20 focused checks passed on the final build |
 | TypeScript and production/PWA build | Passed through the fresh browser build-and-preview workflow |
 | ESLint | Passed |
-| Static asset references | 49 literal runtime paths checked; no missing assets |
+| Admin UI refresh | 11 focused browser checks passed; final viewport sweep passed at 1366, 1280, 768 and 390 px |
+| Static asset references | 29 literal runtime paths checked; no missing assets; both Gilgamesh jaw frames confirmed in the offline precache |
 | Markdown | Both tracked files checked for local links, anchors and balanced fences |
-| Visual review | Admin header, native slides, new Gilgamesh scene and before/after board reviewed |
+| Visual review | New Gilgamesh open/closed jaw frames, tooth alignment and public status/score spacing reviewed |
 
 
 ```sh

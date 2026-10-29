@@ -8,6 +8,12 @@ import './styles/index.css'
 import './styles/layout.css'
 import './styles/team-colors.css'
 import './styles/theme.css'
+import './styles/admin.css'
+import './styles/appearance.css'
+import './styles/comfort.css'
+import './styles/summary-boards.css'
+import { initializeTheme } from './services/theme'
+initializeTheme()
 
 // Auto-updating service worker: a new build is picked up and activated
 // without asking the user, and cached static assets keep the app usable offline.

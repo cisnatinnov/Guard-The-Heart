@@ -60,7 +60,7 @@ export function MainPresentationView({ admin = false }: { admin?: boolean }) {
       <p className="sr-only" aria-live="polite">Slide {index + 1} of {MAIN_SLIDES.length}: {slide.title}</p>
     </div>
     {admin && <nav className="main-presentation-thumbnails" aria-label="Presentation slides">{MAIN_SLIDES.map((entry, i) => <button type="button" key={entry.title} aria-current={i === index ? 'step' : undefined} aria-label={`Slide ${i + 1}: ${entry.title}`} onClick={() => selectMainSlide(i)}>
-      <div className="main-presentation-thumbnails__art">{entry.kind === 'scene' ? <MainEnglishCopy index={i} /> : <><img src="/ui/Page_Score_Board.jpeg" alt="" loading="lazy" /><small>Live scoreboard</small></>}</div>
+      <div className="main-presentation-thumbnails__art">{entry.kind === 'scene' ? <MainEnglishCopy index={i} /> : <div className="scoreboard-thumbnail"><strong>Scoreboard</strong><span>Live challenge scores</span><small>Live</small></div>}</div>
       <span>{i + 1}. {entry.title}</span>
     </button>)}</nav>}
   </section>

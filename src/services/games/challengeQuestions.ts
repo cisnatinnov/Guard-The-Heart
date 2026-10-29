@@ -13,7 +13,6 @@ import {
 import {
   WORD_ASSEMBLY_MATCH_POINTS,
   WORD_ASSEMBLY_QUESTIONS,
-  WORD_ASSEMBLY_SECONDS_PER_QUESTION,
 } from './wordAssembly'
 import { getGameQuestions } from '../gameQuestionCache'
 import type { ChallengeGameId } from './index'
@@ -97,8 +96,6 @@ function wordAssemblyQuestions(): ChallengeQuestion[] {
     prompt: question.prompt,
     hint: 'Choose the best answer.',
     options: question.options,
-    sourceSlide: question.sourceSlide,
-    answerSlide: question.answerSlide,
     eliminates: true,
     grade: (value) => (normalize(value) === normalize(question.answer) ? WORD_ASSEMBLY_MATCH_POINTS : 0),
   }))
@@ -127,8 +124,6 @@ function jawsQuestions(): ChallengeQuestion[] {
     prompt: question.prompt,
     hint: 'Choose the best answer.',
     options: question.options,
-    sourceSlide: question.sourceSlide,
-    answerSlide: question.answerSlide,
     eliminates: true,
     grade: (value) => (normalize(value) === normalize(question.answer) ? JAWS_HIT_POINTS : 0),
   }))
@@ -171,12 +166,11 @@ const BUILDERS: Record<ChallengeGameId, () => ChallengeQuestionSet> = {
     return {
       questions,
       pointsPerQuestion: WORD_ASSEMBLY_MATCH_POINTS,
-      secondsPerQuestion: WORD_ASSEMBLY_SECONDS_PER_QUESTION,
     }
   },
   'jaws-of-risk': () => {
     const questions = jawsQuestions()
-    return { questions, pointsPerQuestion: JAWS_HIT_POINTS, secondsPerQuestion: 15 }
+    return { questions, pointsPerQuestion: JAWS_HIT_POINTS }
   },
 }
 

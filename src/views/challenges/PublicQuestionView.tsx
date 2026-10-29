@@ -1,3 +1,4 @@
+import { ChallengeRunController } from '../../controllers/ChallengeRunController'
 import { useEffect, useState } from 'react'
 import { type ChallengeGameId } from '../../services/games'
 import { challengeQuestionsFor } from '../../services/games/challengeQuestions'
@@ -14,7 +15,7 @@ export function PublicQuestionView({ gameId, run }: { gameId: ChallengeGameId; r
   const complete = run ? isRunComplete(run) : false
   const matching = gameId === 'word-assembly'
   const unlocked = !matching || !!run && isMatchingQuestionUnlocked(run)
-  const question = run && !complete && unlocked ? set.questions[run.questionIndex] : undefined
+  const question = run && !complete && unlocked ? ChallengeRunController.currentQuestion(gameId, run) : undefined
   const team = run ? teamForQuestion(run) : undefined
   const teamName = (id: string) => teams.find((entry) => entry.id === id)?.name ?? 'Team'
   const duration = set.secondsPerQuestion

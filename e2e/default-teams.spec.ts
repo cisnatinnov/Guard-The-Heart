@@ -22,15 +22,15 @@ test('default teams allow renaming, protect deletion and keep reward colours whe
   await expect(page).toHaveURL(/\/admin\/rewards\//)
   const projector = await context.newPage()
   await projector.goto(page.url().replace('/admin/', '/'))
-  const colours = { Hijau: 'rgb(208, 239, 192)', Pink: 'rgb(252, 216, 230)', Merah: 'rgb(250, 198, 195)', Biru: 'rgb(209, 226, 230)', Kuning: 'rgb(254, 235, 195)' }
-  const labels: Record<string,string> = { Merah:'rgb(255, 36, 36)', Biru:'rgb(67, 179, 255)', Kuning:'rgb(255, 208, 57)', Hijau:'rgb(90, 255, 125)', Pink:'rgb(255, 21, 133)' }
+  const names = ['Hijau', 'Pink', 'Merah', 'Biru', 'Kuning']
+  const labels: Record<string,string> = { Merah:'rgb(222, 160, 164)', Biru:'rgb(148, 187, 220)', Kuning:'rgb(220, 199, 132)', Hijau:'rgb(153, 197, 172)', Pink:'rgb(213, 165, 191)' }
   for (const surface of [page, projector]) {
-    for (const [name, colour] of Object.entries(colours)) {
+    for (const name of names) {
       const row = surface.getByRole('listitem', { name, exact: true })
-      await expect(row.locator('.reward-stage__earned')).toHaveCSS('background-color', colour)
+      await expect(row.locator('.reward-stage__earned')).toHaveCSS('background-color', 'rgb(32, 46, 70)')
       await expect(row.locator('.reward-stage__identity .team-pill')).toHaveText(`${name}`)
       await expect(row.locator('.reward-stage__identity .team-pill')).toHaveCSS('background-color', labels[name])
-      await expect.poll(() => row.evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe(colour)
+      await expect.poll(() => row.evaluate((element) => getComputedStyle(element, '::before').backgroundColor)).toBe('rgb(32, 46, 70)')
     }
   }
   await projector.screenshot({ path: 'test-results/rewards-team-colours.png' })
@@ -39,6 +39,6 @@ test('default teams allow renaming, protect deletion and keep reward colours whe
   await page.locator('.grid-form input[type="number"]').fill('100')
   await page.getByRole('button', { name: 'Update score', exact: true }).click()
   await page.getByRole('button', { name: 'Claim Rewards', exact: true }).click()
-  await expect(page.getByRole('listitem', { name: 'Kuning', exact: true }).locator('.reward-stage__earned')).toHaveCSS('background-color', colours.Kuning)
+  await expect(page.getByRole('listitem', { name: 'Kuning', exact: true }).locator('.reward-stage__earned')).toHaveCSS('background-color', 'rgb(32, 46, 70)')
   await expect(page.locator('.reward-stage__row').first()).toHaveAttribute('aria-label', 'Kuning')
 })

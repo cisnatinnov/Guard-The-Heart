@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { hasDistinctFortuneEffects, type FortuneChoice } from '../services/tacticalPhase'
 import { CARD_BACK_IMAGE, cardTitleFor } from '../data/card-pool'
 import { CardTile } from './CardTile'
@@ -9,7 +10,7 @@ export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, 
   const options = hasDistinctFortuneEffects(offer.options) ? offer.options : []
   const selected = options.find((option) => option.id === selectedId)
   const closed = offer.publicClosed !== false
-  return <aside className="fortune-reveal" aria-label={`Fortune Draw · ${teamName}`}>
+  return createPortal(<div className="fortune-reveal-host"><aside className="fortune-reveal" aria-label={`Fortune Draw · ${teamName}`}>
     <header><h2>Team {teamName.replace(/^tim\s+/i, '')} · Fortune Draw</h2><button type="button" onClick={onClose}>Back to Card Reveal</button></header>
     <div className="fortune-reveal__body">
       <div className="fortune-reveal__options" style={{gridTemplateColumns:`repeat(${Math.max(1,options.length)},minmax(0,1fr))`}} aria-label="Fortune Draw options">
@@ -26,5 +27,5 @@ export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, 
         {selected && <p className="fortune-reveal__timing">Added to this team’s collection for the next challenge. This effect does not activate in the current attack.</p>}
       </div>
     </div>
-  </aside>
+  </aside></div>, document.body)
 }

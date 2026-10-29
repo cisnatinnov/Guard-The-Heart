@@ -3,9 +3,9 @@ import { expect, test } from '@playwright/test'
 test('main presentation projects all native scenes, persists selection and reuses the public window', async ({ page, context }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  await page.goto('/admin')
+  await page.goto('/admin/presentation')
   const popup = page.waitForEvent('popup')
-  await page.getByRole('link', { name: 'Main Presentation', exact: true }).click()
+  await page.getByRole('button', { name: 'Show presentation ↗', exact: true }).click()
   const projector = await popup
   projector.on('pageerror', (error) => errors.push(error.message))
   await expect(page).toHaveURL(/\/admin\/presentation$/)
@@ -58,7 +58,8 @@ test('main presentation projects all native scenes, persists selection and reuse
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.getByRole('link', { name: 'Leaderboard', exact: true }).click()
   await expect(projector).toHaveURL(/\/leaderboard$/)
-  await page.getByRole('link', { name: 'Main Presentation', exact: true }).click()
+  await page.goto('/admin/presentation')
+  await page.getByRole('button', { name: 'Show presentation ↗', exact: true }).click()
   await expect(projector).toHaveURL(/:\d+\/$/)
   await expect(page.getByLabel('Presentation slide', { exact: true })).toHaveValue('1')
   expect(context.pages()).toHaveLength(2)

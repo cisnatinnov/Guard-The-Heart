@@ -3,7 +3,7 @@ import { Challenge, ChallengeAnswer, ChallengePoint, Team } from '../models'
 import { flushDatabase, getSequelize, refreshDatabaseFromStorage, withDatabaseMutation, withDatabaseWriteLock } from '../db/sequelize-provider'
 import { DB_EVENTS, dbEvents } from '../hooks/useDbEvents'
 import { MAX_ENTRIES_PER_CHALLENGE } from './rankRules'
-import { MATCHING_ATTEMPT_SECONDS, MATCHING_PREVIEW_SECONDS } from './games/wordAssembly'
+import { MATCHING_PREVIEW_SECONDS } from './games/wordAssembly'
 import { recalculateTotalScoreboard, rerankChallenge } from './scoreboardAggregator'
 
 async function changeScore(challenge: string, team: string, delta: number, transaction: Transaction) {
@@ -50,7 +50,7 @@ export async function recordChallengeAnswer(input: { id: string; challenge: stri
     }
     if (input.matching) await ChallengeAnswer.update({ matching_deadline: null }, { where: { challenge: input.challenge }, transaction })
     await changeScore(input.challenge, input.team, input.correct ? 10 : -10, transaction)
-    return ChallengeAnswer.create({ id: input.id, challenge: input.challenge, team: input.team, correct: input.correct, pressing_team: pressing, settled: !input.jaw, bitten: null, press_count: 0, matching_pairs: '[]', matching_deadline: input.matching && input.correct ? Date.now() + (MATCHING_PREVIEW_SECONDS + MATCHING_ATTEMPT_SECONDS) * 1000 : null }, { transaction })
+    return ChallengeAnswer.create({ id: input.id, challenge: input.challenge, team: input.team, correct: input.correct, pressing_team: pressing, settled: !input.jaw, bitten: null, press_count: 0, matching_pairs: '[]', matching_deadline: input.matching && input.correct ? Date.now() + MATCHING_PREVIEW_SECONDS * 1000 : null }, { transaction })
   })
 }
 
@@ -87,7 +87,7 @@ export async function recordMatchingPair(id: string, pair: number): Promise<void
     const pairs = JSON.parse(answer.matching_pairs) as number[]
     if (pairs.includes(pair)) return
     if (!Number.isInteger(pair) || pair < 1 || pair > 10) throw new Error('Invalid matched pair')
-    if (Date.now() < Number(answer.matching_deadline) - MATCHING_ATTEMPT_SECONDS * 1000 || Date.now() >= Number(answer.matching_deadline)) throw new Error('The matching attempt is not active')
+    if (Date.now() < Number(answer.matching_deadline)) throw new Error('The matching attempt is not active')
     await changeScore(answer.challenge, answer.team, 5, transaction)
     await answer.update({ matching_pairs: JSON.stringify([...pairs, pair]) }, { transaction })
   })

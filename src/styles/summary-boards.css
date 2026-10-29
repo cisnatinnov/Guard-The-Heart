@@ -1,0 +1,152 @@
+/* These boards are native themed surfaces, including their titles and frames. */
+.summary-stage.reference-ranking,.summary-stage.reference-stage {
+  background:var(--bg); color:var(--text); border:1px solid var(--border);
+  border-radius:16px; font-family:inherit;
+}
+.summary-stage::after { left:4%; top:5%; width:9%; height:12%; background-color:transparent; }
+.summary-stage__title { position:absolute; left:18%; top:5%; width:65%; height:12%; display:grid; place-items:center; margin:0; color:var(--text); font:700 3.2cqw/1.2 system-ui,sans-serif; letter-spacing:-.03em; }
+.summary-stage .ranking-challenge { left:25%; top:20%; width:50%; height:7%; margin:0; border:1px solid var(--border); border-radius:.7cqw; background:var(--surface-2); color:var(--text); font:600 1.6cqw/1.3 system-ui,sans-serif; }
+.summary-stage .ranking-score-panel { left:5%; top:31%; width:90%; height:50%; padding:1.2cqw; border:1px solid var(--border); border-radius:1.2cqw; background:var(--surface); }
+.summary-stage .ranking-score-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(0,1fr)); grid-auto-flow:column; gap:1cqw 1.5cqw; }
+.summary-stage .ranking-score-item { position:static; width:auto; height:auto; min-width:0; grid-template-columns:15% minmax(0,1fr) 16% 15%; gap:1cqw; padding:.6cqw 1cqw; border:1px solid var(--border); background:var(--surface-2); color:var(--text); }
+.summary-stage .ranking-score-list--pending .ranking-score-item { grid-template-columns:minmax(0,1fr) 16% 15%; }
+.summary-stage .ranking-score-item .ranking-medal { height:100%; transform:none; }
+.summary-stage .ranking-score-item .team-pill { height:75%; font-size:1.8cqw; }
+.summary-stage .ranking-score-item strong { font-size:2.7cqw; }
+.summary-stage .ranking-point-label { color:var(--muted); font-size:1.25cqw; }
+.summary-stage .ranking-gp-strip { left:5%; top:86%; width:90%; height:7%; gap:1cqw; }
+.summary-stage .team-gp-badge { background:var(--surface-2); border-color:var(--border); }
+.summary-stage .team-gp-badge__value { color:var(--text); }
+.summary-stage .ranking-leader-panel { left:4%; top:23%; width:92%; height:71%; padding:.6cqw; border:1px solid var(--border); border-radius:1.2cqw; background:var(--surface); }
+.summary-stage .ranking-table { color:var(--text); font-family:inherit; border-spacing:0 .5cqw; }
+.summary-stage .ranking-table th { background:var(--surface-2); color:var(--muted); border:0; font-size:1.2cqw; line-height:1.3; white-space:normal; }
+.summary-stage .ranking-table th:nth-child(4) { font-size:1.2cqw; }
+.summary-stage .ranking-table tbody tr { background:var(--surface); color:var(--text); }
+.summary-stage .ranking-table tbody tr:nth-child(even) { background:var(--surface-2); }
+.summary-stage .ranking-table tbody tr:first-child { background:var(--accent-soft); }
+.summary-stage .ranking-table td { color:var(--text); }
+.summary-stage .ranking-table .ranking-damage { color:var(--danger); }
+.summary-stage .ranking-table td strong { font-size:2.8cqw; }
+.summary-stage .ranking-table .ranking-medal { width:5.5cqw; height:5cqw; }
+.summary-stage .ranking-table .team-pill { width:100%; font-size:1.65cqw; }
+.summary-stage .ranking-table .ranking-effects { font-size:1.25cqw; line-height:1.35; }
+.summary-stage .reference-status { bottom:1%; color:var(--muted); background:var(--surface-2); }
+
+/* GP cards are readable themed cards rather than painted plaques. */
+.awareness-stage .awareness-teams { inset:29% 5% 16%; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:1.5cqw; }
+.awareness-stage .awareness-team { position:relative; inset:auto; width:auto; height:auto; display:flex; flex-direction:column; align-items:center; gap:1.4cqw; padding:1.7cqw 1cqw; border:1px solid var(--border); border-radius:1.2cqw; background:var(--surface); }
+.awareness-stage .awareness-name { position:static; width:100%; height:4cqw; flex:none; }
+.awareness-stage .awareness-name .team-pill { font:650 1.8cqw/1.3 system-ui,sans-serif; border-radius:.6cqw; }
+.awareness-stage .awareness-gp-icon { position:static; width:4.5cqw; height:5.5cqw; margin-top:1cqw; }
+.awareness-stage .awareness-score { position:static; width:100%; height:auto; color:var(--text); }
+.awareness-stage .awareness-score strong { font:700 4cqw/1.2 system-ui,sans-serif; letter-spacing:-.03em; overflow-wrap:anywhere; }
+
+@media(max-width:680px) and (orientation:portrait) {
+  .reference-feature-public:has(.summary-stage),.view--public-ranking:has(.summary-stage) { width:100%; }
+  .summary-stage.reference-stage,.summary-stage.reference-ranking { aspect-ratio:auto; height:min(100dvh,740px); min-height:560px; border-radius:12px; }
+  .summary-stage::after { left:5%; top:3%; width:13%; height:9%; }
+  .summary-stage__title { left:21%; top:3%; width:75%; height:9%; font-size:clamp(20px,5.5cqw,28px); }
+  .summary-stage .ranking-challenge { left:5%; top:15%; width:90%; height:7%; padding:8px; font-size:14px; white-space:normal; text-align:center; }
+  .summary-stage .ranking-score-panel { left:5%; top:25%; width:90%; height:53%; padding:12px; border-radius:12px; }
+  .summary-stage .ranking-score-list { grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(5,minmax(0,1fr)); grid-auto-flow:row; gap:8px; }
+  .summary-stage .ranking-score-item { grid-template-columns:32px minmax(0,1fr) 40px 34px; gap:8px; padding:8px; border-radius:8px; }
+  .summary-stage .ranking-score-list--pending .ranking-score-item { grid-template-columns:minmax(0,1fr) 40px 34px; }
+  .summary-stage .ranking-score-item .team-pill { height:32px; font-size:15px; }
+  .summary-stage .ranking-score-item strong { font-size:21px; }
+  .summary-stage .ranking-point-label { font-size:12px; }
+  .summary-stage .ranking-gp-strip { top:82%; height:14%; display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
+  .summary-stage .ranking-gp-item { flex:0 1 30%; height:38px; }
+  .summary-stage .ranking-gp-item .team-pill { font-size:11px; }
+  .summary-stage .ranking-gp-item strong { font-size:17px; }
+  .summary-stage .ranking-gp-item .gp-mark { width:18px; height:23px; }
+  .summary-stage .ranking-leader-panel { top:17%; height:78%; padding:8px; overflow:auto; border-radius:12px; }
+  .summary-stage .ranking-table { min-width:660px; border-spacing:0 6px; }
+  .summary-stage .ranking-table th,.summary-stage .ranking-table th:nth-child(4) { padding:8px 4px; font-size:12px; }
+  .summary-stage .ranking-table td { padding:8px 4px; }
+  .summary-stage .ranking-table td strong,.summary-stage .ranking-table .ranking-damage { font-size:23px; }
+  .summary-stage .ranking-table .ranking-medal { width:40px; height:45px; }
+  .summary-stage .ranking-table .team-pill { height:32px; font-size:14px; }
+  .summary-stage .ranking-table .ranking-effects { font-size:12px; }
+  .summary-stage .ranking-table .ranking-effect-list { max-height:72px; }
+  .summary-stage .ranking-table .gp-mark { width:18px; height:23px; }
+  .summary-stage .ranking-table .ranking-card { width:16px; height:25px; }
+  .awareness-stage .awareness-teams { inset:18% 5% 7%; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(0,1fr)); gap:12px; }
+  .awareness-stage .awareness-team { padding:12px; gap:8px; border-radius:12px; }
+  .awareness-stage .awareness-name { height:32px; }
+  .awareness-stage .awareness-name .team-pill { font-size:15px; border-radius:6px; }
+  .awareness-stage .awareness-gp-icon { width:28px; height:34px; margin:0; }
+  .awareness-stage .awareness-score strong { font-size:28px; }
+}
+.summary-stage.reference-stage::after,.summary-stage.reference-ranking::after { left:4%; top:5%; width:9%; height:12%; background-color:transparent; }
+.scoreboard-thumbnail { display:grid; place-content:center; gap:6px; height:100%; background:var(--surface-2); color:var(--text); text-align:center; }
+.scoreboard-thumbnail strong { font-size:15px; }
+.scoreboard-thumbnail > span { font-size:11px; color:var(--muted); }
+@media(max-width:680px) and (orientation:portrait) {
+  .summary-stage.reference-stage::after,.summary-stage.reference-ranking::after { left:5%; top:3%; width:13%; height:9%; }
+  .main-presentation-stage--scoreboard { aspect-ratio:auto; height:min(100dvh,740px); min-height:560px; background:var(--bg); }
+}
+@media(max-width:680px) and (orientation:portrait) {
+  .summary-stage .ranking-gp-item .team-gp-badge { grid-template-columns:minmax(0,1fr) 18px 2.2ch; gap:4px; padding:4px; border-width:1px; border-radius:7px; font-size:16px; }
+}
+.summary-stage .ranking-table tr.is-out { opacity:1; }
+/* Podium belongs to the same theme as the other summary boards. */
+.podium-stage.summary-stage { background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:16px; font-family:inherit; }
+.podium-stage.summary-stage::after { left:4%; top:5%; width:9%; height:12%; background-color:transparent; }
+.podium-stage.summary-stage .podium-plinth { background:var(--surface-2); border-color:var(--border); box-shadow:none; }
+.podium-stage.summary-stage .podium-plinth--1 { background:var(--accent-soft); border-color:var(--accent); }
+.podium-stage.summary-stage .podium-plinth :is(i,b,em) { background:var(--surface); border-color:var(--border); }
+.podium-stage.summary-stage :is(.podium-name,.podium-gp,.podium-prize) { color:var(--text); text-shadow:none; }
+.podium-stage.summary-stage .podium-prize { color:var(--muted); }
+.podium-stage.summary-stage .podium-characters > img[data-character=warden] { top:21%; height:29%; }
+.podium-stage.summary-stage .podium-characters > img[data-character=spark] { top:17%; height:31%; }
+.podium-stage.summary-stage .podium-characters > img[data-character=ranger] { top:21%; height:29%; }
+@media(min-width:681px),(orientation:landscape) {
+  .podium-stage.summary-stage .podium-winner--1 .podium-gp { top:64.2%; height:7.3%; }
+  .podium-stage.summary-stage .podium-winner--2 .podium-gp { top:71.2%; height:6.1%; }
+  .podium-stage.summary-stage .podium-winner--3 .podium-gp { top:71.3%; height:6.1%; }
+}
+
+/* React to the available content width, including tablet admin sidebars. */
+.podium-admin,.podium-public { container-type:inline-size; }
+@container(max-width:680px) {
+  .podium-stage.summary-stage { aspect-ratio:auto; height:min(100dvh,740px); min-height:560px; border-radius:12px; }
+  .podium-stage.summary-stage::after { left:5%; top:3%; width:13%; height:9%; }
+  .podium-stage.summary-stage :is(.podium-characters,.podium-plinth) { display:none; }
+  .podium-stage.summary-stage .podium-winner { inset:auto; left:5%; top:18%; width:90%; height:23%; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+  .podium-stage.summary-stage .podium-winner--2 { top:44%; }
+  .podium-stage.summary-stage .podium-winner--3 { top:70%; }
+  .podium-stage.summary-stage .podium-rank { left:4%; top:18%; width:19%; height:64%; transform:none; }
+  .podium-stage.summary-stage .podium-name { left:27%; top:12%; width:65%; height:22%; font-size:18px; }
+  .podium-stage.summary-stage .podium-gp-icon { left:37%; top:40%; width:9%; height:24%; }
+  .podium-stage.summary-stage .podium-winner .podium-gp { left:48%; top:41%; width:24%; height:23%; font-size:26px; }
+  .podium-stage.summary-stage .podium-prize { left:27%; top:72%; width:65%; height:18%; font-size:14px; }
+}
+
+.app--admin .podium-admin .admin-toolbar {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px;
+  align-items:start; margin-bottom:0; padding:20px;
+}
+.app--admin .podium-admin .admin-toolbar .field { width:100%; max-width:none; margin:0; gap:8px; }
+.app--admin .podium-admin .admin-toolbar .field > span { font-size:13px; line-height:1.4; }
+.app--admin .podium-admin .admin-toolbar input { width:100%; height:44px; font-variant-numeric:tabular-nums; }
+.podium-admin .podium-stage { margin-top:4px; }
+@container(max-width:680px) {
+  .podium-stage.summary-stage .podium-name { top:8%; height:28%; white-space:normal; line-height:1.25; }
+  .podium-stage.summary-stage .podium-name > span { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; white-space:normal; }
+}
+@media(max-width:1100px) { .app--admin .app__risk-card { display:none; } }
+
+@container(max-width:480px) {
+  .app--admin .podium-admin .admin-toolbar { grid-template-columns:minmax(0,1fr); gap:14px; padding:16px; }
+}
+@container(min-width:681px) {
+  .podium-stage.summary-stage .podium-name { font-size:max(14px,var(--name-size)); }
+  .podium-stage.summary-stage .podium-gp { font-size:max(18px,var(--gp-size)); }
+  .podium-stage.summary-stage .podium-prize { font-size:max(12px,var(--prize-size)); }
+  .podium-stage.summary-stage .podium-winner--1 .podium-prize { left:36.325%; top:75%; width:27.45%; height:8.4%; }
+  .podium-stage.summary-stage .podium-winner--2 .podium-prize { left:6.85%; top:79.2%; width:24.3%; height:6.5%; }
+  .podium-stage.summary-stage .podium-winner--3 .podium-prize { left:67.85%; top:79.2%; width:24.3%; height:6.5%; }
+}
+@container(max-width:680px) {
+  .podium-stage.summary-stage .summary-stage__title { left:21%; top:3%; width:75%; height:9%; font-size:clamp(22px,5.5cqw,28px); }
+}

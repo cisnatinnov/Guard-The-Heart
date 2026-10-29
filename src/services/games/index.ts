@@ -19,14 +19,12 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   {
     id: 'emoji-decode',
     title: 'Challenge 1 - Image Decode',
-    tagline: 'Decode the banking terms revealed by the picture clues, against the clock.',
+    tagline: 'Decode the workbook clues. The timer is a reminder.',
     rules: [
-      'Eleven banking-term questions based on slides 3–24 of the Image Decode reference deck.',
-      'Every question has a 15-second timer.',
-      'Self answers score +10 correct or −10 wrong or timed out, with a maximum of 110 points.',
+      'Choose up to 10 questions from 69 emoji clues.',
+      'A 15-second reminder never closes answers or changes scores.',
+      'Answers score +10 correct or -10 wrong. Turn Order controls the active team.',
     ],
-    deckPath: '/ui/Image_Decode.pptx',
-    deckLabel: 'Image Decode deck (PPTX)',
     challengeId: EMOJI_DECODE_CHALLENGE_ID,
   },
   {
@@ -34,9 +32,9 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
     title: 'Challenge 2 - Flipping Connect',
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
-      'Flip two cards at a time and match identical pictures. There are no questions.',
-      'A right answer unlocks a fresh board: memorize cards for 5 seconds, then match pairs for 20 seconds. Each pair earns +5 raw score; time up locks the cards.',
-      'The selected team keeps its turn until the admin chooses another team. Host verdicts add 10 for a right answer or deduct 10 for a wrong answer from the raw challenge score.',
+      'Flip two cards at a time and match identical pictures. Answer the workbook quiz to unlock matching.',
+      'A right answer unlocks a fresh board: memorize cards for 5 seconds, then match pairs at your own pace. Each pair earns +5 raw score; There is no response timer.',
+      'The selected team keeps its turn until the admin chooses another team. Submitted answers automatically add 10 for a right answer or deduct 10 for a wrong answer from the raw challenge score.',
       'Match all ten pairs to complete the challenge.',
     ],
     challengeId: WORD_ASSEMBLY_CHALLENGE_ID,

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-const colors = { merah:'rgb(255, 36, 36)', biru:'rgb(67, 179, 255)', kuning:'rgb(255, 208, 57)', hijau:'rgb(90, 255, 125)', pink:'rgb(255, 21, 133)' }
+const colors = { merah:'rgb(222, 160, 164)', biru:'rgb(148, 187, 220)', kuning:'rgb(220, 199, 132)', hijau:'rgb(153, 197, 172)', pink:'rgb(213, 165, 191)' }
 test('team identity colors match the shared palette on admin and public screens', async ({ page }) => {
   const screens = [
     ['scoreboard', '.team-pill--'], ['leaderboard', '.team-pill--'],

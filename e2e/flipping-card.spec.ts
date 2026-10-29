@@ -1,3 +1,4 @@
+import { submitQuizAnswer } from './support/challengeAnswer'
 import { test, expect } from '@playwright/test'
 
 test('team changes replay preview, both mismatched cards appear briefly and matches stay open on both screens', async ({ page, context }) => {
@@ -22,11 +23,11 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await projector.clock.pauseAt(new Date(time.getTime() + 1000))
   for (const name of ['Alpha', 'Beta']) await page.locator('.run-panel__teams').getByRole('checkbox', { name, exact: true }).check()
   await page.getByRole('button', { name: 'Start team run (2)' }).click()
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
+  await submitQuizAnswer(page, true)
   expect(context.pages()).toHaveLength(pagesBefore)
   for (const screen of [page, projector]) {
     await expect(screen.locator('.tile--revealed')).toHaveCount(20)
-    await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
+    await expect(screen.getByRole('timer')).toHaveCount(0)
     await expect(screen.locator('.tile--matched')).toHaveCount(0)
     await expect(screen.locator('.flipping-presentation__feedback b')).toHaveText('Card opened')
   }
@@ -37,10 +38,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
       const stage = (await screen.locator('.flipping-presentation').boundingBox())!
       const teams = (await screen.locator('.flipping-presentation__teams').boundingBox())!
       const turn = (await screen.locator('.flipping-presentation__turn').boundingBox())!
-      const preview = (await screen.getByRole('timer',{name:'Cards preview countdown'}).boundingBox())!
       expect(teams.y).toBeLessThan(stage.y + stage.height * .065)
-      expect(preview.y).toBeGreaterThanOrEqual(stage.y)
-      expect(preview.y + preview.height).toBeLessThan(teams.y)
       expect(turn.y - teams.y - teams.height).toBeGreaterThan(stage.width * .005)
       expect(turn.y + turn.height).toBeLessThan(stage.y + stage.height * .18)
       const feedback = (await screen.locator('.flipping-presentation__feedback').boundingBox())!
@@ -58,7 +56,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await page.reload()
   await projector.reload()
   for (const screen of [page, projector]) {
-    await expect(screen.getByRole('timer', {name:'Cards preview countdown'})).toContainText('4s')
+    await expect(screen.getByRole('timer')).toHaveCount(0)
     await expect(screen.locator('.tile--revealed')).toHaveCount(20)
   }
   await page.clock.runFor(3999)
@@ -85,7 +83,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(projector.locator('.flipping-presentation__team-gp')).toHaveText(['8 GP', '5 GP'])
   const active = page.locator('.flipping-presentation__teams [aria-current]')
   await expect(active).toContainText(order[0]!)
-  await expect(page.getByRole('timer', { name: 'Matching time remaining' })).toHaveText('20s')
+  await expect(page.getByRole('timer')).toHaveCount(0)
   await expect(page.getByText(/Matched pairs:.*s$/)).toHaveCount(0)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await page.locator('.tile[data-pair="word-2"]').first().click()
@@ -107,17 +105,17 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(projector.locator('.tile--revealed')).toHaveCount(0)
   await expect(active).toContainText(order[0]!)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
+  await submitQuizAnswer(page, true)
   await expect(active).toContainText(order[1]!)
   await expect(projector.locator('.tile--revealed')).toHaveCount(20)
-  await expect(page.getByRole('timer', {name:'Cards preview countdown'})).toContainText('5s')
+  await expect(page.getByRole('timer')).toHaveCount(0)
   await expect(page.getByRole('table', { name: 'Matching scores' })).toHaveCount(0)
   await page.clock.runFor(5100)
   await expect(active).toContainText(order[1]!)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await expect(page.locator('.tile--revealed')).toHaveCount(1)
   await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[0]!, exact: true }).click()
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
+  await submitQuizAnswer(page, true)
   await expect(active).toContainText(order[0]!)
   await expect(projector.locator('.tile--revealed')).toHaveCount(20)
   await page.clock.runFor(5000)
@@ -144,7 +142,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
         await expect(projector.locator('.flipping-presentation__feedback')).toHaveCount(0)
         const previousLayout = await projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))
         await page.locator('.flipping-presentation__teams').getByRole('button', { name: order[1]!, exact: true }).click()
-        await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
+        await submitQuizAnswer(page, true)
         await expect(page.getByLabel('Challenge scoring')).toHaveAttribute('aria-busy', 'false')
         const hostLayout = await page.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))
         await expect.poll(() => projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))).toEqual(hostLayout)
@@ -155,7 +153,8 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
         await page.clock.runFor(1000)
         await page.reload()
         await projector.reload()
-        await expect(projector.getByRole('timer', {name:'Cards preview countdown'})).toContainText('4s')
+        await expect(projector.getByRole('timer')).toHaveCount(0)
+        await expect(projector.locator('.tile')).toHaveCount(20)
         expect(await projector.locator('.tile').evaluateAll((cards) => cards.map((card) => card.getAttribute('data-pair')))).toEqual(newLayout)
         await page.clock.runFor(4000)
         for (const screen of [page, projector]) {
@@ -174,7 +173,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   await expect(page).toHaveURL(/\/admin\/play\/word-assembly\//)
   await expect(projector).toHaveURL(/\/play\/word-assembly\//)
   await page.locator('.flipping-presentation__teams').getByRole('button', {name:order[0]!,exact:true}).click()
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
+  await submitQuizAnswer(page, true)
   for (const screen of [page,projector]) {
     await expect(screen.locator('.tile--revealed')).toHaveCount(20)
     await expect(screen.locator('.tile--matched')).toHaveCount(0)
@@ -258,7 +257,7 @@ test('team start reuses the public window after another feature was displayed', 
   await page.getByRole('button', { name:'Start team run (1)' }).click()
   await expect(projector).toHaveURL('/play/word-assembly/7c4a2f96-08db-4e15-b3c7-1d9e5a80f463')
   await expect(projector.locator('.flipping-presentation__team-gp')).toHaveText('5 GP')
-  await page.getByRole('button', { name: 'Right Answer (+10)', exact: true }).click()
+  await submitQuizAnswer(page, true)
   await page.locator('.tile[data-pair="word-1"]').first().click()
   await expect(projector.locator('.tile--revealed')).toHaveCount(1)
   expect(context.pages()).toHaveLength(pagesBefore)

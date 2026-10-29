@@ -1,16 +1,18 @@
+import { WorkbookQuiz } from './WorkbookQuiz'
 import { useChallengeAnswers } from '../../hooks/useChallengeAnswers'
 import { englishText } from '../../services/english'
 import { useEffect, useState } from 'react'
 import { ChallengeRunController } from '../../controllers/ChallengeRunController'
 import { useTeams } from '../../hooks/useTeams'
 import { isRunComplete, selectMatchingTeam, teamForQuestion, type ChallengeRun } from '../../services/games/teamRun'
-import { MATCHING_MISMATCH_MS, MATCHING_ATTEMPT_SECONDS } from '../../services/games/wordAssembly'
+import { MATCHING_MISMATCH_MS } from '../../services/games/wordAssembly'
 import { useRunCountdown } from './useRunCountdown'
 import { FlippingPresentation } from './FlippingPresentation'
 import { useActiveTeam } from '../../hooks/useActiveTeam'
 import { publishEventTimer, readEventTimer } from '../../services/eventTimer'
 import type { ChallengeAnswer } from '../../models'
 import { ChallengeAnswerControls } from './ChallengeAnswerControls'
+import { playMatchingCard, closeMatchingCards } from '../../services/games/matchingPlay'
 
 export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, onUpdate, onEnd }: {
   challengeId: string
@@ -29,8 +31,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const complete = !!run && isRunComplete(run)
-  const remaining = useRunCountdown(run?.matchingDeadline)
-  const expired = remaining === 0 && !complete
+  const expired = false
   const activeTeamId = useActiveTeam()
   const previewRemaining = useRunCountdown(run?.matchingPreviewDeadline)
   useEffect(() => {
@@ -44,26 +45,20 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
       .catch((cause: unknown) => setError(englishText(cause instanceof Error ? cause.message : String(cause))))
       .finally(() => setBusy(false))
   }, [canControl, run, onUpdate, busy, activeTeamId, previewRemaining])
-  useEffect(() => {
-    if (!canControl || !run || run.matchingDeadline !== undefined || !onUpdate || complete) return
-    // Give legacy untimed runs one saved deadline; reload never extends it.
-    void onUpdate({ ...run, matchingDeadline: Math.max(Date.now(), run.matchingPreviewDeadline ?? 0) + MATCHING_ATTEMPT_SECONDS * 1000 })
-      .catch((cause: unknown) => setError(englishText(cause instanceof Error ? cause.message : String(cause))))
-  }, [canControl, run, onUpdate, complete])
   const team = run ? teamForQuestion(run) : undefined
   const teamName = (id: string) => teams.find((entry) => entry.id === id)?.name ?? 'Team'
   useEffect(() => {
-    if (!canControl || !run || !onUpdate || busy || complete) return
+    if (!run?.matchingAnswerId || busy || complete) return
     const mismatch = run.matchingBoard?.revealed.length === 2
     if (!mismatch) return
     const timeout = window.setTimeout(() => {
       setBusy(true)
-      void ChallengeRunController.finishMatchingTurn({ ...run, matchingCloseDeadline: undefined }).then(onUpdate)
+      void closeMatchingCards(challengeId, run.matchingAnswerId!, run.matchingCloseDeadline ?? 0)
         .catch((cause: unknown) => setError(englishText(cause instanceof Error ? cause.message : String(cause))))
         .finally(() => setBusy(false))
     }, Math.min(MATCHING_MISMATCH_MS, Math.max(0, (run.matchingCloseDeadline ?? 0) - Date.now())))
     return () => window.clearTimeout(timeout)
-  }, [canControl, run, onUpdate, busy, complete])
+  }, [challengeId, run, busy, complete])
 
   async function answered(answer: ChallengeAnswer) {
     if (!answer.correct) {
@@ -75,7 +70,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     next.nextTeamIndex = next.runs.findIndex((entry) => entry.team === answer.team)
     next.matchingAnswerId = answer.id
     next.matchingDeadline = Number(answer.matching_deadline)
-    next.matchingPreviewDeadline = next.matchingDeadline - MATCHING_ATTEMPT_SECONDS * 1000
+    next.matchingPreviewDeadline = Number(answer.matching_deadline)
     if (run) await onUpdate?.(next)
     else await onStart?.(next)
   }
@@ -97,7 +92,7 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
     if (!run || busy || expired || !run.matchingAnswerId) return
     setBusy(true)
     setError(null)
-    try { await onUpdate?.(await ChallengeRunController.flipMatchingOnly(run, id)) }
+    try { await playMatchingCard(challengeId, run.matchingAnswerId, id) }
     catch (cause) { setError(englishText(cause instanceof Error ? cause.message : String(cause))) }
     finally { setBusy(false) }
   }
@@ -116,13 +111,14 @@ export function MatchingOnlyView({ challengeId, sharedRun, canControl, onStart, 
   const presentation = <FlippingPresentation board={run?.matchingBoard} run={run} teamName={teamName} teamColour={(id) => teams.find((team) => team.id === id)?.colour} teamIds={activeTeams.map((team) => team.id)}
     teamGP={(teamId) => teams.find((entry) => entry.id === teamId)?.total_gp}
     complete={complete} disabled={busy || complete || expired || !run?.matchingAnswerId || run?.matchingDeadline === undefined}
-    onFlip={canControl ? (id) => void flip(id) : undefined}
+    onFlip={(id) => void flip(id)}
     onChooseTeam={canControl ? (id) => void chooseTeam(id) : undefined} teamSelectionDisabled={busy || run?.matchingBoard?.revealed.length === 2} />
-  if (!canControl) return <><ChallengeAnswerControls challengeId={challengeId} canControl={false} state={answerState} />{presentation}</>
+  if (!canControl) return <><WorkbookQuiz challengeId={challengeId} gameKey="match-card" canControl={false} /><ChallengeAnswerControls challengeId={challengeId} canControl={false} state={answerState} />{error && <p className="alert alert--error">{error}</p>}{presentation}</>
   return <section className="view matching-only">
     <h2>Challenge 2 - Flipping Connect</h2>
+    <WorkbookQuiz challengeId={challengeId} gameKey="match-card" canControl />
     <ChallengeAnswerControls challengeId={challengeId} canControl state={answerState} matching onAnswer={answered} disabled={busy} />
-    <p>A Right Answer earns 10 raw score and unlocks a fresh matching board: memorize the open cards for 5 seconds, then match pairs for 20 seconds. Each matched pair earns +5 raw score. Mismatches close after a short pause; mismatches and timeouts never deduct score. A Wrong Answer deducts 10 raw score and does not unlock matching. Selecting another team ends the current bonus attempt.</p>
+    <p>A Right Answer earns 10 raw score and unlocks a fresh matching board: memorize the open cards for 5 seconds, then match pairs at your own pace. Each matched pair earns +5 raw score. Mismatches close after a short pause; mismatches never deduct score. A Wrong Answer deducts 10 raw score and does not unlock matching. Selecting another team ends the current bonus attempt.</p>
     {error && <p className="alert alert--error">{error}</p>}
     {run ? <>
       <header className="matching-only__header"><h3>Matched pairs: {run.questionIndex}/10 · {team ? teamName(team.team) : ''}</h3><button type="button" className="ghost" disabled={busy} onClick={onEnd}>End run</button></header>

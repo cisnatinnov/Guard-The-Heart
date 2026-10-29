@@ -1,0 +1,79 @@
+/* A quiet control room around the game's illustrated public screens. */
+.app--admin {
+  display:grid; grid-template-columns:210px minmax(0,1fr); grid-template-rows:auto 1fr auto;
+  align-items:start; width:100%; max-width:1480px; margin:0 auto; padding:20px 28px;
+  gap:24px 32px; background:transparent;
+  --bg:#f4f6fa; --surface:#fff; --surface-2:#edf1f7; --border:#dbe1eb;
+  --text:#1c2940; --muted:#5d6b80; --accent:#4264bc; --accent-strong:#3656a4;
+  --accent-soft:#eaf0ff;
+}
+.app--admin .app__header { grid-column:1/-1; padding:0 0 16px; border:0; border-bottom:1px solid var(--border); border-radius:0; background:transparent; box-shadow:none; }
+.app--admin .app__header-top { grid-template-columns:minmax(0,1fr) auto auto; gap:20px; }
+.app--admin .app__logo { width:64px; height:64px; }
+.app--admin .app__brand h1 { font-size:21px; letter-spacing:-.025em; color:var(--text); }
+.app--admin .app__tagline { margin-top:3px; color:var(--muted); font-size:12px; }
+.app--admin .app__characters { gap:8px; padding:0; background:transparent; border:0; }
+.app--admin .app__character,.app--admin .app__character--mascot { width:55px; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.app--admin .app__character img,.app--admin .app__character--mascot img { height:50px; background:transparent; }
+.app--admin .app__character figcaption { padding:2px 0 0; font-size:8px; color:var(--muted); text-transform:none; line-height:1.2; }
+.app--admin .app__risk-card { display:block; width:76px; margin:0; background:transparent; border:0; border-radius:0; aspect-ratio:auto; box-shadow:none; }
+.app--admin .app__risk-card img { height:52px; width:100%; object-fit:contain; }
+.app--admin .app__risk-card figcaption { position:static; padding:0; background:transparent; color:var(--muted); font-size:9px; line-height:1.2; }
+.app--admin .tabs--admin { position:sticky; top:20px; grid-column:1; grid-row:2; display:flex; flex-direction:column; align-items:stretch; gap:14px; padding:0; border:0; max-height:calc(100dvh - 150px); overflow-y:auto; scrollbar-width:thin; }
+.admin-nav-group { display:grid; gap:2px; }
+.admin-nav-group__title { margin:0 0 7px; padding:0 12px; font-size:10px; line-height:1.5; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#6b788d; }
+.app--admin .tabs--admin .tab { justify-content:flex-start; min-height:35px; padding:6px 12px; border:1px solid transparent; border-radius:8px; background:transparent; color:#536178; font-size:13px; font-weight:500; line-height:1.4; }
+.app--admin .tabs--admin .tab:hover { color:#263d70; background:#e8edf6; border-color:transparent; }
+.app--admin .tabs--admin .tab.tab--active { color:#294d9e; background:#e3eafb; border-color:#cbd8f5; font-weight:700; }
+.app--admin .app__main { grid-column:2; grid-row:2; min-width:0; min-height:540px; padding-top:0; }
+.app--admin .app__footer { grid-column:2; padding-top:18px; text-align:left; border-color:var(--border); color:var(--muted); }
+.app--admin .view { gap:18px; }
+.app--admin .view__header h2 { font-size:27px; letter-spacing:-.025em; color:var(--text); }
+.app--admin .view__hint { color:var(--muted); }
+.app--admin .card,.app--admin .panel,.app--admin .presentation-controls { background:#fff; border-color:var(--border); box-shadow:0 2px 6px #1b2d4c03; }
+.app--admin input:not([type=checkbox]):not([type=radio]),.app--admin select { background:#fff; color:var(--text); border-color:#cbd4e2; min-height:42px; }
+.app--admin input::placeholder { color:#7b8798; }
+.app--admin button { font-weight:600; }
+.app--admin button.ghost { background:#fff; color:#3a4c69; border-color:#d1dbe9; }
+.app--admin .deck-link { color:#294d9e; background:#edf2ff; border-color:#cbd8f5; }
+.app--admin .main-presentation-thumbnails button > span { color:#263957; }
+.app--admin .team-view { gap:16px; }
+.team-overview { display:flex; flex-wrap:wrap; gap:18px; margin-top:16px; font-size:13px; color:var(--muted); }
+.team-overview span { display:inline-flex; align-items:center; gap:5px; }
+.team-overview strong { color:var(--text); font-variant-numeric:tabular-nums; }
+.team-overview i { width:7px; height:7px; border-radius:50%; background:#278472; }
+.team-rules { font-size:12px; color:var(--muted); }
+.team-rules summary { cursor:pointer; width:fit-content; padding:2px 0; }
+.team-rules p { max-width:80ch; margin:8px 0 0; line-height:1.7; }
+.app--admin .team-create { padding:16px; background:#fff; border:1px solid var(--border); border-radius:12px; }
+.app--admin .team-create input[type=text] { flex:1; }
+.app--admin .team-list-toolbar { gap:12px; padding:0; border:0; border-radius:0; background:transparent; }
+.app--admin .team-card { padding:14px 16px; border-radius:12px; }
+.app--admin .team-card__actions > button:not(.danger):not(.ghost) { background:#f1f4f9; border-color:#d3dce9; color:#3a4c69; }
+.app--admin .team-card__status .badge { background:#f1f4f9; color:#49617c; border-color:#dae2ef; font-size:11px; }
+.app--admin .team-card__status .badge:first-child:not(.badge--muted) { background:#edf7f2; color:#23674f; border-color:#d0e8db; }
+.app--admin .team-card .danger:disabled { color:#8c737b; background:#faf7f8; border-color:#e7dfe2; }
+@media (max-width:900px) {
+  .app--admin { grid-template-columns:170px minmax(0,1fr); gap:20px; padding:16px; }
+  .app--admin .app__characters { display:none; }
+  .app--admin .tabs--admin .tab { font-size:12px; padding:9px; }
+}
+@media (max-width:680px) {
+  .app--admin { display:flex; padding:12px; gap:20px; }
+  .app--admin .app__header { width:100%; padding-bottom:12px; }
+  .app--admin .app__header-top { grid-template-columns:minmax(0,1fr) auto; gap:8px; }
+  .app--admin .app__logo { width:48px; height:48px; }
+  .app--admin .app__brand h1 { font-size:18px; }
+  .app--admin .app__tagline { font-size:10px; }
+  .app--admin .app__risk-card { width:54px; }
+  .app--admin .app__risk-card img { height:42px; }
+  .app--admin .tabs--admin { position:static; display:flex; flex-direction:row; flex-wrap:nowrap; gap:18px; max-height:none; overflow-x:auto; overflow-y:visible; width:100%; padding:0 0 8px; }
+  .admin-nav-group { display:flex; flex:none; gap:5px; align-items:center; }
+  .admin-nav-group__title { display:none; }
+  .app--admin .tabs--admin .tab { width:auto; flex:none; white-space:nowrap; min-height:40px; padding:9px 12px; }
+  .app--admin .app__main { min-height:0; width:100%; }
+  .app--admin .view__header h2 { font-size:25px; }
+  .app--admin .team-create { flex-direction:column; padding:12px; }
+  .app--admin .team-create input[type=text],.app--admin .team-create > button { width:100%; flex:auto; }
+  .app--admin .team-list-toolbar { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+}

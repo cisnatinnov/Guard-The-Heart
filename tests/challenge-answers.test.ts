@@ -86,7 +86,7 @@ describe('host challenge verdicts', () => {
   })
 })
 
-it('awards +5 for each unique pair only during the 20-second right-answer bonus', async () => {
+it('awards +5 for each unique pair after the preview without a response deadline', async () => {
   const challenge = await ChallengeController.create('Matching bonus')
   const team = await TeamController.create('Matching bonus team')
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -98,8 +98,9 @@ it('awards +5 for each unique pair only during the 20-second right-answer bonus'
   await recordMatchingPair(answer.id, 2)
   expect((await ChallengePointController.listByChallenge(challenge.id))[0].score).toBe(20)
   vi.advanceTimersByTime(20000)
-  await expect(recordMatchingPair(answer.id, 3)).rejects.toThrow('not active')
-  expect((await ChallengePointController.listByChallenge(challenge.id))[0].score).toBe(20)
+  await recordMatchingPair(answer.id, 3)
+  expect((await ChallengePointController.listByChallenge(challenge.id))[0].score).toBe(25)
   const wrong = await recordChallengeAnswer({ id: crypto.randomUUID(), challenge: challenge.id, team: team.id, correct: false, matching: true })
   await expect(recordMatchingPair(wrong.id, 1)).rejects.toThrow('right answer')
+  await expect(recordMatchingPair(answer.id, 4)).rejects.toThrow('right answer')
 })

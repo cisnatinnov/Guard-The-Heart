@@ -30,7 +30,7 @@ it('keeps matching available after preview without a turn timer, including a sav
   expect(next.matchingBoard?.revealed).toHaveLength(1)
 })
 
-it('gives each team 20 seconds after preview and rejects flips at the exact deadline', () => {
+it('keeps matching open after the former deadline and resets the preview on team changes', () => {
   vi.useFakeTimers()
   const current = selectMatchingTeam(run(), 'b')
   const first = current.matchingBoard!.board[0].id
@@ -40,7 +40,7 @@ it('gives each team 20 seconds after preview and rejects flips at the exact dead
   expect(flipped.matchingBoard!.revealed).toEqual([first])
   expect(flipped.matchingDeadline).toBe(current.matchingDeadline)
   vi.advanceTimersByTime(20000)
-  expect(flipRunCard(flipped, flipped.matchingBoard!.board[1].id)).toBe(flipped)
+  expect(flipRunCard(flipped, flipped.matchingBoard!.board[1].id)).not.toBe(flipped)
   expect(selectMatchingTeam(flipped, 'b')).toBe(flipped)
   const next = selectMatchingTeam(flipped, 'a')
   expect(next.matchingBoard!.revealed).toEqual([])

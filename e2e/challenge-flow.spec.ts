@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 const CHALLENGE_GAMES = [{ id: 'emoji-decode', challengeId: '9f1c3a52-0d64-4e2b-8a71-5c0e2b7d4a10' }, { id: 'word-assembly', challengeId: '7c4a2f96-08db-4e15-b3c7-1d9e5a80f463' }, { id: 'jaws-of-risk', challengeId: 'd5e8b317-4c62-49af-8b03-2f7c19a6d5e8' }]
 
-for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as const) {
+for (const [title, game, count] of [['Image Decode', 'emoji-decode', 10]] as const) {
   test(`${title} final answer opens both scoreboards and rewards stay synchronized`, async ({ page, context }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
@@ -30,13 +30,16 @@ for (const [title, game, count] of [['Image Decode', 'emoji-decode', 11]] as con
       await projector.clock.pauseAt(new Date(time))
       await projector.reload()
       await expect(projector.locator('.qa-stage__timer')).toContainText('10s')
-      await expect(projector.locator('.qa-stage__hint')).toHaveText('1 Word')
+      await expect(projector.locator('.qa-stage__hint')).toHaveText('2 Kata, Perbedaan Uang')
       await projector.screenshot({ path: 'test-results/image-decode-public.png' })
     }
     for (let number = 1; number <= count; number++) {
       await expect(page.locator('.run-panel__title')).toContainText(`question ${number} of ${count}`)
       if (game === 'emoji-decode' && number === count) {
         await page.clock.runFor(16_000)
+        await expect(page.getByRole('textbox', { name: 'Team A answer' })).toBeEnabled()
+        await page.getByRole('textbox', { name: 'Team A answer' }).fill('wrong answer')
+        await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
       } else {
         const input = page.getByRole('textbox', { name: 'Team A answer' })
         if (game === 'emoji-decode') await input.fill('wrong answer')
@@ -123,11 +126,11 @@ test('wrong answers still pass to the next team and early End run cancels both s
   const firstName = await firstAnswer.getAttribute('aria-label')
   await firstAnswer.fill('wrong')
   await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
-  await expect(page.locator('.run-panel__title')).toContainText('question 1 of 11')
+  await expect(page.locator('.run-panel__title')).toContainText('question 1 of 10')
   await expect(page.locator('.run-panel__answers input[type="text"]:enabled')).not.toHaveAttribute('aria-label', firstName!)
   await page.locator('.run-panel__answers input[type="text"]:enabled').fill('wrong')
   await page.getByRole('button', { name: 'Next team answer', exact: true }).click()
-  await expect(page.locator('.run-panel__title')).toContainText('question 2 of 11')
+  await expect(page.locator('.run-panel__title')).toContainText('question 2 of 10')
   await page.getByRole('button', { name: 'End run', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Start team run (2)' })).toBeVisible()
   await expect(projector.getByRole('status').filter({ hasText: 'Waiting for the challenge to start' })).toBeVisible()

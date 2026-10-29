@@ -81,17 +81,17 @@ describe('challenge registry', () => {
     }
   })
 
-  it('links question games to their supplied reference decks', () => {
-    expect(CHALLENGE_GAMES.filter((game) => game.deckPath).map((game) => game.id)).toEqual([
-      'emoji-decode',
-    ])
-    expect(CHALLENGE_GAMES[0].deckPath).toMatch(/Image_Decode\.pptx$/)
+  it('uses the workbook bank for every challenge', () => {
+    expect(reference.imageDecode).toHaveLength(69)
+    expect(reference.matchCard).toHaveLength(71)
+    expect(reference.jawsOfRisk).toHaveLength(69)
+    expect(CHALLENGE_GAMES[0].deckPath).toBeUndefined()
   })
 
   it('uses the configured timer for question-based team runs only', () => {
     expect(challengeQuestionsFor('emoji-decode').secondsPerQuestion).toBe(15)
-    expect(challengeQuestionsFor('word-assembly').secondsPerQuestion).toBe(15)
-    expect(challengeQuestionsFor('jaws-of-risk').secondsPerQuestion).toBe(15)
+    expect(challengeQuestionsFor('word-assembly').secondsPerQuestion).toBeUndefined()
+    expect(challengeQuestionsFor('jaws-of-risk').secondsPerQuestion).toBeUndefined()
   })
 })
 
@@ -305,8 +305,8 @@ describe('team challenge turns', () => {
 })
 
 describe('Image Decode', () => {
-  it('ships the eleven clue and answer pairs from the supplied reference deck', () => {
-    expect(EMOJI_DECODE_QUESTIONS).toHaveLength(11)
+  it('ships all 69 clue and answer pairs from the workbook', () => {
+    expect(EMOJI_DECODE_QUESTIONS).toHaveLength(69)
     for (const question of EMOJI_DECODE_QUESTIONS) {
       expect(question.emojis).toHaveLength(EMOJI_DECODE_EMOJIS_PER_QUESTION)
       for (const glyph of question.emojis) {
@@ -315,18 +315,18 @@ describe('Image Decode', () => {
       expect(question.answer.length).toBeGreaterThan(1)
       expect(question.hint.length).toBeGreaterThan(0)
     }
-    expect(EMOJI_DECODE_QUESTIONS[10].answer).toBe('Lapor')
+    expect(EMOJI_DECODE_QUESTIONS[10].answer).toBe('Anti Suap')
     expect(checkEmojiAnswer(EMOJI_DECODE_QUESTIONS[10], 'Kendaraan Dinas Operasional')).toBe(false)
     expect(EMOJI_DECODE_EMOJIS_PER_QUESTION).toBe(1)
-    expect(new Set(EMOJI_DECODE_QUESTIONS.map((q) => q.id)).size).toBe(11)
+    expect(new Set(EMOJI_DECODE_QUESTIONS.map((q) => q.id)).size).toBe(69)
   })
 
   it('accepts loose spellings but rejects other words', () => {
     const question = EMOJI_DECODE_QUESTIONS[0]
     expect(normalizeEmojiAnswer(' Fire-Engine! ')).toBe('fireengine')
-    expect(checkEmojiAnswer(question, ' rekening ')).toBe(true)
-    expect(checkEmojiAnswer(question, 'REKENING')).toBe(true)
-    expect(checkEmojiAnswer(question, 're-kening')).toBe(true)
+    expect(checkEmojiAnswer(question, ' selisih kas ')).toBe(true)
+    expect(checkEmojiAnswer(question, 'SELISIH KAS')).toBe(true)
+    expect(checkEmojiAnswer(question, 'selisih-kas')).toBe(true)
     expect(checkEmojiAnswer(question, 'astronaut')).toBe(false)
     expect(checkEmojiAnswer(question, '   ')).toBe(false)
   })
@@ -342,7 +342,7 @@ describe('Image Decode', () => {
     expect(result.solved).toBe(2)
     expect(result.attempted).toBe(3)
     expect(result.score).toBe(10)
-    expect(result.maximum).toBe(110)
+    expect(result.maximum).toBe(690)
   })
 })
 
@@ -414,13 +414,12 @@ describe('Flipping Connect', () => {
     expect(revealWordAssemblyCard(opened, third.id)).toBe(opened)
   })
 
-  it('uses all 21 reference questions, including slides 43 and 44', () => {
+  it('uses all 71 workbook quiz questions', () => {
     const set = challengeQuestionsFor('word-assembly')
-    expect(set.questions).toHaveLength(21)
+    expect(set.questions).toHaveLength(71)
     expect(set.questions[0].options).toEqual(reference.matchCard[0].options)
     expect(set.questions[0].grade(reference.matchCard[0].answer)).toBe(10)
-    expect(set.questions[20].sourceSlide).toBe(43)
-    expect(set.questions[20].answerSlide).toBe(44)
+    expect(set.questions[70].prompt).toBe(reference.matchCard[70].prompt)
   })
 })
 
@@ -483,13 +482,11 @@ describe('Jaw of Risk', () => {
 })
 
 describe('reference slide ranges and answer keys', () => {
-  for (const [game, bank, lastSlide] of [['word-assembly', reference.matchCard, 44], ['jaws-of-risk', reference.jawsOfRisk, 42]] as const) {
-    it(`grades every ${game} question using the answer-slide highlight`, () => {
+  for (const [game, bank] of [['word-assembly', reference.matchCard], ['jaws-of-risk', reference.jawsOfRisk]] as const) {
+    it(`grades every ${game} question using the workbook answer key`, () => {
       const questions = challengeQuestionsFor(game).questions
-      expect(questions).toHaveLength((lastSlide - 2) / 2)
+      expect(questions).toHaveLength(bank.length)
       questions.forEach((question, index) => {
-        expect(question.sourceSlide).toBe(3 + index * 2)
-        expect(question.answerSlide).toBe(4 + index * 2)
         expect(question.prompt).toBe(bank[index].prompt)
         expect(question.options).toEqual(bank[index].options)
         expect(question.grade(bank[index].answer)).toBe(10)

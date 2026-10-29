@@ -10,7 +10,7 @@ test('leaderboard omits CP labels on admin and public views', async ({ page }) =
   }
   for (const route of ['/admin/leaderboard', '/leaderboard']) {
     await page.goto(route)
-    await expect(page.locator('.reference-art')).toHaveAttribute('src', '/ui/visual-guide-slide-09.png')
+    await expect(page.locator('.summary-stage__title')).toHaveText('Leaderboard')
     await expect(page.getByRole('columnheader')).toHaveText(['Rank', 'Team', 'Starting GP', 'Gilgamesh Attack', 'Card Effects', 'Final GP', 'Cards Left'])
     await expect(page.locator('.ranking-cp')).toHaveCount(0)
     await expect(page.locator('.ranking-team-name')).not.toContainText(['CP', 'CP', 'CP', 'CP', 'CP'])

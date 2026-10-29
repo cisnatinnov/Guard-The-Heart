@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { createWordAssemblyState, type WordAssemblyState } from '../../services/games'
 import { MatchingCards } from './MatchingCards'
 import type { ChallengeRun } from '../../services/games/teamRun'
-import { MATCHING_PREVIEW_SECONDS, MATCHING_ATTEMPT_SECONDS } from '../../services/games/wordAssembly'
 import { useRunCountdown } from './useRunCountdown'
 import { useTurnOrder } from '../../hooks/useTurnOrder'
 import { useActiveTeam } from '../../hooks/useActiveTeam'
@@ -28,8 +27,7 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
   const orderedTeams = orderTeams((run ? run.runs.map((entry) => entry.team) : teamIds ?? []).map((id) => ({ id, name: teamName(id), colour: teamColour(id) })), order)
   const previewRemaining = useRunCountdown(run?.matchingPreviewDeadline)
   const previewing = (previewRemaining ?? 0) > 0
-  const remaining = useRunCountdown(run?.matchingDeadline)
-  const expired = remaining === 0 && !complete
+  const expired = false
   const previousBoard = useRef(board)
   const previousPreview = useRef(previewing)
   const [feedback, setFeedback] = useState<'closed' | 'match' | 'mismatch' | null>(null)
@@ -59,10 +57,6 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
 
   return <section className="flipping-presentation" aria-label="Flipping Connect matching board">
     <img className="flipping-presentation__art" src="/ui/flipping-slide-03-reference.png" alt="" />
-    {previewing && <div className="flipping-presentation__close-timer" role="timer" aria-label="Cards preview countdown">Memorize the cards: {Math.min(MATCHING_PREVIEW_SECONDS, previewRemaining!)}s</div>}
-    {run && !previewing && !complete && <div className={`flipping-presentation__attempt-timer${expired ? ' is-expired' : ''}`} role="timer" aria-label="Matching time remaining">
-      {!run.matchingAnswerId ? "Right Answer required" : expired ? "Time's up!" : `${Math.min(MATCHING_ATTEMPT_SECONDS, remaining ?? MATCHING_ATTEMPT_SECONDS)}s`}
-    </div>}
     <ol className="flipping-presentation__teams" aria-label="Select the active team">
       {Array.from({ length: 5 }, (_, slot) => {
         const teamId = orderedTeams[slot]?.id

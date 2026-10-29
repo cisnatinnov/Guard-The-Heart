@@ -157,7 +157,7 @@ test('corrected Reverse/Thief/Swallow migrations keep their identities and resol
   await expect(projector.getByLabel('Card effects Kuning',{exact:true})).toContainText('+4 Swallow')
   await expect(projector.locator('.giga-row')).toHaveCount(5)
   await expect(projector.locator('.giga-effect-detail, .giga-effects strong')).toHaveCount(0)
-  await expect(projector.locator('.giga-effects .is-negative').first()).toHaveCSS('color','rgb(207, 38, 51)')
+  await expect(projector.locator('.giga-effects .is-negative').first()).toHaveCSS('color','rgb(255, 172, 184)')
   await projector.screenshot({path:'test-results/gigarisk-compact-card-effects.png'})
   await projector.goto('/gigarisk')
   await expect(projector.getByLabel('Card effects Hijau',{exact:true})).toContainText('+1 Second Chance')

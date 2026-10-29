@@ -13,6 +13,23 @@ for (const [challengeId,count] of [[challengeOne,3],['d5e8b317-4c62-49af-8b03-2f
  const panel=projector.getByRole('complementary',{name:'Fortune Draw · Biru',exact:true})
  await expect(panel.locator('.fortune-reveal__option')).toHaveCount(count)
  await expect(panel.getByAltText('Closed card',{exact:true})).toHaveCount(count)
+ for (const theme of ['dark','light']) {
+  if (theme === 'light') await page.getByRole('button',{name:'Dark theme',exact:true}).click()
+  for (const width of [1280,390]) {
+   await projector.setViewportSize({width,height:844})
+   await expect(projector.locator('html')).toHaveAttribute('data-theme',theme)
+   const bounds=(await panel.boundingBox())!
+   expect(bounds.x).toBeGreaterThanOrEqual(0)
+   expect(bounds.y).toBeGreaterThanOrEqual(0)
+   expect(bounds.x+bounds.width).toBeLessThanOrEqual(width)
+   expect(bounds.y+bounds.height).toBeLessThanOrEqual(844)
+   await expect(panel).toHaveCSS('background-color',theme==='dark'?'rgb(24, 35, 57)':'rgb(249, 251, 254)')
+   await expect(panel.locator('.fortune-reveal__effect p').first()).toHaveCSS('font-size','16px')
+   await projector.screenshot({path:`.validation.tmp/fortune-polished-${count}-${theme}-${width}.png`})
+  }
+ }
+ await page.getByRole('button',{name:'Dark theme',exact:true}).click()
+ await projector.setViewportSize({width:1280,height:720})
  const mode=page.getByRole('checkbox',{name:'Public view: closed cards',exact:true})
  await mode.click()
  await expect(mode).not.toBeChecked()

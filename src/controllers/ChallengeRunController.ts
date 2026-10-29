@@ -52,17 +52,20 @@ export class ChallengeRunController {
     gameId: ChallengeGameId
     challengeId: string
     teamIds: string[]
+    questionIds?: string[]
   }): ChallengeRun {
     const questionSet = challengeQuestionsFor(input.gameId)
     if (questionSet.questions.length === 0) {
       throw new Error('This challenge cannot be answered question by question')
     }
-    const run = startChallengeRun({
+    const questionIds = input.questionIds ?? questionSet.questions.slice(0, 10).map((question) => question.id)
+    if (!questionIds.length || questionIds.length > 10 || new Set(questionIds).size !== questionIds.length || questionIds.some((id) => !questionSet.questions.some((question) => question.id === id))) throw new Error("Choose between 1 and 10 valid questions")
+    const run = { ...startChallengeRun({
       challenge: input.challengeId,
       teams: input.teamIds,
-      questionCount: questionSet.questions.length,
+      questionCount: questionIds.length,
       pointsPerQuestion: questionSet.pointsPerQuestion,
-    })
+    }), questionIds }
     return input.gameId === 'word-assembly' ? enableRunMatching(run)
       : questionSet.secondsPerQuestion ? { ...run, secondsPerTurn: questionSet.secondsPerQuestion,
         turnDeadline: Date.now() + questionSet.secondsPerQuestion * 1000 } : run
@@ -74,7 +77,7 @@ export class ChallengeRunController {
 
   static currentQuestion(gameId: ChallengeGameId, run: ChallengeRun): ChallengeQuestion {
     const questions = challengeQuestionsFor(gameId).questions
-    return questions[run.questionIndex] ?? questions[0]
+    return (run.questionIds ? questions.find((question) => question.id === run.questionIds![run.questionIndex]) : questions[run.questionIndex]) ?? questions[0]
   }
 
   /** Opens the next question after a correct answer or exhausted attempts. */

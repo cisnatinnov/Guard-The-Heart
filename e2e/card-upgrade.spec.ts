@@ -131,7 +131,7 @@ test('corrected Reverse/Thief/Swallow migrations keep their identities and resol
   await checkSlide()
   await projector.screenshot({path:'test-results/corrected-card-reveal.png'})
   await expect(projector.getByRole('article',{name:'Hijau',exact:true}).locator('.tactical-stage__effects')).toContainText('Second Chance')
-  await expect(projector.getByRole('article',{name:'Hijau',exact:true}).locator('.tactical-stage__selected img')).toHaveAttribute('src',/Legend_Second/)
+  await expect(projector.getByRole('article',{name:'Hijau',exact:true}).locator('.tactical-stage__selected img')).toHaveAttribute('src',/Legendary_Second_Chance/)
   const redReveal=projector.getByRole('article',{name:'Merah',exact:true}).locator('.tactical-stage__effects')
   const pinkReveal=projector.getByRole('article',{name:'Pink',exact:true}).locator('.tactical-stage__effects')
   for (const panel of await projector.locator('.tactical-stage__effects').all()) await expect(panel.locator('[title="Gilgamesh Attack"]')).toHaveCount(0)

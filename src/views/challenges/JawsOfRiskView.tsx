@@ -1,4 +1,5 @@
-import { WorkbookQuiz } from './WorkbookQuiz'
+import { usePublicChallengeBoard } from '../../hooks/usePublicChallengeBoard'
+import { publishPublicDisplay } from '../../services/publicDisplay'
 import { useChallengeAnswers } from '../../hooks/useChallengeAnswers'
 import { englishText } from '../../services/english'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
@@ -45,6 +46,7 @@ function PressHand({ tooth, x, y, pressedAt }: { tooth: number; x: number; y: nu
 export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   const canControl = window.location.pathname.startsWith('/admin/')
   const answerState = useChallengeAnswers(challengeId)
+  const publicBoard = usePublicChallengeBoard(challengeId, 'dragon')
   const pressing = useRef(false)
   const [scoreBusy, setScoreBusy] = useState(false)
   const [scoreError, setScoreError] = useState<string | null>(null)
@@ -108,7 +110,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   }, [round.reopenAt, storageKey])
 
   async function pressTooth(tooth: number, keyboard: boolean) {
-    if (pressing.current || !answerState.pending) return
+    if (pressing.current || !answerState.pending?.pressing_team) return
     const pending = answerState.pending
     pressing.current = true
     setScoreBusy(true)
@@ -142,6 +144,11 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       setConfigurationError(null)
     } catch (cause) { setConfigurationError(englishText(cause instanceof Error ? cause.message : String(cause))) }
   }
+  async function showDragon() {
+    if (!canControl) return
+    try { await publishPublicDisplay('dragon', challengeId); publicBoard.reveal(true) }
+    catch (cause) { setScoreError(englishText(cause instanceof Error ? cause.message : String(cause))) }
+  }
   // Coordinates share the supplied 1920 x 1080 background's coordinate system.
   const toothRoots = [
     [448.4, 746, .414], [504.1, 803.4, .414], [578.3, 841.3, .425], [661.1, 884.9, .414],
@@ -153,9 +160,13 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
   const lastTooth = round.pressed.at(-1)
   const handRoot = lastTooth === undefined ? null : toothRoots[lastTooth]
   return <>
-    <WorkbookQuiz challengeId={challengeId} gameKey="jaws-of-risk" canControl={canControl} locked={!!answerState.pending} />
-    <ChallengeAnswerControls challengeId={challengeId} jaw canControl={canControl} state={answerState} disabled={biting || scoreBusy} />
+
+    <ChallengeAnswerControls challengeId={challengeId} jaw canControl={canControl} hideQuiz={!canControl} state={answerState} disabled={biting || scoreBusy} />
     {scoreError && <p className="alert alert--error">{scoreError}</p>}
+    {canControl && <div className="board-reveal-control"><button type="button" disabled={scoreBusy} onClick={() => void showDragon()}>Show dragon</button>{publicBoard.visible && <button type="button" className="ghost" disabled={scoreBusy} onClick={() => {
+      publicBoard.reveal(false)
+      void publishPublicDisplay('jaws-of-risk', challengeId).catch((cause: unknown) => setScoreError(englishText(cause instanceof Error ? cause.message : String(cause))))
+    }}>Hide dragon</button>}<p className="muted">{publicBoard.visible ? 'The dragon is visible on the public display.' : 'Click Show dragon to open the public dragon view.'}</p></div>}
     {canControl && <fieldset className="crocodile-settings" disabled={biting || scoreBusy}>
       <legend>Biting teeth</legend>
       <p>Choose one or more teeth, then apply to reset the mouth. Selected teeth keep biting in later rounds until changed.</p>
@@ -168,7 +179,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       <p>Current mode: {round.bitingTeeth ? `Selected teeth ${round.bitingTeeth.map((tooth) => tooth + 1).join(', ')}` : 'Random tooth'}</p>
       {configurationError && <p className="alert alert--error">{configurationError}</p>}
     </fieldset>}
-    <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy" aria-busy={scoreBusy}>
+    {canControl || publicBoard.visible ? <section ref={stage} className={`crocodile-stage${canControl && pointerHand ? ' has-hand-cursor' : ''}${biting ? ' is-biting' : ''}`} aria-label="Crocodile bite toy" aria-busy={scoreBusy}>
     <link rel="preload" as="image" href={DRAGON_JAW} />
     <link rel="preload" as="image" href={DRAGON_BITE} />
     <link rel="preload" as="image" href={`${ASSET_ROOT}Tangan - Pencet Gigi Kiri.png`} />
@@ -186,7 +197,7 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
             className={`crocodile__tooth${pressed ? ' is-pressed' : ''}${pointerHand?.tooth === tooth && !biting && !pressed ? ' is-hovered' : ''}`}
             style={{ left: `${x / 19.2}%`, top: `${y / 10.8}%`, width: `${(right - left) * scale / 19.2}%`, aspectRatio: `${right - left} / ${bottom - top}` }}
             aria-label={`Tooth ${tooth + 1}`} aria-pressed={pressed}
-            disabled={biting || pressed || scoreBusy || !answerState.pending}
+            disabled={biting || pressed || scoreBusy || !answerState.pending?.pressing_team}
             onPointerEnter={(event) => { moveHand(event, tooth); playSound('hover') }}
             onPointerMove={(event) => moveHand(event, tooth)}
             onPointerLeave={() => setPointerHand(null)}
@@ -204,6 +215,6 @@ export function JawsOfRiskView({ challengeId }: { challengeId: string }) {
       {!pointerHand && handRoot && lastTooth !== undefined && typeof round.lastPressedAt === 'number' && <PressHand key={round.lastPressedAt} tooth={lastTooth} x={handRoot[0]} y={handRoot[1] - 100} pressedAt={round.lastPressedAt} />}
     </div>
     <p className="crocodile-stage__status" role="status" aria-live="polite">{biting ? 'CHOMP! Watch your fingers!' : round.pressed.length ? answerState.pending ? 'Safe! Press the next tooth.' : 'Safe! Record the next answer.' : 'Which tooth will bite?'}</p>
-  </section>
+  </section> : <section className="public-board-placeholder" aria-label="Dragon waiting" role="region"><h2>Jaw of Risk</h2><p>Waiting for the host to show the dragon.</p></section>}
   </>
 }

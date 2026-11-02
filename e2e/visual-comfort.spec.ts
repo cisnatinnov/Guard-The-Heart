@@ -12,12 +12,14 @@ for (const theme of ['dark','light']) for (const width of [1440,1024,768,390]) {
       await expect(page.locator('html')).toHaveAttribute('data-theme',theme)
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),{message:route}).toBe(true)
       if (!route.startsWith('/admin')) {
-        const stage = page.locator('.reference-stage,.reference-ranking,.tactical-stage,.reward-stage,.podium-stage,.event-timer-stage,.qa-stage,.flipping-presentation,.crocodile-stage,.main-presentation-stage').first()
+        const stage = page.locator('.reference-stage,.reference-ranking,.tactical-stage,.reward-stage,.podium-stage,.event-timer-stage,.qa-stage,.decode-stage,.workbook-quiz,.flipping-presentation,.crocodile-stage,.main-presentation-stage').first()
         await expect(stage).toBeVisible()
         const box = (await stage.boundingBox())!
-        expect(box.y + box.height, route).toBeLessThanOrEqual(page.viewportSize()!.height + 1)
+        if (!(width <= 680 && await stage.evaluate(element => element.matches('.workbook-quiz')))) {
+          expect(box.y + box.height, route).toBeLessThanOrEqual(page.viewportSize()!.height + 1)
+        }
         const quiz = page.locator('.workbook-quiz')
-        if (await quiz.count()) {
+        if (await quiz.count() && !await stage.evaluate(element => element.matches('.workbook-quiz'))) {
           const question = (await quiz.boundingBox())!
           expect(question.x + question.width <= box.x + 1 || question.y + question.height <= box.y + 1, route).toBe(true)
         }

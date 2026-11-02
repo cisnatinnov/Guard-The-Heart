@@ -1,6 +1,7 @@
-import { readTheme, saveTheme } from '../services/theme'
+import { saveTheme } from '../services/theme'
+import { useTheme } from '../hooks/useTheme'
 import { Link, useLocation, Outlet } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useDatabase } from '../hooks/useDatabase'
 import { PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME, publicFeatureForAdmin } from '../services/publicWindow'
 import { displayPath, publishPublicDisplay } from '../services/publicDisplay'
@@ -18,11 +19,10 @@ const ADMIN_NAV = [
   { path: '/admin/rewards', label: 'Rewards' },
   { path: '/admin/tactical', label: 'Tactical Phase' },
   { path: '/admin/gigarisk', label: 'Gilgamesh Attack' },
-  { path: '/admin/timer', label: 'Timer' },
 ] as const
 
 const ADMIN_GROUPS = [
-  { label: 'Event setup', paths: ['/admin', '/admin/challenges', '/admin/turn-order', '/admin/timer'] },
+  { label: 'Event setup', paths: ['/admin', '/admin/challenges', '/admin/turn-order'] },
   { label: 'Results', paths: [ '/admin/scoreboard', '/admin/leaderboard', '/admin/heart-of-awareness', '/admin/podium'] },
   { label: 'Game management', paths: ['/admin/tactical', '/admin/gigarisk', '/admin/rewards', '/admin/gp-transactions'] },
 ]
@@ -30,14 +30,7 @@ const ADMIN_GROUPS = [
 export function AdminLayout() {
   const { status, error } = useDatabase()
   const location = useLocation()
-  const [theme, setTheme] = useState(readTheme)
-  useEffect(() => {
-    const syncTheme = (event: StorageEvent) => {
-      if (event.key === 'guard-the-heart-theme' || event.key === null) setTheme(readTheme())
-    }
-    window.addEventListener('storage', syncTheme)
-    return () => window.removeEventListener('storage', syncTheme)
-  }, [])
+  const theme = useTheme()
   useEffect(() => {
     if ([PUBLIC_WINDOW_NAME, TIMER_WINDOW_NAME, TURN_ORDER_WINDOW_NAME].includes(window.name)) window.name = ''
   }, [])
@@ -84,7 +77,6 @@ export function AdminLayout() {
           <button className="ghost theme-switch" aria-label="Dark theme" aria-pressed={theme === 'dark'} onClick={() => {
             const next = theme === 'dark' ? 'light' : 'dark'
             saveTheme(next)
-            setTheme(next)
           }}>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</button>
           <figure className="app__risk-card">
             <img src="/characters/gilgamesh.png" alt="Gilgamesh, a silver and cobalt dragon with crystal horns" />
@@ -121,7 +113,8 @@ export function AdminLayout() {
       </main>
 
       <footer className="app__footer">
-        <span>Copyright &copy; 2026 <a href="https://vedapraxis.com/en">Veda Praxis</a>. All rights reserved.</span>
+        <span>Copyright &copy; 2026 <a href="https://www.linkedin.com/in/cendikia-hairy/">Cendikia Hairy</a>. All rights reserved.</span>
+        <Link to="/portfolio">Portfolio ↗</Link>
       </footer>
     </div>
   )

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-label="Fight the Dragon card" style="--ink:#f5f7fd;color:#186d87">
+<defs>
+ <linearGradient id="stock" x2="1" y2="1"><stop stop-color="#e5ebf7"/><stop offset=".48" stop-color="#f5f7fd"/><stop offset="1" stop-color="#e5ebf7"/></linearGradient>
+ <linearGradient id="foil" x2="1" y2="1"><stop stop-color="#186d87"/><stop offset=".45" stop-color="#17263f"/><stop offset="1" stop-color="#186d87"/></linearGradient>
+ <radialGradient id="aura"><stop stop-color="#186d87" stop-opacity=".28"/><stop offset="1" stop-color="#186d87" stop-opacity="0"/></radialGradient>
+ <pattern id="scales" width="40" height="32" patternUnits="userSpaceOnUse"><path d="M0 0Q20 32 40 0M-20 16Q0 48 20 16M20 16Q40 48 60 16" fill="none" stroke="#186d87" stroke-opacity=".07"/></pattern>
+</defs>
+<rect width="600" height="420" rx="32" fill="url(#stock)"/>
+<rect x="14" y="14" width="572" height="392" rx="22" fill="url(#scales)" stroke="url(#foil)" stroke-width="3"/>
+<rect x="23" y="23" width="554" height="374" rx="16" fill="none" stroke="#186d87" stroke-opacity=".3"/>
+<ellipse cx="300.0" cy="184.8" rx="288.0" ry="159.6" fill="url(#aura)"/>
+<g fill="none" stroke="url(#foil)" stroke-width="5"><path d="M26 66V26h40"/><path d="M574 66V26h-40"/><path d="M26 354V394h40"/><path d="M574 354V394h-40"/></g>
+<g font-family="Arial,sans-serif" text-anchor="middle" fill="#17263f"><text x="300" y="48" font-size="20" letter-spacing="4" font-weight="700">FIGHT THE DRAGON</text><circle cx="300" cy="202" r="115" fill="#e5ebf7" stroke="#186d87" stroke-width="2"/><g transform="translate(300 205)" fill="currentColor"><rect x="-95" y="-40" width="190" height="85" rx="12" fill="none" stroke="currentColor" stroke-width="12"/><path d="M-55-15v35m-15-27l30 19m0-19l-30 19M0-15v35m-15-27l30 19m0-19l-30 19M55-15v35m-15-27l30 19m0-19l-30 19" fill="none" stroke="currentColor" stroke-width="8"/></g><text x="300" y="365" font-size="36" font-weight="800" letter-spacing="3">PASSWORD</text></g></svg>

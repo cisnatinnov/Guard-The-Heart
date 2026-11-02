@@ -1,0 +1,99 @@
+/* A single native palette for question choices, matching, and collectible cards. */
+.quiz-option--public { cursor:default; }
+.workbook-quiz .quiz-option.is-selected { border:2px solid var(--accent); background:var(--accent-soft); opacity:1; }
+.quiz-option b { display:grid; place-items:center; flex:0 0 32px; height:32px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--accent); font-weight:800; }
+.quiz-selection { color:var(--accent); font-weight:650; }
+.app--public:has(.workbook-quiz) .workbook-quiz__options { list-style:none; padding:0; }
+.app--public:has(.workbook-quiz) .workbook-quiz__options li { padding:0; }
+.app--public:has(.workbook-quiz) .quiz-option { font:inherit; padding:12px; gap:12px; line-height:1.5; }
+.card-art .card-art__english-rule { left:8%; top:78%; width:84%; height:15%; border:0; border-radius:2cqw; padding:2cqw; background:var(--surface-2); color:var(--text); font:600 4.1cqw/1.25 system-ui,sans-serif; }
+.card-art .card-art__english-rule.is-long { font-size:3.2cqw; }
+.card-art > img { border-radius:3%; filter:none; }
+.flipping-presentation.flipping-presentation--native { width:100%; min-width:0; aspect-ratio:auto; padding:clamp(12px,2cqw,24px); display:grid; gap:18px; border:1px solid var(--border); border-radius:18px; background:var(--surface); color:var(--text); font-family:system-ui,sans-serif; }
+.flipping-presentation--native::after { display:none; }
+.flipping-presentation--native .flipping-presentation__brand { display:flex; align-items:center; gap:14px; min-width:0; }
+.flipping-presentation__brand > img { width:64px; height:64px; object-fit:contain; }
+.flipping-presentation__brand p { margin:0 0 4px; color:var(--muted); font-size:12px; letter-spacing:.1em; text-transform:uppercase; }
+.flipping-presentation__brand h2 { margin:0; color:var(--text); font-size:clamp(16px,2.5cqw,30px); }
+.flipping-presentation__brand > span { margin-left:auto; font-size:12px; color:var(--accent); text-align:right; }
+.flipping-presentation--native .flipping-presentation__teams { position:static; width:100%; height:auto; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+.flipping-presentation--native .flipping-presentation__teams::after { display:none; }
+.flipping-presentation--native .flipping-presentation__teams li { min-height:68px; padding:8px 4px; border:1px solid var(--border); border-top:4px solid var(--team-color,var(--border)); border-radius:10px; background:var(--surface-2); color:var(--text); font:600 clamp(10px,1.6cqw,18px)/1.3 system-ui,sans-serif; }
+.flipping-presentation--native .flipping-presentation__teams li[aria-hidden] { display:none; }
+.flipping-presentation--native .flipping-presentation__teams li[aria-current] { outline:2px solid var(--accent); outline-offset:1px; box-shadow:none; background:var(--accent-soft); color:var(--text); }
+.flipping-presentation--native .flipping-presentation__team-gp { background:var(--surface); color:var(--text); font:600 clamp(10px,1.3cqw,16px)/1.3 system-ui,sans-serif; padding:3px 8px; }
+.flipping-presentation--native .flipping-presentation__teams li[aria-current] .flipping-presentation__team-gp { background:var(--surface); }
+.flipping-presentation--native .flipping-presentation__turn { position:static; width:auto; height:auto; margin-top:5px; padding:2px 5px; font:700 clamp(8px,1.1cqw,12px)/1.2 system-ui,sans-serif; background:var(--accent-soft); color:var(--text); }
+.flipping-presentation .matching-cards--branded { position:static; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:clamp(5px,1cqw,12px); width:100%; height:auto; margin:0; padding:0; max-width:none; }
+.matching-cards--branded .branded-match-card { position:relative; width:100%; height:auto; min-height:0; aspect-ratio:10/7; padding:0; margin:0; border:1px solid var(--border); border-radius:9px; background:var(--surface-2); color:var(--text); box-shadow:none; overflow:hidden; opacity:1; }
+.matching-cards--branded .branded-match-card img { width:100%; height:100%; object-fit:contain; display:block; }
+.matching-cards--branded .branded-match-card:hover:not(:disabled) { border-color:var(--accent); transform:translateY(-2px); }
+.matching-cards--branded .branded-match-card.tile--matched { outline:2px solid var(--ok); outline-offset:1px; }
+.branded-match-card__slot { position:absolute; top:8%; left:5%; padding:1px 4px; border:1px solid var(--border); border-radius:4px; background:var(--surface); color:var(--text); font:750 clamp(8px,1.1cqw,14px)/1.3 system-ui,sans-serif; }
+.branded-match-card__matched { position:absolute; right:5%; top:7%; padding:1px 4px; color:var(--ok); background:var(--surface); border-radius:4px; font-size:clamp(8px,1.2cqw,14px); }
+.flipping-presentation--native .flipping-presentation__feedback { position:static; width:auto; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text); font:650 14px/1.4 system-ui,sans-serif; }
+.flipping-presentation--native .flipping-presentation__feedback.is-match { color:var(--ok); }
+.flipping-presentation--native .flipping-presentation__feedback.is-mismatch { color:var(--danger); }
+.flipping-presentation--native .flipping-presentation__complete { position:static; width:auto; color:var(--ok); font:700 16px/1.4 system-ui,sans-serif; }
+@media(max-width:680px) {
+ .flipping-presentation--native .flipping-presentation__brand { gap:8px; }
+ .flipping-presentation__brand > img { width:40px; height:40px; }
+ .flipping-presentation__brand > span { font-size:10px; max-width:70px; }
+ .flipping-presentation--native .flipping-presentation__teams { gap:5px; }
+ .flipping-presentation--native .flipping-presentation__teams li { padding:5px 2px; min-height:62px; }
+ .flipping-presentation--native .flipping-presentation__team-gp { padding:2px 4px; }
+ .app--public:has(.workbook-quiz) .app__main { display:flex; flex-direction:column; height:auto; min-height:100dvh; overflow:visible; padding:12px 12px 160px; }
+ .app--public:has(.workbook-quiz) .workbook-quiz { width:100%; max-height:none; overflow:visible; padding:18px; }
+ .app--public:has(.workbook-quiz) .workbook-quiz__options { font-size:15px; }
+}
+
+.reward-stage.reward-stage--earned { background:var(--bg); border:1px solid var(--border); border-radius:16px; font-family:system-ui,sans-serif; }
+.reward-stage__title { position:absolute; top:5%; left:22%; width:56%; height:12%; display:grid; place-items:center; margin:0; color:var(--text); font:750 3.4cqw/1.2 system-ui,sans-serif; letter-spacing:-.03em; }
+.reward-stage .team-gp-badge { background:var(--surface); border-color:var(--border); }
+.reward-stage .team-gp-badge__value { color:var(--text); }
+.reward-stage::before { border:1px solid var(--border); border-radius:1.2cqw; }
+
+@media(min-width:681px) {
+ .app--public:has(.workbook-quiz) .app__main { align-items:stretch; }
+ .app--public .flipping-presentation--native { align-self:stretch; height:100%; min-height:0; max-height:100%; grid-template-rows:auto auto minmax(0,1fr); grid-auto-rows:auto; gap:10px; padding:14px; }
+ .app--public .flipping-presentation--native .matching-cards--branded { height:100%; min-height:0; grid-template-rows:repeat(4,minmax(0,1fr)); }
+ .app--public .flipping-presentation--native .branded-match-card { height:100%; min-height:0; aspect-ratio:auto; }
+ .app--public .flipping-presentation--native .flipping-presentation__brand > img { width:48px; height:48px; }
+ .app--public .flipping-presentation--native .flipping-presentation__teams li { min-height:54px; padding:5px 3px; }
+}
+
+/* Dedicated projector screens reserve space for the live score strip. */
+.app--public:has(.flipping-presentation--native) .app__main { height:100dvh; min-height:0; padding:16px 16px calc(10dvh + 16px); box-sizing:border-box; }
+.app--public:has(.workbook-quiz) .app__main { grid-template-columns:minmax(0,1fr); }
+.app--public .workbook-quiz { width:min(100%,1200px); justify-self:center; box-sizing:border-box; }
+.app--public:has(.flipping-presentation,.crocodile-stage) .challenge-score-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; }
+.app--public:has(.flipping-presentation,.crocodile-stage) .challenge-score-grid .challenge-score { grid-column:auto; padding:4px 8px; gap:1px; font-size:12px; }
+.app--public:has(.flipping-presentation,.crocodile-stage) .challenge-score strong { font-size:18px; line-height:1.1; }
+.app--public:has(.flipping-presentation,.crocodile-stage) .challenge-score small { font-size:9px; }
+.app--public:has(.crocodile-stage) .challenge-answer-controls { max-height:17dvh; }
+.app--public:has(.crocodile-stage) .app__main { padding-bottom:17dvh; }
+.app--public .crocodile-stage { width:min(100vw,140dvh); }
+@media(max-width:680px) {
+ .app--public:has(.flipping-presentation--native) .app__main { height:auto; min-height:100dvh; }
+ .app--public .flipping-presentation--native .branded-match-card { min-height:50px; aspect-ratio:1.45; }
+}
+
+.matching-cards--branded .branded-match-card { display:block; }
+.matching-cards--branded .branded-match-card > img { position:absolute; inset:0; width:100%; height:100%; min-height:0; object-fit:contain; }
+.workbook-quiz .workbook-quiz__options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-flow:column; grid-template-rows:repeat(2,auto); gap:12px; list-style:none; padding:0; }
+.quiz-option.is-hovered { outline:3px solid var(--accent); background:var(--accent-soft); }
+.grade-result { position:fixed; inset:25% 15% auto; z-index:30; padding:32px; border:3px solid var(--accent); border-radius:18px; background:var(--surface); color:var(--text); box-shadow:0 12px 60px #0008; text-align:center; pointer-events:none; animation:grade-popup 5s forwards; }
+.grade-result strong { font-size:32px; }
+@keyframes grade-popup { 0%,85% { opacity:1; visibility:visible; } 100% { opacity:0; visibility:hidden; } }
+
+/* Rarity frames stay visible at hand size without obscuring the live rules. */
+.card-art { --card-accent:#46b7d4; border-radius:3%; box-shadow:0 6px 16px rgb(0 0 0 / 20%); transition:transform .2s ease,box-shadow .2s ease; }
+.card-art--rare { --card-accent:#779ef5; }
+.card-art--epic { --card-accent:#b18ae8; }
+.card-art--legendary { --card-accent:#d6b465; }
+.card-art:hover { transform:translateY(-3px); box-shadow:0 10px 24px rgb(0 0 0 / 25%),0 0 0 1px var(--card-accent); }
+.card-art .card-art__english-rule { background:transparent; border-top:1px solid color-mix(in srgb,var(--card-accent) 40%,transparent); border-radius:0; color:var(--text); }
+.matching-cards--branded .branded-match-card { box-shadow:0 3px 8px rgb(0 0 0 / 16%); transition:transform .18s ease,border-color .18s ease; }
+.matching-cards--branded .branded-match-card:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+.matching-cards--branded .branded-match-card.tile--matched { border-color:var(--ok); box-shadow:0 0 12px color-mix(in srgb,var(--ok) 25%,transparent); }
+@media(prefers-reduced-motion:reduce) { .card-art,.matching-cards--branded .branded-match-card { transition:none; } .card-art:hover,.matching-cards--branded .branded-match-card:hover:not(:disabled) { transform:none; } }

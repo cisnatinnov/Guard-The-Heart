@@ -1,3 +1,4 @@
+import { useTheme } from '../hooks/useTheme'
 import { englishText } from '../services/english'
 import { cardImageFor, cardTitleFor } from '../data/card-pool'
 import type { CardEffect, CardType } from '../models'
@@ -13,13 +14,14 @@ interface CardTileProps {
 
 export function CardTile({ name, type, effect, effect_action, icon, variant = 'reveal' }: CardTileProps) {
   const rarity = type.toLowerCase()
-  const image = cardImageFor(name)
+  const theme = useTheme()
+  const image = cardImageFor(name, theme)
   const title = cardTitleFor(name, type)
   const description = `${type} ${title} (${effect}): ${englishText(effect_action)}`
 
   if (image) {
     return (
-      <figure className={`card-art card-art--${variant}`} title={description}>
+      <figure className={`card-art card-art--${variant} card-art--${rarity}`} title={description}>
         <img src={encodeURI(image)} alt={description} loading="lazy" />
         <figcaption className={`card-art__english-rule${englishText(effect_action).length > 100 ? ' is-long' : ''}`}>{englishText(effect_action)}</figcaption>
       </figure>

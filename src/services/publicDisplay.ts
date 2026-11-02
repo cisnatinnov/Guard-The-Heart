@@ -1,12 +1,18 @@
 import { flushDatabase } from '../db/sequelize-provider'
 import { openPublicDisplay } from './publicWindow'
 
-export type DisplayStage = 'scoreboard' | 'heart-of-awareness' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk' | 'timer' | 'presentation' | 'flipping-connect' | 'jaws-of-risk'
+export type DisplayStage = 'scoreboard' | 'heart-of-awareness' | 'leaderboard' | 'podium' | 'rewards' | 'tactical' | 'card-reveal' | 'turn-order' | 'gigarisk' | 'timer' | 'presentation' | 'flipping-connect' | 'jaws-of-risk' | 'image-decode' | 'matching-cards' | 'dragon'
 export interface PublicDisplay { stage: DisplayStage; challengeId: string; id: string }
 const KEY = 'guard-the-heart-public-display'
 let latestRequest = 0
 
 export function displayPath(display: Pick<PublicDisplay, 'stage' | 'challengeId'>, admin = false): string {
+  if (['image-decode', 'matching-cards', 'dragon'].includes(display.stage)) {
+    const gameId = display.stage === 'image-decode' ? 'emoji-decode' : display.stage === 'matching-cards' ? 'word-assembly' : 'jaws-of-risk'
+    const board = !admin && display.stage !== 'image-decode' ? display.stage === 'dragon' ? '/dragon' : '/cards' : ''
+    return `${admin ? '/admin' : ''}/play/${gameId}/${encodeURIComponent(display.challengeId)}${board}`
+  }
+  if (display.stage === 'timer') return admin ? '/admin/challenges' : '/scoreboard'
   if (display.stage === 'presentation') return admin ? '/admin/presentation' : '/'
   if (display.stage === 'flipping-connect' || display.stage === 'jaws-of-risk') {
     const gameId = display.stage === 'flipping-connect' ? 'word-assembly' : 'jaws-of-risk'
@@ -32,7 +38,7 @@ export function listenForPublicDisplay(accept: (display: PublicDisplay) => void)
     if (event.newValue !== localStorage.getItem(KEY)) return
     try {
       const display = JSON.parse(event.newValue) as PublicDisplay
-      if (['scoreboard', 'leaderboard', 'heart-of-awareness', 'podium', 'rewards', 'tactical', 'card-reveal', 'turn-order', 'gigarisk', 'timer', 'presentation', 'flipping-connect', 'jaws-of-risk'].includes(display.stage) && typeof display.challengeId === 'string') accept(display)
+      if (['scoreboard', 'leaderboard', 'heart-of-awareness', 'podium', 'rewards', 'tactical', 'card-reveal', 'turn-order', 'gigarisk', 'timer', 'presentation', 'flipping-connect', 'jaws-of-risk', 'image-decode', 'matching-cards', 'dragon'].includes(display.stage) && typeof display.challengeId === 'string') accept(display)
     } catch { /* Ignore unrelated or malformed storage updates. */ }
   }
   window.addEventListener('storage', receive)

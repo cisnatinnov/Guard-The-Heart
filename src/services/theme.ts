@@ -6,6 +6,7 @@ export function readTheme(): Theme {
 export function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme
   document.documentElement.style.colorScheme = theme
+  window.dispatchEvent(new Event('guard-the-heart:theme'))
 }
 export function initializeTheme(): void {
   applyTheme(readTheme())

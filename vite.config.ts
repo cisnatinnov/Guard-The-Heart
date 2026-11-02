@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
           ? { globPatterns: [], cleanupOutdatedCaches: true }
           : {
               // The active PPTX download remains online; application art/sounds are cached.
-              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico,woff,woff2,ttf,wasm,mp3}'],
+              globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,ico,woff,woff2,ttf,wasm,mp3,pdf}'],
               cleanupOutdatedCaches: true,
               clientsClaim: true,
               skipWaiting: true,
@@ -48,7 +48,7 @@ export default defineConfig(({ mode }) => {
         ],
       },
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
         navigateFallback: 'index.html',
       },

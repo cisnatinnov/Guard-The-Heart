@@ -1,3 +1,4 @@
+import { useTheme } from '../hooks/useTheme'
 import { englishText } from '../services/english'
 import { TeamGPBadge } from './TeamGPBadge'
 import { useTeams } from '../hooks/useTeams'
@@ -11,7 +12,7 @@ import { useDbEventRefresh } from '../hooks/useDbEventRefresh'
 import { DB_EVENTS } from '../hooks/useDbEvents'
 import { BlindReward, type TeamCard } from '../models'
 import { blindRewardId, chooseRankFiveReward, ensureRankFiveRewards, FALSE_HOPE_IMAGE, type BlindOption } from '../services/blindRewards'
-import { CARD_BACK_IMAGE } from '../data/card-pool'
+import { cardBackFor } from '../data/card-pool'
 import type { TeamCardReward } from '../services/cardDraw'
 import { CardTile } from './CardTile'
 import { RewardRankBadge } from './RewardRankBadge'
@@ -23,6 +24,7 @@ const POINTER_KEY = 'guard-the-heart-reward-pointer'
 interface RewardPointer { challengeId: string; teamId: string; optionId: string }
 
 export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
+  const theme = useTheme()
   const { challenges } = useChallenges()
   const { teams } = useTeams({ includeInactive: true })
   const { challengeId } = useParams<{ challengeId?: string }>()
@@ -118,8 +120,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
       <div className="admin-toolbar">{challengeControl}<button disabled={!activeId} onClick={() => { if (activeId) void publishPublicDisplay('tactical', activeId).then(() => navigate(`/admin/tactical/${activeId}`)).catch((cause: unknown) => setNavigationError(englishText(cause instanceof Error ? cause.message : String(cause)))) }}>Tactical Phase</button></div>
     </>}
     <section className="reward-stage reward-stage--earned" aria-label="Reward Claim">
-    <img className="reward-stage__art" src="/ui/rewards/slide-02-reference.png" alt="" />
-    <h1 className="sr-only">Reward Claim — Earned Cards</h1>
+    <h1 className="reward-stage__title">Reward Claim</h1>
     {!admin && <div className="reward-stage__toolbar"><span className="reward-stage__challenge-name">{activeChallenge?.name ?? 'Reward Claim'}</span></div>}
     <ol className="reward-stage__rows" aria-label={`Rewards for ${activeChallenge?.name ?? 'challenge'}`}>
       {Array.from({ length: 5 }, (_, slot) => {
@@ -148,7 +149,7 @@ export function RewardClaimPublicView({ admin = false }: { admin?: boolean }) {
                     catch (cause) {setNavigationError(englishText(cause instanceof Error ? cause.message : String(cause)))}
                     finally {setBusy(false)}
                   }}>
-                  {visible && !option.zonk ? <CardTile {...option} /> : <img src={visible ? FALSE_HOPE_IMAGE : CARD_BACK_IMAGE} alt={visible ? 'False Hope' : 'Closed card'} />}
+                  {visible && !option.zonk ? <CardTile {...option} /> : <img src={visible ? FALSE_HOPE_IMAGE.replace('/dark/', `/${theme}/`) : cardBackFor(theme)} alt={visible ? 'False Hope' : 'Closed card'} />}
                   {pointed && <svg className="reward-pointer" viewBox="0 0 32 40" role="img" aria-label="Admin cursor · highlighting a card"><path d="M12 21V7a3 3 0 0 1 6 0v10-2a3 3 0 0 1 5 0v3a3 3 0 0 1 5 1v1a3 3 0 0 1 3 3v5c0 4-2 7-4 9H13c-2-2-3-4-5-6l-5-7a3 3 0 0 1 4-4l5 4Z" fill="white" stroke="#38230d" strokeWidth="2" strokeLinejoin="round" /></svg>}
                 </button>
               })}</div>

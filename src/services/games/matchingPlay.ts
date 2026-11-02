@@ -5,7 +5,7 @@ import { withPlayLock } from './playLock'
 export async function playMatchingCard(challengeId: string, answerId: string, cardId: string) {
   await withPlayLock(`matching:${challengeId}`, async () => {
     const run = readSharedChallengeRun('word-assembly', challengeId)
-    if (!run?.matchingOnly || run.matchingAnswerId !== answerId) return
+    if (!run?.matchingOnly || run.matchingAnswerId !== answerId || !run.matchingDeadline || !run.matchingPreviewDeadline) return
     const next = await ChallengeRunController.flipMatchingOnly(run, cardId)
     // A host may have ended or replaced the attempt while scoring was saved.
     if (readSharedChallengeRun('word-assembly', challengeId) !== null

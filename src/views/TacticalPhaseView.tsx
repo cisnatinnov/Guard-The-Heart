@@ -256,10 +256,12 @@ export function TacticalPhaseView({ admin = false, reveal = false }: { admin?: b
       </div>}
     </article>)}
   </section>
-  return <section key={`${id}-${resolution?.resolvedAt ?? 'pending'}`} className={`tactical-stage ${reveal ? 'tactical-stage--reveal' : ''}${reveal && resolution ? ' tactical-stage--resolved' : ''}`} aria-label={reveal ? 'Card Reveal' : 'Tactical Phase'}>
-    <img className="tactical-stage__art" src={`/ui/tactical-slide-0${reveal ? 6 : 5}-reference.png`} alt="" />
-    <h1 className="sr-only">{reveal ? 'Card Reveal' : 'Tactical Phase'}</h1>
-    <div className="tactical-stage__challenge" aria-label="Current challenge">{challenges.find((challenge) => challenge.id === id)?.name ?? 'Loading challenge…'}</div>
+  return <section key={`${id}-${resolution?.resolvedAt ?? 'pending'}`} className={`tactical-stage tactical-stage--native ${reveal ? 'tactical-stage--reveal' : ''}${reveal && resolution ? ' tactical-stage--resolved' : ''}`} aria-label={reveal ? 'Card Reveal' : 'Tactical Phase'}>
+    <header className="tactical-stage__header">
+      <img src="/fight-the-dragon-logo.png" alt="Fight the Dragon" />
+      <div><p>Fight the Dragon / {reveal ? 'Resolve' : 'Strategy'}</p><h1 className="tactical-stage__title">{reveal ? 'Card Reveal' : 'Tactical Phase'}</h1></div>
+      <div className="tactical-stage__challenge" aria-label="Current challenge">{challenges.find((challenge) => challenge.id === id)?.name ?? 'Loading challenge…'}</div>
+    </header>
     <div className="tactical-stage__panel">{Array.from({ length: 5 }, (_, index) => {
       const team = teams[index]
       const choice = team ? phase.choices[team.id] : undefined

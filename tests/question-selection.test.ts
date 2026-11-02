@@ -12,6 +12,12 @@ describe('challenge question selection', () => {
     expect(ChallengeRunController.currentQuestion(input.gameId, run).id).toBe(bank[10].id)
     expect(ChallengeRunController.currentQuestion(input.gameId, { ...run, questionIndex: 1 }).id).toBe(bank[2].id)
   })
+  it('starts Image Decode with the timer paused', () => {
+    const run = ChallengeRunController.start(input)
+    expect(run.timerManual).toBe(true)
+    expect(run.turnDeadline).toBeUndefined()
+    expect(run.secondsPerTurn).toBeUndefined()
+  })
   it('rejects empty, duplicate, unknown, and over-limit selections', () => {
     for (const questionIds of [[], [bank[0].id, bank[0].id], ['unknown'], bank.slice(0, 11).map((q) => q.id)]) {
       expect(() => ChallengeRunController.start({ ...input, questionIds })).toThrow('Choose between 1 and 10 valid questions')

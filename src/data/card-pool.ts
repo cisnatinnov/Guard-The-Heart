@@ -16,10 +16,10 @@ interface CardDesign {
   icon: string
   effect_action: string
   copies: number
-  image?: string
 }
 
-export const CARD_BACK_IMAGE = '/cards/0_BACK CARD.png'
+export const CARD_BACK_IMAGE = '/cards/branded/dark/back.svg'
+export function cardBackFor(theme: 'dark' | 'light' = 'dark'): string { return `/cards/branded/${theme}/back.svg` }
 
 const CARD_DESIGNS: CardDesign[] = [
   {
@@ -119,14 +119,11 @@ const CARD_DESIGNS: CardDesign[] = [
     icon: '🎴',
     effect_action: 'Pilih 1 kartu: Challenge 1–2 dari 3 kartu (2 Normal, 1 Rare); Challenge 3 dari 4 kartu (2 Normal, 1 Rare, 1 Epic). Batas rank tetap berlaku.',
     copies: 4,
-    image: '/cards/Rare_Fortune_Draw Card.png',
   },
 ]
 
 function designImage(design: CardDesign): string {
-  if (design.image) return design.image
-  const typePrefix = design.type === 'Legendary' ? 'Legend' : design.type
-  return `/cards/${typePrefix}_${design.title}.png`
+  return `/cards/branded/dark/${design.type}_${design.title.replace(/ /g, '_')}.svg`
 }
 
 function copyName(design: CardDesign, copy: number): string {
@@ -150,9 +147,10 @@ export const CARD_POOL: CardPoolDefinition[] = CARD_DESIGNS.flatMap((design) =>
   })
 )
 
-export function cardImageFor(name: string): string | null {
+export function cardImageFor(name: string, theme: 'dark' | 'light' = 'dark'): string | null {
   const renamed = name.replace(/^Epic Reflect Card/, 'Epic Swallow Card')
-  return IMAGE_BY_NAME.get(renamed) ?? IMAGE_BY_NAME.get(`${renamed.replace(/ #\d+$/, '')} #01`) ?? null
+  const image = IMAGE_BY_NAME.get(renamed) ?? IMAGE_BY_NAME.get(`${renamed.replace(/ #\d+$/, '')} #01`)
+  return image?.replace('/dark/', `/${theme}/`) ?? null
 }
 
 /** Display the renamed action in old snapshots without changing ledger amounts. */

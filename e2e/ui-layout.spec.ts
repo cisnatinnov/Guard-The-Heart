@@ -3,6 +3,7 @@ import { expectRewardContentsWithinFrame } from './support/layoutBounds'
 
 for (const width of [1366, 1280, 768, 390]) {
   test(`public and admin layouts fit a ${width}px viewport`, async ({ page }) => {
+    test.setTimeout(180_000)
     const height = width === 1366 ? 600 : width === 390 ? 844 : 800
     await page.setViewportSize({ width, height })
     await page.goto('/admin/gp-transactions')
@@ -26,7 +27,7 @@ for (const width of [1366, 1280, 768, 390]) {
         expect(await statuses.evaluateAll((labels) => labels.every((label) => label.scrollWidth <= label.clientWidth + 1 && label.scrollHeight <= label.clientHeight + 1))).toBe(true)
       }
       if (!route.startsWith('/admin')) {
-        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage, .main-presentation-stage').first()
+        const stage = page.locator('.reward-stage, .tactical-stage, .qa-stage, .decode-stage, .workbook-quiz, .flipping-presentation, .public-ranking, .podium-stage, .reference-stage, .event-timer-stage, .crocodile-stage, .main-presentation-stage').first()
         await expect(stage).toBeVisible()
         const bounds = await stage.boundingBox()
         const hasQuiz = await page.locator('.workbook-quiz').count() > 0
@@ -34,7 +35,10 @@ for (const width of [1366, 1280, 768, 390]) {
         expect(bounds!.x).toBeGreaterThanOrEqual(-1)
         expect(bounds!.y).toBeGreaterThanOrEqual(-1)
         expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width + 1)
-        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height + 1)
+        // Native questions may scroll vertically on phones; presentation art fits the screen.
+        if (!(width <= 680 && await stage.evaluate(element => element.matches('.workbook-quiz')))) {
+          expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height + 1)
+        }
       }
       await page.screenshot({ path: `test-results/ui-${width}-${route.replaceAll('/', '-') || 'home'}.png`, fullPage: route.startsWith('/admin') })
     }

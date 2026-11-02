@@ -767,46 +767,7 @@ tbody tr:last-child td {
   color: var(--muted);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #17282b;
-    --surface: #223639;
-    --surface-2: #30484b;
-    --border: #456064;
-    --text: var(--color-yellow-off-white);
-    --muted: #c7d6d1;
-    --accent: var(--color-orange);
-    --accent-strong: var(--color-orange);
-    --accent-soft: rgba(244, 130, 32, 0.2);
-    --skin-wash: rgba(242, 196, 165, 0.12);
-    --ok: #52b7ad;
-    --danger: #ff9385;
-    --danger-soft: rgba(255, 147, 133, 0.14);
-    color-scheme: dark;
-  }
-
-  button {
-    color: var(--color-costume-dark);
-  }
-
-  body {
-    background:
-      radial-gradient(1000px 500px at 88% -10%, rgba(244, 130, 32, 0.14), transparent 68%),
-      radial-gradient(900px 520px at 8% 0%, #24484a 0%, var(--bg) 64%);
-  }
-
-  .app__character {
-    box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.9);
-  }
-
-  .alert--error {
-    color: #ffd0c8;
-  }
-
-  .alert--info {
-    color: #c5eee8;
-  }
-}
+/* Appearance is selected explicitly in appearance.css, independently of the OS. */
 
 @media (max-width: 960px) {
   .app__header-top {

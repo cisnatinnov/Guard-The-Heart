@@ -68,3 +68,28 @@ body { background:var(--bg); color:var(--text); }
 .qa-stage--emoji-decode.qa-stage--slide-reference .qa-stage__question {
   left:8%; top:27%; width:84%; height:38%; padding:1cqw;
 }
+
+/* Shared semantic surfaces also cover legacy challenge and utility screens. */
+textarea { font:inherit; padding:.55rem .7rem; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); color:var(--text); }
+fieldset { min-width:0; border-color:var(--border); }
+input[type=checkbox],input[type=radio],progress { accent-color:var(--accent-strong); }
+.alert--error { background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
+.alert--info,.alert--ok { background:var(--surface-2); border-color:var(--ok); color:var(--ok); }
+.app__footer { color:var(--muted); }
+.app--admin .app__footer { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:12px; }
+.app--admin :is(.game-stage__intro .view__hint,.game-stage__solo > summary) { color:var(--text); }
+.app--admin .game-stage--admin .rule-list { background:var(--surface-2); color:var(--muted); border-color:var(--accent); }
+.app--admin :is(.tactical-admin__cards button,.tactical-admin__selection button,.matching-choice,.roulette-order li) { background:var(--surface-2); color:var(--text); border-color:var(--border); }
+.app--admin .tactical-admin__cards button[aria-pressed=true] { border-color:var(--ok); box-shadow:0 0 0 2px var(--ok); }
+.app--admin .roulette-order li[aria-current] { background:var(--accent-strong); color:#fff; }
+.app--admin .matching-timer { color:var(--accent); }
+.app--admin .team-card__name:not(.team-colour--neutral) { color:#19263e; }
+.tactical-stage__error { background:var(--danger-soft); color:var(--danger); }
+.game-stage--public .game-stage__chrome { background:var(--bg); border-color:var(--border); box-shadow:none; }
+.game-stage--public .game-stage__content { background:var(--surface); border-color:var(--border); box-shadow:none; }
+.game-stage--public :is(.game,.game h3,.game p,.game li,.game td) { color:var(--text); }
+.game-stage--public :is(.stat,.emoji-decode__stage,.emoji-chip,.jaws,input,select) { background:var(--surface-2); color:var(--text); border-color:var(--border); box-shadow:none; }
+.game-stage--public :is(.stat__label,.emoji-chip__index) { color:var(--muted); }
+.game-stage--public .stat__value { color:var(--accent); }
+.game-stage--public .game-stage__challenge-name { background:var(--surface-2); color:var(--text); border-color:var(--border); }
+.game-stage--public .game-stage__counter { background:var(--accent-strong); color:#fff; border-color:var(--accent); text-shadow:none; }

@@ -56,22 +56,24 @@ describe('challenge registry', () => {
   it('lists the three playable challenges in order', () => {
     expect(CHALLENGE_GAMES.map((game) => game.title)).toEqual([
       'Challenge 1 - Image Decode',
-      'Challenge 2 - Flipping Connect',
+      'Challenge 2 - Matching Cards',
       'Challenge 3 - Jaw of Risk',
     ])
     expect(challengeGameInfo('emoji-decode').title).toBe('Challenge 1 - Image Decode')
-    expect(challengeGameInfo('word-assembly').title).toBe('Challenge 2 - Flipping Connect')
+    expect(challengeGameInfo('word-assembly').title).toBe('Challenge 2 - Matching Cards')
   })
 
   it('maps former titles and retires removed challenges', () => {
     expect(RENAMED_CHALLENGE_TITLES).toEqual({
       'Emoji Decode': 'Challenge 1 - Image Decode',
       'Image Decode': 'Challenge 1 - Image Decode',
-      'Word Assembly': 'Challenge 2 - Flipping Connect',
-      'Match Card': 'Challenge 2 - Flipping Connect',
-      'Flipping Connect': 'Challenge 2 - Flipping Connect',
-      'Flipping Card': 'Challenge 2 - Flipping Connect',
-      'Challenge 2 - Flipping Card': 'Challenge 2 - Flipping Connect',
+      'Word Assembly': 'Challenge 2 - Matching Cards',
+      'Match Card': 'Challenge 2 - Matching Cards',
+      'Matching Cards': 'Challenge 2 - Matching Cards',
+      'Flipping Connect': 'Challenge 2 - Matching Cards',
+      'Challenge 2 - Flipping Connect': 'Challenge 2 - Matching Cards',
+      'Flipping Card': 'Challenge 2 - Matching Cards',
+      'Challenge 2 - Flipping Card': 'Challenge 2 - Matching Cards',
       'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
       'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
     })

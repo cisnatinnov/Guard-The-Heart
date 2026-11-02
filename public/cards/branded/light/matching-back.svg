@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" role="img" aria-label="Fight the Dragon card" style="--ink:#f5f7fd;color:#186d87">
+<defs>
+ <linearGradient id="stock" x2="1" y2="1"><stop stop-color="#e5ebf7"/><stop offset=".48" stop-color="#f5f7fd"/><stop offset="1" stop-color="#e5ebf7"/></linearGradient>
+ <linearGradient id="foil" x2="1" y2="1"><stop stop-color="#186d87"/><stop offset=".45" stop-color="#17263f"/><stop offset="1" stop-color="#186d87"/></linearGradient>
+ <radialGradient id="aura"><stop stop-color="#186d87" stop-opacity=".28"/><stop offset="1" stop-color="#186d87" stop-opacity="0"/></radialGradient>
+ <pattern id="scales" width="40" height="32" patternUnits="userSpaceOnUse"><path d="M0 0Q20 32 40 0M-20 16Q0 48 20 16M20 16Q40 48 60 16" fill="none" stroke="#186d87" stroke-opacity=".07"/></pattern>
+</defs>
+<rect width="600" height="420" rx="32" fill="url(#stock)"/>
+<rect x="14" y="14" width="572" height="392" rx="22" fill="url(#scales)" stroke="url(#foil)" stroke-width="3"/>
+<rect x="23" y="23" width="554" height="374" rx="16" fill="none" stroke="#186d87" stroke-opacity=".3"/>
+<ellipse cx="300.0" cy="184.8" rx="288.0" ry="159.6" fill="url(#aura)"/>
+<g fill="none" stroke="url(#foil)" stroke-width="5"><path d="M26 66V26h40"/><path d="M574 66V26h-40"/><path d="M26 354V394h40"/><path d="M574 354V394h-40"/></g>
+<g font-family="Arial,sans-serif" text-anchor="middle" fill="#17263f"><text x="300" y="52" font-size="22" font-weight="700" letter-spacing="4">FIGHT THE DRAGON</text><g transform="translate(300 220) scale(1.25)" color="#186d87"><path d="M-65-75l30 24L0-90 35-51 65-75 55-20 90 5 47 35 25 75H-25L-47 35-90 5-55-20z" fill="currentColor"/><path d="M-45-12l30 12-12 15-23-8M45-12L15 0l12 15 23-8" fill="var(--ink)"/><path d="M-25 45L0 28l25 17L0 65z" fill="var(--ink)"/></g><text x="300" y="375" font-size="20" letter-spacing="6">MATCHING CARDS</text></g></svg>

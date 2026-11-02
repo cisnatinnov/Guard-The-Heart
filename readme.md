@@ -16,6 +16,26 @@ npm run dev
 Open `/admin` to manage the event and `/` for Main Presentation. Production
 hosting must serve `index.html` for application routes.
 
+## Personal portfolio
+
+Open `/portfolio` for Cendikia Hairy's personal portfolio, featuring Fight the
+Dragon. It includes a project gallery, architecture and design case study,
+event flow, technology stack, and LinkedIn contact. This route opens independently
+of the event database and does not register as a synchronized public display.
+The admin footer links to it. Light/dark appearance is shared with the event UI.
+
+Portfolio content lives in `src/views/PortfolioView.tsx`, with styles in
+`src/styles/portfolio.css`. Update the name, introduction, and LinkedIn URLs there
+to personalize the page. The project screenshots use isolated default demo data.
+To refresh them, start the local Vite server, then run
+`node scripts/generate-portfolio-previews.mjs` (or pass another local origin).
+
+The **Download portfolio** button saves a three-page PDF with the project case
+study and screenshots. The deliverable is `output/pdf/Cendikia-Hairy-Portfolio.pdf`;
+the app serves an identical copy from `public/portfolio/`. Regenerate both with
+`python scripts/generate-portfolio-pdf.py` (requires ReportLab). The production
+service worker caches the PDF for offline downloading after the first install.
+
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Local development server |
@@ -31,10 +51,19 @@ hosting must serve `index.html` for application routes.
 ## Theme and characters
 
 The interface follows the cast's navy and cobalt armor, silver plates, violet
-cloth and cyan crystals, with restrained gold trim. Admin navigation uses a dark
-navy surface; forms, tables and reading panels use silver-white surfaces with
-dark text. Focus outlines are visible, disabled controls remain recognizable,
-and team identity colors remain independent of the theme.
+cloth and cyan crystals, with restrained gold trim. Shared appearance tokens
+control navigation, forms, tables, challenge panels, and the portfolio in dark
+navy or light silver. The saved appearance takes precedence over the operating
+system theme and synchronizes across tabs. Tactical Phase and Card Reveal use
+native themed frames and live headings. Focus outlines are visible, disabled
+controls remain recognizable, and team identity colors remain independent of
+the theme, with dark labels on their pastel team backgrounds.
+
+`src/styles/feature-theme.css` applies the shared surface rules to admin and public
+features. Tactical Phase and Card Reveal render explicit Fight the Dragon headers
+and do not load legacy tactical slide images. Development disables service workers
+and retires workers left over from earlier previews without clearing event data;
+production retains the offline-first PWA.
 
 The cast is **Dragon Warden**, **Storm Ranger** and **Spark**, a small cobalt
 dragon. The opponent **Gilgamesh** now has silver/navy armor, cyan crystal horns
@@ -46,6 +75,19 @@ uses a new silver/navy Gilgamesh jaw illustration, a matching closed-jaw bite fr
 The logo is `public/fight-the-dragon-logo.png`. Character images were created
 with the built-in image-generation tool; exact prompts are in
 [public/characters/prompts.json](./public/characters/prompts.json).
+
+Opening a challenge automatically includes every active team (up to the existing
+five-team scoreboard limit). No team checklist or Start button is needed. Click a
+team name in Turn Order to choose the answering team. Matching Cards and Jaw of
+Risk select an answer when the host clicks its option; scoring happens only after
+**Grade this question**. Their synchronized 15-second
+turn reminders never close answers or change scores. A correct Matching Cards
+answer unlocks picture matching for +5 per pair after the preview. A correct Jaw
+answer awards +10 before the host chooses an eligible opponent; an incorrect
+answer assigns the answering team to the teeth. A bite deducts 5, ends that tooth
+turn immediately, and deactivates the bitten team. OUT means inactive across the event.
+Reactivate a team in Teams (with GP above zero) to make it eligible again;
+saved bite history does not keep a reactivated team OUT.
 
 Each challenge offers a question picker with a maximum of 10 questions (the first
 10 are selected by default). The host can choose 1–10 questions from the bank.
@@ -99,12 +141,13 @@ Selection synchronizes to the shared public display and survives reload.
 | Challenge | Controls and timing |
 | --- | --- |
 | Image Decode | 69 workbook emoji clues. The 15-second timer is a reminder; answers stay open and expiry never changes scores. Correct +10, wrong -10. |
-| Flipping Connect | 71 workbook quiz questions. Right Answer +10 unlocks a board with a 5-second preview and no response deadline. Each distinct matched pair earns +5. Wrong Answer -10 grants no matching attempt. Changing teams ends the current bonus attempt. |
+| Matching Cards | 71 workbook quiz questions. Right Answer +10 unlocks a board with a 5-second preview and no response deadline. Each distinct matched pair earns +5. Wrong Answer -10 grants no matching attempt. Changing teams ends the current bonus attempt. |
 | Jaw of Risk | Right Answer +10 assigns a selected active opponent; Wrong Answer −10 assigns the answering team. The assigned team must press two teeth. Each bite deducts 5 more raw score; safe presses add no penalty. |
 
 Scores range from −999 to 999. Host verdicts, matched pairs and tooth presses
 persist with duplicate-submission protection. Pending tooth assignments survive
-reload. A first-press bite does not waive the second press; wait for reopening.
+reload. A bite ends the tooth turn immediately and eliminates the bitten team
+by deactivating it. Safe turns require two presses.
 The host records verdicts and configures biting teeth. Both host and public screens can press teeth after a verdict unlocks them; shared locks and persisted press counts prevent duplicate penalties.
 
 Raw-score changes rerank every team in the challenge and adjust CP/GP rewards
@@ -148,7 +191,7 @@ not repeated by the attack. Completed choices and effects remain historical.
 
 ## Admin workspace
 
-The admin uses a compact character header, grouped sidebar navigation and a quiet light background. On phones, navigation becomes a horizontally scrollable row. The Teams page shows total/active/inactive counts, keeps GP rules in expandable help, and separates adding a team from filtering the list. Team colours and gameplay controls keep their existing meaning. Admin styling is isolated in `src/styles/admin.css`.
+The admin uses a compact character header, grouped sidebar navigation and a background that follows the saved light/dark theme. On phones, navigation becomes a horizontally scrollable row. The Teams page shows total/active/inactive counts, keeps GP rules in expandable help, and separates adding a team from filtering the list. Team colours and gameplay controls keep their existing meaning. Admin styling is isolated in `src/styles/admin.css`.
 
 ## Routes and public displays
 
@@ -170,10 +213,9 @@ keys remain compatible; visible names use Fight the Dragon and Gilgamesh.
 | Leaderboard | `/admin/leaderboard` | `/leaderboard` |
 | Podium | `/admin/podium` | `/podium` |
 | GP Transactions | `/admin/gp-transactions` | — |
-| Timer | `/admin/timer` | `/timer` |
 | Game | `/admin/play/:gameId/:challengeId?` | `/play/:gameId/:challengeId?` |
 
-Timer and Turn Order use independent named windows. Other features reuse one
+Turn Order uses its own named window. Other features reuse one
 projector window. Navigation, team turns and saved results synchronize in the
 same browser profile/origin; they do not sync between devices. Popup blocking
 produces an error while keeping the admin controls available.
@@ -186,10 +228,13 @@ rules and 101 superseded declarations. Source decks, old characters, video,
 unused card-face variants, fonts, duplicate screenshots and covered slide images
 are no longer shipped merely as references.
 
-Retained artwork is used by active scoreboards, rewards, timer, matching cards,
+Branded cards use foil borders, dragon-scale textures, rarity gems, and distinct
+light/dark palettes. Superseded PNG card faces, matching reference crops, and the
+covered matching slide are removed from the public bundle.
+
+Retained artwork is used by active scoreboards, rewards, matching cards,
 question clues, rank/GP icons or the Jaw of Risk toy. Dynamic card-face, tooth and
-hand paths are retained. Legacy False Hope art remains readable for old saved
-rank-five offers. The legacy Image Decode PPTX is excluded from offline precaching. Application art, sounds
+hand paths are retained. Saved rank-five False Hope offers use the branded artwork. The legacy Image Decode PPTX is excluded from offline precaching. Application art, sounds
 and the current Gilgamesh jaw artwork are precached. The app must be opened online once
 before offline use. Question content lives in `src/data/reference-question-bank.json`
 from the three current sheets in `Bank Soal Game 5.xlsx`. Import updates with `scripts/import-question-bank.py <workbook-path>` using Python with openpyxl. The importer preserves source rows, clues, answer keys, and educational explanations.
@@ -205,11 +250,11 @@ scores, cards, GP and historical attacks, including missing archived team IDs.
 
 For implementation details, see [blueprint.md](./blueprint.md).
 
-Public Flipping Connect cards are clickable during the unlocked matching window. Host and public moves share a lock and read the latest saved board before scoring; mismatches also close when only the public screen remains open. Team selection, verdicts and run controls remain host-only.
+Public Matching Cards cards are clickable during the unlocked matching window. Host and public moves share a lock and read the latest saved board before scoring; mismatches also close when only the public screen remains open. Team selection, verdicts and run controls remain host-only.
 
 ## Verification
 
-Verified on **2026-10-27 (WIB)**:
+Historical baseline verified on **2026-10-27 (WIB)** (before the latest challenge UI changes):
 
 | Check | Result |
 | --- | --- |
@@ -227,3 +272,71 @@ Checks cover asset loading, readable contrast,
 responsive routes, all game flows, card effects, persistence, synchronization
 and offline reload. A passing suite covers these scenarios, not every possible
 device or simultaneous edit sequence.
+
+### Branded cards and public choices
+
+Public Matching Cards and Jaw of Risk show A–D option cards without turn timers.
+The admin's selected option is shared with the public view and survives reload;
+advancing the question clears the selection. Reminder timers stay on the admin.
+Reward cards, closed backs, and matching pairs use native Fight the Dragon SVG
+artwork in both themes. Regenerate the assets with
+`python scripts/generate-branded-cards.py`. Changing the application theme updates
+card artwork on the host and public display without changing card identities,
+rarities, scores, or matching-pair assignments.
+
+### Host controls
+
+The standalone Timer feature is removed; old timer URLs redirect to Challenges
+(admin) or Scoreboard (public). Challenge reminders stay at 15 seconds until the
+admin clicks **Timer**. They do not automatically start on a new team or question,
+and the Image Decode Timer button preserves the current question and scores.
+Jaw of Risk keeps the public dragon hidden until **Show dragon**. Matching Cards
+(formerly Flipping Connect) keeps its public board hidden until **Show cards**;
+the full five-second memory preview starts with that click after a correct answer.
+Each challenge has **Show public question**, including Challenge 1 (Image Decode),
+with live question, team, and answer synchronization. The normal public challenge
+route shows Q&A. **Show cards** opens `/play/word-assembly/:challengeId/cards`;
+**Show dragon** opens `/play/jaws-of-risk/:challengeId/dragon`. These separate
+board views retain live scores and omit Q&A. Reveal controls open or reuse the
+public display; Hide returns it to the public question. Returning to Q&A does
+not reset the board, matching preview, or scores.
+
+### Current answer workflow (2026-10-30)
+
+Image Decode mirrors the current answering team's typed text to the public Answer
+panel after a 300 ms pause in typing. Clearing the input clears that public text.
+Drafts are scoped to the run, question and originating turn so another question
+or team never inherits an old answer. A passed question displays the chosen
+opponent's input. Draft synchronization does not submit an answer or change scores.
+Public reloads restore the latest saved draft in the same browser profile/origin.
+
+For Matching Cards and Jaw of Risk, click an option to select it, then click
+**Grade this question** to score it. Option hover/focus and selection mirror to
+public Q&A. Both screens arrange A/B on the left and C/D on the right. Grading
+shows a five-second result overlay with a check or cross and the correct answer.
+The separate cards/dragon screens omit Q&A. Choosing a Jaw opponent also updates
+the active team. Image Decode still grades and advances through its typed-answer
+workflow; it does not yet have the workbook result overlay.
+
+Latest targeted validation: production build, TypeScript, and two Image Decode
+browser regressions passed on 2026-10-30 (WIB). Both Markdown files passed local-link
+and code-fence checks. The full browser suite was not rerun. See
+[blueprint.md](./blueprint.md) for the validation scope.
+
+### OUT and reactivation
+
+Challenges 1 and 2 never label a team OUT. Their Turn Order lists active teams;
+a used Image Decode attempt is labeled Attempt used. Only Challenge 3 displays
+OUT, and it follows `Team.status = inactive`, not historical Jaw bite records. A future
+Jaw bite deactivates its pressing team transactionally with the penalty. Active
+teams with old bites remain eligible; Teams activation restores eligibility
+without deleting score or bite history. Zero-GP teams still require GP above zero
+before activation. An unsuccessful Image Decode attempt is labeled Attempt used,
+not OUT.
+
+### Image Decode answer entry
+
+Type directly into the ANSWER area on the admin Image Decode screen. The
+per-team answer table is removed for this challenge. Turn Order and passing
+choose whose answer is entered; Grade this question (or Enter) submits it.
+The public ANSWER area remains read-only and mirrors the current typed text.

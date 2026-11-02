@@ -27,12 +27,13 @@ async function write<T>(challenge: string, operation: (transaction: Transaction)
       await flushDatabase()
       dbEvents.emit(DB_EVENTS.CHALLENGE_POINTS_CHANGED)
       dbEvents.emit(DB_EVENTS.SCOREBOARD_CHANGED)
+      dbEvents.emit(DB_EVENTS.TEAMS_CHANGED)
       return result
     })
   })
 }
 
-export async function recordChallengeAnswer(input: { id: string; challenge: string; team: string; correct: boolean; jaw?: boolean; opponent?: string; matching?: boolean }): Promise<ChallengeAnswer> {
+export async function recordChallengeAnswer(input: { id: string; challenge: string; team: string; correct: boolean; jaw?: boolean; opponent?: string; matching?: boolean; deferMatching?: boolean }): Promise<ChallengeAnswer> {
   return write(input.challenge, async (transaction) => {
     const existing = await ChallengeAnswer.findByPk(input.id, { transaction })
     if (existing) {
@@ -42,15 +43,18 @@ export async function recordChallengeAnswer(input: { id: string; challenge: stri
     if (!await Challenge.findByPk(input.challenge, { transaction })) throw new Error('Challenge not found')
     const team = await Team.findByPk(input.team, { transaction })
     if (!team || team.status !== 'active') throw new Error('Choose an active answering team')
+    if (input.jaw) await ChallengeAnswer.update({ settled: true }, { where: { challenge: input.challenge, bitten: true, settled: false }, transaction })
     if (input.jaw && await ChallengeAnswer.findOne({ where: { challenge: input.challenge, settled: false }, transaction })) throw new Error('Finish the pending tooth press first')
-    const pressing = input.jaw ? input.correct ? input.opponent : input.team : null
-    if (input.jaw && input.correct) {
+    const pressing = input.jaw ? input.correct ? input.opponent || null : input.team : null
+    if (input.jaw && input.correct && pressing) {
       const opponent = pressing ? await Team.findByPk(pressing, { transaction }) : null
       if (!opponent || opponent.status !== 'active' || pressing === input.team) throw new Error('Choose a different active opponent')
     }
+    const active = input.jaw ? await Team.findAll({ where: { status: 'active' }, transaction }) : []
+    const lastTeamWins = !!input.jaw && input.correct && !pressing && !active.some((entry) => entry.id !== input.team)
     if (input.matching) await ChallengeAnswer.update({ matching_deadline: null }, { where: { challenge: input.challenge }, transaction })
     await changeScore(input.challenge, input.team, input.correct ? 10 : -10, transaction)
-    return ChallengeAnswer.create({ id: input.id, challenge: input.challenge, team: input.team, correct: input.correct, pressing_team: pressing, settled: !input.jaw, bitten: null, press_count: 0, matching_pairs: '[]', matching_deadline: input.matching && input.correct ? Date.now() + MATCHING_PREVIEW_SECONDS * 1000 : null }, { transaction })
+    return ChallengeAnswer.create({ id: input.id, challenge: input.challenge, team: input.team, correct: input.correct, pressing_team: pressing, settled: !input.jaw || lastTeamWins, bitten: null, press_count: 0, matching_pairs: '[]', matching_deadline: input.matching && input.correct && !input.deferMatching ? Date.now() + MATCHING_PREVIEW_SECONDS * 1000 : null }, { transaction })
   })
 }
 
@@ -61,19 +65,50 @@ export async function settleChallengeTooth(id: string, bitten: boolean, expected
     const answer = await ChallengeAnswer.findByPk(id, { transaction })
     if (!answer?.pressing_team) throw new Error('This answer has no tooth press')
     if (answer.settled || answer.press_count !== expectedPress) return { answer, applied: false }
-    if (bitten) await changeScore(answer.challenge, answer.pressing_team, -5, transaction)
-    return { answer: await answer.update({ press_count: answer.press_count + 1, settled: answer.press_count + 1 >= 2, bitten: answer.bitten || bitten }, { transaction }), applied: true }
+    if (bitten) {
+      await changeScore(answer.challenge, answer.pressing_team, -5, transaction)
+      await Team.update({ status: 'inactive' }, { where: { id: answer.pressing_team }, transaction })
+    }
+    return { answer: await answer.update({ press_count: answer.press_count + 1, settled: bitten || answer.press_count + 1 >= 2, bitten: answer.bitten || bitten }, { transaction }), applied: true }
   })
 }
 
-export function pendingChallengeTooth(challenge: string): Promise<ChallengeAnswer | null> {
-  return ChallengeAnswer.findOne({ where: { challenge, settled: false }, order: [['createdAt', 'ASC']] })
+/** Correct answers choose an eligible opponent after the score is recorded. */
+export async function assignChallengeOpponent(id: string, opponentId: string): Promise<void> {
+  const existing = await ChallengeAnswer.findByPk(id)
+  if (!existing) throw new Error('Answer the question first')
+  await write(existing.challenge, async (transaction) => {
+    const answer = await ChallengeAnswer.findByPk(id, { transaction })
+    if (!answer || !answer.correct || answer.settled || answer.pressing_team) throw new Error('This answer is not waiting for an opponent')
+    const opponent = await Team.findByPk(opponentId, { transaction })
+    if (!opponent || opponent.status !== 'active' || opponentId === answer.team) throw new Error('Choose a different eligible opponent')
+    await answer.update({ pressing_team: opponentId }, { transaction })
+  })
+}
+
+export async function pendingChallengeTooth(challenge: string): Promise<ChallengeAnswer | null> {
+  const answers = await ChallengeAnswer.findAll({ where: { challenge, settled: false }, order: [['createdAt', 'ASC']] })
+  return answers.find((answer) => !answer.bitten) ?? null
 }
 
 /** Refresh rank rewards before claiming cards, including legacy score-only rows. */
 export async function finalizeChallengeScores(challenge: string): Promise<void> {
   await write(challenge, async (transaction) => {
     await ChallengePoint.update({ raw_score_only: false }, { where: { challenge }, transaction })
+  })
+}
+
+/** Start the memory preview only when the host reveals the card board. */
+export async function beginMatchingBonus(id: string): Promise<number> {
+  const existing = await ChallengeAnswer.findByPk(id)
+  if (!existing) throw new Error('Answer correctly before showing cards')
+  return write(existing.challenge, async (transaction) => {
+    const answer = await ChallengeAnswer.findByPk(id, { transaction })
+    if (!answer?.correct || !answer.settled || answer.pressing_team) throw new Error('This answer cannot unlock matching cards')
+    if (answer.matching_deadline) return Number(answer.matching_deadline)
+    const deadline = Date.now() + MATCHING_PREVIEW_SECONDS * 1000
+    await answer.update({ matching_deadline: deadline }, { transaction })
+    return deadline
   })
 }
 

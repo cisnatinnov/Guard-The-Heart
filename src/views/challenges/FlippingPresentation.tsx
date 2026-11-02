@@ -55,8 +55,8 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
   }, [feedback])
   const pop = previewing ? 'opened' : feedback
 
-  return <section className="flipping-presentation" aria-label="Flipping Connect matching board">
-    <img className="flipping-presentation__art" src="/ui/flipping-slide-03-reference.png" alt="" />
+  return <section className="flipping-presentation flipping-presentation--native" aria-label="Matching Cards matching board">
+    <header className="flipping-presentation__brand"><img src="/fight-the-dragon-logo.png" alt="Fight the Dragon" /><div><p>Bonus challenge</p><h2>Matching Cards</h2></div><span>Match a pair · +5</span></header>
     <ol className="flipping-presentation__teams" aria-label="Select the active team">
       {Array.from({ length: 5 }, (_, slot) => {
         const teamId = orderedTeams[slot]?.id
@@ -67,7 +67,7 @@ export function FlippingPresentation({ board, run, teamName, teamColour, teamGP,
         </li>
       })}
     </ol>
-    <MatchingCards board={board ?? waitingBoard} reference revealAll={previewing} disabled={disabled || !board || previewing || expired} onFlip={onFlip} />
+    <MatchingCards board={board ?? waitingBoard} revealAll={previewing} disabled={disabled || !board || previewing || expired} onFlip={onFlip} />
     {pop && !expired && <div className={`flipping-presentation__feedback${pop === 'match' ? ' is-match' : pop === 'mismatch' ? ' is-mismatch' : ''}`} role="status" aria-live="polite">
       <b>{pop === 'opened' ? 'Card opened' : pop === 'closed' ? 'Card closed' : pop === 'match' ? 'Match!' : 'Mismatch!'}</b>
     </div>}

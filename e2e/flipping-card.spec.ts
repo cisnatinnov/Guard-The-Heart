@@ -69,7 +69,7 @@ test('team changes replay preview, both mismatched cards appear briefly and matc
   }
   await expect(page.locator('.tile').first()).toBeEnabled()
 
-  await expect(projector.locator('.flipping-presentation__art')).toHaveAttribute('src', '/ui/flipping-slide-03-reference.png')
+  await expect(projector.locator('.flipping-presentation__art')).toHaveCount(0)
   const stage = await projector.locator('.flipping-presentation').boundingBox()
   const firstCard = await projector.locator('.tile').first().boundingBox()
   expect(stage).not.toBeNull()

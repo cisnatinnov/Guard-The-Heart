@@ -149,19 +149,20 @@ matched pairs and press counts cannot apply the same score change twice.
 
 - Image Decode: 69 workbook clues, +10 correct and -10 wrong. A shared 15-second
   reminder leaves scoring and answer controls open. Turn Order selects the active team.
-- Flipping Connect: 71 workbook quiz questions. A right answer adds 10 and starts
-  a fresh board with a 5-second preview and unlimited matching time. Each unique
+- Matching Cards: 71 workbook quiz questions. Select an option, then grade it.
+  A correct answer adds 10 and unlocks a fresh board; Show cards starts the
+  five-second preview, followed by unlimited matching time. Each unique
   pair adds 5. Wrong answers deduct 10 without unlocking a board. Team changes
   end the current bonus and reshuffle.
 - Jaw of Risk: a right answer assigns a selected opponent and adds 10; a wrong
-  answer deducts 10 and assigns self. Two presses are required; each bite deducts
-  another 5 from the pressing team's raw score. Pending presses survive reload.
-  The host records verdicts and configures biting teeth; both screens can press unlocked teeth. A shared gameplay lock serializes presses, and database press counts prevent duplicate penalties.
+  answer deducts 10 and assigns self. Two safe presses finish a turn; a bite ends it immediately, deducts
+  another 5 and deactivates the pressing team across the event. Pending presses survive reload.
+  The host selects an option and clicks Grade this question, then configures biting teeth; both screens can press unlocked teeth. A shared gameplay lock serializes presses, and database press counts prevent duplicate penalties.
 
 Matching preview deadlines are absolute and saved; there is no response deadline. Mismatches briefly
 show both faces before automatic closing. A background public window catches up
 to the saved preview state. The active team synchronizes through Turn Order,
-Timer and matching panels. Test synchronization waits for a completed scored
+the shared active-team state and matching panels. Test synchronization waits for a completed scored
 answer before comparing and reloading a freshly generated board.
 
 ## Tactical effects and Gilgamesh Attack
@@ -191,13 +192,13 @@ history remains accessible after attack. Read-only hover previews never save GP.
 
 ## Views and offline operation
 
-Main Presentation uses native scenes; scoreboards/rewards/tactical/timer/matching
+Main Presentation uses native scenes; scoreboards/rewards/tactical/matching
 retain only their active runtime backgrounds. Team, rank, GP, card and prize
 fields remain live. Podium uses a clean arena, CSS plinths and current character
 cutouts. All public canvases fit both viewport axes; admin controls wrap for phones.
 
-`publicDisplay.ts` routes host commands through a shared projector. Timer and
-Turn Order have separate named windows and notification channels. Admin reload
+`publicDisplay.ts` routes host commands through a shared projector. Turn Order has a separate named window. The standalone Timer UI is removed;
+legacy timer URLs redirect. Challenge reminder timers start only on Timer click. Admin reload
 reuses existing windows; closed windows can reopen. Public views cannot invoke
 admin scoring or change host turns/configuration.
 
@@ -209,9 +210,9 @@ The admin shell is a two-column workspace: compact branding above a sticky group
 
 ## Validation record
 
-Public Flipping Connect cards are clickable during the unlocked matching window. Shared gameplay locks serialize card moves across tabs, read the latest saved board and guard against replaced attempts. Both screens close mismatches; host controls remain separate.
+Public Matching Cards cards are clickable during the unlocked matching window. Shared gameplay locks serialize card moves across tabs, read the latest saved board and guard against replaced attempts. Both screens close mismatches; host controls remain separate.
 
-Verified on **2026-10-27 (WIB)**:
+Historical baseline verified on **2026-10-27 (WIB)** (before the latest challenge UI changes):
 
 | Check | Result |
 | --- | --- |
@@ -236,3 +237,73 @@ npm run build
 Verification covers missing assets after cleanup, text contrast, native scenes,
 new Gilgamesh art, all games, card rules, GP history, public windows, offline reload,
 and desktop/tablet/phone layouts. Markdown links, anchors and fences are checked.
+
+## Current challenge presentation (2026-10-30)
+
+All active teams join automatically, up to five. Hosts select 1–10 questions;
+solo play, manual Right/Wrong buttons and the Presentation navigation item are
+removed. Main Presentation routes remain compatible. Image Decode is exposed by
+Show public question; its public route is `/play/emoji-decode/:challengeId`.
+
+The normal Matching Cards and Jaw public routes show only Q&A and live scores.
+Show cards opens `/play/word-assembly/:challengeId/cards`; Show dragon opens
+`/play/jaws-of-risk/:challengeId/dragon`. These board routes omit Q&A and retain
+live score strips. Hide returns to Q&A. Switching screens does not reset a board.
+Matching previews are deferred until Show cards; repeated shows reuse the deadline.
+
+Workbook option clicks select without scoring. Grade this question persists the
+verdict and unlocks the applicable matching/tooth flow. Hover/focus and selected
+options mirror through `guard-the-heart-quiz:<challengeId>`. Options use two
+columns, A/B left and C/D right. Grading shows a five-second check/cross overlay
+with the correct answer. Choosing a Jaw opponent updates the shared active team.
+
+`useDecodeAnswer.ts` publishes Image Decode drafts after a 300 ms typing pause to
+`guard-the-heart-decode-answer:<challengeId>`. Local events and storage events
+synchronize the host and public views. Payloads identify the run, question,
+originating turn and answering team. PublicQuestionView rejects stale scopes and
+uses the matching text in its Answer panel. Draft writes do not mutate SQLite or
+shared run state, so they cannot overwrite scores or advance questions. Empty
+input clears the public answer. Image Decode grading still advances immediately;
+the workbook verdict overlay applies to Challenges 2 and 3 only.
+
+Reward and matching art uses theme-specific SVGs in `public/cards/branded/`.
+Regenerate with `python scripts/generate-branded-cards.py`. Native question and
+board layouts use the shared theme, with compact public score strips.
+
+### Targeted validation on 2026-10-30 (WIB)
+
+- Production/PWA build passed through the fresh browser build-and-preview run.
+- TypeScript check passed after the final draft payload validation change.
+- Two Image Decode browser regressions passed: typing, clearing, public reload,
+  question advancement, passed-opponent text and active-team changes.
+- Both tracked Markdown files passed local-link and balanced-code-fence checks;
+  `git diff --check` passed.
+- The full browser suite was not rerun for this draft-sync change. Older workbook
+  scenarios that expect option clicks to score need the explicit Grade action.
+
+### OUT and reactivation
+
+Challenges 1 and 2 never label a team OUT. Their Turn Order lists active teams;
+a used Image Decode attempt is labeled Attempt used. Only Challenge 3 displays
+OUT, and it follows `Team.status = inactive`, not historical Jaw bite records. A future
+Jaw bite deactivates its pressing team transactionally with the penalty. Active
+teams with old bites remain eligible; Teams activation restores eligibility
+without deleting score or bite history. Zero-GP teams still require GP above zero
+before activation. An unsuccessful Image Decode attempt is labeled Attempt used,
+not OUT.
+
+### Image Decode answer entry
+
+Type directly into the ANSWER area on the admin Image Decode screen. The
+per-team answer table is removed for this challenge. Turn Order and passing
+choose whose answer is entered; Grade this question (or Enter) submits it.
+The public ANSWER area remains read-only and mirrors the current typed text.
+
+### Branded card collection refresh
+
+The native SVG generator supplies all 50 reward, matching, and card-back assets
+in light and dark themes. Cards use foil-style frames, dragon-scale textures,
+rarity gems, and a clear rules panel. Rarity borders and reduced-motion-aware
+hover/focus states reinforce the collection in live play. The 45 superseded
+PNG faces, matching reference crops, and matching slide have been removed;
+active question-bank data and educational clue images remain in use.

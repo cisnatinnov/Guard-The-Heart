@@ -12,7 +12,7 @@ export async function readDatabase(page:Page):Promise<Database> {
  }))
  return new SQL.Database(new Uint8Array(bytes))
 }
-export async function seedCards(page:Page,challengeId:string,awards:Array<[string,string]>=[],lowOpponent=false) {
+export async function seedCards(page:Page,challengeId:string,awards:Array<[string,string]>=[],lowOpponent=false,linkToChallenge=false) {
  await page.addInitScript(()=>{Math.random=()=>.2})
  await page.goto(`/admin/tactical/${challengeId}`)
  await expect(page.getByRole('button',{name:'Skip Biru',exact:true})).toBeVisible()
@@ -30,6 +30,7 @@ export async function seedCards(page:Page,challengeId:string,awards:Array<[strin
  for (const [index,[teamName,name]] of awards.entries()) {
   const teamId=String(teams.find((row)=>row[1]===teamName)![0])
   db.run('UPDATE card SET team=?,challenge=? WHERE name=?',[teamId,challengeId,name])
+  if (linkToChallenge) db.run('UPDATE card SET challenge_point=(SELECT id FROM challenge_point WHERE challenge=? AND team=?) WHERE name=?',[challengeId,teamId,name])
   db.run('INSERT INTO team_card (id,name,type,effect,effect_action,icon,team,challenge_point,createdAt,updatedAt) SELECT ?,name,type,effect,effect_action,icon,team,challenge_point,createdAt,updatedAt FROM card WHERE name=?',[`owned-${index}`,name])
  }
  const bytes=Array.from(db.export());db.close()

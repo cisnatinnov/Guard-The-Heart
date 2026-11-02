@@ -1,7 +1,8 @@
+import { useTheme } from '../hooks/useTheme'
 import { englishText } from '../services/english'
 import { TeamPill } from './TeamPill'
 import { TeamGPBadge } from './TeamGPBadge'
-import { CARD_BACK_IMAGE } from '../data/card-pool'
+import { cardBackFor } from '../data/card-pool'
 import { GPShield } from './GPShield'
 import { MAX_ENTRIES_PER_CHALLENGE } from '../services/rankRules'
 import '../styles/reference-ui.css'
@@ -18,6 +19,7 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
   variant: 'scoreboard' | 'leaderboard'; rows: PublicRankingRow[]; challenge?: string; message?: string
   guardPoints?: Array<Pick<PublicRankingRow, 'id' | 'team' | 'guardPower' | 'colour'>>
 }) {
+  const theme = useTheme()
   const final = variant === 'leaderboard'
   const scoresComplete = rows.length === MAX_ENTRIES_PER_CHALLENGE && new Set(rows.map((row) => row.team)).size === MAX_ENTRIES_PER_CHALLENGE
     && rows.every((row) => Number.isFinite(row.points) && row.rank > 0)
@@ -38,7 +40,7 @@ export function PublicRankingBoard({ variant, rows, challenge, message, guardPoi
         <td className="ranking-damage">{(row.gigaRisk ?? 0) > 0 ? '+' : ''}{row.gigaRisk ?? 0}</td>
         <td className={`ranking-effects${(row.effects?.length ?? 0)>4 ? ' ranking-effects--dense' : ''}`} title={row.effects?.map(englishText).join('\n')}><div className="ranking-effect-list">{row.effects?.length ? row.effects.map((effect, i) => <div className={effect.startsWith('+') || effect.startsWith('Fortune Draw:') ? 'positive' : 'negative'} key={i}>{englishText(effect)}</div>) : <span>—</span>}</div></td>
         <td><GPMark /><strong>{number.format(row.guardPower ?? 0)}</strong></td>
-        <td><img className="ranking-card" src={encodeURI(CARD_BACK_IMAGE)} alt="" /><strong>{row.remainingCards ?? 0}</strong></td>
+        <td><img className="ranking-card" src={encodeURI(cardBackFor(theme))} alt="" /><strong>{row.remainingCards ?? 0}</strong></td>
       </tr>)}</tbody>
     </table></div> : <div className="ranking-score-panel"><ol className={`ranking-score-list${scoresComplete ? '' : ' ranking-score-list--pending'}`} aria-label="Challenge ranking">
       {page.map((row, slot) => <li key={row.id} className={`ranking-score-item ranking-score-item--${slot + 1}`}>

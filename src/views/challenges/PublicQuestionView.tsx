@@ -1,4 +1,6 @@
 import { ChallengeRunController } from '../../controllers/ChallengeRunController'
+import { useDecodeAnswer } from '../../hooks/useDecodeAnswer'
+import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { type ChallengeGameId } from '../../services/games'
 import { challengeQuestionsFor } from '../../services/games/challengeQuestions'
@@ -10,6 +12,8 @@ import { RouletteOrder } from './RouletteOrder'
 import { useRunCountdown } from './useRunCountdown'
 
 export function PublicQuestionView({ gameId, run }: { gameId: ChallengeGameId; run: ChallengeRun | null }) {
+  const params = useParams<{ challengeId: string }>()
+  const draft = useDecodeAnswer(run?.challenge ?? params.challengeId ?? '')
   const { teams } = useTeams()
   const set = challengeQuestionsFor(gameId)
   const complete = run ? isRunComplete(run) : false
@@ -17,6 +21,8 @@ export function PublicQuestionView({ gameId, run }: { gameId: ChallengeGameId; r
   const unlocked = !matching || !!run && isMatchingQuestionUnlocked(run)
   const question = run && !complete && unlocked ? ChallengeRunController.currentQuestion(gameId, run) : undefined
   const team = run ? teamForQuestion(run) : undefined
+  const typedAnswer = gameId === 'emoji-decode' && draft && run && draft.runId === run.runId
+    && draft.questionIndex === run.questionIndex && draft.turnTeam === team?.team ? draft.answer : ''
   const teamName = (id: string) => teams.find((entry) => entry.id === id)?.name ?? 'Team'
   const duration = set.secondsPerQuestion
   const attempt = question && team ? `${question.id}:${team.team}` : null
@@ -24,19 +30,19 @@ export function PublicQuestionView({ gameId, run }: { gameId: ChallengeGameId; r
   const sharedRemaining = useRunCountdown(run?.turnDeadline)
 
   useEffect(() => {
-    if (run?.turnDeadline !== undefined || matching || !attempt || duration === undefined) return
+    if (gameId === 'emoji-decode' || run?.turnDeadline !== undefined || matching || !attempt || duration === undefined) return
     const deadline = Date.now() + duration * 1000
     const tick = () => setTimer({ attempt, remaining: Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) })
     tick()
     const interval = window.setInterval(tick, 250)
     return () => window.clearInterval(interval)
-  }, [matching, attempt, duration, run?.turnDeadline])
+  }, [gameId, matching, attempt, duration, run?.turnDeadline])
 
-  const remaining = matching || run?.turnDeadline !== undefined ? sharedRemaining : question && duration !== undefined
+  const remaining = gameId === 'emoji-decode' ? sharedRemaining ?? 15 : matching || run?.turnDeadline !== undefined ? sharedRemaining : question && duration !== undefined
     ? timer.attempt === attempt ? timer.remaining : duration : undefined
   const counter = run && !complete ? `Question ${run.questionIndex + 1} / ${run.questionCount}${team ? ` · ${teamName(team.team)}` : ''}${matching ? unlocked ? run.matchingPhase === 'choice' ? ' · Choose who answers' : ` · Answer attempts: ${run.answerAttempts ?? 0}/2` : ' · Match a pair' : ''}` : undefined
-  return <QuestionPresentation gameId={gameId} question={question} counter={counter} seconds={remaining}
-    status={complete ? 'All questions are complete!' : question && team ? `Waiting for an answer from ${teamName(team.team)}…` : undefined}>
+  return <QuestionPresentation gameId={gameId} question={question} counter={counter} seconds={remaining} timerReady={run?.turnDeadline === undefined}
+    status={complete ? 'All questions are complete!' : typedAnswer || (question && team ? `Waiting for an answer from ${teamName(team.team)}…` : undefined)}>
     {run && !complete && !unlocked && run.matchingBoard ? <>
       <p className="matching-instruction">{team ? teamName(team.team) : 'Team'} matches a pair before answering · 20 seconds</p>
       <MatchingCards board={run.matchingBoard} />

@@ -1,12 +1,14 @@
+import { useTheme } from '../hooks/useTheme'
 import { createPortal } from 'react-dom'
 import { hasDistinctFortuneEffects, type FortuneChoice } from '../services/tacticalPhase'
-import { CARD_BACK_IMAGE, cardTitleFor } from '../data/card-pool'
+import { cardBackFor, cardTitleFor } from '../data/card-pool'
 import { CardTile } from './CardTile'
 import { englishText } from '../services/english'
 
 export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, busy = false }: {
   teamName:string; offer:FortuneChoice; selectedId?:string; onClose:()=>void; onChoose?:(id:string)=>void; busy?:boolean
 }) {
+  const theme = useTheme()
   const options = hasDistinctFortuneEffects(offer.options) ? offer.options : []
   const selected = options.find((option) => option.id === selectedId)
   const closed = offer.publicClosed !== false
@@ -18,7 +20,7 @@ export function FortuneReveal({ teamName, offer, selectedId, onClose, onChoose, 
         {options.map((option,index) => <button type="button" className={`fortune-reveal__option${option.id === selectedId ? ' is-selected' : ''}`}
           key={option.id} disabled={busy || !!selectedId || !onChoose} onClick={() => onChoose?.(option.id)}
           aria-label={option.id === selectedId ? `${cardTitleFor(option.name,option.type)} · Chosen card` : closed ? `Choose closed card ${index+1}` : `Choose ${option.type} ${cardTitleFor(option.name,option.type)} option ${index+1}`}>
-          {option.id === selectedId || !closed ? <CardTile {...option} /> : <div className="card-art"><img src={CARD_BACK_IMAGE} alt="Closed card" /></div>}
+          {option.id === selectedId || !closed ? <CardTile {...option} /> : <div className="card-art"><img src={cardBackFor(theme)} alt="Closed card" /></div>}
           <span>{option.id === selectedId ? '✓ Chosen card' : closed ? `Card ${index+1}` : `${option.type} · ${cardTitleFor(option.name,option.type)}`}</span>
         </button>)}
       </div>

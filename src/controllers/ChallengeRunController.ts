@@ -66,6 +66,7 @@ export class ChallengeRunController {
       questionCount: questionIds.length,
       pointsPerQuestion: questionSet.pointsPerQuestion,
     }), questionIds }
+    if (input.gameId === 'emoji-decode') return { ...run, timerManual: true, secondsPerTurn: undefined, turnDeadline: undefined }
     return input.gameId === 'word-assembly' ? enableRunMatching(run)
       : questionSet.secondsPerQuestion ? { ...run, secondsPerTurn: questionSet.secondsPerQuestion,
         turnDeadline: Date.now() + questionSet.secondsPerQuestion * 1000 } : run

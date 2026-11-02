@@ -29,7 +29,7 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
   },
   {
     id: 'word-assembly',
-    title: 'Challenge 2 - Flipping Connect',
+    title: 'Challenge 2 - Matching Cards',
     tagline: 'Flip cards and match identical picture pairs.',
     rules: [
       'Flip two cards at a time and match identical pictures. Answer the workbook quiz to unlock matching.',
@@ -58,11 +58,13 @@ export const CHALLENGE_GAMES: ChallengeGameInfo[] = [
 export const RENAMED_CHALLENGE_TITLES: Readonly<Record<string, string>> = {
   'Emoji Decode': 'Challenge 1 - Image Decode',
   'Image Decode': 'Challenge 1 - Image Decode',
-  'Word Assembly': 'Challenge 2 - Flipping Connect',
-  'Match Card': 'Challenge 2 - Flipping Connect',
-  'Flipping Connect': 'Challenge 2 - Flipping Connect',
-  'Flipping Card': 'Challenge 2 - Flipping Connect',
-  'Challenge 2 - Flipping Card': 'Challenge 2 - Flipping Connect',
+  'Word Assembly': 'Challenge 2 - Matching Cards',
+  'Match Card': 'Challenge 2 - Matching Cards',
+  'Matching Cards': 'Challenge 2 - Matching Cards',
+  'Flipping Connect': 'Challenge 2 - Matching Cards',
+  'Challenge 2 - Flipping Connect': 'Challenge 2 - Matching Cards',
+  'Flipping Card': 'Challenge 2 - Matching Cards',
+  'Challenge 2 - Flipping Card': 'Challenge 2 - Matching Cards',
   'Jaws of Risk': 'Challenge 3 - Jaw of Risk',
   'Jaw of Risk': 'Challenge 3 - Jaw of Risk',
 }

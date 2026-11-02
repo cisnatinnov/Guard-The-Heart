@@ -1,4 +1,5 @@
 import { QuestionPicker } from './QuestionPicker'
+import { publishDecodeAnswer } from '../../hooks/useDecodeAnswer'
 import { ChallengeTurnOrder } from './ChallengeTurnOrder'
 import { englishText } from '../../services/english'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
@@ -48,14 +49,13 @@ export function TeamRunPanel({
   running,
   onStartRun,
   onUpdateRun,
-  onEndRun,
 }: TeamRunPanelProps) {
   const { teams } = useTeams()
   const turnOrder = useTurnOrder()
   const activeTeamId = useActiveTeam()
   const [run, setRun] = useState<ChallengeRun | null>(null)
   const [questionIds, setQuestionIds] = useState(() => challengeQuestionsFor(gameId).questions.slice(0, 10).map((question) => question.id))
-  const [chosen, setChosen] = useState<string[]>([])
+  const autoStarted = useRef(false)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [results, setResults] = useState<TeamAnswerResult[]>([])
   const [answerMode, setAnswerMode] = useState<'self' | 'pass'>('self')
@@ -71,6 +71,7 @@ export function TeamRunPanel({
 
   useEffect(() => {
     setRun(sharedRun)
+    if (sharedRun?.questionIds) setQuestionIds(sharedRun.questionIds)
   }, [sharedRun])
 
   const questionSet = challengeQuestionsFor(gameId)
@@ -100,6 +101,14 @@ export function TeamRunPanel({
         : timerDuration ?? 0
   const answerOwnerId = !matching && answerMode === 'pass' && opponentId ? opponentId : currentTurnTeam?.team
   const answerOwnerAnswer = answerOwnerId ? answers[answerOwnerId] ?? '' : ''
+  useEffect(() => {
+    if (!canControl || gameId !== 'emoji-decode' || !run || !currentTurnTeam || !answerOwnerId) return
+    const timeout = window.setTimeout(() => publishDecodeAnswer(challengeId, {
+      runId: run.runId, questionIndex: run.questionIndex, turnTeam: currentTurnTeam.team,
+      answeringTeam: answerOwnerId, answer: answerOwnerAnswer,
+    }), 300)
+    return () => window.clearTimeout(timeout)
+  }, [canControl, gameId, challengeId, run?.runId, run?.questionIndex, currentTurnTeam?.team, answerOwnerId, answerOwnerAnswer]) // eslint-disable-line react-hooks/exhaustive-deps
   const timerExpired = gameId !== 'emoji-decode' && hasTimer && remaining === 0
 
   useEffect(() => {
@@ -114,7 +123,7 @@ export function TeamRunPanel({
   }, [canControl, busy, run, matchedDelay, handoffDelay, remaining, onUpdateRun])
 
   useEffect(() => {
-    if (run?.turnDeadline !== undefined || matching || !running || !unlocked || attemptKey === null || timerDuration === undefined || graded) return
+    if (gameId === 'emoji-decode' || run?.turnDeadline !== undefined || matching || !running || !unlocked || attemptKey === null || timerDuration === undefined || graded) return
 
     setTimer({ attemptKey, remaining: timerDuration })
     timeoutAttemptKey.current = null
@@ -125,7 +134,7 @@ export function TeamRunPanel({
       })
     }, 1000)
     return () => window.clearInterval(interval)
-  }, [matching, running, unlocked, attemptKey, timerDuration, graded, run?.turnDeadline])
+  }, [gameId, matching, running, unlocked, attemptKey, timerDuration, graded, run?.turnDeadline])
 
   // Each new team turn starts with its own answer, never a pass selection left
   // over from the preceding turn.
@@ -184,7 +193,7 @@ export function TeamRunPanel({
     if (!canControl || !running || !run || busy || graded || matching || !activeTeamId) return
     const index = run.runs.findIndex((entry) => entry.team === activeTeamId)
     if (index < 0 || index === run.nextTeamIndex || run.attemptedTeams.includes(activeTeamId)) return
-    const next = { ...run, nextTeamIndex: index, turnDeadline: Date.now() + (run.secondsPerTurn ?? 15) * 1000 }
+    const next = { ...run, nextTeamIndex: index, secondsPerTurn: undefined, turnDeadline: undefined, timerManual: true }
     setRun(next)
     void Promise.resolve(onUpdateRun(next)).catch((cause: unknown) => setError(String(cause)))
   }, [activeTeamId, canControl, running, run, busy, graded, matching, onUpdateRun])
@@ -219,21 +228,35 @@ export function TeamRunPanel({
     }
   }
 
+  useEffect(() => {
+    if (!canControl || sharedRun || run || autoStarted.current || teams.length === 0 || teams.length > MAX_ENTRIES_PER_CHALLENGE) return
+    autoStarted.current = true
+    begin()
+  }, [canControl, sharedRun, run, teams]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!canControl || !run || teams.length > MAX_ENTRIES_PER_CHALLENGE || !teams.some((team) => !run.runs.some((entry) => entry.team === team.id))) return
+    const missing = orderTeams(teams, turnOrder).filter((team) => !run.runs.some((entry) => entry.team === team.id))
+    const next = { ...run, runs: [...run.runs, ...missing.map((team) => ({ team: team.id, score: 0, state: 'following' as const, answered: 0, correct: 0 }))] }
+    if (next.runs.length > MAX_ENTRIES_PER_CHALLENGE) return
+    setRun(next)
+    void Promise.resolve(onUpdateRun(next)).catch((cause: unknown) => setError(String(cause)))
+  }, [canControl, run, teams, turnOrder, onUpdateRun])
+
+  useEffect(() => {
+    if (!canControl || !run || gameId !== 'emoji-decode' || run.timerManual) return
+    const next = { ...run, timerManual: true, turnDeadline: undefined, secondsPerTurn: undefined }
+    setRun(next)
+    void Promise.resolve(onUpdateRun(next)).catch((cause: unknown) => setError(String(cause)))
+  }, [canControl, run, gameId, onUpdateRun])
+
   if (questions.length === 0) {
     return null
   }
 
-  function chooseTeam(teamId: string) {
-    setChosen((current) => {
-      if (current.includes(teamId)) return current.filter((id) => id !== teamId)
-      if (current.length >= MAX_ENTRIES_PER_CHALLENGE) return current
-      return [...current, teamId]
-    })
-  }
-
   function begin() {
     try {
-      const ordered = orderTeams(teams.filter((team) => chosen.includes(team.id)), turnOrder)
+      const ordered = orderTeams(teams, turnOrder)
       const started = ChallengeRunController.start({ gameId, challengeId, teamIds: ordered.map((team) => team.id), questionIds })
       const selectedIndex = started.runs.findIndex((team) => team.team === activeTeamId)
       if (selectedIndex >= 0) started.nextTeamIndex = selectedIndex
@@ -252,14 +275,11 @@ export function TeamRunPanel({
     }
   }
 
-  function end() {
-    setRun(null)
-    onEndRun()
-    setAnswers({})
-    setResults([])
-    setTimer({ attemptKey: null, remaining: timerDuration ?? 0 })
-    timeoutAttemptKey.current = null
-    setError(null)
+  function startTimer() {
+    if (!run || busy) return
+    const next = { ...run, timerManual: true, secondsPerTurn: undefined, turnDeadline: Date.now() + 15000 }
+    setRun(next)
+    void Promise.resolve(onUpdateRun(next)).catch((cause: unknown) => setError(String(cause)))
   }
 
   async function submitAnswers(event?: FormEvent, manualCorrect?: boolean) {
@@ -342,11 +362,16 @@ export function TeamRunPanel({
   if (running && run && question) {
     return (
       <section className="run-panel">
-        <ChallengeTurnOrder teamIds={run.runs.map((entry) => entry.team)} disabled={busy} onShuffle={(ids) => {
+        <ChallengeTurnOrder teamIds={run.runs.map((entry) => entry.team)} unavailableIds={run.attemptedTeams} disabled={busy} onShuffle={(ids) => {
           const reordered = { ...run, runs: ids.map((id) => run.runs.find((entry) => entry.team === id)!), nextTeamIndex: 0 }
           setRun(reordered)
           void Promise.resolve(onUpdateRun(reordered)).catch((cause: unknown) => setError(String(cause)))
         }} />
+        {canControl && <details className="question-plan"><summary>Question selection · {run.questionCount}/10</summary>
+          <QuestionPicker questions={questions} selected={questionIds} onChange={setQuestionIds} />
+          <button type="button" disabled={busy || !questionIds.length || run.runs.some((entry) => entry.answered > 0)} onClick={begin}>Apply selected questions</button>
+          <p className="muted">Select questions before the first answer. All active teams participate automatically.</p>
+        </details>}
         <header className="run-panel__header">
           <div>
             <h3 className="run-panel__title">
@@ -361,8 +386,8 @@ export function TeamRunPanel({
             </p>
           </div>
           {canControl && <div className="run-panel__actions">
-            <button type="button" className="ghost" onClick={end}>
-              End run
+            <button type="button" className="ghost" onClick={startTimer} disabled={busy}>
+              Timer
             </button>
           </div>}
         </header>
@@ -370,8 +395,15 @@ export function TeamRunPanel({
         {error && <p className="alert alert--error">{error}</p>}
         {gameId === 'emoji-decode' && remaining === 0 && !graded && <p role="status" className="alert alert--info">Reminder: 15 seconds have passed. Answers remain open.</p>}
         {unlocked && <QuestionPresentation gameId={gameId} question={question}
+          answerInput={gameId === 'emoji-decode' && canControl ? <input
+            className="decode-stage__answer-input" type="text" form="decode-answer-form" maxLength={80}
+            aria-label={`${answerOwnerId ? teamName(answerOwnerId) : 'Team'} answer`}
+            placeholder="Type your answer here" value={answerOwnerAnswer}
+            disabled={!answerOwnerId || graded || busy || (answerMode === 'pass' && !opponentId)}
+            onChange={(event) => { if (answerOwnerId) setAnswers((current) => ({ ...current, [answerOwnerId]: event.target.value })) }}
+          /> : undefined}
           counter={`Question ${run.questionIndex + 1} / ${run.questionCount}${currentTurnTeam ? ` · ${teamName(currentTurnTeam.team)}` : ''}`}
-          seconds={hasTimer ? remaining : undefined} />}
+          seconds={hasTimer ? remaining : undefined} timerReady={run.turnDeadline === undefined} />}
 
 
         {matching && <>
@@ -397,7 +429,7 @@ export function TeamRunPanel({
         </>}
 
         {handoffDelay && <p className="muted" role="status">The question is ready. The next team can answer when the countdown ends.</p>}
-        {unlocked && !choosingAnswerTeam && !handoffDelay && <form ref={answersFormRef} className="run-panel__answers" onSubmit={submitAnswers}>
+        {unlocked && !choosingAnswerTeam && !handoffDelay && <form id={gameId === 'emoji-decode' ? 'decode-answer-form' : undefined} ref={answersFormRef} className="run-panel__answers" onSubmit={submitAnswers}>
           {canControl && !matching && !graded && currentTurnTeam && (
             <fieldset className="run-panel__teams">
               <legend>How will {teamName(currentTurnTeam.team)} play?</legend>
@@ -436,7 +468,7 @@ export function TeamRunPanel({
               </span>
             </div>
           )}
-          <div className="table-wrap">
+          {gameId !== 'emoji-decode' && <div className="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -458,7 +490,7 @@ export function TeamRunPanel({
                       <td>
                         {result && !result.skipped ? (
                           <span className={`badge${result.eliminated ? ' badge--muted' : ''}`}>
-                            {result.eliminated ? 'Out this question' : matching && !result.correct ? 'One attempt left' : 'Answered'}
+                            {result.eliminated ? 'Attempt used' : matching && !result.correct ? 'One attempt left' : 'Answered'}
                           </span>
                         ) : isAnswering ? (
                           <span className="badge">Answering</span>
@@ -515,7 +547,7 @@ export function TeamRunPanel({
                 })}
               </tbody>
             </table>
-          </div>
+          </div>}
 
           {canControl && <div className="run-panel__actions">
             {!graded ? (
@@ -557,44 +589,9 @@ export function TeamRunPanel({
     )
   }
 
-  return (
-    <div className="run-panel">
-      <h3 className="run-panel__title">Play this challenge with teams</h3>
-      <p className="muted">
-        {matching
-          ? 'Choose the participating teams. Turn Order controls the active team. A mismatch or a 20-second matching timeout moves to the next team. Match a pair, then answer yourself or give the question to another team. Each answering team has 15 seconds and two attempts.'
-          : 'Choose the participating teams. One team answers at a time. Turn Order controls the active team. A wrong answer gives the next team a chance. The 15-second timer is a reminder only.'}
-        {' '}Each team's score is saved straight to the challenge scoreboard.
-      </p>
-
-      <ChallengeTurnOrder />
-      <QuestionPicker questions={questions} selected={questionIds} onChange={setQuestionIds} />
-      <fieldset className="run-panel__teams">
-        <legend>Teams taking turns in this challenge</legend>
-        {teams.length === 0 && <p className="muted">Create a team first.</p>}
-        {teams.map((team) => (
-          <label key={team.id} className="checkbox">
-            <input
-              type="checkbox"
-              checked={chosen.includes(team.id)}
-              disabled={!chosen.includes(team.id) && chosen.length >= MAX_ENTRIES_PER_CHALLENGE}
-              onChange={() => chooseTeam(team.id)}
-            />
-            <span>{team.name}</span>
-          </label>
-        ))}
-        <p className="muted">
-          Up to {MAX_ENTRIES_PER_CHALLENGE} teams can be scored. The turn order above determines who plays first.
-        </p>
-      </fieldset>
-
-      {error && <p className="alert alert--error">{error}</p>}
-
-      <div className="run-panel__actions">
-        <button type="button" disabled={chosen.length === 0 || questionIds.length === 0} onClick={begin}>
-          Start team run{chosen.length > 0 ? ` (${chosen.length})` : ''}
-        </button>
-      </div>
-    </div>
-  )
+  return <section className="run-panel" aria-live="polite">
+    <ChallengeTurnOrder />
+    <p>{teams.length === 0 ? 'Create or activate a team to play.' : teams.length > MAX_ENTRIES_PER_CHALLENGE ? 'A challenge supports up to five active teams. Deactivate extra teams to play.' : 'Preparing the challenge for all active teams…'}</p>
+    {error && <p className="alert alert--error">{error}</p>}
+  </section>
 }

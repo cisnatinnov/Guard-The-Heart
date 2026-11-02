@@ -3,7 +3,7 @@ import { initializeAppDatabase } from '../src/db/database'
 import { ChallengeController } from '../src/controllers/ChallengeController'
 import { TeamController } from '../src/controllers/TeamController'
 import { ChallengePointController } from '../src/controllers/ChallengePointController'
-import { recordMatchingPair, finalizeChallengeScores, pendingChallengeTooth, recordChallengeAnswer, settleChallengeTooth } from '../src/services/challengeAnswers'
+import { assignChallengeOpponent, beginMatchingBonus, recordMatchingPair, finalizeChallengeScores, pendingChallengeTooth, recordChallengeAnswer, settleChallengeTooth } from '../src/services/challengeAnswers'
 import { rerankChallenge, recalculateTotalScoreboard } from '../src/services/scoreboardAggregator'
 
 beforeAll(async () => { await initializeAppDatabase() })
@@ -52,14 +52,15 @@ describe('host challenge verdicts', () => {
     await recordChallengeAnswer({ ...input, id: crypto.randomUUID(), correct: false })
     expect((await ChallengePointController.listByChallenge(challenge.id))[0].score).toBe(25)
   })
-  it('requires an opponent for a right answer and penalizes only that opponent once if bitten', async () => {
+  it('lets a right answer choose an opponent afterwards and eliminates the bitten team once', async () => {
     const challenge = await ChallengeController.create('Jaw right verdict')
     const team = await TeamController.create('Jaw right team')
     const opponent = await TeamController.create('Jaw opponent')
     const input = { id: crypto.randomUUID(), challenge: challenge.id, team: team.id, correct: true, jaw: true }
-    await expect(recordChallengeAnswer(input)).rejects.toThrow('opponent')
     await expect(recordChallengeAnswer({ ...input, opponent: team.id })).rejects.toThrow('opponent')
-    const answer = await recordChallengeAnswer({ ...input, opponent: opponent.id })
+    const answer = await recordChallengeAnswer(input)
+    expect((await pendingChallengeTooth(challenge.id))?.pressing_team).toBeNull()
+    await assignChallengeOpponent(answer.id, opponent.id)
     expect((await pendingChallengeTooth(challenge.id))?.pressing_team).toBe(opponent.id)
     await expect(recordChallengeAnswer({ ...input, id: crypto.randomUUID(), opponent: opponent.id })).rejects.toThrow('pending')
     expect((await settleChallengeTooth(answer.id, true)).applied).toBe(true)
@@ -67,9 +68,20 @@ describe('host challenge verdicts', () => {
     const scores = await ChallengePointController.listByChallenge(challenge.id)
     expect(scores.find((entry) => entry.team === team.id)?.score).toBe(10)
     expect(scores.find((entry) => entry.team === opponent.id)?.score).toBe(-5)
-    expect((await pendingChallengeTooth(challenge.id))?.press_count).toBe(1)
-    await settleChallengeTooth(answer.id, false, 1)
     expect(await pendingChallengeTooth(challenge.id)).toBeNull()
+    await expect(recordChallengeAnswer({ id: crypto.randomUUID(), challenge: challenge.id, team: opponent.id, correct: false, jaw: true })).rejects.toThrow('active')
+    expect((await TeamController.getById(opponent.id))?.status).toBe('inactive')
+    await expect(assignChallengeOpponent(answer.id, opponent.id)).rejects.toThrow('not waiting')
+    expect(await pendingChallengeTooth(challenge.id)).toBeNull()
+    // Saved games from before bite elimination may retain an unsettled bite.
+    await answer.reload()
+    await answer.update({ settled: false })
+    expect(await pendingChallengeTooth(challenge.id)).toBeNull()
+    const next = await recordChallengeAnswer({ ...input, id: crypto.randomUUID() })
+    await expect(assignChallengeOpponent(next.id, opponent.id)).rejects.toThrow('eligible')
+    await TeamController.setStatus(opponent.id, 'active')
+    await assignChallengeOpponent(next.id, opponent.id)
+    expect((await pendingChallengeTooth(challenge.id))?.pressing_team).toBe(opponent.id)
   })
   it('makes a wrong-answer team press and leaves its score at -10 when safe or -15 when bitten', async () => {
     const challenge = await ChallengeController.create('Jaw wrong verdict')
@@ -103,4 +115,21 @@ it('awards +5 for each unique pair after the preview without a response deadline
   const wrong = await recordChallengeAnswer({ id: crypto.randomUUID(), challenge: challenge.id, team: team.id, correct: false, matching: true })
   await expect(recordMatchingPair(wrong.id, 1)).rejects.toThrow('right answer')
   await expect(recordMatchingPair(answer.id, 4)).rejects.toThrow('right answer')
+})
+
+it('defers the matching preview until Show cards and does not extend it on repeated reveals', async () => {
+  const challenge = await ChallengeController.create('Host reveal matching')
+  const team = await TeamController.create('Host reveal team')
+  vi.useFakeTimers({ toFake: ['Date'] })
+  const answer = await recordChallengeAnswer({ id: crypto.randomUUID(), challenge: challenge.id, team: team.id, correct: true, matching: true, deferMatching: true })
+  vi.advanceTimersByTime(30000)
+  await expect(recordMatchingPair(answer.id, 1)).rejects.toThrow('right answer')
+  const deadline = await beginMatchingBonus(answer.id)
+  expect(deadline).toBe(Date.now() + 5000)
+  expect(await beginMatchingBonus(answer.id)).toBe(deadline)
+  vi.advanceTimersByTime(4999)
+  await expect(recordMatchingPair(answer.id, 1)).rejects.toThrow('not active')
+  vi.advanceTimersByTime(1)
+  await recordMatchingPair(answer.id, 1)
+  expect((await ChallengePointController.listByChallenge(challenge.id))[0].score).toBe(15)
 })

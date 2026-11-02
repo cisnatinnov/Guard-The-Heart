@@ -20,6 +20,7 @@ export interface TeamRun {
 
 export interface ChallengeRun {
   questionIds?: string[]
+  timerManual?: boolean
   runId?: string
   manualScoreOnly?: boolean
   manualTeamSelection?: boolean
@@ -369,7 +370,7 @@ export function advanceMatchingTurn(run: ChallengeRun, timedOut = false): Challe
 
 /** Pick a participating matching team and start its fresh board and preview. */
 export function selectMatchingTeam(run: ChallengeRun, teamId: string): ChallengeRun {
-  if (!run.matchingOnly || !run.matchingBoard) throw new Error('Choose a team during a Flipping Connect run')
+  if (!run.matchingOnly || !run.matchingBoard) throw new Error('Choose a team during a Matching Cards run')
   const index = run.runs.findIndex((entry) => entry.team === teamId)
   if (index < 0) throw new Error('Choose a team participating in this run')
   if (index === run.nextTeamIndex || Date.now() < (run.matchingPreviewDeadline ?? 0) || Date.now() < (run.matchingCloseDeadline ?? 0)) return run

@@ -57,8 +57,8 @@ export function ChallengeView() {
                         <button type="button" onClick={async () => {
                           setPlayError(null)
                           try {
-                            if (isAdmin && (gameId === 'word-assembly' || gameId === 'jaws-of-risk')) {
-                              await publishPublicDisplay(gameId === 'word-assembly' ? 'flipping-connect' : 'jaws-of-risk', challenge.id)
+                            if (isAdmin) {
+                              await publishPublicDisplay(gameId === 'emoji-decode' ? 'image-decode' : gameId === 'word-assembly' ? 'flipping-connect' : 'jaws-of-risk', challenge.id)
                             }
                             navigate(`${playBase}/${gameId}/${challenge.id}`)
                           } catch (cause) { setPlayError(englishText(cause instanceof Error ? cause.message : String(cause))) }

@@ -241,8 +241,8 @@ describe('built-in challenges', () => {
     const row = await Challenge.findByPk(game.challengeId)
     await row!.update({ name: 'Challenge 2 - Flipping Card' })
     await seedLockedChallenges()
-    expect((await Challenge.findByPk(game.challengeId))?.name).toBe('Challenge 2 - Flipping Connect')
-    expect(await Challenge.count({ where: { name: 'Challenge 2 - Flipping Connect' } })).toBe(1)
+    expect((await Challenge.findByPk(game.challengeId))?.name).toBe('Challenge 2 - Matching Cards')
+    expect(await Challenge.count({ where: { name: 'Challenge 2 - Matching Cards' } })).toBe(1)
   })
 
   it('cannot be added a second time', async () => {
@@ -277,7 +277,7 @@ describe('built-in challenges', () => {
 
   it('does not let a custom challenge borrow a built-in name', async () => {
     const custom = await ChallengeController.create('Arena Borrow')
-    await expect(ChallengeController.rename(custom.id, 'Challenge 2 - Flipping Connect')).rejects.toThrow(/built-in/)
+    await expect(ChallengeController.rename(custom.id, 'Challenge 2 - Matching Cards')).rejects.toThrow(/built-in/)
     expect((await ChallengeController.getById(custom.id))?.name).toBe('Arena Borrow')
     await ChallengeController.remove(custom.id)
   })

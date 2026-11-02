@@ -27,11 +27,11 @@ async function fixture(stage=1,rank=1) {
   const phase:TacticalPhase = {revealed:false,choices:{[team.id]:{cards:[card.id],skipped:false,fortune:{[card.id]:{options,rulesVersion:2}}}}}
   return {team,challenge,card,options,teams,phase}
 }
-it('uses the requested finite pool counts and supplied card art', () => {
+it('uses the finite pool counts and branded card art', () => {
   expect(CARD_POOL).toHaveLength(60)
   expect(CARD_POOL.filter((card)=>/Fortune/.test(card.name))).toHaveLength(4)
-  expect(cardImageFor('Rare Fortune Draw Card #01')).toBe('/cards/Rare_Fortune_Draw Card.png')
-  expect(cardImageFor('Legendary Gardian Unity')).toBe('/cards/Legend_Gardian Unity.png')
+  expect(cardImageFor('Rare Fortune Draw Card #01')).toBe('/cards/branded/dark/Rare_Fortune_Draw_Card.svg')
+  expect(cardImageFor('Legendary Gardian Unity')).toBe('/cards/branded/dark/Legendary_Gardian_Unity.svg')
 })
 it.each([1,2,3])('offers the exact eligible rarity mix in Challenge %i', async (stage) => {
   const {options} = await fixture(stage)

@@ -6,7 +6,7 @@ import { readTacticalPhase, usedTacticalCardIds } from './tacticalPhase'
 import { MAX_TOTAL_CARD } from './rankRules'
 import { dbEvents, DB_EVENTS } from '../hooks/useDbEvents'
 
-export const FALSE_HOPE_IMAGE = '/cards/Zonk_False_Hope Card.png'
+export const FALSE_HOPE_IMAGE = '/cards/branded/dark/false-hope.svg'
 export interface BlindOption { id:string; name:string; type:CardType; effect:CardEffect; effect_action:string; icon:string; zonk?:boolean }
 export const blindRewardId = (challenge:string, team:string) => `rank5:${challenge}:${team}`
 

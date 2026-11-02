@@ -2,6 +2,12 @@
 .app--public:has(.tactical-stage) .app__main { display:grid; min-height:100dvh; place-items:center; }
 .tactical-stage { position:relative; width:min(100%,177.777778dvh); aspect-ratio:16/9; container-type:inline-size; font-family:Arial,sans-serif; color:#0b0f17; }
 .tactical-stage__art { width:100%; height:100%; display:block; }
+.tactical-stage.tactical-stage--native { background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:16px; font-family:inherit; }
+.tactical-stage.tactical-stage--native::after { left:4%; top:5%; width:9%; height:12%; background-color:transparent; }
+.tactical-stage__title { position:absolute; left:18%; top:5%; width:48%; height:12%; display:grid; place-items:center; margin:0; font:700 3.2cqw/1.2 system-ui,sans-serif; letter-spacing:-.03em; color:var(--text); }
+.tactical-stage--native .tactical-stage__challenge { right:4%; max-width:27%; font-size:1.1cqw; }
+.tactical-stage--native .tactical-stage__panel { border:1px solid var(--border); border-radius:1.2cqw; }
+.tactical-stage.tactical-stage--native .tactical-stage__slot { background:var(--surface); border:1px solid var(--border); }
 .tactical-stage__challenge { position:absolute; z-index:2; top:3.2%; right:3.5%; max-width:39%; padding:.65cqw 1.25cqw; border:.12cqw solid #839fe0; border-radius:2cqw; background:linear-gradient(135deg,#eff2f9,#bcc8e4); box-shadow:0 .2cqw .6cqw #331b1533; color:#223257; font:700 1.35cqw/1.25 Arial,sans-serif; text-align:center; overflow-wrap:anywhere; }
 .tactical-stage__panel { position:absolute; left:4.4%; top:21%; width:92.2%; height:69.4%; background:#eef1f8; }
 .tactical-stage__team { --fill:#dce2f1; --pill:#bac6e3; --border:#a1b3dd; position:absolute; left:1.5%; width:97%; top:calc(.8% + var(--slot)*19.75%); height:18.7%; border:.12cqw solid var(--border); border-radius:.7cqw; }

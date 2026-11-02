@@ -11,13 +11,13 @@ import { RewardClaimPublicView } from './RewardClaimPublicView'
 import { GameView } from './challenges/GameView'
 import { PublicLayout } from './PublicLayout'
 import { AdminLayout } from './AdminLayout'
-import { EventTimerView } from './EventTimerView'
 import { TacticalPhaseView } from './TacticalPhaseView'
 import { TurnOrderView, GigaRiskView } from './ReferenceFeatures'
 import { PodiumView } from './PodiumView'
 import { GPTransactionsView } from './GPTransactionsView'
 import { HeartAwarenessView } from './HeartAwarenessView'
 import { MainPresentationView } from './MainPresentationView'
+import { PortfolioView } from './PortfolioView'
 
 function DatabaseProvider({ children }: { children: React.ReactNode }) {
   const { status, error } = useDatabase()
@@ -48,12 +48,21 @@ function DatabaseProvider({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <BrowserRouter>
-      <DatabaseProvider>
+      <Routes>
+        <Route path="/portfolio" element={<PortfolioView />} />
+        <Route path="*" element={<DatabaseProvider><EventRoutes /></DatabaseProvider>} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+function EventRoutes() {
+  return (
         <Routes>
           {/* Public routes */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<MainPresentationView />} />
-            <Route path="/timer" element={<EventTimerView />} />
+            <Route path="/timer" element={<Navigate to="/scoreboard" replace />} />
             <Route path="/presentation" element={<Navigate to="/" replace />} />
             <Route path="/scoreboard/:challengeId?" element={<ChallengePointPublicView />} />
             <Route path="/leaderboard" element={<ScoreboardTotalPublicView />} />
@@ -65,12 +74,14 @@ export function App() {
             <Route path="/tactical/:challengeId?" element={<TacticalPhaseView />} />
             <Route path="/card-reveal/:challengeId?" element={<TacticalPhaseView reveal />} />
             <Route path="/play/:gameId/:challengeId?" element={<GameView />} />
+            <Route path="/play/word-assembly/:challengeId/cards" element={<GameView board="cards" />} />
+            <Route path="/play/jaws-of-risk/:challengeId/dragon" element={<GameView board="dragon" />} />
           </Route>
 
           {/* Admin routes */}
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<TeamView />} />
-            <Route path="/admin/timer" element={<EventTimerView admin />} />
+            <Route path="/admin/timer" element={<Navigate to="/admin/challenges" replace />} />
             <Route path="/admin/presentation" element={<MainPresentationView admin />} />
             <Route path="/admin/challenges" element={<ChallengeView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
@@ -88,7 +99,5 @@ export function App() {
           {/* Redirect unknown routes to public scoreboard */}
           <Route path="*" element={<Navigate to="/scoreboard" replace />} />
         </Routes>
-      </DatabaseProvider>
-    </BrowserRouter>
   )
 }

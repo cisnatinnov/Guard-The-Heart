@@ -1,0 +1,54 @@
+/* Final shared surface contract for host tools and audience displays.
+   Artwork keeps its illustration colors; interface chrome uses appearance tokens. */
+.app.app--public { background:var(--bg); color:var(--text); }
+.app :is(.admin-toolbar,.event-timer-controls,.game-stage__solo,.matching-choice) { background:var(--surface); border-color:var(--border); color:var(--text); }
+.app :is(.game-stage__solo > summary,.game-stage__intro h2) { color:var(--text); }
+.app :is(.game-stage__solo-content,.tactical-admin__card-group,.fortune-choices,.tactical-targets) { border-color:var(--border); }
+.app :is(.reward-card,.reveal-card) { background:var(--surface-2); color:var(--text); border-color:var(--border); box-shadow:none; }
+.app :is(.reward-card__name,.reveal-card__name,.reveal-card__action) { color:var(--text); }
+.app :is(.reward-card__type,.reveal-card__type) { color:var(--accent); }
+.app .deck-link { background:var(--surface-2); color:var(--accent); border-color:var(--border); }
+.app .deck-link:hover { background:var(--accent-soft); }
+.app .tactical-targets button[aria-pressed=true] { background:var(--accent-soft); color:var(--text); border-color:var(--accent); }
+.app :is(.rule-list,.card__note,.field > span) { color:var(--muted); }
+.app :is(button,input,select,textarea) { font-family:inherit; }
+
+/* Tactical selection and reveal share one explicit Fight the Dragon shell.
+   No slide image or pseudo-element supplies branding, headings, or surface colors. */
+.tactical-stage.tactical-stage--native {
+  background:radial-gradient(ellipse at 90% 0,var(--accent-soft),transparent 55%),var(--bg);
+  border:1px solid var(--border); border-radius:16px; color:var(--text);
+}
+.tactical-stage.tactical-stage--native::after { content:none; display:none; }
+.tactical-stage__header { position:absolute; inset:4% 4% auto; height:13%; display:flex; align-items:center; gap:1.4cqw; }
+.tactical-stage__header > img { flex:none; width:9cqw; height:100%; object-fit:contain; }
+.tactical-stage__header > div:nth-child(2) { min-width:0; }
+.tactical-stage__header p { margin:0 0 .45cqw; color:var(--accent); text-transform:uppercase; font:650 .8cqw/1.4 system-ui,sans-serif; letter-spacing:.12em; }
+.tactical-stage__header .tactical-stage__title { position:static; display:block; width:auto; height:auto; margin:0; color:var(--text); font:700 3cqw/1.1 system-ui,sans-serif; letter-spacing:-.035em; }
+.tactical-stage__header .tactical-stage__challenge { position:static; flex:0 1 auto; max-width:31%; margin-left:auto; padding:.7cqw 1cqw; border:1px solid var(--border); border-radius:.8cqw; background:var(--surface); color:var(--muted); font:600 1.05cqw/1.4 system-ui,sans-serif; box-shadow:none; }
+.tactical-stage.tactical-stage--native .tactical-stage__panel { background:var(--surface); border:1px solid var(--border); border-radius:1.2cqw; }
+.tactical-stage.tactical-stage--native .tactical-stage__team { background:var(--surface-2); border-color:var(--border); color:var(--text); }
+.tactical-stage.tactical-stage--native .tactical-stage__team h2 { color:#19263e; border-radius:.45cqw; }
+.tactical-stage.tactical-stage--native .tactical-stage__slot { background:var(--surface); border:1px solid var(--border); border-radius:.4cqw; }
+.tactical-stage.tactical-stage--native .tactical-stage__slot:empty { border-style:dashed; background:transparent; }
+.tactical-stage.tactical-stage--native :is(.tactical-stage__gp,.tactical-stage__log,.tactical-stage__footer) { border-color:var(--border); background:var(--surface); color:var(--text); box-shadow:none; }
+.tactical-stage.tactical-stage--native .tactical-stage__caption { color:var(--muted); }
+.tactical-stage.tactical-stage--native .tactical-stage__status { color:var(--muted); background:var(--surface); border:1px solid var(--border); }
+.tactical-stage.tactical-stage--native .tactical-stage__status:not(.is-ready,.is-skipped) { color:var(--muted); background:var(--surface); border:1px solid var(--border); }
+.tactical-stage.tactical-stage--native .tactical-stage__status.is-ready { background:var(--accent-soft); color:var(--ok); border-color:var(--ok); }
+.tactical-stage.tactical-stage--native .tactical-stage__status.is-skipped { background:var(--surface); color:var(--muted); border-color:var(--border); }
+.tactical-stage.tactical-stage--native .tactical-stage__effects span { background:var(--accent-soft); color:var(--text); }
+.tactical-stage.tactical-stage--native .tactical-stage__effects span.is-positive { background:var(--surface); color:var(--ok); }
+.tactical-stage .tactical-stage__gp-change { background:var(--surface); border:1px solid var(--ok); color:var(--ok); }
+.tactical-stage .tactical-stage__gp--down .tactical-stage__gp-change { background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
+.tactical-stage .fortune-reveal-open { background:var(--accent-soft); color:var(--text); border-color:var(--accent); }
+.tactical-stage .tactical-stage__played-card:focus-visible { outline-color:var(--focus-ring); }
+
+/* Keep long-form host tools, popovers, and logs aligned with their surrounding UI. */
+.app .fortune-reveal { background:var(--surface); color:var(--text); border-color:var(--border); box-shadow:0 16px 48px #0004; }
+.app .fortune-reveal__option { background:var(--surface-2); color:var(--text); border-color:var(--border); }
+.app .fortune-reveal__option.is-selected { background:var(--accent-soft); border-color:var(--accent); box-shadow:none; }
+.app .fortune-reveal__effect h3 { color:var(--ok); }
+.app .fortune-reveal header button { background:var(--surface-2); border-color:var(--border); color:var(--text); }
+.app .fortune-reveal__timing { color:var(--muted); }
+.app .tactical-stage__error { background:var(--danger-soft); color:var(--danger); }

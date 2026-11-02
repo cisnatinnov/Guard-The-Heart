@@ -1,6 +1,7 @@
-import { openPublicDisplay } from '../../services/publicWindow'
 import { refreshDatabaseFromStorage } from '../../db/sequelize-provider'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useChallengeAnswers } from '../../hooks/useChallengeAnswers'
+import { ChallengeAnswerControls } from './ChallengeAnswerControls'
 import { ChallengeRunController } from '../../controllers/ChallengeRunController'
 import { displayPath, publishPublicDisplay } from '../../services/publicDisplay'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -21,12 +22,25 @@ import { MatchingOnlyView } from './MatchingOnlyView'
  *
  * A team run scores each team's submitted answers onto the challenge scoreboard.
  */
-export function GameView() {
+function PublicQuiz({ challengeId, jaw }: { challengeId: string; jaw: boolean }) {
+  const state = useChallengeAnswers(challengeId)
+  return <ChallengeAnswerControls challengeId={challengeId} jaw={jaw} canControl={false} state={state} />
+}
+
+function PublicChallengeButton({ gameId, challengeId }: { gameId: ChallengeGameId; challengeId: string }) {
+  const [error, setError] = useState<string | null>(null)
+  return <div className="board-reveal-control"><button type="button" onClick={() => {
+    void publishPublicDisplay(gameId === 'emoji-decode' ? 'image-decode' : gameId === 'word-assembly' ? 'flipping-connect' : 'jaws-of-risk', challengeId)
+      .then(() => setError(null)).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)))
+  }}>Show public question</button>{error && <p role="alert" className="alert alert--error">{error}</p>}</div>
+}
+
+export function GameView({ board }: { board?: 'cards' | 'dragon' }) {
   const params = useParams<{ gameId?: string; challengeId?: string }>()
   const navigate = useNavigate()
   const { challenges } = useChallenges()
   
-  const gameId = params.gameId as ChallengeGameId | undefined
+  const gameId = (board === 'cards' ? 'word-assembly' : board === 'dragon' ? 'jaws-of-risk' : params.gameId) as ChallengeGameId | undefined
   const game = CHALLENGE_GAMES.find((entry) => entry.id === gameId)
   const matchingChallenge = challenges.find((challenge) => challenge.name === game?.title)
   const challengeId = params.challengeId ?? matchingChallenge?.id ?? game?.challengeId ?? ''
@@ -45,7 +59,11 @@ export function GameView() {
   }, [isAdmin, run, challengeId, navigate, game?.id])
   if (!game || !gameId) return null
 
-  if (game.id === 'jaws-of-risk') return <JawsOfRiskView key={challengeId} challengeId={challengeId} />
+  if (!isAdmin && !board && (game.id === 'jaws-of-risk' || game.id === 'word-assembly')) {
+    return <PublicQuiz challengeId={challengeId} jaw={game.id === 'jaws-of-risk'} />
+  }
+
+  if (game.id === 'jaws-of-risk') return <>{isAdmin && <PublicChallengeButton gameId={game.id} challengeId={challengeId} />}<JawsOfRiskView key={challengeId} challengeId={challengeId} /></>
 
   if (!isAdmin) return game.id === 'word-assembly'
     ? <MatchingOnlyView challengeId={challengeId} sharedRun={run} canControl={false} />
@@ -64,24 +82,15 @@ export function GameView() {
   }
 
   const startSharedRun = (nextRun: ChallengeRun) => {
-    if (!isAdmin) return
-    if (game.id === 'word-assembly') {
-      return publishPublicDisplay('flipping-connect', challengeId).then(() => {
-        publishSharedChallengeRun(game.id, challengeId, nextRun)
-      })
-    }
-    publishSharedChallengeRun(game.id, challengeId, nextRun)
-    const publicPath = `/play/${game.id}/${challengeId}`
-    // Omit popup sizing features so the browser opens a regular tab.
-    openPublicDisplay(publicPath, true)
+    if (isAdmin) publishSharedChallengeRun(game.id, challengeId, nextRun)
   }
 
   const endSharedRun = () => {
     if (isAdmin) publishSharedChallengeRun(game.id, challengeId, null)
   }
 
-  if (game.id === 'word-assembly') return <MatchingOnlyView challengeId={challengeId} sharedRun={run}
-    canControl onStart={startSharedRun} onUpdate={publishRun} onEnd={endSharedRun} />
+  if (game.id === 'word-assembly') return <><PublicChallengeButton gameId={game.id} challengeId={challengeId} /><MatchingOnlyView challengeId={challengeId} sharedRun={run}
+    canControl onStart={startSharedRun} onUpdate={publishRun} onEnd={endSharedRun} /></>
 
   return (
     <section className={`view view--game view--game-${game.id} ${isAdmin ? 'game-stage--admin' : 'game-stage--public'}`}>
@@ -99,6 +108,7 @@ export function GameView() {
           </header>
 
           <div className="game__toolbar">
+            <PublicChallengeButton gameId={game.id} challengeId={challengeId} />
             <button type="button" className="ghost" onClick={() => navigate(backPath)}>
               ← All challenges
             </button>

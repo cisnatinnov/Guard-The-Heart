@@ -93,7 +93,7 @@ test('Jaw correct answers choose opponents afterwards and bites eliminate them a
   await page.getByRole('button', { name: 'Timer', exact: true }).click()
   await page.clock.runFor(16000)
   await expect(page.getByRole('timer', { name: 'Turn reminder', exact: true })).toHaveText('0s')
-  await page.getByRole('button', { name: /Hentikan penggunaan/ }).click()
+  await page.getByRole('button', { name: /Tolak \(Deny\)/ }).click()
   await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
   await expect(page.getByRole('group', { name: 'Choose opponent', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Tooth 1', exact: true })).toBeDisabled()
@@ -112,7 +112,7 @@ test('Jaw correct answers choose opponents afterwards and bites eliminate them a
 
 test('wrong Jaw answer requires its own team to press teeth', async ({ page }) => {
   await page.goto(jaw)
-  await page.getByRole('button', { name: /Lanjutkan selama nama nasabah dihapus/ }).click()
+  await page.getByRole('button', { name: /Tekan Approve agar notifikasi/ }).click()
   await page.getByRole('button', { name: 'Grade this question', exact: true }).click()
   await expect(page.locator('.challenge-answer-controls [role=status]')).toContainText('Kuning')
   await expect(page.getByRole('group', { name: 'Choose opponent', exact: true })).toHaveCount(0)

@@ -108,6 +108,7 @@ export class GameQuestion extends Model {
   declare prompt: string
   declare answer: string
   declare options: string
+  declare explanation: string
   declare kind: 'decode' | 'choice'
   declare hint: string
   declare readonly createdAt: Date
@@ -397,6 +398,7 @@ export function defineModels(sequelize: Sequelize): void {
       options: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
       kind: { type: DataTypes.STRING(16), allowNull: false },
       hint: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
+      explanation: { type: DataTypes.TEXT, allowNull: false, defaultValue: '' },
     },
     {
       sequelize,

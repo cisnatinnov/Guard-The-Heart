@@ -307,3 +307,12 @@ rarity gems, and a clear rules panel. Rarity borders and reduced-motion-aware
 hover/focus states reinforce the collection in live play. The 45 superseded
 PNG faces, matching reference crops, and matching slide have been removed;
 active question-bank data and educational clue images remain in use.
+
+### Editable question banks
+
+Question Bank at `/admin/questions` provides persistent question CRUD. Image
+Decode owns a separate 69-question bank; Matching Cards and Jaw of Risk share the
+140 existing multiple-choice questions. A one-time SQLite migration combines the
+legacy banks while preserving question IDs and source content. Question rows
+store their explanations, and startup no longer overwrites edits or resurrects
+deletions. Same-origin database events refresh the question cache in open views.

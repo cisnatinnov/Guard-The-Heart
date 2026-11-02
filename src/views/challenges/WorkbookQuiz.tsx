@@ -1,3 +1,4 @@
+import { useQuestionBank } from '../../hooks/useQuestionBank'
 import { useEffect, useState } from 'react'
 import { QuestionPicker } from './QuestionPicker'
 import { ChallengeTurnOrder } from './ChallengeTurnOrder'
@@ -5,6 +6,7 @@ import { TurnReminder } from './TurnReminder'
 import { getGameQuestions } from '../../services/gameQuestionCache'
 
 export function useWorkbookQuiz(challengeId: string, gameKey: 'match-card' | 'jaws-of-risk') {
+  useQuestionBank()
   const key = `guard-the-heart-quiz:${challengeId}`
   const read = () => {
     try { return JSON.parse(localStorage.getItem(key) ?? '{}') as { index?: number; revealed?: boolean; selected?: string[]; hovered?: string; graded?: boolean; answerSelection?: {questionId: string; teamId: string; option: string} } }
@@ -20,7 +22,7 @@ export function useWorkbookQuiz(challengeId: string, gameKey: 'match-card' | 'ja
     return () => { window.removeEventListener('storage', storage); window.removeEventListener(key, update) }
   }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
   const all = getGameQuestions(gameKey)
-  const selected = state.selected ?? all.slice(0, 10).map((q) => q.id)
+  const selected = (state.selected ?? all.slice(0, 10).map((q) => q.id)).filter(id => all.some(q => q.id === id))
   const bank = all.filter((q) => selected.includes(q.id)).slice(0, 10)
   const index = Math.max(0, Math.min(bank.length - 1, state.index ?? 0))
   const question = bank[index]

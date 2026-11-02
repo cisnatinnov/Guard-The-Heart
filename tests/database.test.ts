@@ -86,11 +86,11 @@ describe('database bootstrap', () => {
 
   it('persists the workbook question and answer banks in SQLite', async () => {
     expect(await GameQuestion.count({ where: { game_key: 'image-decode' } })).toBe(69)
-    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(71)
-    expect(challengeQuestionsFor('word-assembly').questions).toHaveLength(71)
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(140)
+    expect(challengeQuestionsFor('word-assembly').questions).toHaveLength(140)
     expect(challengeQuestionsFor('emoji-decode').questions).toHaveLength(69)
-    expect(challengeQuestionsFor('jaws-of-risk').questions).toHaveLength(69)
-    expect(await GameQuestion.count({ where: { game_key: 'jaws-of-risk' } })).toBe(69)
+    expect(challengeQuestionsFor('jaws-of-risk').questions).toHaveLength(140)
+    expect(await GameQuestion.count({ where: { game_key: 'jaws-of-risk' } })).toBe(0)
     const first = await GameQuestion.findOne({ where: { game_key: 'image-decode', number: 1 } })
     expect(first?.prompt).toContain('ISIH')
     expect(first?.answer).toBe('Selisih Kas')
@@ -98,12 +98,14 @@ describe('database bootstrap', () => {
     expect(matchQuestion?.answer).toBe('Tolak (Deny) dan laporkan sebagai aktivitas mencurigakan')
   })
 
-  it('removes old questions outside the requested reference range on reseeding', async () => {
+  it('preserves custom questions on subsequent startups', async () => {
     await GameQuestion.create({ id: 'match-card-999', game_key: 'match-card', number: 999,
       prompt: 'Old question', answer: 'Old answer', options: '[]', kind: 'choice', hint: '' })
     await seedGameQuestions()
-    expect(await GameQuestion.findByPk('match-card-999')).toBeNull()
-    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(71)
+    expect(await GameQuestion.findByPk('match-card-999')).not.toBeNull()
+    await GameQuestion.destroy({ where: { id: 'match-card-999' } })
+    await seedGameQuestions()
+    expect(await GameQuestion.count({ where: { game_key: 'match-card' } })).toBe(140)
   })
 
   it('exposes the blueprint columns on challenge_point', async () => {

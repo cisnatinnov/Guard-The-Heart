@@ -1,3 +1,4 @@
+import { useQuestionBank } from '../../hooks/useQuestionBank'
 import { englishText } from '../../services/english'
 import { QuestionPresentation } from './QuestionPresentation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -11,7 +12,9 @@ import {
 } from '../../services/games'
 
 export function EmojiDecodeView({ onComplete }: { onComplete?: () => void } = {}) {
-  const questions = useMemo(() => getEmojiDecodeQuestions(), [])
+  const revision = useQuestionBank()
+  // The database cache revision invalidates this otherwise stable question list.
+  const questions = useMemo(() => getEmojiDecodeQuestions(), [revision]) // eslint-disable-line react-hooks/exhaustive-deps
   const [attempts, setAttempts] = useState<Record<string, string>>({})
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [timedOutQuestions, setTimedOutQuestions] = useState<Record<string, boolean>>({})

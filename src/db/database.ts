@@ -74,6 +74,8 @@ export function initializeAppDatabase(): Promise<void> {
       await initializeGPTransactions()
       for (const challenge of await Challenge.findAll()) await rerankChallenge(challenge.id)
       await recalculateTotalScoreboard()
+      const questionColumns = await sequelize.getQueryInterface().describeTable('game_question')
+      if (!('explanation' in questionColumns)) await sequelize.getQueryInterface().addColumn('game_question', 'explanation', { type: DataTypes.TEXT, allowNull: false, defaultValue: '' })
       await seedGameQuestions()
       await seedCardPool()
       await repairDuplicateTeamCards()

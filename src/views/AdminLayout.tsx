@@ -10,6 +10,7 @@ import { GAME_CHARACTERS } from '../data/characters'
 const ADMIN_NAV = [
   { path: '/admin', label: 'Teams' },
   { path: '/admin/challenges', label: 'Challenges' },
+  { path: '/admin/questions', label: 'Question Bank' },
   { path: '/admin/turn-order', label: 'Turn Order' },
   { path: '/admin/scoreboard', label: 'Scoreboard' },
   { path: '/admin/leaderboard', label: 'Leaderboard' },
@@ -22,7 +23,7 @@ const ADMIN_NAV = [
 ] as const
 
 const ADMIN_GROUPS = [
-  { label: 'Event setup', paths: ['/admin', '/admin/challenges', '/admin/turn-order'] },
+  { label: 'Event setup', paths: ['/admin', '/admin/challenges', '/admin/questions', '/admin/turn-order'] },
   { label: 'Results', paths: [ '/admin/scoreboard', '/admin/leaderboard', '/admin/heart-of-awareness', '/admin/podium'] },
   { label: 'Game management', paths: ['/admin/tactical', '/admin/gigarisk', '/admin/rewards', '/admin/gp-transactions'] },
 ]

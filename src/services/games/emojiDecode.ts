@@ -12,19 +12,8 @@ export interface EmojiDecodeQuestion {
 
 export function getEmojiDecodeQuestions(): EmojiDecodeQuestion[] {
   const fromDatabase = getGameQuestions('image-decode')
-  if (fromDatabase.length > 0) {
-    return fromDatabase.map((question) => ({
-      id: question.id,
-      emojis: [question.prompt],
-      answer: question.answer,
-      hint: question.hint,
-    }))
-  }
-  return reference.imageDecode.map((question) => ({
-    id: `image-decode-${String(question.number).padStart(3, '0')}`,
-    emojis: [question.prompt],
-    answer: question.answer,
-    hint: question.hint,
+  return fromDatabase.map((question) => ({
+    id: question.id, emojis: [question.prompt], answer: question.answer, hint: question.hint,
   }))
 }
 

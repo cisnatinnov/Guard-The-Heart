@@ -340,3 +340,16 @@ Type directly into the ANSWER area on the admin Image Decode screen. The
 per-team answer table is removed for this challenge. Turn Order and passing
 choose whose answer is entered; Grade this question (or Enter) submits it.
 The public ANSWER area remains read-only and mirrors the current typed text.
+
+## Editable question banks
+
+Open `/admin/questions` (Question Bank) to create, search, view, edit, or delete
+questions. Challenge 1 keeps its own Image Decode bank, initially populated with
+all 69 existing clues. Challenges 2 and 3 share one multiple-choice bank with all
+140 existing questions from both previous banks. Each shared question has four
+options and one correct answer. Hints/topics and explanations can also be edited.
+
+Question changes persist in local SQLite and synchronize with other open windows
+in the same browser profile and origin. Existing question IDs and saved selections
+are retained during migration. Bundled data is imported once; subsequent startups
+preserve custom questions, edits, and deletions. Keep at least one question per bank.

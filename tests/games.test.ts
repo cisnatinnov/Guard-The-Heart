@@ -416,9 +416,9 @@ describe('Flipping Connect', () => {
     expect(revealWordAssemblyCard(opened, third.id)).toBe(opened)
   })
 
-  it('uses all 71 workbook quiz questions', () => {
+  it('uses all 140 shared workbook quiz questions', () => {
     const set = challengeQuestionsFor('word-assembly')
-    expect(set.questions).toHaveLength(71)
+    expect(set.questions).toHaveLength(140)
     expect(set.questions[0].options).toEqual(reference.matchCard[0].options)
     expect(set.questions[0].grade(reference.matchCard[0].answer)).toBe(10)
     expect(set.questions[70].prompt).toBe(reference.matchCard[70].prompt)
@@ -484,7 +484,7 @@ describe('Jaw of Risk', () => {
 })
 
 describe('reference slide ranges and answer keys', () => {
-  for (const [game, bank] of [['word-assembly', reference.matchCard], ['jaws-of-risk', reference.jawsOfRisk]] as const) {
+  for (const [game, bank] of [['word-assembly', [...reference.matchCard, ...reference.jawsOfRisk]], ['jaws-of-risk', [...reference.matchCard, ...reference.jawsOfRisk]]] as const) {
     it(`grades every ${game} question using the workbook answer key`, () => {
       const questions = challengeQuestionsFor(game).questions
       expect(questions).toHaveLength(bank.length)

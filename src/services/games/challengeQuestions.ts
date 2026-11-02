@@ -5,14 +5,11 @@ import {
   checkEmojiAnswer,
 } from './emojiDecode'
 import {
-  JAWS_FALSE_FLAG_PENALTY,
   JAWS_HIT_POINTS,
-  JAWS_TOOTH_COUNT,
   type JawsBoard,
 } from './jawsOfRisk'
 import {
   WORD_ASSEMBLY_MATCH_POINTS,
-  WORD_ASSEMBLY_QUESTIONS,
 } from './wordAssembly'
 import { getGameQuestions } from '../gameQuestionCache'
 import type { ChallengeGameId } from './index'
@@ -55,26 +52,6 @@ function normalize(value: string): string {
     .replace(/[^a-z0-9]/g, '')
 }
 
-function exactQuestion(
-  id: string,
-  number: number,
-  prompt: string,
-  hint: string,
-  answer: string,
-  points: number,
-  eliminates = true
-): ChallengeQuestion {
-  const target = normalize(answer)
-  return {
-    id,
-    number,
-    prompt,
-    hint,
-    eliminates,
-    grade: (value) => (normalize(value) === target && target.length > 0 ? points : 0),
-  }
-}
-
 function emojiDecodeQuestions(): ChallengeQuestion[] {
   const questions = getEmojiDecodeQuestions()
   return questions.map((question, index) => ({
@@ -90,7 +67,7 @@ function emojiDecodeQuestions(): ChallengeQuestion[] {
 /** Team runs identify the picture represented by each matching-card pair. */
 function wordAssemblyQuestions(): ChallengeQuestion[] {
   const bank = getGameQuestions('match-card')
-  if (bank.length > 0) return bank.map((question, index) => ({
+  return bank.map((question, index) => ({
     id: question.id,
     number: index + 1,
     prompt: question.prompt,
@@ -99,16 +76,7 @@ function wordAssemblyQuestions(): ChallengeQuestion[] {
     eliminates: true,
     grade: (value) => (normalize(value) === normalize(question.answer) ? WORD_ASSEMBLY_MATCH_POINTS : 0),
   }))
-  return WORD_ASSEMBLY_QUESTIONS.map((question, index) =>
-    exactQuestion(
-      question.id,
-      index + 1,
-      question.prompt,
-      'Name the picture shown on the matching cards.',
-      question.answer,
-      WORD_ASSEMBLY_MATCH_POINTS
-    )
-  )
+
 }
 
 /**
@@ -118,7 +86,7 @@ function wordAssemblyQuestions(): ChallengeQuestion[] {
  */
 function jawsQuestions(): ChallengeQuestion[] {
   const bank = getGameQuestions('jaws-of-risk')
-  if (bank.length > 0) return bank.map((question, index) => ({
+  return bank.map((question, index) => ({
     id: question.id,
     number: index + 1,
     prompt: question.prompt,
@@ -127,14 +95,7 @@ function jawsQuestions(): ChallengeQuestion[] {
     eliminates: true,
     grade: (value) => (normalize(value) === normalize(question.answer) ? JAWS_HIT_POINTS : 0),
   }))
-  return Array.from({ length: JAWS_TOOTH_COUNT }, (_, index) => ({
-    id: `jaw-question-${index + 1}`,
-    number: index + 1,
-    prompt: `Is tooth ${index + 1} loose or firm?`,
-    hint: 'Type loose or firm.',
-    eliminates: true,
-    grade: (value) => (normalize(value) === 'loose' ? JAWS_HIT_POINTS : -JAWS_FALSE_FLAG_PENALTY),
-  }))
+
 }
 
 /**

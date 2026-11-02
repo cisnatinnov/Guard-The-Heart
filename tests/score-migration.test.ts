@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { initDatabase } from '../src/db/sequelize-provider'
 import { initializeAppDatabase } from '../src/db/database'
-import { Challenge, ChallengePoint, GPTransaction, Team, ChallengeAnswer, defineModels } from '../src/models'
+import { Challenge, ChallengePoint, GPTransaction, Team, ChallengeAnswer, GameQuestion, defineModels } from '../src/models'
 
 it('migrates an existing raw challenge_point into score without replacing teams or ledger history',async()=>{
  const sequelize=await initDatabase()
@@ -16,7 +16,13 @@ it('migrates an existing raw challenge_point into score without replacing teams 
  await GPTransaction.create({team:team.id,team_name:team.name,challenge:challenge.id,challenge_name:challenge.name,source_key:`attack:${challenge.id}:${team.id}`,category:'attack',gp_before:8,delta:-2,gp_after:6,description:'Existing attack history'})
  await sequelize.getQueryInterface().bulkInsert('challenge_point',[{id,team:team.id,challenge:challenge.id,rank:1,challenge_point:77,guard_power:3,createdAt:timestamp,updatedAt:timestamp}])
  await sequelize.getQueryInterface().bulkInsert('challenge_answer',[{id:'legacy-answer', challenge:challenge.id,team:team.id,correct:false,pressing_team:team.id,settled:false,bitten:null,createdAt:timestamp,updatedAt:timestamp}])
+ await GameQuestion.create({id:'jaws-of-risk-001', game_key:'jaws-of-risk', number:1, prompt:'Preserved legacy question', answer:'A', options:'["A","B","C","D"]', kind:'choice', hint:'Legacy topic'})
+ // Simulate an older schema without Sequelize's composite-index table rebuild.
+ await sequelize.query('ALTER TABLE game_question DROP COLUMN explanation')
  await initializeAppDatabase()
+ expect(await GameQuestion.findByPk('jaws-of-risk-001')).toMatchObject({game_key:'match-card',number:72,prompt:'Preserved legacy question',answer:'A'})
+ expect(await GameQuestion.count({where:{game_key:'image-decode'}})).toBe(69)
+ expect(await GameQuestion.count({where:{game_key:'match-card'}})).toBe(140)
  expect(await ChallengeAnswer.findByPk('legacy-answer')).toMatchObject({press_count:0, matching_deadline:null, matching_pairs:'[]', settled:false})
  const entry=await ChallengePoint.findByPk(id)
  expect(entry).toMatchObject({team:team.id,challenge:challenge.id,score:77,challenge_point:3,guard_power:3})

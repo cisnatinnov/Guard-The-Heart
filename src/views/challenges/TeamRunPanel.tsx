@@ -1,3 +1,4 @@
+import { useQuestionBank } from '../../hooks/useQuestionBank'
 import { QuestionPicker } from './QuestionPicker'
 import { publishDecodeAnswer } from '../../hooks/useDecodeAnswer'
 import { ChallengeTurnOrder } from './ChallengeTurnOrder'
@@ -50,6 +51,7 @@ export function TeamRunPanel({
   onStartRun,
   onUpdateRun,
 }: TeamRunPanelProps) {
+  useQuestionBank()
   const { teams } = useTeams()
   const turnOrder = useTurnOrder()
   const activeTeamId = useActiveTeam()

@@ -16,30 +16,24 @@ export interface GameQuestionRecord {
   answerSlide?: number
   answerLetter?: string
 }
+export type QuestionBankKey = 'image-decode' | 'match-card'
+export function questionBankKey(key: string): string { return key === 'jaws-of-risk' ? 'match-card' : key }
 
-const bank = new Map<string, GameQuestionRecord[]>()
-
-export function replaceGameQuestionCache(rows: GameQuestionRecord[]): void {
-  bank.clear()
-  for (const row of rows) {
-    const current = bank.get(row.game_key) ?? []
-    current.push(row)
-    bank.set(row.game_key, current)
-  }
-  for (const items of bank.values()) items.sort((a, b) => a.number - b.number)
+export const bundledQuestions: GameQuestionRecord[] = [
+  ...reference.imageDecode.map(q => ({ ...q, id: `image-decode-${String(q.number).padStart(3, '0')}`, game_key: 'image-decode', kind: 'decode' as const })),
+  ...reference.matchCard.map(q => ({ ...q, id: `match-card-${String(q.number).padStart(3, '0')}`, game_key: 'match-card', kind: 'choice' as const })),
+  ...reference.jawsOfRisk.map(q => ({ ...q, id: `jaws-of-risk-${String(q.number).padStart(3, '0')}`, number: reference.matchCard.length + q.number, game_key: 'match-card', kind: 'choice' as const })),
+]
+let rows: GameQuestionRecord[] | undefined
+let revision = 0
+const listeners = new Set<() => void>()
+export const subscribeQuestions = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } }
+export const questionRevision = () => revision
+export function replaceGameQuestionCache(next: GameQuestionRecord[]): void {
+  rows = [...next].sort((a, b) => a.number - b.number)
+  revision++
+  listeners.forEach(listener => listener())
 }
-
 export function getGameQuestions(gameKey: string): GameQuestionRecord[] {
-  const referenceRows = gameKey === 'match-card' ? reference.matchCard
-    : gameKey === 'jaws-of-risk' ? reference.jawsOfRisk
-    : gameKey === 'image-decode' ? reference.imageDecode : undefined
-  if (!referenceRows) return bank.get(gameKey) ?? []
-  // The specified slide ranges also serve callers before database startup.
-  return referenceRows.map((source) => ({
-    ...source,
-    ...bank.get(gameKey)?.find((row) => row.number === source.number),
-    id: `${gameKey}-${String(source.number).padStart(3, '0')}`,
-    game_key: gameKey,
-    kind: gameKey === 'image-decode' ? 'decode' : 'choice',
-  }))
+  return (rows ?? bundledQuestions).filter(row => row.game_key === questionBankKey(gameKey))
 }

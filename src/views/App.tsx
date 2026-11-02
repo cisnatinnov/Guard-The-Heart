@@ -1,3 +1,4 @@
+import { QuestionBankView } from './QuestionBankView'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useDatabase } from '../hooks/useDatabase'
 
@@ -84,6 +85,7 @@ function EventRoutes() {
             <Route path="/admin/timer" element={<Navigate to="/admin/challenges" replace />} />
             <Route path="/admin/presentation" element={<MainPresentationView admin />} />
             <Route path="/admin/challenges" element={<ChallengeView />} />
+            <Route path="/admin/questions" element={<QuestionBankView />} />
             <Route path="/admin/scoreboard/:challengeId?" element={<ChallengePointAdminView />} />
             <Route path="/admin/leaderboard" element={<ScoreboardTotalAdminView />} />
             <Route path="/admin/heart-of-awareness" element={<HeartAwarenessView admin />} />
